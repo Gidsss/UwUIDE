@@ -1,34 +1,8 @@
 from sys import argv
 from pathlib import Path
 from typing import NamedTuple
-
-ATOMS = {
-    'num': ['1','2','3','4','5','6','7','8','9'],
-    'number': ['0','1','2','3','4','5','6','7','8','9'],
-    'alpha': [
-        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-    ],
-}
-
-DELIMS = {
-    'end': ['~'],
-    'data_type': [',', '(', ')', ' ', '~', '='],
-    'bool': [',', ' ', '}', ')', '~'],
-    'line': [None],
-    'assign_delim': [*ATOMS['number'], *ATOMS['alpha'], '{', ' ', '-' '('],
-    'logical_delim': ['"', *ATOMS['number'], *ATOMS['alpha'], ' ', '-', '('],
-    'id': [' ', '~', ',', '(', ')', '[', ']', '{', '}', '+', '-', '*', r'/', r'%', '.', '!' ,'&', '|' , '>', '<', '='],
-    'operator': [*ATOMS['alpha'], *ATOMS['number'], ' ', '-', '('],
-    'unary': ['~', '(']
-
-}
-
-class Token(NamedTuple):
-    lexeme: str
-    token: str
-    position: tuple[int,int]
-    end_position: tuple[int,int]
+from constants.constants import DELIMS
+from .token import Token
 
 class Lexer():
     'description'
