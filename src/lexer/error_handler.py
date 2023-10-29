@@ -2,9 +2,13 @@ from enum import Enum
 
 
 class ErrorType(Enum):
-    UNTERMINATED_ID = "UNTERMINATED IDENTIFIER"
-    UNTERMINATED_OPERATOR = "UNTERMINATED OPERATOR"
-    UNTERMINATED_KEYWORD = "UNTERMINATED KEYWORD"
+    ID = "UNTERMINATED IDENTIFIER"
+    OPERATOR = "UNTERMINATED OPERATOR"
+    KEYWORD = "UNTERMINATED KEYWORD"
+    BWEAK = "UNTERMINATED BWEAK"
+    DATA_TYPE = "UNTERMINATED DATA TYPE"
+    BOOL = "UNTERMINATED BOOL VALUE"
+    UNARY = "UNTERMINATED UNARY OPERATOR"
 
 
 class Error:
@@ -19,7 +23,7 @@ class Error:
     def __str__(self):
         log = ""
 
-        log += f"[{self.error_type}] Error on line {self.position[0]} column {self.position[1]}:\n"
+        log += f"[{self.error_type.value}] Error on line {self.position[0]} column {self.position[1]}:\n"
         log += f"\texpected any of these characters: "
 
         for delim in self.expected_delims:
