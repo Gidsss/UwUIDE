@@ -64,7 +64,7 @@ class Lexer():
                 cursor_advanced, is_end_of_file = self._peek(
                     "bweak", "RESERVED_WORD",
                     'end',
-                    'UNTERMINATED BREAK'
+                    ErrorType.BWEAK
                 )
                 if cursor_advanced:
                     continue
@@ -73,7 +73,7 @@ class Lexer():
                 cursor_advanced, is_end_of_file = self._peek(
                     'chan', 'INT_DATA_TYPE',
                     'data_type',
-                    'UNTERMINATED DATA TYPE'
+                    ErrorType.DATA_TYPE
                 )
                 if cursor_advanced:
                     continue
@@ -81,8 +81,9 @@ class Lexer():
                 cursor_advanced, is_end_of_file = self._peek(
                     'cap', 'BOOLEAN_VALUE',
                     'bool',
-                    "UNTERMINATED BOOL VALUE: 'cap'"
+                    ErrorType.BOOL
                 )
+
                 if cursor_advanced:
                     continue
             
@@ -91,7 +92,7 @@ class Lexer():
                 cursor_advanced, is_end_of_file = self._peek(
                     '--', 'UNARY_OPERATOR',
                     'unary',
-                    'UNTERMINATED UNARY OPERATOR'
+                    ErrorType.UNARY
                 )
                 if cursor_advanced:
                     continue
@@ -137,9 +138,8 @@ class Lexer():
 
                         if is_end_of_file or self._position[0] != current_line:
                             self._reverse()
-                            _pos = self._position
-                            _pos[1] += 1
-                            self.errors.append(Error(ErrorType.UNTERMINATED_ID, _pos, temp_id, DELIMS['id'], r'\n'))
+                            line, col = self._position
+                            self.errors.append(Error(ErrorType.ID, (line, col + 1), temp_id, DELIMS['id'], r'\n'))
                             break
             
             if is_end_of_file:
@@ -226,7 +226,7 @@ class Lexer():
         return is_delim, next_char
 
     def _peek(self, to_check: str, token: str,
-              delim_id: str, error_type: str, 
+              delim_id: str, error_type: str,
               before: bool = False, ignore_space: bool = False) -> tuple[bool,bool]:
         '''
         Main process
@@ -303,9 +303,8 @@ class Lexer():
             if next_char_is_correct_delim:
                 self._tokens.append(Token(lexeme, token, starting_position, ending_position))
             else:
-                _pos = list(ending_position)
-                _pos[1] += 1
-                self.errors.append(Error(ErrorType.UNTERMINATED_ID, _pos, lexeme, DELIMS[delim_id], delim))
+                line, col = ending_position
+                self.errors.append(Error(error_type, (line, col+1), lexeme, DELIMS[delim_id], delim))
             
             is_end_of_file = self._advance()
             cursor_advanced = True
