@@ -38,6 +38,6 @@ class Token:
     def end_position(self) -> tuple[int,int]:
         return self._end_position
     
-    @position.setter
+    @end_position.setter
     def end_position(self, end_position: tuple[int,int]):
         self._end_position = end_position
