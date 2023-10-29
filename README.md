@@ -20,7 +20,7 @@ Automata Project for 3rd Year
 
 ```bash
 python -m run install
-python -m run uninstall.
+python -m run uninstall
 ```
 
 2. To install | uninstall individual packages
