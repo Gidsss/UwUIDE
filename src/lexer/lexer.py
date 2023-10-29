@@ -1,35 +1,10 @@
 from sys import argv
 from pathlib import Path
-from typing import NamedTuple
+
+from constants.constants import DELIMS
+from .token import Token
 from .error_handler import *
 
-ATOMS = {
-    'num': ['1','2','3','4','5','6','7','8','9'],
-    'number': ['0','1','2','3','4','5','6','7','8','9'],
-    'alpha': [
-        'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-        'A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z',
-    ],
-}
-
-DELIMS = {
-    'end': ['~'],
-    'data_type': [',', '(', ')', ' ', '~', '='],
-    'bool': [',', ' ', '}', ')', '~'],
-    'line': [None],
-    'assign_delim': [*ATOMS['number'], *ATOMS['alpha'], '{', ' ', '-' '('],
-    'logical_delim': ['"', *ATOMS['number'], *ATOMS['alpha'], ' ', '-', '('],
-    'id': [' ', '~', ',', '(', ')', '[', ']', '{', '}', '+', '-', '*', r'/', r'%', '.', '!' ,'&', '|' , '>', '<', '='],
-    'operator': [*ATOMS['alpha'], *ATOMS['number'], ' ', '-', '('],
-    'unary': ['~', '(']
-
-}
-
-class Token(NamedTuple):
-    lexeme: str
-    token: str
-    position: tuple[int,int]
-    end_position: tuple[int,int]
 
 class Lexer():
     'description'
@@ -128,7 +103,7 @@ class Lexer():
                         if self._current_char in DELIMS['id']:
                             self._reverse()
 
-                            starting_position = tuple([self._position[0], self._position[1]-len(temp_id)-1])
+                            starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                             ending_position = tuple([self._position[0], self._position[1]])
                             self._tokens.append(Token(temp_id, "IDENTIFIER", starting_position, ending_position))
                             break
