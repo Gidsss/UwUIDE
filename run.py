@@ -1,5 +1,5 @@
 """
-This script serves a package manager that mainly checks dependencies and run subprocesses for install, build, and test.
+This script serves a package manager that mainly checks dependencies and run subprocesses for install, uninstall, build, and test.
 
 To use this, simply run this command in the command line:
 
@@ -100,9 +100,9 @@ if __name__ == '__main__':
     args = sys.argv[1:]
 
     if len(args) == 0:
-        raise TypeError("Please specify which script to run. (install | build | test)")
+        raise TypeError("Please specify which script to run. (install | uninstall | build | test)")
     
     try:
         globals()[args[0]](pm, *args[1:])
     except KeyError:
-        raise KeyError(f"Cannot call function {args[0]}. It should be of type (install | build | test)")
+        raise KeyError(f"Cannot call function {args[0]}. It should be of type (install | uninstall | build | test)")
