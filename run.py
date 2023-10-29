@@ -34,8 +34,6 @@ class PackageManager():
         with open('requirements.txt', 'w') as file:
             file.write(clean_output)
 
-        
-
 # Install dependencies
 def install(pm: PackageManager, package_name = None) -> None:
     """
