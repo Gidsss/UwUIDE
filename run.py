@@ -11,9 +11,9 @@ import subprocess
 import importlib
 
 class PackageManager():
-    def run_subprocess(self, commands: list[str], script, cwd=None) -> None:
+    def run_subprocess(self, commands: list[str], script) -> None:
         try:
-            subprocess.run([*commands, script], check=True, cwd=cwd)
+            subprocess.run([*commands, script], check=True)
         except subprocess.CalledProcessError as e:
             print(f"Error: {e}")
 
