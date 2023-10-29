@@ -16,8 +16,26 @@ Automata Project for 3rd Year
 
 ## UwU IDE Package Manager
 
-1. To install | uninstall packages from `requirements.txt` - `python -m run install` or `python -m run uninstall`.
+1. To install | uninstall packages from `requirements.txt`
+
+```bash
+python -m run install
+python -m run uninstall.
+```
+
 2. To install | uninstall individual packages - `python -m install < package name >` or `python -m run uninstall < package name >`
-3. To run all tests - `python -m run test`
+
+```bash
+python -m install < package name >
+python -m run uninstall < package name >
+```
+
+3. To run all tests `python -m run test`
 4. To run a specific test - `python -m run test test_*` or `python -m run test *_test`
-5. To build UwU IDE - `python -m run build`
+
+```bash
+python -m run test test_*
+python -m run test *_test
+```
+
+5. To build UwU IDE `python -m run build`
