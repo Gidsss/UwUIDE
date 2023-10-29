@@ -96,7 +96,7 @@ class Lexer():
                         if self._current_char in DELIMS['id']:
                             self._reverse()
 
-                            starting_position = tuple([self._position[0], self._position[1]-len(temp_id)-1])
+                            starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                             ending_position = tuple([self._position[0], self._position[1]])
                             self._tokens.append(Token(temp_id, "IDENTIFIER", starting_position, ending_position))
                             break
