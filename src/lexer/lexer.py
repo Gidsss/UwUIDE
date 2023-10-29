@@ -43,13 +43,17 @@ class Lexer():
         self._nest_level = 0
 
         self._tokens: list[Token] = []
-        self._errors: list = []
+        self._errors: list[Error] = []
 
         self._get_tokens()
 
     @property
     def tokens(self) -> list[Token]:
         return self._tokens
+
+    @property
+    def errors(self):
+        return self._errors
 
     def _get_tokens(self):
         is_end_of_file = False
@@ -135,7 +139,7 @@ class Lexer():
                             self._reverse()
                             _pos = self._position
                             _pos[1] += 1
-                            self._errors.append(Error(ErrorType.UNTERMINATED_ID, _pos, temp_id, DELIMS['id'], r'\n'))
+                            self.errors.append(Error(ErrorType.UNTERMINATED_ID, _pos, temp_id, DELIMS['id'], r'\n'))
                             break
             
             if is_end_of_file:
@@ -301,7 +305,7 @@ class Lexer():
             else:
                 _pos = list(ending_position)
                 _pos[1] += 1
-                self._errors.append(Error(ErrorType.UNTERMINATED_ID, _pos, lexeme, DELIMS[delim_id], delim))
+                self.errors.append(Error(ErrorType.UNTERMINATED_ID, _pos, lexeme, DELIMS[delim_id], delim))
             
             is_end_of_file = self._advance()
             cursor_advanced = True
@@ -322,7 +326,7 @@ class Lexer():
         pass
 
     def print_error_logs(self):
-        for error in self._errors:
+        for error in self.errors:
             print(error)
 
     def _is_func_name(self) -> bool:
