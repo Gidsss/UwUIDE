@@ -1,8 +1,10 @@
 from sys import argv
 from pathlib import Path
-from typing import NamedTuple
+
 from constants.constants import DELIMS
 from .token import Token
+from .error_handler import *
+
 
 class Lexer():
     'description'
@@ -16,13 +18,17 @@ class Lexer():
         self._nest_level = 0
 
         self._tokens: list[Token] = []
-        self._errors: list
+        self._errors: list[Error] = []
 
         self._get_tokens()
 
     @property
     def tokens(self) -> list[Token]:
         return self._tokens
+
+    @property
+    def errors(self):
+        return self._errors
 
     def _get_tokens(self):
         is_end_of_file = False
@@ -33,7 +39,7 @@ class Lexer():
                 cursor_advanced, is_end_of_file = self._peek(
                     "bweak", "RESERVED_WORD",
                     'end',
-                    'UNTERMINATED BREAK'
+                    ErrorType.BWEAK
                 )
                 if cursor_advanced:
                     continue
@@ -42,7 +48,7 @@ class Lexer():
                 cursor_advanced, is_end_of_file = self._peek(
                     'chan', 'INT_DATA_TYPE',
                     'data_type',
-                    'UNTERMINATED DATA TYPE'
+                    ErrorType.DATA_TYPE
                 )
                 if cursor_advanced:
                     continue
@@ -50,8 +56,9 @@ class Lexer():
                 cursor_advanced, is_end_of_file = self._peek(
                     'cap', 'BOOLEAN_VALUE',
                     'bool',
-                    "UNTERMINATED BOOL VALUE: 'cap'"
+                    ErrorType.BOOL
                 )
+
                 if cursor_advanced:
                     continue
             
@@ -60,7 +67,7 @@ class Lexer():
                 cursor_advanced, is_end_of_file = self._peek(
                     '--', 'UNARY_OPERATOR',
                     'unary',
-                    'UNTERMINATED UNARY OPERATOR'
+                    ErrorType.UNARY
                 )
                 if cursor_advanced:
                     continue
@@ -106,10 +113,8 @@ class Lexer():
 
                         if is_end_of_file or self._position[0] != current_line:
                             self._reverse()
-                            self._print_delim_error(
-                                temp_id=temp_id, error_type=f"UNTERMINATED IDENTIFIER: '{temp_id}'",
-                                line=self._position[0], column=self._position[1]+1, 
-                                expected_delims=DELIMS['id'], delim=r'\n')
+                            line, col = self._position
+                            self._errors.append(Error(ErrorType.ID, (line, col + 1), temp_id, DELIMS['id'], r'\n'))
                             break
             
             if is_end_of_file:
@@ -196,7 +201,7 @@ class Lexer():
         return is_delim, next_char
 
     def _peek(self, to_check: str, token: str,
-              delim_id: str, error_type: str, 
+              delim_id: str, error_type: str,
               before: bool = False, ignore_space: bool = False) -> tuple[bool,bool]:
         '''
         Main process
@@ -273,10 +278,8 @@ class Lexer():
             if next_char_is_correct_delim:
                 self._tokens.append(Token(lexeme, token, starting_position, ending_position))
             else:
-                self._print_delim_error(
-                    temp_id=lexeme, error_type=error_type,
-                    line=ending_position[0], column=ending_position[1]+1, 
-                    expected_delims=DELIMS[delim_id], delim=delim)
+                line, col = ending_position
+                self._errors.append(Error(error_type, (line, col+1), lexeme, DELIMS[delim_id], delim))
             
             is_end_of_file = self._advance()
             cursor_advanced = True
@@ -295,18 +298,11 @@ class Lexer():
         can go until end of file if "EOF" is passed as multi_line_count
         '''
         pass
-    
-    def _print_delim_error(self, line: int, column: int, expected_delims: list[str], delim: str, temp_id: str, error_type: str = ''):
-        print(f"[{error_type if error_type else 'FATAL'}] Error on line {line} column {column}:", end="\n\t")
-        print(f"expected any of these characters:", end=" ")
 
-        for delimiter in expected_delims:
-            delimiter = delimiter if delimiter != " " else "WHITESPACE"
-            print(f"{delimiter}", end=' ')
+    def print_error_logs(self):
+        for error in self.errors:
+            print(error)
 
-        print(end="\n\t")
-        print(f"after '{temp_id}' but got '{delim}' instead", end='\n\n')
-    
     def _is_func_name(self) -> bool:
         """
         check if not a valid function name by looking for fwunc before the current character but parenthesis don't exist after don't
@@ -367,6 +363,7 @@ def print_lex(source_code: list[str]):
     print("_"*20)
     print('end of file\n')
     x = Lexer(source_code)
+    x.print_error_logs()
     print("\n\n","#"*30,"\nlexeme\ttoken\t\trange")
     for token in x.tokens:
         print(f"{token.lexeme}", end="\t")
