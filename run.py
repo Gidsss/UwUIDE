@@ -9,7 +9,6 @@ To use this, simply run this command in the command line:
 import sys
 import subprocess
 import importlib
-from pathlib import Path
 
 class PackageManager():
     def run_subprocess(self, commands: list[str], script) -> None:
@@ -25,6 +24,17 @@ class PackageManager():
             print(f"{package_name} is installed.")
         except ImportError:
             raise ImportError(f"{package_name} is not installed!")
+    
+    def update_requirements(self):
+        proc = subprocess.Popen(['pip', 'freeze'], stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+
+        output, _ = proc.communicate()
+        clean_output = "\n".join(line.strip() for line in output.decode().split('\n'))
+
+        with open('requirements.txt', 'w') as file:
+            file.write(clean_output)
+
+        
 
 # Install dependencies
 def install(pm: PackageManager, package_name = None) -> None:
@@ -39,6 +49,7 @@ def install(pm: PackageManager, package_name = None) -> None:
 
     if package_name is not None:
         pm.run_subprocess(commands, package_name)
+        pm.update_requirements()
     else:
         pm.run_subprocess([*commands, '-r'], 'requirements.txt')
 
@@ -55,6 +66,7 @@ def uninstall(pm: PackageManager, package_name = None) -> None:
 
     if package_name is not None:
         pm.run_subprocess(commands, package_name)
+        pm.update_requirements()
     else:
         pm.run_subprocess([*commands, '-r'], 'requirements.txt')
 
