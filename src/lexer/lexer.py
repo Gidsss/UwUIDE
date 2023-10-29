@@ -1,7 +1,7 @@
 from sys import argv
 from pathlib import Path
 from typing import NamedTuple
-from error_handler import *
+from .error_handler import *
 
 ATOMS = {
     'num': ['1','2','3','4','5','6','7','8','9'],
@@ -139,7 +139,7 @@ class Lexer():
                         if is_end_of_file or self._position[0] != current_line:
                             self._reverse()
                             line, col = self._position
-                            self.errors.append(Error(ErrorType.ID, (line, col + 1), temp_id, DELIMS['id'], r'\n'))
+                            self._errors.append(Error(ErrorType.ID, (line, col + 1), temp_id, DELIMS['id'], r'\n'))
                             break
             
             if is_end_of_file:
@@ -304,7 +304,7 @@ class Lexer():
                 self._tokens.append(Token(lexeme, token, starting_position, ending_position))
             else:
                 line, col = ending_position
-                self.errors.append(Error(error_type, (line, col+1), lexeme, DELIMS[delim_id], delim))
+                self._errors.append(Error(error_type, (line, col+1), lexeme, DELIMS[delim_id], delim))
             
             is_end_of_file = self._advance()
             cursor_advanced = True
