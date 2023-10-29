@@ -8,6 +8,10 @@ if SYSTEM == 'Darwin': # for macOS
     COMMAND = 'python3'
 
 @task
+def install(c):
+    c.run(f"{COMMAND} -m pip install -r requirements.txt")
+    
+@task
 def test(c, file = None):
     print('Running Tests...')
     if file is not None:
