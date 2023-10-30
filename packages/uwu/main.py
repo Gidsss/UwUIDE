@@ -86,7 +86,6 @@ def build(ct: ConsoleTools) -> None:
     """ 
     print('Building UwU IDE...')
     ct.run_subprocess([sys.executable, '-m'], 'src.uwu')
-    print('Build successful...')
 
 # Run pytest
 def test(ct: ConsoleTools, filename = None) -> None:
