@@ -3,14 +3,14 @@ This script serves a package manager that mainly checks dependencies and run sub
 
 To use this, simply run this command in the command line:
 
-    uwu < install | uninstall | build | test > < optional params >
+    python -m run < install | uninstall | build | test > < optional params >
 """
 
 import sys
 import subprocess
 import importlib
 
-class ConsoleTools():
+class PackageManager():
     def run_subprocess(self, commands: list[str], script) -> None:
         try:
             subprocess.run([*commands, script], check=True)
@@ -35,82 +35,74 @@ class ConsoleTools():
             file.write(clean_output)
 
 # Install dependencies
-def install(ct: ConsoleTools, package_name = None) -> None:
+def install(pm: PackageManager, package_name = None) -> None:
     """
     This function can install packages from requirements.txt or one by one.
 
-    uwu install
-    uwu install < package name >
+    python -m run install
+    python -m run install < package name >
     """
+    pm.check_dependency('pip')
     commands = ['pip', 'install']
 
     if package_name is not None:
-        ct.run_subprocess(commands, package_name)
-        ct.update_requirements()
+        pm.run_subprocess(commands, package_name)
+        pm.update_requirements()
     else:
-        ct.run_subprocess([*commands, '-r'], 'requirements.txt')
+        pm.run_subprocess([*commands, '-r'], 'requirements.txt')
 
 # Uninstall dependencies
-def uninstall(ct: ConsoleTools, package_name = None) -> None:
+def uninstall(pm: PackageManager, package_name = None) -> None:
     """
     This function can uninstall packages from requirements.txt or one by one.
 
-    uwu uninstall
-    uwu uninstall < package name >
+    python -m run uninstall
+    python -m run uninstall < package name >
     """
+    pm.check_dependency('pip')
     commands = ['pip', 'uninstall']
 
     if package_name is not None:
-        ct.run_subprocess(commands, package_name)
-        ct.update_requirements()
+        pm.run_subprocess(commands, package_name)
+        pm.update_requirements()
     else:
-        ct.run_subprocess([*commands, '-r'], 'requirements.txt')
-
-def lexer(ct: ConsoleTools) -> None:
-    """
-    This function can run lexer package.
-
-    uwu lexer
-    """  
-    print('Running lexer package...')
-    ct.run_subprocess([sys.executable, '-m'], 'src.lexer')
+        pm.run_subprocess([*commands, '-r'], 'requirements.txt')
 
 # Run IDE
-def build(ct: ConsoleTools) -> None:      
+def build(pm: PackageManager) -> None:      
     """
     This function can build the UwU IDE.
 
-    uwu build
-    """ 
-    print('Building UwU IDE...')
-    ct.run_subprocess([sys.executable, '-m'], 'src.uwu')
+    python -m run build
+    """  
+    pm.run_subprocess([sys.executable, '-m'], 'src.uwu')
 
 # Run pytest
-def test(ct: ConsoleTools, filename = None) -> None:
+def test(pm: PackageManager, filename = None) -> None:
     """
     This function can run pytest.
 
-    uwu test
-    uwu test test_*
-    uwu test *_test
+    python -m run test
+    python -m run test test_*
+    python -m run test *_test
     """
-    ct.check_dependency('pytest')
+    pm.check_dependency('pytest')
 
     script = 'test/'
 
     if filename is not None:
         script += f"{filename}.py"
     
-    ct.run_subprocess(["pytest"], script)
+    pm.run_subprocess(["pytest"], script)
 
-def run():
-    ct = ConsoleTools()
+if __name__ == '__main__':
+    pm = PackageManager()
     args = sys.argv[1:]
 
     if len(args) == 0:
         raise TypeError("Please specify which script to run. (install | uninstall | build | test)")
     
     try:
-        globals()[args[0]](ct, *args[1:])
+        globals()[args[0]](pm, *args[1:])
     except KeyError:
         raise KeyError(f"Cannot call function {args[0]}. It should be of type (install | uninstall | build | test)")
