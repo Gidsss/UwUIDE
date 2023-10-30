@@ -40,4 +40,6 @@ uwu test test_*
 uwu test *_test
 ```
 
-6. To build UwU IDE `uwu build`
+6. To run lexer package `uwu lexer`
+
+7. To build UwU IDE `uwu build`
