@@ -5,17 +5,35 @@ from enum import Enum
 
 class TokenTypes(Enum):
     class TokenType:
-        def __init__(self, lexeme: str, token: str, delim_id: str, error_type: str):
-            self.lexeme = lexeme
+        def __init__(self, token: str, delim_id: str, error_type=None):
             self.token = token
             self.delim_id = delim_id
-            self.error_type = error_type
+
+            self.error_type = f"UNTERMINATED {self.token.replace('_', ' ')}" if error_type is None else error_type
 
     BWEAK = TokenType(
-        "bweak",
-        "BWEAK KEYWORD",
-        "end",
-        "UNTERMINATED BWEAK"
+        "BWEAK_KEYWORD",
+        "end"
+    )
+
+    CHAN = TokenType(
+        "CHAN_DATA_TYPE",
+        "data_type"
+    )
+
+    BOOL_LITERAL = TokenType(
+        "BOOLEAN_LITERAL",
+        "bool"
+    )
+
+    UNARY_OPERATOR = TokenType(
+        "UNARY_OPERATOR",
+        "unary"
+    )
+
+    IDENTIFIER = TokenType(
+        "IDENTIFIER",
+        "id"
     )
 
 
