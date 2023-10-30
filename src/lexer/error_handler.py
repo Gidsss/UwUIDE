@@ -1,13 +1,16 @@
-from enum import Enum
+from .token import TokenTypes
+
 
 class Error:
-    def __init__(self, error_type: str, position: tuple[int], temp_id: str,
-                 expected_delims: list[str], actual_delim: str):
-        self.error_type = error_type if error_type else "FATAL"
+    def __init__(self, token_type: TokenTypes.TokenType, position: tuple[int], temp_id: str, actual_delim: str,
+                 fatal=False):
+        self.token_type = token_type
         self.position = position
         self.temp_id = temp_id
-        self.expected_delims = expected_delims
         self.actual_delim = actual_delim
+
+        self.error_type = token_type.error_type if not fatal else "FATAL"
+        self.expected_delims = token_type.expected_delims
 
     def __str__(self):
         log = ""
@@ -21,4 +24,3 @@ class Error:
         log += f"\n\tafter {self.temp_id} but got {self.actual_delim} instead\n"
 
         return log
-

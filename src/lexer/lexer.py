@@ -2,8 +2,8 @@ from sys import argv
 from pathlib import Path
 
 from constants.constants import DELIMS
-from .token import Token
-from .error_handler import *
+from .token import Token, TokenTypes
+from .error_handler import Error
 
 
 class Lexer():
@@ -36,39 +36,23 @@ class Lexer():
         
         while not is_end_of_file:
             if self._current_char == 'b':
-                cursor_advanced, is_end_of_file = self._peek(
-                    "bweak", "RESERVED_WORD",
-                    'end',
-                    ErrorType.BWEAK
-                )
+                cursor_advanced, is_end_of_file = self._peek("bweak", TokenTypes.BWEAK)
                 if cursor_advanced:
                     continue
 
             if self._current_char == 'c':
-                cursor_advanced, is_end_of_file = self._peek(
-                    'chan', 'INT_DATA_TYPE',
-                    'data_type',
-                    ErrorType.DATA_TYPE
-                )
+                cursor_advanced, is_end_of_file = self._peek('chan', TokenTypes.CHAN)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek(
-                    'cap', 'BOOLEAN_VALUE',
-                    'bool',
-                    ErrorType.BOOL
-                )
+                cursor_advanced, is_end_of_file = self._peek('cap', TokenTypes.BOOL_LITERAL)
 
                 if cursor_advanced:
                     continue
             
             if self._current_char == '-':
                 # check if unary first
-                cursor_advanced, is_end_of_file = self._peek(
-                    '--', 'UNARY_OPERATOR',
-                    'unary',
-                    ErrorType.UNARY
-                )
+                cursor_advanced, is_end_of_file = self._peek('--', TokenTypes.UNARY_OPERATOR)
                 if cursor_advanced:
                     continue
                 
@@ -105,7 +89,7 @@ class Lexer():
 
                             starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                             ending_position = tuple([self._position[0], self._position[1]])
-                            self._tokens.append(Token(temp_id, "IDENTIFIER", starting_position, ending_position))
+                            self._tokens.append(Token(temp_id, TokenTypes.IDENTIFIER, starting_position, ending_position))
                             break
 
                         temp_id += self._current_char
@@ -114,7 +98,7 @@ class Lexer():
                         if is_end_of_file or self._position[0] != current_line:
                             self._reverse()
                             line, col = self._position
-                            self._errors.append(Error(ErrorType.ID, (line, col + 1), temp_id, DELIMS['id'], r'\n'))
+                            self._errors.append(Error(TokenTypes.IDENTIFIER, (line, col + 1), temp_id, r'\n'))
                             break
             
             if is_end_of_file:
@@ -200,8 +184,7 @@ class Lexer():
             
         return is_delim, next_char
 
-    def _peek(self, to_check: str, token: str,
-              delim_id: str, error_type: str,
+    def _peek(self, to_check: str, token_type: TokenTypes.TokenType,
               before: bool = False, ignore_space: bool = False) -> tuple[bool,bool]:
         '''
         Main process
@@ -274,12 +257,12 @@ class Lexer():
                 self._advance(end[1]-column-1)
                 
             lexeme = to_check
-            next_char_is_correct_delim, delim = self._verify_delim(DELIMS[delim_id])
+            next_char_is_correct_delim, delim = self._verify_delim(DELIMS[token_type.delim_id])
             if next_char_is_correct_delim:
-                self._tokens.append(Token(lexeme, token, starting_position, ending_position))
+                self._tokens.append(Token(lexeme, token_type, starting_position, ending_position))
             else:
                 line, col = ending_position
-                self._errors.append(Error(error_type, (line, col+1), lexeme, DELIMS[delim_id], delim))
+                self._errors.append(Error(token_type, (line, col+1), lexeme, delim))
             
             is_end_of_file = self._advance()
             cursor_advanced = True

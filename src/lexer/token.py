@@ -1,40 +1,27 @@
-from enum import Enum
-from enum import Enum
-from enum import Enum
+from constants.constants import DELIMS
 
 
-class TokenTypes(Enum):
+class TokenTypes():
     class TokenType:
         def __init__(self, token: str, delim_id: str, error_type=None):
             self.token = token
             self.delim_id = delim_id
-
             self.error_type = f"UNTERMINATED {self.token.replace('_', ' ')}" if error_type is None else error_type
 
-    BWEAK = TokenType(
-        "BWEAK_KEYWORD",
-        "end"
-    )
+            self.expected_delims = DELIMS[self.delim_id]
 
-    CHAN = TokenType(
-        "CHAN_DATA_TYPE",
-        "data_type"
-    )
+        def __str__(self):
+            return self.token
 
-    BOOL_LITERAL = TokenType(
-        "BOOLEAN_LITERAL",
-        "bool"
-    )
+    BWEAK = TokenType("BWEAK_KEYWORD", "end")
 
-    UNARY_OPERATOR = TokenType(
-        "UNARY_OPERATOR",
-        "unary"
-    )
+    CHAN = TokenType("CHAN_DATA_TYPE", "data_type")
 
-    IDENTIFIER = TokenType(
-        "IDENTIFIER",
-        "id"
-    )
+    BOOL_LITERAL = TokenType("BOOLEAN_LITERAL", "bool")
+
+    UNARY_OPERATOR = TokenType("UNARY_OPERATOR", "unary")
+
+    IDENTIFIER = TokenType("IDENTIFIER", "id")
 
 
 class Token:
