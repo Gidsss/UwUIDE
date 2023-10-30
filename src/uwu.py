@@ -20,8 +20,19 @@ class UwULexer(ctk.CTkFrame):
 
 class UwU(ctk.CTk):
     def __init__(self):
-        # TODO: Init window settings and display arrange different frames
+        super().__init__()
+        # TODO: Init window settings and display arrange different frames        
+        def close():
+            self.destroy()
+
+        self.geometry("1080x720")
+        self.resizable(False, False)
+        self.title("UwU IDE")
+
+        button = ctk.CTkButton(self, text="Quit", command=close)
+        button.pack()
         pass
 
 if __name__ == "__main__":
-    print('Lexer GUI')
+    app = UwU()
+    app.mainloop()
