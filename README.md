@@ -16,7 +16,7 @@ Automata Project for 3rd Year
 
 ## UwU Console Script Package
 
-1. Install the UwU Console Script Package `python -m pip install ./packages`
+1. Install the UwU Console Script Package `python -m pip install ./packages/uwu`
 
 2. To install | uninstall packages from `requirements.txt`
 

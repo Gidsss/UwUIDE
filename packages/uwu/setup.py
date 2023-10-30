@@ -6,7 +6,7 @@ setup(
     author='SenPys',
     entry_points={
         'console_scripts':[
-            'uwu=uwu.main:run'
+            'uwu=main:run'
         ]
     }
 )
