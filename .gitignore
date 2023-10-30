@@ -1,2 +1,6 @@
 .env
 __pycache__
+
+# package
+build
+uwu.egg-info
