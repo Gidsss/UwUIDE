@@ -3,7 +3,7 @@ This script serves a package manager that mainly checks dependencies and run sub
 
 To use this, simply run this command in the command line:
 
-    python -m run < install | uninstall | build | test > < optional params >
+    uwu < install | uninstall | build | test > < optional params >
 """
 
 import sys
@@ -39,8 +39,8 @@ def install(pm: PackageManager, package_name = None) -> None:
     """
     This function can install packages from requirements.txt or one by one.
 
-    python -m run install
-    python -m run install < package name >
+    uwu install
+    uwu install < package name >
     """
     pm.check_dependency('pip')
     commands = ['pip', 'install']
@@ -56,8 +56,8 @@ def uninstall(pm: PackageManager, package_name = None) -> None:
     """
     This function can uninstall packages from requirements.txt or one by one.
 
-    python -m run uninstall
-    python -m run uninstall < package name >
+    uwu uninstall
+    uwu uninstall < package name >
     """
     pm.check_dependency('pip')
     commands = ['pip', 'uninstall']
@@ -73,7 +73,7 @@ def build(pm: PackageManager) -> None:
     """
     This function can build the UwU IDE.
 
-    python -m run build
+    uwu build
     """  
     pm.run_subprocess([sys.executable, '-m'], 'src.uwu')
 
@@ -82,9 +82,9 @@ def test(pm: PackageManager, filename = None) -> None:
     """
     This function can run pytest.
 
-    python -m run test
-    python -m run test test_*
-    python -m run test *_test
+    uwu test
+    uwu test test_*
+    uwu test *_test
     """
     pm.check_dependency('pytest')
 
@@ -95,7 +95,7 @@ def test(pm: PackageManager, filename = None) -> None:
     
     pm.run_subprocess(["pytest"], script)
 
-if __name__ == '__main__':
+def run():
     pm = PackageManager()
     args = sys.argv[1:]
 
