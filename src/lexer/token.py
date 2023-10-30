@@ -20,8 +20,8 @@ class TokenTypes():
     FWUNC = TokenType("FWUNC_KEYWORD", "whitespace")
     CWASS = TokenType("CWASS_KEYWORD", "whitespace")
     GWOBAW = TokenType("GWOBAW_KEYWORD", "whitespace")
-    INPUT = TokenType("I-INPUT_KEYWORD", "function")
-    PWINT = TokenType("P-PWINT_KEYWORD", "function")
+    INPUT = TokenType("IWPUT_KEYWORD", "function")
+    PWINT = TokenType("PWINT_KEYWORD", "function")
     WETUWN = TokenType("WETUWN_KEYWORD", "function")
 
     # CONTROL STRUCTURE KEYWORDS
@@ -57,19 +57,19 @@ class TokenTypes():
     CONCAT = TokenType("CONCATENATION_OPERATOR", "concat")  # &
 
     # GROUPING SYMBOLS
-    OPEN_BRACE = TokenType("OPEN_BRACE", "open_brace")
-    CLOSE_BRACE = TokenType("CLOSE_BRACE", "close_brace")
-    OPEN_PAREN = TokenType("OPEN_PARENTHESIS", "open_parenthesis")
-    CLOSE_PAREN = TokenType("CLOSE_PARENTHESIS", "close_parenthesis")
-    OPEN_BRACKET = TokenType("OPEN_BRACKET", "open_bracket")
-    CLOSE_BRACKET = TokenType("CLOSE_BRACKET", "close_bracket")
-    DOUBLE_OPEN_BRACKET = TokenType("DOUBLE_OPEN_BRACKET", "double_open_bracket")
-    DOUBLE_CLOSE_BRACKET = TokenType("DOUBLE_CLOSE_BRACKET", "double_close_bracket")
+    OPEN_BRACE = TokenType("OPEN_BRACE", "open_brace")  # {
+    CLOSE_BRACE = TokenType("CLOSE_BRACE", "close_brace")  # }
+    OPEN_PAREN = TokenType("OPEN_PARENTHESIS", "open_parenthesis")  # (
+    CLOSE_PAREN = TokenType("CLOSE_PARENTHESIS", "close_parenthesis")  # )
+    OPEN_BRACKET = TokenType("OPEN_BRACKET", "open_bracket")  # [
+    CLOSE_BRACKET = TokenType("CLOSE_BRACKET", "close_bracket")  # ]
+    DOUBLE_OPEN_BRACKET = TokenType("DOUBLE_OPEN_BRACKET", "double_open_bracket")  # [[
+    DOUBLE_CLOSE_BRACKET = TokenType("DOUBLE_CLOSE_BRACKET", "double_close_bracket")  # ]]
 
     # OTHER SYMBOLS
-    TERMINATOR = TokenType("TERMINATOR", "line")
-    COMMA = TokenType("COMMA", "comma")
-    DOT_OP = TokenType("DOT_OPERATOR", "dot_op")
+    TERMINATOR = TokenType("TERMINATOR", "line")  # ~
+    COMMA = TokenType("COMMA", "comma")  # ,
+    DOT_OP = TokenType("DOT_OPERATOR", "dot_op")  # .
 
     # OTHER
     IDENTIFIER = TokenType("IDENTIFIER", "id")

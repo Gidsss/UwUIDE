@@ -52,7 +52,7 @@ class Lexer():
             
             if self._current_char == '-':
                 # check if unary first
-                cursor_advanced, is_end_of_file = self._peek('--', TokenTypes.UNARY_OPERATOR)
+                cursor_advanced, is_end_of_file = self._peek('--', TokenTypes.UNARY)
                 if cursor_advanced:
                     continue
                 
