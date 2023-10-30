@@ -11,6 +11,6 @@ class LexerTable(CTkFrame):
 
         for row in range(len(data)):
             for col in range(2):
-                self.table_content = CTkLabel(master=self, text=data[row][col], fg_color='transparent')
+                self.table_content = CTkLabel(master=self, text=data[row][col], fg_color='transparent', text_color='#FFFFFF')
 
                 self.table_content.grid(row=row, column=col, sticky='nsew')
