@@ -42,7 +42,6 @@ def install(ct: ConsoleTools, package_name = None) -> None:
     uwu install
     uwu install < package name >
     """
-    ct.check_dependency('pip')
     commands = ['pip', 'install']
 
     if package_name is not None:
@@ -59,7 +58,6 @@ def uninstall(ct: ConsoleTools, package_name = None) -> None:
     uwu uninstall
     uwu uninstall < package name >
     """
-    ct.check_dependency('pip')
     commands = ['pip', 'uninstall']
 
     if package_name is not None:
