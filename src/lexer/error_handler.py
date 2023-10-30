@@ -1,16 +1,5 @@
 from enum import Enum
 
-
-class ErrorType(Enum):
-    ID = "UNTERMINATED IDENTIFIER"
-    OPERATOR = "UNTERMINATED OPERATOR"
-    KEYWORD = "UNTERMINATED KEYWORD"
-    BWEAK = "UNTERMINATED BWEAK"
-    DATA_TYPE = "UNTERMINATED DATA TYPE"
-    BOOL = "UNTERMINATED BOOL VALUE"
-    UNARY = "UNTERMINATED UNARY OPERATOR"
-
-
 class Error:
     def __init__(self, error_type: str, position: tuple[int], temp_id: str,
                  expected_delims: list[str], actual_delim: str):
@@ -23,7 +12,7 @@ class Error:
     def __str__(self):
         log = ""
 
-        log += f"[{self.error_type.value}] Error on line {self.position[0]} column {self.position[1]}:\n"
+        log += f"[{self.error_type}] Error on line {self.position[0]} column {self.position[1]}:\n"
         log += f"\texpected any of these characters: "
 
         for delim in self.expected_delims:
