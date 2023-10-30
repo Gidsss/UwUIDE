@@ -68,13 +68,23 @@ def uninstall(pm: PackageManager, package_name = None) -> None:
     else:
         pm.run_subprocess([*commands, '-r'], 'requirements.txt')
 
+def lexer(pm: PackageManager) -> None:
+    """
+    This function can run lexer package.
+
+    uwu lexer
+    """  
+    print('Running lexer package...')
+    pm.run_subprocess([sys.executable, '-m'], 'src.lexer')
+
 # Run IDE
 def build(pm: PackageManager) -> None:      
     """
     This function can build the UwU IDE.
 
     uwu build
-    """  
+    """ 
+    print('Building UwU IDE...')
     pm.run_subprocess([sys.executable, '-m'], 'src.uwu')
 
 # Run pytest
