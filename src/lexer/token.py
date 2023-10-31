@@ -5,13 +5,20 @@ from enum import Enum
 class TokenType(Enum):
     def __init__(self, token: str, delim_id: str):
         self._token = token
-        self.delim_id = delim_id
-
-        self.expected_delims = DELIMS[self.delim_id]
+        self._delim_id = delim_id
+        self._expected_delims = DELIMS[self.delim_id]
 
     @property
     def token(self):
         return self._token
+
+    @property
+    def delim_id(self):
+        return self._delim_id
+
+    @property
+    def expected_delims(self):
+        return self._expected_delims
 
     def __str__(self):
         return self.token
@@ -49,7 +56,7 @@ class TokenType(Enum):
     INT_LITERAL = ("INT_LITERAL", "int_float")
     FLOAT_LITERAL = ("FLOAT_LITERAL", "int_float")
     STRING_LITERAL = ("STRING_LITERAL", "string")
-    BOOL_LITERAL = ("BOOLEAN_LITERAL", "bool")     # fax, cap
+    BOOL_LITERAL = ("BOOLEAN_LITERAL", "bool")  # fax, cap
 
     # OPERATORS
     ASSIGN = ("ASSIGNMENT_OPERATOR", "assign_delim")  # =
@@ -76,6 +83,7 @@ class TokenType(Enum):
 
     # OTHER
     IDENTIFIER = ("IDENTIFIER", "id")
+
 
 class Token:
     'A class for representing tokens in a lexer'
