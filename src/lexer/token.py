@@ -30,7 +30,7 @@ class TokenType(Enum):
     FWUNC = ("FWUNC_KEYWORD", "whitespace")
     CWASS = ("CWASS_KEYWORD", "whitespace")
     GWOBAW = ("GWOBAW_KEYWORD", "whitespace")
-    INPUT = ("IWPUT_KEYWORD", "function")
+    INPWT = ("INPWT_KEYWORD", "function")
     PWINT = ("PWINT_KEYWORD", "function")
     WETUWN = ("WETUWN_KEYWORD", "function")
 
