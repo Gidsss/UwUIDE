@@ -1,29 +1,21 @@
-from enum import Enum
-
-
-class ErrorType(Enum):
-    ID = "UNTERMINATED IDENTIFIER"
-    OPERATOR = "UNTERMINATED OPERATOR"
-    KEYWORD = "UNTERMINATED KEYWORD"
-    BWEAK = "UNTERMINATED BWEAK"
-    DATA_TYPE = "UNTERMINATED DATA TYPE"
-    BOOL = "UNTERMINATED BOOL VALUE"
-    UNARY = "UNTERMINATED UNARY OPERATOR"
+from .token import TokenType
 
 
 class Error:
-    def __init__(self, error_type: str, position: tuple[int], temp_id: str,
-                 expected_delims: list[str], actual_delim: str):
-        self.error_type = error_type if error_type else "FATAL"
+    def __init__(self, token_type: TokenType, position: tuple[int], temp_id: str, actual_delim: str,
+                 fatal=False):
+        self.token_type = token_type
         self.position = position
         self.temp_id = temp_id
-        self.expected_delims = expected_delims
         self.actual_delim = actual_delim
+
+        self.error_type = f"UNTERMINATED {self.token_type.token.replace('_', ' ')}" if not fatal else "FATAL"
+        self.expected_delims = token_type.expected_delims
 
     def __str__(self):
         log = ""
 
-        log += f"[{self.error_type.value}] Error on line {self.position[0]} column {self.position[1]}:\n"
+        log += f"[{self.error_type}] Error on line {self.position[0]} column {self.position[1]}:\n"
         log += f"\texpected any of these characters: "
 
         for delim in self.expected_delims:
@@ -32,4 +24,3 @@ class Error:
         log += f"\n\tafter {self.temp_id} but got {self.actual_delim} instead\n"
 
         return log
-
