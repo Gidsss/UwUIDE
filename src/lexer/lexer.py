@@ -257,7 +257,7 @@ class Lexer():
                 self._advance(end[1]-column-1)
                 
             lexeme = to_check
-            next_char_is_correct_delim, delim = self._verify_delim(DELIMS[token_type.delim_id])
+            next_char_is_correct_delim, delim = self._verify_delim(token_type.expected_delims)
             if next_char_is_correct_delim:
                 self._tokens.append(Token(lexeme, token_type, starting_position, ending_position))
             else:
