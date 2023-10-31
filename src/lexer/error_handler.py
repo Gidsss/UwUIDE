@@ -7,7 +7,7 @@ class Error:
         self.token_type = token_type
         self.position = position
         self.temp_id = temp_id
-        self.actual_delim = actual_delim
+        self.actual_delim = actual_delim if actual_delim != '\n' else 'NEWLINE'
 
         self.error_type = f"UNTERMINATED {self.token_type.token.replace('_', ' ')}" if not fatal else "FATAL"
         self.expected_delims = token_type.expected_delims

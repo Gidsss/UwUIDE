@@ -66,9 +66,14 @@ class Lexer():
                 continue
 
             if self._current_char == '~':
-                # always append '~'
-                starting_position = ending_position = tuple(self._position)
-                self._tokens.append(Token('~', 'LINE_BREAK', starting_position, ending_position))                
+                # always append '~' but check delims anyway
+                next_char_is_correct_delim, delim = self._verify_delim(DELIMS['line'])
+
+                if next_char_is_correct_delim:
+                    self._tokens.append(Token('~', TokenType.TERMINATOR, starting_position, ending_position))                
+                else:
+                    self._errors.append(Error(TokenType.TERMINATOR, tuple(self._position), '~', delim))
+
                 is_end_of_file = self._advance()
                 continue
 
@@ -152,10 +157,7 @@ class Lexer():
         beginning_of_file = self._position == [0,0]
         return True if beginning_of_file else False
             
-    def _verify_delim(self, delim_list: list[str], current = False) -> tuple[bool, str]:
-        if delim_list == [None]:
-            return True, None
-
+    def _verify_delim(self, delim_set: set[str], current = False) -> tuple[bool, str]:
         line, column = self._position
 
         if current:
@@ -165,22 +167,7 @@ class Lexer():
         else:
             next_char = self._lines[line][column+1]
 
-        for delim in delim_list:
-            start = (0, column)
-            end = (len(delim), column + len(delim))
-
-            is_delim = True
-            for i in range(len(delim)):
-                if i >= len(next_char):
-                    is_delim = False
-                    break
-
-                if delim[i] != next_char[i]:
-                    is_delim = False
-                    break
-
-            if is_delim:
-                break
+        is_delim = True if next_char in delim_set else False
             
         return is_delim, next_char
 
