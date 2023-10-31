@@ -98,7 +98,7 @@ class Lexer():
                         if is_end_of_file or self._position[0] != current_line:
                             self._reverse()
                             line, col = self._position
-                            self._errors.append(Error(TokenType.IDENTIFIER, (line, col + 1), temp_id, r'\n'))
+                            self._errors.append(Error(TokenType.IDENTIFIER, (line, col + 1), temp_id, '\n'))
                             break
             
             if is_end_of_file:
@@ -161,7 +161,7 @@ class Lexer():
         if current:
             next_char = self._lines[line][column]
         elif column+1 >= len(self._lines[line]):
-            next_char = r'\n'
+            next_char = '\n'
         else:
             next_char = self._lines[line][column+1]
 
