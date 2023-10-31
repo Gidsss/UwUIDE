@@ -2,7 +2,7 @@ from sys import argv
 from pathlib import Path
 
 from constants.constants import DELIMS
-from .token import Token, TokenTypes
+from .token import Token, TokenType
 from .error_handler import Error
 
 
@@ -36,23 +36,23 @@ class Lexer():
         
         while not is_end_of_file:
             if self._current_char == 'b':
-                cursor_advanced, is_end_of_file = self._peek("bweak", TokenTypes.BWEAK)
+                cursor_advanced, is_end_of_file = self._peek("bweak", TokenType.BWEAK)
                 if cursor_advanced:
                     continue
 
             if self._current_char == 'c':
-                cursor_advanced, is_end_of_file = self._peek('chan', TokenTypes.CHAN)
+                cursor_advanced, is_end_of_file = self._peek('chan', TokenType.CHAN)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('cap', TokenTypes.BOOL_LITERAL)
+                cursor_advanced, is_end_of_file = self._peek('cap', TokenType.BOOL_LITERAL)
 
                 if cursor_advanced:
                     continue
             
             if self._current_char == '-':
                 # check if unary first
-                cursor_advanced, is_end_of_file = self._peek('--', TokenTypes.UNARY)
+                cursor_advanced, is_end_of_file = self._peek('--', TokenType.UNARY)
                 if cursor_advanced:
                     continue
                 
@@ -89,7 +89,7 @@ class Lexer():
 
                             starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                             ending_position = tuple([self._position[0], self._position[1]])
-                            self._tokens.append(Token(temp_id, TokenTypes.IDENTIFIER, starting_position, ending_position))
+                            self._tokens.append(Token(temp_id, TokenType.IDENTIFIER, starting_position, ending_position))
                             break
 
                         temp_id += self._current_char
@@ -98,7 +98,7 @@ class Lexer():
                         if is_end_of_file or self._position[0] != current_line:
                             self._reverse()
                             line, col = self._position
-                            self._errors.append(Error(TokenTypes.IDENTIFIER, (line, col + 1), temp_id, r'\n'))
+                            self._errors.append(Error(TokenType.IDENTIFIER, (line, col + 1), temp_id, r'\n'))
                             break
             
             if is_end_of_file:
@@ -184,7 +184,7 @@ class Lexer():
             
         return is_delim, next_char
 
-    def _peek(self, to_check: str, token_type: TokenTypes.TokenType,
+    def _peek(self, to_check: str, token_type: TokenType,
               before: bool = False, ignore_space: bool = False) -> tuple[bool,bool]:
         '''
         Main process

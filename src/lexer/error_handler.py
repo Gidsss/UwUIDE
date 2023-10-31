@@ -1,15 +1,15 @@
-from .token import TokenTypes
+from .token import TokenType
 
 
 class Error:
-    def __init__(self, token_type: TokenTypes.TokenType, position: tuple[int], temp_id: str, actual_delim: str,
+    def __init__(self, token_type: TokenType, position: tuple[int], temp_id: str, actual_delim: str,
                  fatal=False):
         self.token_type = token_type
         self.position = position
         self.temp_id = temp_id
         self.actual_delim = actual_delim
 
-        self.error_type = token_type.error_type if not fatal else "FATAL"
+        self.error_type = f"UNTERMINATED {self.token_type.token.replace('_', ' ')}" if not fatal else "FATAL"
         self.expected_delims = token_type.expected_delims
 
     def __str__(self):
