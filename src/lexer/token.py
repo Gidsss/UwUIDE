@@ -83,6 +83,7 @@ class TokenType(Enum):
 
     # OTHER
     IDENTIFIER = ("IDENTIFIER", "id")
+    FUNC_NAME = ("FUNCTION NAME", "id")
 
 
 class Token:
