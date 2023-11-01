@@ -4,7 +4,8 @@ from .lexer import *
 if __name__ == "__main__":
     # temporary test source code
     source_code = [
-        "bweak",
+        "a  fwunc aqua-chan()~",
+        # 'aqua-chan(args)~',
         ' aqua-chan',
         'aqua',
         'aqua-chan = cap~',

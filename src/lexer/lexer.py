@@ -112,9 +112,12 @@ class Lexer():
     
     def _advance(self, increment: int = 1) -> bool:        
         # initial check if EOF already
-        end_of_file = self._position[0] >= len(self._lines)
+        # initial check if BOF already
+        temp_position = self._position[1]
+        temp_position += increment
+        end_of_file = temp_position > len(self._lines[len(self._lines)-1])-1 and self._position[0] == len(self._lines)-1
+        # print(f"{end_of_file} = {temp_position} > {len(self._lines[len(self._lines)-1])-1} {temp_position > len(self._lines[len(self._lines)-1])-1} and {self._position[0]} == {len(self._lines)-1} {self._position[0] == len(self._lines[len(self._lines)-1])-1}")
         if end_of_file:
-            self._current_char = None
             return True
         
         # increment cursor
@@ -124,7 +127,8 @@ class Lexer():
         while self._position[1] >= current_line_length:
             self._position[1] -= current_line_length
             self._position[0] += 1
-
+            current_line_length = len(self._lines[self._position[0]])
+        
         # check if EOF after incrementing
         # if not EOF, read current character since we're sure we are not out of bounds otherwise due to previous check
         end_of_file = self._position[0] >= len(self._lines)
@@ -137,9 +141,10 @@ class Lexer():
     
     def _reverse(self, increment: int = 1) -> bool:
         # initial check if BOF already
-        beginning_of_file = self._position == [0,0]
+        temp_position = self._position[1]
+        temp_position -= increment
+        beginning_of_file = temp_position < 0 and self._position[0] == 0
         if beginning_of_file:
-            self._current_char = self._lines[self._position[0]][self._position[1]]
             return True
         
         # decrement cursor
@@ -259,15 +264,123 @@ class Lexer():
 
         return cursor_advanced, is_end_of_file
     
-    def _seek(self, to_seek: str|list[str], before: bool = False, multi_line_count: int|str = 0) -> bool:
+    def _seek(self, to_seek: str|list[str], before: bool = False, multi_line_count: int|str = 0, ignore_space = True) -> bool:
         '''
-        seeks multiple characters ('ab') or multiple sets of characters (['a', 'b']) in order;
+        seeks concatenated characters ('ab') or multiple separate characters (['a', 'b']) in order;
 
-        can seek through multi lines but line count should be indicated
+        can search through multi lines but line count should be indicated
 
-        can go until end of file if "EOF" is passed as multi_line_count
+        can go until end|beginning of file if "EOF|BOF" is passed as multi_line_count
         '''
-        pass
+        if isinstance(to_seek, str):
+            lengths = [len(to_seek)]
+            to_seek = [to_seek]
+        elif isinstance(to_seek, list) and all(isinstance(item, str) for item in to_seek):
+            lengths = [len(item) for item in to_seek]
+        else:
+            raise ValueError(f"{to_seek} is not a valid parameter. Please pass a list of strings")
+        
+        multi_line = 0
+        line = self._position[0]
+        if multi_line_count == "EOF":
+            multi_line_count = len(self._lines) - line - 1
+        elif multi_line_count == "BOF":
+            multi_line_count = line
+
+        cursor_advance_reverse_count = 0
+        found = [False]*len(to_seek)
+        beginning_of_file = False
+        end_of_file = False
+
+        for i in range(len(found)):
+            if before:
+                while not found[i]:
+                    # intial check if you already got to the beginning of file form previous searches
+                    if beginning_of_file:
+                        break
+
+                    # limit number of times reversing can go to newlines with multi_line_count
+                    multi_line -= self._position[0]
+                    if multi_line > multi_line_count:
+                        break
+
+                    beginning_of_file = self._reverse()
+                    cursor_advance_reverse_count += 1
+                    # check again after reversing
+                    if beginning_of_file:
+                        break
+
+                    if self._current_char == to_seek[i][lengths[i]-1]:
+                        beginning_of_file = self._reverse()
+                        if beginning_of_file:
+                            break
+
+                        cursor_advance_reverse_count += 1
+                        preempt_success = True
+                        for preempt in range(lengths[i]-2 ,-1, -1):
+                            cursor_advance_reverse_count += 1
+                            if to_seek[i][preempt] != self._current_char:
+                                preempt_success = False
+                                break
+                            elif preempt == 0:
+                                break
+                            self._reverse()
+                        
+                        cursor_advance_reverse_count -= 1
+                        if preempt_success:
+                            found[i] = True
+                            break
+                    elif self._current_char == ' ':
+                        if ignore_space:
+                            continue
+                        else:
+                            break
+            else:
+                while not found[i]:
+                    # intial check if you already got to the end of file form previous searches
+                    if end_of_file:
+                        break
+
+                    # limit number of times advancing can go to newlines with multi_line_count
+                    multi_line = self._position[0] - multi_line
+                    if multi_line > multi_line_count:
+                        break
+
+                    end_of_file = self._advance()
+                    cursor_advance_reverse_count += 1
+                    # check again after advancing
+                    if end_of_file:
+                        break
+
+                    if self._current_char == to_seek[i][0]:
+
+                        preempt_success = True
+                        for preempt in range(0, lengths[i]):
+                            cursor_advance_reverse_count += 1
+                            if to_seek[i][preempt] != self._current_char:
+                                preempt_success = False
+                                break
+                            elif preempt == lengths[i]-1:
+                                break
+                            self._advance()
+                        
+                        cursor_advance_reverse_count -= 1
+                        if preempt_success:
+                            found[i] = True
+                            break
+                    elif self._current_char == ' ':
+                        if ignore_space:
+                            continue
+                        else:
+                            break
+
+        if before:
+            self._advance(cursor_advance_reverse_count)
+        else:
+            self._reverse(cursor_advance_reverse_count)
+
+        return all(found)
+
 
     def print_error_logs(self):
         for error in self.errors:
@@ -288,21 +401,25 @@ class Lexer():
         """
         cursor_advanced = False
 
-        parentheses_exist = self._seek(['(', ')'])
-        fwunc_exists = self._seek('fwunc', before=True)
-
-        if fwunc_exists and not parentheses_exist:
-            # throw error
-            # unterminated function name or whatever
-            cursor_advanced = True
-
-        elif parentheses_exist:
-            # treat as function name
-            # check delimiter
-            # append
-            cursor_advanced = True
+        parentheses_exist = self._seek(['(', ')'], ignore_space=False)
+        dash_datatype_exist = self._seek(['-'], ignore_space=False)
+        fwunc_exists = self._seek('fwunc', before=True) # True if self._tokens[-1].token == TokenType.FWUNC else False 
 
         if fwunc_exists:
+            if not parentheses_exist:
+                # not delimited
+                pass
+            if not dash_datatype_exist:
+                # no datatype indicated
+                pass
+            else:
+                # treat as function name
+                # check delimiter
+                # append
+                pass
+            cursor_advanced = True
+        
+        elif parentheses_exist:
             # treat as function name
             # check delimiter
             # append
