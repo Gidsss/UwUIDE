@@ -1,6 +1,6 @@
-# import customtkinter as ctk
 from customtkinter import *
 from .components.lexer_table import LexerTable
+from .components.command_menu import CommandMenu
 
 class UwUCodePanel(CTkFrame):
     def __init__(self, master, **kwargs):
@@ -11,7 +11,8 @@ class UwUCodePanel(CTkFrame):
         self.grid_rowconfigure((1,2,3,4), weight=4)
         
         # placeholder
-        command_menu = CTkLabel(master=self, text='command menu', text_color='#FFFFFF')
+        command_menu = CommandMenu(master = self, fg_color = 'transparent')
+        # command_menu = CTkLabel(master=self, text='command menu', text_color='#FFFFFF')
         command_menu.grid(row=0, columnspan=4, sticky='nsew')
 
         code_editor = CTkTextbox(master=self, corner_radius=0, fg_color='#1A1B26', text_color='#FFFFFF')
