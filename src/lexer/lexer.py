@@ -2,9 +2,8 @@ from sys import argv
 from pathlib import Path
 
 from constants.constants import DELIMS
-from .token import Token, TokenType
-from .error_handler import Error
-
+from .token import *
+from .error_handler import *
 
 class Lexer():
     'description'
@@ -18,7 +17,7 @@ class Lexer():
         self._nest_level = 0
 
         self._tokens: list[Token] = []
-        self._errors: list[Error] = []
+        self._errors: list[DelimError] = []
 
         self._get_tokens()
 
@@ -46,7 +45,11 @@ class Lexer():
                     continue
 
                 cursor_advanced, is_end_of_file = self._peek('cap', TokenType.BOOL_LITERAL)
+                if cursor_advanced:
+                    continue
 
+            if self._current_char == 'f':
+                cursor_advanced, is_end_of_file = self._peek("fwunc", TokenType.FWUNC)
                 if cursor_advanced:
                     continue
             
@@ -72,7 +75,7 @@ class Lexer():
                 if next_char_is_correct_delim:
                     self._tokens.append(Token('~', TokenType.TERMINATOR, starting_position, ending_position))                
                 else:
-                    self._errors.append(Error(TokenType.TERMINATOR, tuple(self._position), '~', delim))
+                    self._errors.append(DelimError(TokenType.TERMINATOR, tuple(self._position), '~', delim))
 
                 is_end_of_file = self._advance()
                 continue
@@ -81,6 +84,9 @@ class Lexer():
             if self._current_char.isalpha():
                 cursor_advanced = self._is_func_name()
                 if cursor_advanced:
+                    if is_end_of_file:
+                        break
+                    is_end_of_file = self._advance()
                     continue
 
                 else:
@@ -103,7 +109,7 @@ class Lexer():
                         if is_end_of_file or self._position[0] != current_line:
                             self._reverse()
                             line, col = self._position
-                            self._errors.append(Error(TokenType.IDENTIFIER, (line, col + 1), temp_id, '\n'))
+                            self._errors.append(DelimError(TokenType.IDENTIFIER, (line, col + 1), temp_id, '\n'))
                             break
             
             if is_end_of_file:
@@ -116,7 +122,6 @@ class Lexer():
         temp_position = self._position[1]
         temp_position += increment
         end_of_file = temp_position > len(self._lines[len(self._lines)-1])-1 and self._position[0] == len(self._lines)-1
-        # print(f"{end_of_file} = {temp_position} > {len(self._lines[len(self._lines)-1])-1} {temp_position > len(self._lines[len(self._lines)-1])-1} and {self._position[0]} == {len(self._lines)-1} {self._position[0] == len(self._lines[len(self._lines)-1])-1}")
         if end_of_file:
             return True
         
@@ -254,7 +259,7 @@ class Lexer():
                 self._tokens.append(Token(lexeme, token_type, starting_position, ending_position))
             else:
                 line, col = ending_position
-                self._errors.append(Error(token_type, (line, col+1), lexeme, delim))
+                self._errors.append(DelimError(token_type, (line, col+1), lexeme, delim))
             
             is_end_of_file = self._advance()
             cursor_advanced = True
@@ -400,26 +405,69 @@ class Lexer():
         else is literal
         """
         cursor_advanced = False
-
-        parentheses_exist = self._seek(['(', ')'], ignore_space=False)
-        dash_datatype_exist = self._seek(['-'], ignore_space=False)
-        fwunc_exists = self._seek('fwunc', before=True) # True if self._tokens[-1].token == TokenType.FWUNC else False 
+        parentheses_exist = self._seek('(', ignore_space=False)
+        dash_datatype_exist = self._seek('-', ignore_space=False)
+        fwunc_exists = False
+        if len(self._tokens) != 0:
+            fwunc_exists = True if self._tokens[-1].lexeme == 'fwunc' else False 
 
         if fwunc_exists:
-            if not parentheses_exist:
-                # not delimited
-                pass
-            if not dash_datatype_exist:
-                # no datatype indicated
-                pass
+            if not parentheses_exist or not dash_datatype_exist:
+                if not parentheses_exist:
+                    # function declaration has no opening parenthesis as delimiter
+                    self._errors.append(CustomError(Error.OPEN_PAREN_FUNC, tuple(self._position)))
+                if not dash_datatype_exist:
+                    # function declaration has no datatype indicated
+                    self._errors.append(CustomError(Error.DATA_TYPE_FUNC, tuple(self._position)))
+                
+                # treat it as identifier, move cursor till an identifier delim and append to errors
+                temp_id = ""
+                current_line = self._position[0]
+
+                while True:
+                    if self._current_char in DELIMS['id']:
+                        self._reverse()
+                        starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
+                        ending_position = tuple([self._position[0], self._position[1]])
+                        self._errors.append(CustomError(Error.INVALID_FUNC_DECLARE, starting_position, ending_position))
+                        break
+
+                    temp_id += self._current_char
+                    is_end_of_file = self._advance()
+
+                    if is_end_of_file or self._position[0] != current_line:
+                        self._reverse()
+                        starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
+                        ending_position = tuple([self._position[0], self._position[1]])
+                        self._errors.append(CustomError(Error.INVALID_FUNC_DECLARE, starting_position, ending_position))
+                        break
+                cursor_advanced = True
+
             else:
-                # treat as function name
-                # check delimiter
-                # append
-                pass
-            cursor_advanced = True
+                # correct function name, append to tokens
+                temp_id = ""
+                current_line = self._position[0]
+
+                while True:
+                    if self._current_char == '-':
+                        self._reverse()
+                        starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
+                        ending_position = tuple([self._position[0], self._position[1]])
+                        self._tokens.append(Token(temp_id, TokenType.FUNC_NAME, starting_position, ending_position))
+                        break
+
+                    temp_id += self._current_char
+                    is_end_of_file = self._advance()
+
+                    if is_end_of_file or self._position[0] != current_line:
+                        self._reverse()
+                        line, col = self._position
+                        self._errors.append(DelimError(TokenType.FUNC_NAME, (line, col + 1), temp_id, '\n'))
+                        break
+
+                cursor_advanced = True
         
-        elif parentheses_exist:
+        elif parentheses_exist and not dash_datatype_exist:
             # treat as function name
             # check delimiter
             # append
@@ -462,7 +510,8 @@ if __name__ == "__main__":
     # file_path = argv[1]
     # source_code = read_file(file_path)
     source_code = [
-        "bweak",
+        "a  fwunc aquachan(~",
+        # 'aqua-chan(args)~',
         ' aqua-chan',
         'aqua',
         'aqua-chan = cap~',
