@@ -10,23 +10,20 @@ class UwUCodePanel(CTkFrame):
         self.grid_columnconfigure((0,1,2,3), weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure((1,2,3,4), weight=4)
-        
-        # placeholder
+
         command_menu = CommandMenu(master = self, fg_color = 'transparent')
-        # command_menu = CTkLabel(master=self, text='command menu', text_color='#FFFFFF')
         command_menu.grid(row=0, columnspan=4, sticky='nsew')
 
         code_editor = CodeView(master=self, fg_color='transparent')
-        code_editor.grid(row=1, rowspan=2, columnspan=4, sticky='nsew', padx=12, pady=12)
+        code_editor.grid(row=1, rowspan=2, columnspan=4, sticky='nsew', padx=12, pady=4)
         
-        # placeholder
         console = CTkLabel(master=self, text='console', bg_color='#1A1B26', text_color='#FFFFFF')
         console.grid(row=3, rowspan=2, columnspan=4, stick='nsew', padx=12, pady=12)
 
 class UwULexerPanel(CTkScrollableFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-        # TODO: Add widgets for respective frames
+
         self.grid_columnconfigure((0,1), weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure(1, weight=10)
@@ -47,11 +44,10 @@ class UwULexerPanel(CTkScrollableFrame):
 
 class UwU(CTk):
     def __init__(self):
-        super().__init__()
-        # TODO: Init window settings and display arrange different frames        
+        super().__init__()     
         self.geometry("1280x720")
         self.resizable(False, False)
-        self.title("UwU IDE")
+        self.title("UwU++")
         self.configure(fg_color='#16161E')
 
         # define grid

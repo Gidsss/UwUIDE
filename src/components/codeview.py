@@ -1,4 +1,5 @@
 from customtkinter import *
+from tkinter import Event
 
 class Linenums(CTkCanvas):
    def __init__(self, master, text_widget: CTkTextbox, **kwargs):
@@ -6,25 +7,23 @@ class Linenums(CTkCanvas):
       CTkCanvas.__init__(self, master=master, width=1, borderwidth=0,highlightthickness=0, bg='#333652')
 
       self.text_widget = text_widget
-
-      self.redraw()
-
-   def redraw(self):
-      print('new line')
-      #   self.text_widget.edit_modified()
-      #   self.create_text(10, 10, text='1', fill='white')
-      self.delete('all')
       
+   def on_redraw(self, event: Event):
+      self.after(1, self.redraw, event)
+
+   def redraw(self, event: Event):
+      self.delete('all')
+
       first_line = 1
-      last_line = int(self.text_widget.index(f"@0,{self.text_widget.winfo_height()}").split('.')[0])
+      last_line = int(event.widget.index(f"@0,{event.widget.winfo_height()}").split('.')[0])
 
-
-      print(first_line, last_line)
-      # print(first_line, last_line)
       for lineno in range(first_line, last_line + 1):
-         self.create_text(10,10, text=f"{lineno}", fill='white')
+         dlineinfo: tuple[int, int, int, int, int] | None = event.widget.dlineinfo(f"{lineno}.0")
+         
+         if dlineinfo is None:
+            continue
 
-      pass
+         self.create_text(12, dlineinfo[1] + 10, text=f"{lineno}", anchor='center', fill='white', font=("Montserrat", 10))
     
 
 class CodeView(CTkFrame):
@@ -40,7 +39,9 @@ class CodeView(CTkFrame):
       self.line_nums = Linenums(master=self, text_widget=self.text)
       self.line_nums.grid(row=0, column=0, sticky='nsew')
 
-      self.text.bind("<Return>", lambda _: self.line_nums.redraw())
-      self.text.bind("<BackSpace>", lambda _: self.line_nums.redraw())
+      self.text.bind("<Button-1>", lambda e: self.line_nums.on_redraw(e))
+      
+      self.text.bind("<Return>", lambda e: self.line_nums.on_redraw(e))
+      self.text.bind("<BackSpace>", lambda e: self.line_nums.on_redraw(e))
 
         
