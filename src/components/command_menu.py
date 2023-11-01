@@ -11,7 +11,7 @@ class CommandMenu(CTkFrame):
         self.grid_columnconfigure(self.columns, weight=1)
         self.grid_rowconfigure(self.rows, weight=1)
 
-        self.uwuBgImage = CTkImage(light_image=Image.open(f"{UWU_ASSET}"), size = (99,30))
+        self.uwuBgImage = CTkImage(light_image=Image.open(f"{LOGO_WHITE_ASSET}"), size = (110, 30))
         self.uwuLabel = CTkLabel(master = self, image = self.uwuBgImage, text = '')
         self.uwuLabel.grid(row=0, column=0, sticky='', columnspan=2)
 
