@@ -70,16 +70,9 @@ class Lexer():
 
             if self._current_char == '~':
                 # always append '~' but check delims anyway
-                next_char_is_correct_delim, delim = self._verify_delim(DELIMS['line'])
-
-                starting_position = ending_position = tuple(self._position)
-                if next_char_is_correct_delim:
-                    self._tokens.append(Token('~', TokenType.TERMINATOR, starting_position, ending_position))
-                else:
-                    self._errors.append(DelimError(TokenType.TERMINATOR, tuple(self._position), '~', delim))
-
-                is_end_of_file = self._advance()
-                continue
+                cursor_advanced, is_end_of_file = self._peek('~', TokenType.TERMINATOR)
+                if cursor_advanced:
+                    continue
 
             # can be identifiers or function names
             if self._current_char.isalpha():
@@ -114,23 +107,152 @@ class Lexer():
                             self._tokens.append(Token(temp_id, TokenType.IDENTIFIER, starting_position, ending_position))
                             break
 
-            if self._current_char == '|':
-                is_end_of_file = self._peek_string_literal('|')
+            if self._current_char in ['|', '"']:
+                is_end_of_file = self._peek_string_literal(self._current_char)
                 if is_end_of_file:
                     break
-                        
-            if self._current_char == '"':
-                is_end_of_file = self._peek_string_literal('"')
-                if is_end_of_file:
-                    break
-            
+                continue
+
+            if self._current_char in ATOMS['number']:
+                temp_num = self._current_char
+                current_line = self._position[0]
+                break_outside_loop = False
+
+                # only floats or literal '0' can start with 0
+                if self._current_char == '0':
+                    while True:
+                        is_end_of_file = self._advance()
+                        in_next_line = self._position[0] != current_line
+
+                        if is_end_of_file or in_next_line:
+                            if in_next_line:
+                                self._reverse()
+                            line, col = self._position
+                            self._errors.append(DelimError(TokenType.INT_LITERAL, (line, col + 1), temp_num, '\n'))
+                            break
+
+                        # preemptively break when a delimiter is found for integers 
+                        if self._current_char in DELIMS['int_float']:
+                            self._reverse()
+                            corrected_value = temp_num
+                            starting_position = ending_position = tuple(self._position)
+
+                            if len(temp_num) > 1:
+                                corrected_value = str(int(temp_num))
+                                starting_position = tuple([self._position[0], self._position[1]-len(temp_num)+1])
+                                ending_position = tuple(self._position)
+                                self._errors.append(IntFloatWarning(Warn.LEADING_ZEROES_INT, corrected_value, temp_num, starting_position, ending_position))
+
+                            self._tokens.append(Token(corrected_value, TokenType.INT_LITERAL, starting_position, ending_position))
+                            break
+
+                        # floats with one leading zero
+                        elif self._current_char == '.':
+                            temp_num += self._current_char
+                            while True:
+                                is_end_of_file = self._advance()
+                                in_next_line = self._position[0] != current_line
+
+                                if is_end_of_file:
+                                    if in_next_line:
+                                        self._reverse()
+                                    line, col = self._position
+                                    self._errors.append(DelimError(TokenType.FLOAT_LITERAL, (line, col + 1), temp_num, '\n'))
+                                    break_outside_loop = True
+                                    break
+
+                                # preemptively break when a delimiter is found for floats
+                                if self._current_char in DELIMS['int_float']:
+                                    self._reverse()
+                                    starting_position = ending_position = tuple(self._position)
+                                    self._tokens.append(Token(temp_num, TokenType.FLOAT_LITERAL, starting_position, ending_position))
+                                    break_outside_loop = True
+                                    break
+
+                                temp_num += self._current_char
+
+                            if break_outside_loop:
+                                break
+
+                        temp_num += self._current_char
+
+                # integers must start with nonzero number
+                else:
+                    # integers and floats can only have up to 10 digits befor the decimal point
+                    # loop 10 times to take into account the delimiters
+                    while True:
+                        is_end_of_file = self._advance()
+                        in_next_line = self._position[0] != current_line
+                        if is_end_of_file or in_next_line:
+                            if in_next_line:
+                                self._reverse()
+                            line, col = self._position
+                            token_type = TokenType.FLOAT_LITERAL if '.' in temp_num else TokenType.INT_LITERAL
+                            self._errors.append(DelimError(token_type, (line, col + 1), temp_num, '\n'))
+                            break
+
+                        # preemptively break when a delimiter is found for integers 
+                        if self._current_char in DELIMS['int_float']:
+                            self._reverse()
+                            starting_position = (self._position[0], self._position[1]-len(temp_num)+1)
+                            ending_position = (self._position[0], self._position[1])
+                            self._tokens.append(Token(temp_num, TokenType.INT_LITERAL, starting_position, ending_position))
+                            break
+
+                        # floats can have decimal point before the 10 digit limit
+                        if self._current_char == '.':
+                            temp_num += self._current_char
+                            while True:
+                                is_end_of_file = self._advance()
+                                in_next_line = self._position[0] != current_line
+
+                                if is_end_of_file or in_next_line:
+                                    if in_next_line:
+                                        self._reverse()
+                                    line, col = self._position
+                                    token_type = TokenType.FLOAT_LITERAL
+                                    self._errors.append(DelimError(token_type, (line, col + 1), temp_num, '\n'))
+                                    break_outside_loop = True
+                                    break
+
+                                # preemptively break when a delimiter is found for floats
+                                if self._current_char in DELIMS['int_float']:
+                                    self._reverse()
+                                    corrected_value = temp_num
+
+                                    # has trailing zero but not the only trailing zero
+                                    if temp_num[-1:] == '0' and not temp_num[-2:-1] == '.':
+                                        corrected_value = str(float(temp_num))
+                                        starting_position = tuple([self._position[0], self._position[1]-len(temp_num)+1])
+                                        ending_position = tuple(self._position)
+                                        self._errors.append(IntFloatWarning(Warn.TRAILING_ZEROES_FLOAT, corrected_value, temp_num, starting_position, ending_position))
+                                    
+                                    # has no numbers after decimal point
+                                    elif temp_num[-1:] == '.':
+                                        corrected_value = temp_num + '0'
+                                        starting_position = tuple([self._position[0], self._position[1]-len(temp_num)+1])
+                                        ending_position = tuple(self._position)
+                                        self._errors.append(IntFloatWarning(Warn.MISSING_TRAILING_ZERO_FLOAT, corrected_value, temp_num, starting_position, ending_position))
+
+                                    starting_position = ending_position = tuple(self._position)
+                                    self._tokens.append(Token(corrected_value, TokenType.FLOAT_LITERAL, starting_position, ending_position))
+                                    break_outside_loop = True
+                                    break
+
+                                temp_num += self._current_char
+
+                            if break_outside_loop:
+                                break
+
+                        temp_num += self._current_char
+
+
             if is_end_of_file:
                 break
             is_end_of_file = self._advance()
     
     def _advance(self, increment: int = 1) -> bool:        
         # initial check if EOF already
-        # initial check if BOF already
         temp_position = self._position[1]
         temp_position += increment
         end_of_file = temp_position > len(self._lines[len(self._lines)-1])-1 and self._position[0] == len(self._lines)-1
@@ -342,7 +464,13 @@ class Lexer():
                             break
                     elif self._current_char == ' ':
                         if ignore_space:
-                            continue
+                            beginning_of_file = self._reverse()
+                            cursor_advance_reverse_count += 1
+                            if beginning_of_file:
+                                cursor_advance_reverse_count -= 1
+                                break
+                            elif multi_line > self._position[0]:
+                                break
                         else:
                             break
                     else:
@@ -378,7 +506,15 @@ class Lexer():
                             break
                     elif self._current_char == ' ':
                         if ignore_space:
-                            continue
+                            end_of_file = self._advance()
+                            cursor_advance_reverse_count += 1
+                            # check again after advancing
+                            if end_of_file:
+                                cursor_advance_reverse_count -= 1
+                                break
+                            # limit number of times advancing can go to newlines with multi_line_count
+                            elif multi_line < self._position[0]:
+                                break
                         else:
                             break
                     else:
@@ -419,10 +555,8 @@ class Lexer():
         """
         parentheses_exist = self._seek('(', ignore_space=False)
         dash_datatype_exist = self._seek('-', ignore_space=False)
-        fwunc_exists = False
-        if len(self._tokens) != 0:
-            fwunc_exists = True if self._tokens[-1].lexeme == 'fwunc' else False 
-
+        fwunc_exists = self._seek('fwunc', before=True)
+        
         cursor_advanced = False
         if fwunc_exists:
             if parentheses_exist and dash_datatype_exist:

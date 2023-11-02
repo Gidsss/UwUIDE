@@ -29,28 +29,34 @@ class Error(Enum):
     UNCLOSED_STRING = ("UNCLOSED STRING",
                        'String literals should be closed with "')
     
+    OUT_OF_BOUNDS_INT_FLOAT = ("OUT OF BOUNDS",
+                               'chan and kun literals can only have up to 10 digits before and after the decimal (kun can have a max of 20 digits total)')
+    
 class Warn(Enum):
-    def __init__(self, error_type: str, message: str):
-        self._error_type = error_type
+    def __init__(self, warn_type: str, message: str):
+        self._warn_type = warn_type
         self._message = message
 
     @property
-    def error_type(self):
-        return self._error_type
+    def warn_type(self):
+        return self._warn_type
 
     @property
     def message(self):
         return self._message
     
-    LEADING_ZEROES_INT = ("LEADING ZEROES"
+    LEADING_ZEROES_INT = ("LEADING ZEROES",
                       'chan literals should not have leading zeroes',)
         
-    LEADING_ZEROES_FLOAT = ("LEADING ZEROES"
-                      "kun literals should only have ONE leading zero before the decimal point IF it's the only digit present (0.1)")
+    LEADING_ZEROES_FLOAT = ("LEADING ZEROES",
+                      "kun literals can have ONE leading zero before the decimal point ONLY IF it's the only digit present (0.1)")
     
-    TRAILING_ZEROES_FLOAT = ("TRAILING ZEROES"
-                      "kun literals should only have ONE trailing zero after the decimal point IF it's the only digit present (1.0)")
-
+    TRAILING_ZEROES_FLOAT = ("TRAILING ZEROES",
+                      "kun literals can have ONE trailing zero after the decimal point ONLY IF it's the only digit present (1.0)")
+    
+    MISSING_TRAILING_ZERO_FLOAT = ("MISSING TRAILING ZERO",
+                                   "kun literals should have digit/s present after the decimal point")
+    
 class CustomError:
     def __init__(self, error_type: Error, position: tuple[int,int], end_position: tuple[int,int] = None):
         self._error_type = error_type
@@ -117,7 +123,7 @@ class IntFloatWarning:
 
     @property
     def warn_type(self) -> str:
-        return self._warn_type
+        return self._warn_type.warn_type
 
     @property
     def message(self):
@@ -142,12 +148,12 @@ class IntFloatWarning:
     def __str__(self):
         log = ''
 
-        log += f"[{self.error_type}] Error on line {self._position[0]}"
+        log += f"[{self.warn_type}] Warning on line {self._position[0]}"
 
         if self.end_position:
             log += f" from column {self._position[1]} to {self._end_position[1]}"
 
         log += ':\n'
         log += f"\t{self.message}\n"
-        log += f"\tvalue = '{self.temp_num} ; corrected value = '{self.corrected_value}'"
+        log += f"\tvalue = '{self.temp_num}' ; corrected value = '{self.corrected_value}'\n"
         return log
