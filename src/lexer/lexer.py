@@ -49,15 +49,31 @@ class Lexer():
 
                 if cursor_advanced:
                     continue
-            
+
+            # Symbol Checks
+            if self._current_char == '=':
+                cursor_advanced, is_end_of_file = self._peek('==', TokenType.EQUALITY)
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek('=', TokenType.ASSIGN)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == '+':
+                cursor_advanced, is_end_of_file = self._peek('++', TokenType.UNARY)
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek('+', TokenType.ARITHMETIC)
+                if cursor_advanced:
+                    continue
+
             if self._current_char == '-':
                 # check if unary first
                 cursor_advanced, is_end_of_file = self._peek('--', TokenType.UNARY)
                 if cursor_advanced:
                     continue
-                
-                # check if minus
-                # check if negative
 
                 # if ID_DELIM
                 starting_position = ending_position = tuple(self._position)
@@ -65,12 +81,114 @@ class Lexer():
                 is_end_of_file = self._advance()
                 continue
 
+            if self._current_char == '!':
+                cursor_advanced, is_end_of_file = self._peek('!=', TokenType.EQUALITY)
+                if cursor_advanced:
+                    continue
+
+                # throw custom error - unexpected symbol
+
+            if self._current_char == '>':
+                cursor_advanced, is_end_of_file = self._peek('>=', TokenType.RELATIONAL)
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek('>', TokenType.RELATIONAL)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == '<':
+                cursor_advanced, is_end_of_file = self._peek('<=', TokenType.RELATIONAL)
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek('<', TokenType.RELATIONAL)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == '*':
+                cursor_advanced, is_end_of_file = self._peek('*', TokenType.ARITHMETIC)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == '/':
+                cursor_advanced, is_end_of_file = self._peek('/', TokenType.ARITHMETIC)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == '%':
+                cursor_advanced, is_end_of_file = self._peek('%', TokenType.ARITHMETIC)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == "|":
+                cursor_advanced, is_end_of_file = self._peek('||', TokenType.LOGIC)
+                if cursor_advanced:
+                    continue
+
+                # throw custom error - unexpected symbol
+
+            if self._current_char == "&":
+                cursor_advanced, is_end_of_file = self._peek('&&', TokenType.LOGIC)
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek('&', TokenType.CONCAT)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == "{":
+                cursor_advanced, is_end_of_file = self._peek('{', TokenType.OPEN_BRACE)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == "}":
+                cursor_advanced, is_end_of_file = self._peek('{', TokenType.CLOSE_BRACE)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == "(":
+                cursor_advanced, is_end_of_file = self._peek('(', TokenType.OPEN_PAREN)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == ")":
+                cursor_advanced, is_end_of_file = self._peek(')', TokenType.CLOSE_PAREN)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == "[":
+                cursor_advanced, is_end_of_file = self._peek('[[', TokenType.DOUBLE_OPEN_BRACKET)
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek('[', TokenType.OPEN_BRACKET)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == "]":
+                cursor_advanced, is_end_of_file = self._peek(']]', TokenType.DOUBLE_CLOSE_BRACKET)
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek(']', TokenType.CLOSE_BRACKET)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == ",":
+                cursor_advanced, is_end_of_file = self._peek(',', TokenType.COMMA)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == ".":
+                cursor_advanced, is_end_of_file = self._peek(',', TokenType.DOT_OP)
+                if cursor_advanced:
+                    continue
+
             if self._current_char == '~':
-                # always append '~'
-                starting_position = ending_position = tuple(self._position)
-                self._tokens.append(Token('~', 'LINE_BREAK', starting_position, ending_position))                
-                is_end_of_file = self._advance()
-                continue
+                cursor_advanced, is_end_of_file = self._peek('~', TokenType.TERMINATOR)
+                if cursor_advanced:
+                    continue
 
             # can be identifiers or function names
             if self._current_char.isalpha():

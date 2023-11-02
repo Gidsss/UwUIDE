@@ -44,6 +44,7 @@ class TokenType(Enum):
     BWEAK = ("BWEAK_KEYWORD", "end")
 
     # DATA TYPES
+    DATA_TYPE = ("GENERAL_DATA_TYPE", "data_type")  # only for dev
     CHAN = ("CHAN_DATA_TYPE", "data_type")  # int
     KUN = ("KUN_DATA_TYPE", "data_type")  # float
     SAMA = ("SAMA_DATA_TYPE", "data_type")  # boolean
@@ -61,7 +62,8 @@ class TokenType(Enum):
     # OPERATORS
     ASSIGN = ("ASSIGNMENT_OPERATOR", "assign_delim")  # =
     ARITHMETIC = ("ARITHMETIC_OPERATOR", "operator_delim")  # + - * / %
-    RELATIONAL = ("RELATIONAL_OPERATOR", "operator_delim")  # > < >= <= == !=
+    RELATIONAL = ("RELATIONAL_OPERATOR", "operator_delim")  # > < >= <=
+    EQUALITY = ("EQUALITY_OPERATOR", "logical_delim")  # == !=
     LOGIC = ("LOGICAL_OPERATOR", "logical_delim")  # && ||
     UNARY = ("UNARY_OPERATOR", "unary")  # ++ --
     CONCAT = ("CONCATENATION_OPERATOR", "concat")  # &
@@ -80,6 +82,7 @@ class TokenType(Enum):
     TERMINATOR = ("TERMINATOR", "line")  # ~
     COMMA = ("COMMA", "comma")  # ,
     DOT_OP = ("DOT_OPERATOR", "dot_op")  # .
+    NEGATIVE = ("NEGATIVE_SIGN", "negative_delim")  # -
 
     # OTHER
     IDENTIFIER = ("IDENTIFIER", "id")
