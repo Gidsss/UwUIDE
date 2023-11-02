@@ -5,11 +5,12 @@ if __name__ == "__main__":
     # temporary test source code
     source_code = [
         "a  fwunc aqua-chan()~",
-        # 'aqua-chan(args)~',
-        ' aqua-chan',
-        'aqua',
-        'aqua-chan = cap~',
+        'fwunc aqua2chan(',
+        'fwunc aqua3-chan',
+        'aqua4(args)~',
+        ' aqua5-chan()~',
+        'aqua6',
+        'aqua7-chan = cap~',
         'bweak~ bweak',
-        'shion-chan~ojou~'
     ]
     print_lex(source_code)

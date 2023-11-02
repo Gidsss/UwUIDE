@@ -72,6 +72,7 @@ class Lexer():
                 # always append '~' but check delims anyway
                 next_char_is_correct_delim, delim = self._verify_delim(DELIMS['line'])
 
+                starting_position = ending_position = tuple(self._position)
                 if next_char_is_correct_delim:
                     self._tokens.append(Token('~', TokenType.TERMINATOR, starting_position, ending_position))                
                 else:
@@ -285,12 +286,16 @@ class Lexer():
         else:
             raise ValueError(f"{to_seek} is not a valid parameter. Please pass a list of strings")
         
-        multi_line = 0
         line = self._position[0]
+        if before:
+            multi_line = line - multi_line_count
+        else:
+            multi_line = line + multi_line_count
+
         if multi_line_count == "EOF":
-            multi_line_count = len(self._lines) - line - 1
+            multi_line = len(self._lines) - line - 1
         elif multi_line_count == "BOF":
-            multi_line_count = line
+            multi_line = 0
 
         cursor_advance_reverse_count = 0
         found = [False]*len(to_seek)
@@ -301,17 +306,6 @@ class Lexer():
             if before:
                 while not found[i]:
                     # intial check if you already got to the beginning of file form previous searches
-                    if beginning_of_file:
-                        break
-
-                    # limit number of times reversing can go to newlines with multi_line_count
-                    multi_line -= self._position[0]
-                    if multi_line > multi_line_count:
-                        break
-
-                    beginning_of_file = self._reverse()
-                    cursor_advance_reverse_count += 1
-                    # check again after reversing
                     if beginning_of_file:
                         break
 
@@ -340,25 +334,23 @@ class Lexer():
                             continue
                         else:
                             break
+                    else:
+                        beginning_of_file = self._reverse()
+                        cursor_advance_reverse_count += 1
+                        # check again after reversing
+                        if beginning_of_file:
+                            cursor_advance_reverse_count -= 1
+                            break
+                        # limit number of times reversing can go to newlines with multi_line_count
+                        elif multi_line > self._position[0]:
+                            break
             else:
                 while not found[i]:
                     # intial check if you already got to the end of file form previous searches
                     if end_of_file:
                         break
 
-                    # limit number of times advancing can go to newlines with multi_line_count
-                    multi_line = self._position[0] - multi_line
-                    if multi_line > multi_line_count:
-                        break
-
-                    end_of_file = self._advance()
-                    cursor_advance_reverse_count += 1
-                    # check again after advancing
-                    if end_of_file:
-                        break
-
                     if self._current_char == to_seek[i][0]:
-
                         preempt_success = True
                         for preempt in range(0, lengths[i]):
                             cursor_advance_reverse_count += 1
@@ -377,6 +369,16 @@ class Lexer():
                         if ignore_space:
                             continue
                         else:
+                            break
+                    else:
+                        end_of_file = self._advance()
+                        cursor_advance_reverse_count += 1
+                        # check again after advancing
+                        if end_of_file:
+                            cursor_advance_reverse_count -= 1
+                            break
+                        # limit number of times advancing can go to newlines with multi_line_count
+                        elif multi_line < self._position[0]:
                             break
 
         if before:
@@ -404,15 +406,38 @@ class Lexer():
             eg. declaring: fwunc aqua-chan(params)~
         else is literal
         """
-        cursor_advanced = False
         parentheses_exist = self._seek('(', ignore_space=False)
         dash_datatype_exist = self._seek('-', ignore_space=False)
         fwunc_exists = False
         if len(self._tokens) != 0:
             fwunc_exists = True if self._tokens[-1].lexeme == 'fwunc' else False 
 
+        cursor_advanced = False
         if fwunc_exists:
-            if not parentheses_exist or not dash_datatype_exist:
+            if parentheses_exist and dash_datatype_exist:
+                # correct function name declaration, append to tokens
+                temp_id = ""
+                current_line = self._position[0]
+
+                while True:
+                    if self._current_char == '-':
+                        self._reverse()
+                        starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
+                        ending_position = tuple([self._position[0], self._position[1]])
+                        self._tokens.append(Token(temp_id, TokenType.FUNC_NAME, starting_position, ending_position))
+                        break
+
+                    temp_id += self._current_char
+                    is_end_of_file = self._advance()
+
+                    if is_end_of_file or self._position[0] != current_line:
+                        self._reverse()
+                        line, col = self._position
+                        self._errors.append(DelimError(TokenType.FUNC_NAME, (line, col + 1), temp_id, '\n'))
+                        break
+                cursor_advanced = True
+
+            else:
                 if not parentheses_exist:
                     # function declaration has no opening parenthesis as delimiter
                     self._errors.append(CustomError(Error.OPEN_PAREN_FUNC, tuple(self._position)))
@@ -442,14 +467,36 @@ class Lexer():
                         self._errors.append(CustomError(Error.INVALID_FUNC_DECLARE, starting_position, ending_position))
                         break
                 cursor_advanced = True
-
-            else:
-                # correct function name, append to tokens
+        
+        elif parentheses_exist:
+            if dash_datatype_exist:
+                # correct function name declaration, append to tokens
                 temp_id = ""
                 current_line = self._position[0]
 
                 while True:
                     if self._current_char == '-':
+                        self._reverse()
+                        starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
+                        ending_position = tuple([self._position[0], self._position[1]])
+                        self._errors.append(CustomError(Error.MISSING_FWUNC, starting_position, ending_position))
+                        break
+
+                    temp_id += self._current_char
+                    is_end_of_file = self._advance()
+
+                    if is_end_of_file:
+                        self._reverse()
+                        line, col = self._position
+                        self._errors.append(DelimError(TokenType.FUNC_NAME, (line, col + 1), temp_id, '\n'))
+                        break
+            else:
+                # correct funciton name call, append to token
+                temp_id = ""
+                current_line = self._position[0]
+
+                while True:
+                    if self._current_char == '(':
                         self._reverse()
                         starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                         ending_position = tuple([self._position[0], self._position[1]])
@@ -465,24 +512,9 @@ class Lexer():
                         self._errors.append(DelimError(TokenType.FUNC_NAME, (line, col + 1), temp_id, '\n'))
                         break
 
-                cursor_advanced = True
-        
-        elif parentheses_exist and not dash_datatype_exist:
-            # treat as function name
-            # check delimiter
-            # append
             cursor_advanced = True
         
         return cursor_advanced
-
-    def _is_literal(self) -> bool:
-        # !NOTE! might be redundant with method above
-
-        # check if id delim is present after
-        # if id delim: is literal
-        # else false
-        pass
-
 """
 def read_file(file_path: Path) -> list[str]:
     with open(file_path, 'r') as file:

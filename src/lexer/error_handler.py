@@ -23,6 +23,9 @@ class Error(Enum):
     INVALID_FUNC_DECLARE = ("INVALID FUNCTION NAME DECLARATION",
                             "Function name is missing a data type/parenthesis")
     
+    MISSING_FWUNC = ("MISSING FWUNC KEYWORD",
+                     "Function declarations need to have a 'fwunc' before to indicate it is a function")
+    
 class CustomError:
     def __init__(self, error_type: Error, position: tuple[int,int], end_position: tuple[int,int] = None):
         self._error_type = error_type
