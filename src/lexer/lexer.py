@@ -240,7 +240,7 @@ class Lexer():
                     j += 1
         else:
             for i,j in zip(range(start[0], end[0], increment), range(start[1], end[1], increment)):
-                if to_check[i] != self._lines[line][j]:
+                if i > len(self._lines[line]) - 1 or to_check[i] != self._lines[line][j]:
                     is_equal = False
                     break
         
