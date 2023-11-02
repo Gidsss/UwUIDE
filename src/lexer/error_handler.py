@@ -29,6 +29,28 @@ class Error(Enum):
     UNCLOSED_STRING = ("UNCLOSED STRING",
                        'String literals should be closed with "')
     
+class Warn(Enum):
+    def __init__(self, error_type: str, message: str):
+        self._error_type = error_type
+        self._message = message
+
+    @property
+    def error_type(self):
+        return self._error_type
+
+    @property
+    def message(self):
+        return self._message
+    
+    LEADING_ZEROES_INT = ("LEADING ZEROES"
+                      'chan literals should not have leading zeroes',)
+        
+    LEADING_ZEROES_FLOAT = ("LEADING ZEROES"
+                      "kun literals should only have ONE leading zero before the decimal point IF it's the only digit present (0.1)")
+    
+    TRAILING_ZEROES_FLOAT = ("TRAILING ZEROES"
+                      "kun literals should only have ONE trailing zero after the decimal point IF it's the only digit present (1.0)")
+
 class CustomError:
     def __init__(self, error_type: Error, position: tuple[int,int], end_position: tuple[int,int] = None):
         self._error_type = error_type
@@ -61,7 +83,7 @@ class CustomError:
         return log
 
 class DelimError:
-    def __init__(self, token_type: TokenType, position: tuple[int] = None, temp_id: str = None, actual_delim: str = None,
+    def __init__(self, token_type: TokenType, position: tuple[int], temp_id: str, actual_delim: str,
                  fatal: bool = False):
         self.token_type = token_type
         self.position = position
@@ -82,4 +104,50 @@ class DelimError:
             log += f"{delim} "
         log += f"\n\tafter {self.temp_id} but got {self.actual_delim} instead\n"
 
+        return log
+
+class IntFloatWarning:
+
+    def __init__(self, warn_type: Warn, corrected_value: str, temp_num: str, position: tuple[int,int], end_position: tuple[int,int]):
+        self._warn_type = warn_type
+        self._corrected_value = corrected_value
+        self._temp_num = temp_num
+        self._position = position
+        self._end_position = end_position
+
+    @property
+    def warn_type(self) -> str:
+        return self._warn_type
+
+    @property
+    def message(self):
+        return self._warn_type.message
+
+    @property
+    def corrected_value(self) -> str:
+        return self._corrected_value
+    
+    @property
+    def temp_num(self) -> str:
+        return self._temp_num
+    
+    @property
+    def position(self) -> str:
+        return self._position
+
+    @property
+    def end_position(self) -> str:
+        return self._end_position
+
+    def __str__(self):
+        log = ''
+
+        log += f"[{self.error_type}] Error on line {self._position[0]}"
+
+        if self.end_position:
+            log += f" from column {self._position[1]} to {self._end_position[1]}"
+
+        log += ':\n'
+        log += f"\t{self.message}\n"
+        log += f"\tvalue = '{self.temp_num} ; corrected value = '{self.corrected_value}'"
         return log
