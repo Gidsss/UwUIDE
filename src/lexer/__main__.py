@@ -18,7 +18,8 @@ if __name__ == "__main__":
         'minato-chan~ojou~',
         'pwint (',
         'fwunc',
-        'fax}'
+        'fax,',
+        
 
     ]
     print_lex(source_code)
