@@ -40,7 +40,7 @@ class TokenType(Enum):
     DO_WHIWE = ("DO_WHIWE_KEYWORD", "conditional")
     IWF = ("IWF_KEYWORD", "conditional")
     EWSE = ("EWSE_KEYWORD", "conditional")
-    EWSE_IF = ("EWSE_IF_KEYWORD", "conditional")
+    EWSE_IWF = ("EWSE_IWF_KEYWORD", "conditional")
     BWEAK = ("BWEAK_KEYWORD", "end")
 
     # DATA TYPES
