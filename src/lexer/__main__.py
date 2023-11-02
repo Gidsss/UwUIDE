@@ -19,7 +19,17 @@ if __name__ == "__main__":
         'pwint (',
         'fwunc',
         'fax,',
-        
-
+        'fow',
+        'gwobaw',
+        'inpwt(',
+        'float-kun = 10.5~',
+        'mainuwu-',
+        'nuww,',
+        'san~',
+        'sama ',
+        'senpai~',
+        'staart!',
+        'whiwe (',
+        'wetuwn('
     ]
     print_lex(source_code)
