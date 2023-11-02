@@ -43,6 +43,14 @@ class Console(CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
 
+        # TODO: Implement cursor functionality in the future
+        self.grid_columnconfigure((0), weight=1)
+        self.grid_columnconfigure((1,2,3,4,5,6,7,8,9,10), weight=2)
+        self.grid_rowconfigure((0), weight=1)
+        self.console_cursor = CTkLabel(master=self, text='>', bg_color='transparent', text_color='#FFFFFF')
+
+        self.console_cursor.grid(row=0, column=0, sticky='n')
+
 class ConsoleView(CTkTabview):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
@@ -53,5 +61,11 @@ class ConsoleView(CTkTabview):
         self.compiler_logs_tab.grid_columnconfigure((0,1), weight=1)
         self.compiler_logs_tab.grid_rowconfigure((0,1), weight=1)
 
+        self.console_tab.grid_columnconfigure((0,1), weight=1)
+        self.console_tab.grid_rowconfigure((0,1), weight=1)
+
         self.compiler_logs = CompilerLogs(self.compiler_logs_tab, fg_color='transparent')
         self.compiler_logs.grid(row=0,column=0, rowspan=2, columnspan=2, sticky='nsew')
+
+        self.console = Console(self.console_tab, fg_color='transparent')
+        self.console.grid(row=0,column=0, rowspan=2, columnspan=2, sticky='nsew')
