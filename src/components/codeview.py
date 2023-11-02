@@ -24,9 +24,8 @@ class Linenums(CTkCanvas):
             continue
 
          self.create_text(12, dlineinfo[1] + 10, text=f"{lineno}", anchor='center', fill='white', font=("Montserrat", 10))
-    
 
-class CodeView(CTkFrame):
+class CodeEditor(CTkFrame):
    def __init__(self, master, **kwargs):
       super().__init__(master, **kwargs)
       self.grid_columnconfigure(0, weight=1)
@@ -44,4 +43,16 @@ class CodeView(CTkFrame):
       self.text.bind("<Return>", lambda e: self.line_nums.on_redraw(e))
       self.text.bind("<BackSpace>", lambda e: self.line_nums.on_redraw(e))
 
-        
+class CodeView(CTkTabview):
+   def __init__(self, master, **kwargs):
+      super().__init__(master, **kwargs)
+      # TODO: Remove on integ, filenames should be from uwu.py input
+      self.file_names = ['Untitled.uwu', 'Untitled(1).uwu']
+
+      for file in self.file_names:
+         tab = self.add(file)
+         tab.grid_columnconfigure((0,1), weight=1)
+         tab.grid_rowconfigure((0,1), weight=1)
+
+         code_editor = CodeEditor(master=tab, fg_color='transparent')
+         code_editor.grid(row=0, column=0, rowspan=2, columnspan=2, sticky='nsew')

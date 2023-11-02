@@ -1,5 +1,4 @@
 from customtkinter import *
-from .components.lexer_table import LexerTable
 from .components.codeview import CodeView
 from .components.command_menu import CommandMenu
 from .components.analyzer_tabs import UwULexerTab, UwUParserTab
@@ -12,14 +11,23 @@ class UwUCodePanel(CTkFrame):
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure((1,2,3,4), weight=4)
 
-        command_menu = CommandMenu(master = self, fg_color = 'transparent')
-        command_menu.grid(row=0, columnspan=4, sticky='nsew')
+        self.command_menu = CommandMenu(master = self, fg_color = 'transparent')
+        self.command_menu.grid(row=0, columnspan=4, sticky='nsew')
 
-        code_editor = CodeView(master=self, fg_color='transparent')
-        code_editor.grid(row=1, rowspan=2, columnspan=4, sticky='nsew', padx=12, pady=4)
+        self.code_editor = CodeView(
+            master=self,
+            corner_radius=0,
+            anchor='nw',
+            fg_color='#1A1B26',
+            segmented_button_fg_color='#1A1B26',
+            segmented_button_selected_color='#333652',
+            segmented_button_selected_hover_color='gray',
+            segmented_button_unselected_color='#1A1B26',segmented_button_unselected_hover_color='gray'
+        )
+        self.code_editor.grid(row=1, rowspan=2, columnspan=4, sticky='nsew', padx=12, pady=2)
         
-        console = CTkLabel(master=self, text='console', bg_color='#1A1B26', text_color='#FFFFFF')
-        console.grid(row=3, rowspan=2, columnspan=4, stick='nsew', padx=12, pady=12)
+        self.console = CTkLabel(master=self, text='console', bg_color='#1A1B26', text_color='#FFFFFF')
+        self.console.grid(row=3, rowspan=2, columnspan=4, stick='nsew', padx=12, pady=12)
 
 class UwuAnalyzerPanel(CTkTabview):
     def __init__(self, master, **kwargs):
@@ -53,10 +61,10 @@ class UwU(CTk):
         self.grid_rowconfigure((0,1,2,3,4), weight=1)
 
         # layout
-        code_panel = UwUCodePanel(master=self, fg_color='transparent')
-        code_panel.grid(row=0, column=0, rowspan=5, columnspan=4, sticky='nsew')
+        self.code_panel = UwUCodePanel(master=self, fg_color='transparent')
+        self.code_panel.grid(row=0, column=0, rowspan=5, columnspan=4, sticky='nsew')
 
-        analyzer_panel = UwuAnalyzerPanel(
+        self.analyzer_panel = UwuAnalyzerPanel(
             master=self,
             fg_color='#1A1B26',
             corner_radius=20,
@@ -66,7 +74,7 @@ class UwU(CTk):
             segmented_button_selected_hover_color='gray',
             segmented_button_unselected_color='#1A1B26',segmented_button_unselected_hover_color='gray'
         )
-        analyzer_panel.grid(row=0, column=4, rowspan=5, columnspan=2, sticky='nsew')
+        self.analyzer_panel.grid(row=0, column=4, rowspan=5, columnspan=2, sticky='nsew')
 
 if __name__ == "__main__":
     app = UwU()
