@@ -4,7 +4,7 @@ from tkinter import Event
 class Linenums(CTkCanvas):
    def __init__(self, master, text_widget: CTkTextbox, **kwargs):
       super().__init__(master, **kwargs)
-      CTkCanvas.__init__(self, master=master, width=1, borderwidth=0,highlightthickness=0, bg='#333652')
+      CTkCanvas.__init__(self, master=master, width=16, borderwidth=0,highlightthickness=0, bg='#1A1B26')
 
       self.text_widget = text_widget
       
@@ -23,7 +23,7 @@ class Linenums(CTkCanvas):
          if dlineinfo is None:
             continue
 
-         self.create_text(12, dlineinfo[1] + 10, text=f"{lineno}", anchor='center', fill='white', font=("Montserrat", 10))
+         self.create_text(12, dlineinfo[1] + 10, text=f"{lineno}", anchor='center', fill='#333652', font=("Montserrat", 10))
 
 class CodeEditor(CTkFrame):
    def __init__(self, master, **kwargs):

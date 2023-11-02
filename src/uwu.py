@@ -1,5 +1,6 @@
 from customtkinter import *
 from .components.code_view import CodeView
+from .components.console_view import ConsoleView
 from .components.command_menu import CommandMenu
 from .components.analyzer_tabs import UwULexerTab, UwUParserTab
 
@@ -9,14 +10,14 @@ class UwUCodePanel(CTkFrame):
 
         self.grid_columnconfigure((0,1,2,3), weight=1)
         self.grid_rowconfigure(0, weight=1)
-        self.grid_rowconfigure((1,2,3,4), weight=4)
+        self.grid_rowconfigure((1,2,3,4,5), weight=4)
 
-        self.command_menu = CommandMenu(master = self, fg_color = 'transparent')
-        self.command_menu.grid(row=0, columnspan=4, sticky='nsew')
+        self.command_menu = CommandMenu(master=self, fg_color = 'transparent')
+        self.command_menu.grid(row=0, columnspan=4, sticky='nsew', pady=8)
 
         self.code_editor = CodeView(
             master=self,
-            corner_radius=0,
+            corner_radius=8,
             anchor='nw',
             fg_color='#1A1B26',
             segmented_button_fg_color='#1A1B26',
@@ -24,10 +25,19 @@ class UwUCodePanel(CTkFrame):
             segmented_button_selected_hover_color='gray',
             segmented_button_unselected_color='#1A1B26',segmented_button_unselected_hover_color='gray'
         )
-        self.code_editor.grid(row=1, rowspan=2, columnspan=4, sticky='nsew', padx=12, pady=2)
+        self.code_editor.grid(row=1, rowspan=5, columnspan=4, sticky='nsew', padx=12)
         
-        self.console = CTkLabel(master=self, text='console', bg_color='#1A1B26', text_color='#FFFFFF')
-        self.console.grid(row=3, rowspan=2, columnspan=4, stick='nsew', padx=12, pady=12)
+        self.console_view = ConsoleView(
+            master=self,
+            fg_color='#1A1B26',
+            corner_radius=8,
+            anchor='nw',
+            segmented_button_fg_color='#1A1B26',
+            segmented_button_selected_color='#333652',
+            segmented_button_selected_hover_color='gray',
+            segmented_button_unselected_color='#1A1B26',segmented_button_unselected_hover_color='gray'
+        )
+        self.console_view.grid(row=6, rowspan=1, columnspan=4, stick='nsew', padx=12, pady=12)
 
 class UwuAnalyzerPanel(CTkTabview):
     def __init__(self, master, **kwargs):
@@ -67,7 +77,7 @@ class UwU(CTk):
         self.analyzer_panel = UwuAnalyzerPanel(
             master=self,
             fg_color='#1A1B26',
-            corner_radius=20,
+            corner_radius=8,
             anchor='nw',
             segmented_button_fg_color='#1A1B26',
             segmented_button_selected_color='#333652',
