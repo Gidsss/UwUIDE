@@ -4,11 +4,21 @@ from .lexer import *
 if __name__ == "__main__":
     # temporary test source code
     source_code = [
-        "bweak",
+        'bweak~',
         ' aqua-chan',
-        'aqua',
+        'cwass ',
         'aqua-chan = cap~',
-        'bweak~ bweak',
-        'shion-chan~ojou~'
+        'cwass~ bweak',
+        'dono ',
+        'do whiwe(',
+        'donee~',
+        'ewse iwf(',
+        'ewse(',
+        'iwf(',
+        'minato-chan~ojou~',
+        'pwint (',
+        'fwunc',
+        'fax}'
+
     ]
     print_lex(source_code)
