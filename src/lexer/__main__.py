@@ -17,7 +17,6 @@ if __name__ == "__main__":
         'iwf(',
         'minato-chan~ojou~',
         'pwint (',
-        'fwunc',
         'fax,',
         'fow',
         'gwobaw',
