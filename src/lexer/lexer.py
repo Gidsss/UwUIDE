@@ -1,7 +1,7 @@
 from sys import argv
 from pathlib import Path
 
-from constants.constants import DELIMS
+from constants.constants import *
 from .token import *
 from .error_handler import *
 
@@ -74,7 +74,7 @@ class Lexer():
 
                 starting_position = ending_position = tuple(self._position)
                 if next_char_is_correct_delim:
-                    self._tokens.append(Token('~', TokenType.TERMINATOR, starting_position, ending_position))                
+                    self._tokens.append(Token('~', TokenType.TERMINATOR, starting_position, ending_position))
                 else:
                     self._errors.append(DelimError(TokenType.TERMINATOR, tuple(self._position), '~', delim))
 
@@ -96,22 +96,33 @@ class Lexer():
                     current_line = self._position[0]
 
                     while True:
-                        if self._current_char in DELIMS['id']:
-                            self._reverse()
-
-                            starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
-                            ending_position = tuple([self._position[0], self._position[1]])
-                            self._tokens.append(Token(temp_id, TokenType.IDENTIFIER, starting_position, ending_position))
-                            break
-
                         temp_id += self._current_char
                         is_end_of_file = self._advance()
+                        in_next_line = self._position[0] != current_line
 
-                        if is_end_of_file or self._position[0] != current_line:
-                            self._reverse()
+                        if is_end_of_file or in_next_line:
+                            if in_next_line:
+                                self._reverse()
                             line, col = self._position
                             self._errors.append(DelimError(TokenType.IDENTIFIER, (line, col + 1), temp_id, '\n'))
                             break
+
+                        elif self._current_char in DELIMS['id']:
+                            self._reverse()
+                            starting_position = (self._position[0], self._position[1]-len(temp_id)+1)
+                            ending_position = (self._position[0], self._position[1])
+                            self._tokens.append(Token(temp_id, TokenType.IDENTIFIER, starting_position, ending_position))
+                            break
+
+            if self._current_char == '|':
+                is_end_of_file = self._peek_string_literal('|')
+                if is_end_of_file:
+                    break
+                        
+            if self._current_char == '"':
+                is_end_of_file = self._peek_string_literal('"')
+                if is_end_of_file:
+                    break
             
             if is_end_of_file:
                 break
@@ -238,7 +249,7 @@ class Lexer():
                     j += 1
         else:
             for i,j in zip(range(start[0], end[0], increment), range(start[1], end[1], increment)):
-                if to_check[i] != self._lines[line][j]:
+                if j >= len(self._lines[line]) or to_check[i] != self._lines[line][j]:
                     is_equal = False
                     break
         
@@ -429,9 +440,11 @@ class Lexer():
 
                     temp_id += self._current_char
                     is_end_of_file = self._advance()
+                    in_next_line = self._position[0] != current_line
 
-                    if is_end_of_file or self._position[0] != current_line:
-                        self._reverse()
+                    if is_end_of_file or in_next_line:
+                        if in_next_line:
+                            self._reverse()
                         line, col = self._position
                         self._errors.append(DelimError(TokenType.FUNC_NAME, (line, col + 1), temp_id, '\n'))
                         break
@@ -459,9 +472,11 @@ class Lexer():
 
                     temp_id += self._current_char
                     is_end_of_file = self._advance()
+                    in_next_line = self._position[0] != current_line
 
-                    if is_end_of_file or self._position[0] != current_line:
-                        self._reverse()
+                    if is_end_of_file or in_next_line:
+                        if in_next_line:
+                            self._reverse()
                         starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                         ending_position = tuple([self._position[0], self._position[1]])
                         self._errors.append(CustomError(Error.INVALID_FUNC_DECLARE, starting_position, ending_position))
@@ -505,9 +520,11 @@ class Lexer():
 
                     temp_id += self._current_char
                     is_end_of_file = self._advance()
+                    in_next_line = self._position[0] != current_line
 
-                    if is_end_of_file or self._position[0] != current_line:
-                        self._reverse()
+                    if is_end_of_file or in_next_line:
+                        if in_next_line:
+                            self._reverse()
                         line, col = self._position
                         self._errors.append(DelimError(TokenType.FUNC_NAME, (line, col + 1), temp_id, '\n'))
                         break
@@ -515,6 +532,66 @@ class Lexer():
             cursor_advanced = True
         
         return cursor_advanced
+    
+    def _peek_string_literal(self, string_literal_start: str = None):
+        if string_literal_start == '"':
+            token_types = (TokenType.STRING_PART_START, TokenType.STRING_LITERAL)
+        elif string_literal_start == "|":
+            token_types = (TokenType.STRING_PART_MID, TokenType.STRING_PART_END)
+        
+        temp_string = ''
+        escape_count = 0
+        current_line = self._position[0]
+
+        while True:
+            temp_string += self._current_char
+            is_end_of_file = self._advance()
+            in_next_line = self._position[0] != current_line
+
+            if is_end_of_file or in_next_line:
+                if in_next_line:
+                    self._reverse()
+                starting_position = (self._position[0], self._position[1]-len(temp_string)+1)
+                ending_position = (self._position[0], self._position[1])
+                self._errors.append(CustomError(Error.UNCLOSED_STRING, starting_position, ending_position))
+                break
+
+            elif self._current_char == '\\':
+                is_end_of_file = self._advance()
+                if is_end_of_file:
+                    break
+
+                if self._current_char != "|":
+                    self._reverse()
+                    temp_string += '\\'
+                else:
+                    escape_count += 1
+            
+            elif self._current_char in ['|', '"']:
+                if self._current_char == '|':
+                    token_type = token_types[0]
+                    delims = DELIMS['logical_delim'] 
+                else:
+                    token_type = token_types[1]
+                    delims = DELIMS['string'] 
+
+                temp_string += self._current_char
+                temp_string = '"' + temp_string[1:-1] + '"'
+                temp_string_length = len(temp_string) + escape_count
+
+                starting_position = (self._position[0], self._position[1]-temp_string_length+1)
+                ending_position = (self._position[0], self._position[1])
+
+                next_char_is_correct_delim, delim = self._verify_delim(delims)
+                if next_char_is_correct_delim:
+                    self._tokens.append(Token(temp_string, token_type, starting_position, ending_position))
+                else:
+                    self._errors.append(DelimError(token_type, (ending_position[0], ending_position[1]+1), temp_string, delim))
+                break
+
+        return self._advance()
+        
+
 """
 def read_file(file_path: Path) -> list[str]:
     with open(file_path, 'r') as file:

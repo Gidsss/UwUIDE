@@ -26,6 +26,9 @@ class Error(Enum):
     MISSING_FWUNC = ("MISSING FWUNC KEYWORD",
                      "Function declarations need to have a 'fwunc' before to indicate it is a function")
     
+    UNCLOSED_STRING = ("UNCLOSED STRING",
+                       'String literals should be closed with "')
+    
 class CustomError:
     def __init__(self, error_type: Error, position: tuple[int,int], end_position: tuple[int,int] = None):
         self._error_type = error_type
