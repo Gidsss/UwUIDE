@@ -27,7 +27,7 @@ DELIMS = {
     'logical_delim': ['"', *ATOMS['alpha'], *ATOMS['number'], ' ', '-', '('],
     'open_brace': [*ATOMS['number'], ' ', '"', *ATOMS['alpha'], r'\n', '>'],
     'close_brace': ['~', ' ', ',', ')', '>'],
-    'open_parenthesis': [*ATOMS['number'], *ATOMS['alpha'], ' ', '-', r'\n', '>'],
+    'open_parenthesis': [*ATOMS['number'], *ATOMS['alpha'], ' ', '-', r'\n', '>', '('],
     'id': [' ', '~', ',', ')', '[', ']', '}', *ATOMS['general_operator'], r'&', '|', '.'],
     'close_parenthesis': [' ', *ATOMS['general_operator'], '&', '|', r'\n', '~', '>', '.', ',', ')', '(', '[', ']', '}'],
     'open_bracket': [*ATOMS['number'], '-', *ATOMS['alpha']],
@@ -41,5 +41,6 @@ DELIMS = {
     'dot_op': [*ATOMS['alpha'], '[', '('],
     'start_done': [r'\n', ' ', '>'],
     'nuww': [' ', '~', ')', '}', ','],
-    'whitespace': [' ']
+    'whitespace': [' '],
+    'negative_delim': [*ATOMS['alpha'], *ATOMS['number'], '('],
 }
