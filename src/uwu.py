@@ -1,5 +1,5 @@
 from customtkinter import *
-from .components.codeview import CodeView
+from .components.code_view import CodeView
 from .components.command_menu import CommandMenu
 from .components.analyzer_tabs import UwULexerTab, UwUParserTab
 
