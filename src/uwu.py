@@ -1,4 +1,5 @@
 from customtkinter import *
+
 from .components.code_view import CodeView
 from .components.console_view import ConsoleView
 from .components.command_menu import CommandMenu
@@ -66,6 +67,8 @@ class UwuAnalyzerPanel(CTkTabview):
         self.parser_tab_content = UwUParserTab(self.parser_tab, fg_color='transparent')
         self.parser_tab_content.grid(row=0, column=0, rowspan=2, columnspan=2, sticky='nsew')
 
+        self.update_lexer = self.lexer_tab_content.update_lexer
+
 class UwU(CTk):
     def __init__(self):
         super().__init__()     
@@ -99,8 +102,9 @@ class UwU(CTk):
         self.analyzer_panel.grid(row=0, column=4, rowspan=5, columnspan=2, sticky='nsew')
 
     def on_compiler_run(self):
-        code_editor = self.code_panel.editor
+        code_editor = self.code_panel.editor 
         code_editor.run_lexer()
+        self.analyzer_panel.update_lexer(tokens=code_editor.tokens)
         print(code_editor.tokens)
         
 

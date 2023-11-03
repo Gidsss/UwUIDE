@@ -1,5 +1,5 @@
 from customtkinter import *
-from .lexer_table import LexerTable
+from .lexer_table import LexerCanvas
 
 class UwUParserTab(CTkFrame):
     def __init__(self, master, **kwargs):
@@ -28,9 +28,7 @@ class UwULexerTab(CTkScrollableFrame):
         self.lexeme_label.grid(row=0, column=0, sticky='nsew')
         self.token_label.grid(row=0, column=1, sticky='nsew')
 
-        self.lexer_table = LexerTable(master=self, fg_color='transparent', data=[
-            ('fwunc', 'FUNCTION'),
-            ('berry', 'IDENTIFIER'),
-            ('fwunc', 'FUNCTION'),
-        ])
+        self.lexer_table = LexerCanvas(master=self)
         self.lexer_table.grid(row=1, rowspan=2 ,columnspan=2, sticky='nsew')
+
+        self.update_lexer = self.lexer_table.update_lexer

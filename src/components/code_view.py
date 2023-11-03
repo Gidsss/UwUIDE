@@ -44,12 +44,23 @@ class CodeEditor(CTkFrame):
       self.line_nums.grid(row=0, column=0, sticky='nsew')
 
       self.text.bind("<Button-1>", lambda e: self.line_nums.on_redraw(e))
-      
+      self.text.bind("<Tab>", lambda e: self.on_tab(e))
+
       self.text.bind("<Return>", lambda e: self.line_nums.on_redraw(e))
       self.text.bind("<BackSpace>", lambda e: self.line_nums.on_redraw(e))
 
+   def on_tab(self, e: Event):
+      e.widget.insert(INSERT, " " * 6)
+      return  'break'
+
    def run_lexer(self):
-      source_code = self.text.get('1.0','end-1c').split('\n')
+      # is_text_editor_empty = len(self.text.get('1.0', END)) >= 1
+
+      # if is_text_editor_empty:
+      #    return
+      
+      source_code = [v + '\n' for v in self.text.get('1.0','end-1c').split('\n')]
+      print(source_code)
       lx: Lexer = self.lexer(source_code)
 
       self.tokens = lx.tokens
