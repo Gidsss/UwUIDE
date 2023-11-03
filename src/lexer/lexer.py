@@ -76,7 +76,8 @@ class Lexer():
 
             # can be identifiers or function names
             if self._current_char.isalpha():
-                cursor_advanced = self._is_func_name()
+                cwass = False if self._current_char == self._current_char.lower() else True
+                cursor_advanced = self._is_func_or_cwass_name(cwass)
                 if cursor_advanced:
                     if is_end_of_file:
                         break
@@ -412,25 +413,40 @@ class Lexer():
         for error in self.errors:
             print(error)
 
-    def _is_func_name(self) -> bool:
+    def _is_func_or_cwass_name(self, cwass = False) -> bool:
         """
-        check if not a valid function name by looking for fwunc before the current character but parenthesis don't exist after don't
-            throw error if so
-            eg. fwunc aqua-chan~
-        check if function again by looking if there is '(' after
-            if '(', is a function name
-            eg. calling: aqua(args)~
-        check if function by looking for fwunc before the current characer
-            if 'fwunc', is a function name
-            eg. declaring: fwunc aqua-chan(params)~
-        else is literal
+        checks if the current character up to a fwunc/cwass delimiter is a proper fwunc/cwass name
+
+        Args:
+            - args: bool = determines whether to treat the current character as the beginning of a cwass name or a func name
+
+        Returns:
+            - cursor_advanced: bool = cursor will advance (`True`) if:
+                - the current character up to a delimiter is a proper cwass/fwunc name and is appended to self.tokens
+                - the current character up to a delimiter is an incomplete cwass/fwunc name and is appended to self.errors
+                - NOTE: will return `False` if it doesn't meet these requirements (probably is an identifier name)
         """
+        
+        if cwass:
+            token_type =  TokenType.CWASS
+            open_paren_error = Error.CWASS_OPEN_PAREN
+            data_type_error = Error.CWASS_DATA_TYPE            
+            invalid_name_error = Error.INVALID_CWASS_DECLARE
+            missing_keyword_error = Error.MISSING_CWASS
+
+        else:
+            token_type = TokenType.FUNC_NAME
+            open_paren_error = Error.FUNC_OPEN_PAREN
+            data_type_error = Error.FUNC_DATA_TYPE            
+            invalid_name_error = Error.INVALID_FUNC_DECLARE
+            missing_keyword_error = Error.MISSING_FWUNC
+
         parentheses_exist = self._seek('(', ignore_space=False)
         dash_datatype_exist = self._seek('-', ignore_space=False)
-        fwunc_exists = self._seek('fwunc', before=True)
-        
+        identifier_exists = self._seek('fwunc', before=True), self._seek('cwass', before=True)
+
         cursor_advanced = False
-        if fwunc_exists:
+        if any(identifier_exists):
             if parentheses_exist and dash_datatype_exist:
                 # correct function name declaration, append to tokens
                 temp_id = ""
@@ -441,7 +457,7 @@ class Lexer():
                         self._reverse()
                         starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                         ending_position = tuple([self._position[0], self._position[1]])
-                        self._tokens.append(Token(temp_id, TokenType.FUNC_NAME, starting_position, ending_position))
+                        self._tokens.append(Token(temp_id, token_type, starting_position, ending_position))
                         break
 
                     temp_id += self._current_char
@@ -452,17 +468,17 @@ class Lexer():
                         if in_next_line:
                             self._reverse()
                         line, col = self._position
-                        self._errors.append(DelimError(TokenType.FUNC_NAME, (line, col + 1), temp_id, '\n'))
+                        self._errors.append(DelimError(token_type, (line, col + 1), temp_id, '\n'))
                         break
                 cursor_advanced = True
 
             else:
                 if not parentheses_exist:
                     # function declaration has no opening parenthesis as delimiter
-                    self._errors.append(CustomError(Error.OPEN_PAREN_FUNC, tuple(self._position)))
+                    self._errors.append(CustomError(open_paren_error, tuple(self._position)))
                 if not dash_datatype_exist:
                     # function declaration has no datatype indicated
-                    self._errors.append(CustomError(Error.DATA_TYPE_FUNC, tuple(self._position)))
+                    self._errors.append(CustomError(data_type_error, tuple(self._position)))
                 
                 # treat it as identifier, move cursor till an identifier delim and append to errors
                 temp_id = ""
@@ -473,7 +489,7 @@ class Lexer():
                         self._reverse()
                         starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                         ending_position = tuple([self._position[0], self._position[1]])
-                        self._errors.append(CustomError(Error.INVALID_FUNC_DECLARE, starting_position, ending_position))
+                        self._errors.append(CustomError(invalid_name_error, starting_position, ending_position))
                         break
 
                     temp_id += self._current_char
@@ -485,7 +501,7 @@ class Lexer():
                             self._reverse()
                         starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                         ending_position = tuple([self._position[0], self._position[1]])
-                        self._errors.append(CustomError(Error.INVALID_FUNC_DECLARE, starting_position, ending_position))
+                        self._errors.append(CustomError(invalid_name_error, starting_position, ending_position))
                         break
                 cursor_advanced = True
         
@@ -500,7 +516,7 @@ class Lexer():
                         self._reverse()
                         starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                         ending_position = tuple([self._position[0], self._position[1]])
-                        self._errors.append(CustomError(Error.MISSING_FWUNC, starting_position, ending_position))
+                        self._errors.append(CustomError(missing_keyword_error, starting_position, ending_position))
                         break
 
                     temp_id += self._current_char
@@ -509,7 +525,7 @@ class Lexer():
                     if is_end_of_file:
                         self._reverse()
                         line, col = self._position
-                        self._errors.append(DelimError(TokenType.FUNC_NAME, (line, col + 1), temp_id, '\n'))
+                        self._errors.append(DelimError(token_type, (line, col + 1), temp_id, '\n'))
                         break
             else:
                 # correct funciton name call, append to token
@@ -521,7 +537,7 @@ class Lexer():
                         self._reverse()
                         starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                         ending_position = tuple([self._position[0], self._position[1]])
-                        self._tokens.append(Token(temp_id, TokenType.FUNC_NAME, starting_position, ending_position))
+                        self._tokens.append(Token(temp_id, token_type, starting_position, ending_position))
                         break
 
                     temp_id += self._current_char
@@ -532,7 +548,7 @@ class Lexer():
                         if in_next_line:
                             self._reverse()
                         line, col = self._position
-                        self._errors.append(DelimError(TokenType.FUNC_NAME, (line, col + 1), temp_id, '\n'))
+                        self._errors.append(DelimError(token_type, (line, col + 1), temp_id, '\n'))
                         break
 
             cursor_advanced = True

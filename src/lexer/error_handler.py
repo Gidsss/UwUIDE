@@ -14,10 +14,10 @@ class Error(Enum):
     def message(self):
         return self._message
     
-    OPEN_PAREN_FUNC = ("MISSING PARENTHESIS",
+    FUNC_OPEN_PAREN = ("MISSING PARENTHESIS",
                        "No opening parenthesis was found on function declaration")
 
-    DATA_TYPE_FUNC = ("MISSING DATATYPE",
+    FUNC_DATA_TYPE = ("MISSING DATATYPE",
                       "No data type was indicated on function declaration")
     
     INVALID_FUNC_DECLARE = ("INVALID FUNCTION NAME DECLARATION",
@@ -25,6 +25,18 @@ class Error(Enum):
     
     MISSING_FWUNC = ("MISSING FWUNC KEYWORD",
                      "Function declarations need to have a 'fwunc' before to indicate it is a function")
+    
+    CWASS_OPEN_PAREN = ("MISSING PARENTHESIS",
+                       "No opening parenthesis was found on class declaration")
+
+    CWASS_DATA_TYPE = ("MISSING DATATYPE",
+                      "No data type was indicated on class declaration")
+    
+    INVALID_CWASS_DECLARE = ("INVALID CLASS NAME DECLARATION",
+                            "class name is missing a data type/parenthesis")
+    
+    MISSING_CWASS = ("MISSING CWASS KEYWORD",
+                     "Class declarations need to have a 'cwass' before to indicate it is a class")
     
     UNCLOSED_STRING = ("UNCLOSED STRING",
                        'String literals should be closed with "')
