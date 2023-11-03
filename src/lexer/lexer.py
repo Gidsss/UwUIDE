@@ -519,26 +519,19 @@ class Lexer():
             if next_char_is_correct_delim:
                 self._tokens.append(Token(lexeme, token_type, starting_position, ending_position))
             else:
-                # check if function name first before appending to error
                 is_end_of_file = self._advance()
+                # preemptively check if the lexeme or current character is not valid to be in a fwunc/cwass/identifier name
                 in_new_line = self._position[0] != line
-                if in_new_line:
-                    self._reverse()
+                if not any(char.isalnum() for char in lexeme) or not self._current_char.isalnum() or in_new_line:
+                    _ = self._reverse()
                     line, col = ending_position
                     self._errors.append(DelimError(token_type, (line, col+1), lexeme, delim))
-                
                 else:
+                    # check if function name before identifier
                     cursor_advanced, _ = self._is_func_or_cwass_name(from_keyword=to_check)
-
                     if not cursor_advanced:
                         # check if identifier
                         cursor_advanced, _ = self._is_identifier(from_keyword=to_check)
-
-                        # append to error
-                        if not cursor_advanced:
-                            _ = self._reverse()
-                            line, col = ending_position
-                            self._errors.append(DelimError(token_type, (line, col+1), lexeme, delim))
             
             is_end_of_file = self._advance()
             cursor_advanced = True
