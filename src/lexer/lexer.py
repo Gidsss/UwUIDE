@@ -747,8 +747,10 @@ class Lexer():
                         
                         after_decimal_digit_count = len(corrected_value[corrected_value.index('.')+1:])
                         if after_decimal_digit_count > 10:
+                            temp_num = corrected_value
+                            corrected_value = corrected_value[:corrected_value.index('.')] + corrected_value[corrected_value.index('.'):][:11]
                             self._errors.append(IntFloatWarning(Error.OUT_OF_BOUNDS_INT_FLOAT, corrected_value, temp_num, starting_position, ending_position,
-                                                                context = f"'{corrected_value}' is {len(corrected_value)} digits long after the decimal point"))
+                                                                context = f"'{temp_num}' is {len(temp_num)} digits long after the decimal point\n\tvalue = '{temp_num}' --> corrected valule = '{corrected_value}'"))
 
                         self._tokens.append(Token(corrected_value, TokenType.FLOAT_LITERAL, starting_position, ending_position))
                         break_outside_loop = True
