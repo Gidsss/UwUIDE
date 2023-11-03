@@ -78,7 +78,7 @@ class Lexer():
             if self._current_char == 'f':
                 cursor_advanced, is_end_of_file = self._peek("fwunc", TokenType.FWUNC)
                 if cursor_advanced:
-                    continu
+                    continue
 
                 cursor_advanced, is_end_of_file = self._peek('fax', TokenType.BOOL_LITERAL)
                 if cursor_advanced:
