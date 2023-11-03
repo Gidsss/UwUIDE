@@ -32,6 +32,9 @@ class Error(Enum):
     OUT_OF_BOUNDS_INT_FLOAT = ("OUT OF BOUNDS",
                                'chan and kun literals can only have up to 10 digits before and after the decimal (kun can have a max of 20 digits total)')
     
+    MULTIPLE_DECIMAL_POINT = ('MULTIPLE DECIMAL POINT',
+                              "kun literals can only have 1 decimal point")
+    
 class Warn(Enum):
     def __init__(self, warn_type: str, message: str):
         self._warn_type = warn_type
@@ -58,11 +61,23 @@ class Warn(Enum):
                                    "kun literals should have digit/s present after the decimal point")
     
 class CustomError:
-    def __init__(self, error_type: Error, position: tuple[int,int], end_position: tuple[int,int] = None):
+    def __init__(self, error_type: Error, position: tuple[int,int], end_position: tuple[int,int] = None, context: str = None):
         self._error_type = error_type
         self._position = position
         self._end_position = end_position
+        self._context = context
 
+    def __str__(self):
+        log = ''
+        log += f"[{self.error_type}] Error on line {self._position[0]}"
+        if self.end_position:
+            log += f" from column {self._position[1]} to {self._end_position[1]}"
+        log += ':\n'
+        log += f"\t{self.message}\n"
+        if self.context:
+            log += f'\t{self.context}\n'
+        return log
+    
     @property
     def error_type(self):
         return self._error_type.error_type
@@ -78,15 +93,11 @@ class CustomError:
     @property
     def end_position(self):
         return self._end_position
+    
+    @property
+    def context(self):
+        return self._context
 
-    def __str__(self):
-        log = ''
-        log += f"[{self.error_type}] Error on line {self._position[0]}"
-        if self.end_position:
-            log += f" from column {self._position[1]} to {self._end_position[1]}"
-        log += ':\n'
-        log += f"\t{self.message}\n"
-        return log
 
 class DelimError:
     def __init__(self, token_type: TokenType, position: tuple[int], temp_id: str, actual_delim: str,
@@ -114,16 +125,36 @@ class DelimError:
 
 class IntFloatWarning:
 
-    def __init__(self, warn_type: Warn, corrected_value: str, temp_num: str, position: tuple[int,int], end_position: tuple[int,int]):
+    def __init__(self, warn_type: Warn, corrected_value: str, temp_num: str, position: tuple[int,int], end_position: tuple[int,int], context: str = None):
         self._warn_type = warn_type
         self._corrected_value = corrected_value
         self._temp_num = temp_num
         self._position = position
         self._end_position = end_position
+        self._context = context
+
+    def __str__(self):
+        log = ''
+
+        log += f"[{self.warn_type}] Warning on line {self._position[0]}"
+
+        if self.end_position:
+            log += f" from column {self._position[1]} to {self._end_position[1]}"
+
+        log += ':\n'
+        log += f"\t{self.message}\n"
+        if self.context:
+            log += f'\t{self.context}\n'
+        else:
+            log += f"\tvalue = '{self.temp_num}' --> corrected value = '{self.corrected_value}'\n"
+        return log
 
     @property
     def warn_type(self) -> str:
-        return self._warn_type.warn_type
+        if isinstance(self._warn_type, Warn):
+            return self._warn_type.warn_type
+        else:
+            return self._warn_type.error_type
 
     @property
     def message(self):
@@ -144,16 +175,7 @@ class IntFloatWarning:
     @property
     def end_position(self) -> str:
         return self._end_position
-
-    def __str__(self):
-        log = ''
-
-        log += f"[{self.warn_type}] Warning on line {self._position[0]}"
-
-        if self.end_position:
-            log += f" from column {self._position[1]} to {self._end_position[1]}"
-
-        log += ':\n'
-        log += f"\t{self.message}\n"
-        log += f"\tvalue = '{self.temp_num}' ; corrected value = '{self.corrected_value}'\n"
-        return log
+    
+    @property
+    def context(self) -> str:
+        return self._context
