@@ -36,7 +36,7 @@ class Lexer():
         
         while not is_end_of_file:
             if self._current_char == 'b':
-                cursor_advanced, is_end_of_file = self._peek("bweak", TokenType.BWEAK)
+                cursor_advanced, is_end_of_file = self._peek('bweak', TokenType.BWEAK)
                 if cursor_advanced:
                     continue
 
@@ -46,10 +46,108 @@ class Lexer():
                     continue
 
                 cursor_advanced, is_end_of_file = self._peek('cap', TokenType.BOOL_LITERAL)
+                if cursor_advanced:
+                    continue
 
+                cursor_advanced, is_end_of_file = self._peek('cwass', TokenType.CWASS)
                 if cursor_advanced:
                     continue
             
+            if self._current_char == 'd':
+                cursor_advanced, is_end_of_file = self._peek('dono', TokenType.DONO)
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek('do whiwe', TokenType.DO_WHIWE)
+                if cursor_advanced:
+                    continue
+                
+                cursor_advanced, is_end_of_file = self._peek('donee~', TokenType.DONE)
+                if cursor_advanced:
+                    continue
+            
+            if self._current_char == 'e':
+                cursor_advanced, is_end_of_file = self._peek('ewse iwf', TokenType.EWSE_IWF)
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek('ewse', TokenType.EWSE)
+                if cursor_advanced:
+                    continue
+                
+            if self._current_char == 'f':
+                # cursor_advanced, is_end_of_file = self._peek('fwunc', TokenType.FWUNC)
+                # if cursor_advanced:
+                #     continue
+
+                cursor_advanced, is_end_of_file = self._peek('fax', TokenType.BOOL_LITERAL)
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek('fow', TokenType.FOW)
+                if cursor_advanced:
+                    continue
+        
+            if self._current_char == 'g':
+                cursor_advanced, is_end_of_file = self._peek('gwobaw', TokenType.GWOBAW)
+                if cursor_advanced:
+                    continue
+            
+            if self._current_char == 'i':
+                cursor_advanced, is_end_of_file = self._peek('iwf', TokenType.IWF)
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek('inpwt', TokenType.INPWT)
+                if cursor_advanced:
+                    continue
+            
+            if self._current_char == 'k':
+                cursor_advanced, is_end_of_file = self._peek('kun', TokenType.KUN)
+                if cursor_advanced:
+                    continue
+            
+            if self._current_char == 'm':
+                cursor_advanced, is_end_of_file = self._peek('mainuwu', TokenType.MAINUWU)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == 'n':
+                cursor_advanced, is_end_of_file = self._peek('nuww', TokenType.NUWW)
+                if cursor_advanced:
+                    continue
+            
+            if self._current_char == 'p':
+                cursor_advanced, is_end_of_file = self._peek('pwint', TokenType.PWINT)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == 's':
+                cursor_advanced, is_end_of_file = self._peek('san', TokenType.SAN)
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek('sama', TokenType.SAMA)
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek('senpai', TokenType.SENPAI)
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek('staart!', TokenType.START)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == 'w':
+                cursor_advanced, is_end_of_file = self._peek('whiwe', TokenType.WHIWE)
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek('wetuwn', TokenType.WETUWN)
+                if cursor_advanced:
+                    continue
+
             if self._current_char == '-':
                 # check if unary first
                 cursor_advanced, is_end_of_file = self._peek('--', TokenType.UNARY)
