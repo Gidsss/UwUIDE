@@ -1,6 +1,6 @@
 from customtkinter import *
 from tkinter import Event
-from src.lexer import Lexer,Token
+from src.lexer import Lexer,Token,Error
 
 class Linenums(CTkCanvas):
    def __init__(self, master, text_widget: CTkTextbox, **kwargs):
@@ -32,6 +32,7 @@ class CodeEditor(CTkFrame):
 
       self.lexer = lexer
       self.tokens: list[Token] = []
+      self.errors: list[Error] = []
 
       self.grid_columnconfigure(0, weight=1)
       self.grid_columnconfigure(1, weight=25)
@@ -54,16 +55,12 @@ class CodeEditor(CTkFrame):
       return  'break'
 
    def run_lexer(self):
-      # is_text_editor_empty = len(self.text.get('1.0', END)) >= 1
-
-      # if is_text_editor_empty:
-      #    return
-      
       source_code = [v + '\n' for v in self.text.get('1.0','end-1c').split('\n')]
       print(source_code)
       lx: Lexer = self.lexer(source_code)
 
       self.tokens = lx.tokens
+      self.errors = lx.errors
 
 class CodeView(CTkTabview):
    def __init__(self, master, **kwargs):

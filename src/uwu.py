@@ -36,6 +36,7 @@ class UwUCodePanel(CTkFrame):
             segmented_button_unselected_color='#1A1B26',segmented_button_unselected_hover_color='gray'
         )
         self.console_view.grid(row=6, rowspan=1, columnspan=4, stick='nsew', padx=12, pady=12)
+        self.update_logs = self.console_view.update_logs
 
         self.command_menu = CommandMenu(
             master=self,
@@ -105,7 +106,9 @@ class UwU(CTk):
         code_editor = self.code_panel.editor 
         code_editor.run_lexer()
         self.analyzer_panel.update_lexer(tokens=code_editor.tokens)
-        print(code_editor.tokens)
+        self.code_panel.update_logs(errors=code_editor.errors)
+        # print("========== Tokens ==========",code_editor.tokens)
+        # print("========== Errors ==========", code_editor.errors[0].position)
         
 
 if __name__ == "__main__":

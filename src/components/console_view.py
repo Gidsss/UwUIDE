@@ -1,5 +1,5 @@
 from customtkinter import *
-from .logs_table import LogsTable
+from .logs_table import LogsCanvas
 
 class CompilerLogs(CTkScrollableFrame):
     def __init__(self, master, **kwargs):
@@ -15,29 +15,10 @@ class CompilerLogs(CTkScrollableFrame):
         self.line_label.grid(row=0, column=0, sticky='nsew')
         self.log_message_label.grid(row=0, column=1, columnspan=13, sticky='nsew')
 
-        self.logs_table = LogsTable(
-            master=self,
-            fg_color='transparent',
-            logs=[
-                {
-                    "line": 1,
-                    "log_message": "Some error message"
-                },
-                {
-                    "line": 3,
-                    "log_message": "Some error message"
-                },
-                {
-                    "line": 5,
-                    "log_message": "Some error message"
-                },
-                {
-                    "line": 10,
-                    "log_message": "Some error message"
-                }
-            ])
-        
+        self.logs_table = LogsCanvas(master=self)
         self.logs_table.grid(row=1, column=0, columnspan=12, sticky='nsew')
+
+        self.update_logs = self.logs_table.update_logs
 
 class Console(CTkFrame):
     def __init__(self, master, **kwargs):
@@ -69,3 +50,5 @@ class ConsoleView(CTkTabview):
 
         self.console = Console(self.console_tab, fg_color='transparent')
         self.console.grid(row=0,column=0, rowspan=2, columnspan=2, sticky='nsew')
+
+        self.update_logs = self.compiler_logs.update_logs
