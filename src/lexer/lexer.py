@@ -77,7 +77,7 @@ class Lexer():
             # can be identifiers or function names
             if self._current_char.isalpha():
                 cwass = False if self._current_char == self._current_char.lower() else True
-                cursor_advanced = self._is_func_or_cwass_name(cwass)
+                cursor_advanced, is_end_of_file = self._is_func_or_cwass_name(cwass)
                 if cursor_advanced:
                     if is_end_of_file:
                         break
@@ -86,27 +86,13 @@ class Lexer():
 
                 else:
                     # make temp_id to hold read chars
-                    temp_id = ""
-                    current_line = self._position[0]
-
-                    while True:
-                        temp_id += self._current_char
+                    cursor_advanced, is_end_of_file = self._is_identifier()
+                    if cursor_advanced:
+                        if is_end_of_file:
+                            break
                         is_end_of_file = self._advance()
-                        in_next_line = self._position[0] != current_line
+                        continue
 
-                        if is_end_of_file or in_next_line:
-                            if in_next_line:
-                                self._reverse()
-                            line, col = self._position
-                            self._errors.append(DelimError(TokenType.IDENTIFIER, (line, col + 1), temp_id, '\n'))
-                            break
-
-                        elif self._current_char in DELIMS['id']:
-                            self._reverse()
-                            starting_position = (self._position[0], self._position[1]-len(temp_id)+1)
-                            ending_position = (self._position[0], self._position[1])
-                            self._tokens.append(Token(temp_id, TokenType.IDENTIFIER, starting_position, ending_position))
-                            break
 
             if self._current_char in ['|', '"']:
                 is_end_of_file = self._peek_string_literal()
@@ -265,8 +251,26 @@ class Lexer():
             if next_char_is_correct_delim:
                 self._tokens.append(Token(lexeme, token_type, starting_position, ending_position))
             else:
-                line, col = ending_position
-                self._errors.append(DelimError(token_type, (line, col+1), lexeme, delim))
+                # check if function name first before appending to error
+                is_end_of_file = self._advance()
+                in_new_line = self._position[0] != line
+                if in_new_line:
+                    self._reverse()
+                    line, col = ending_position
+                    self._errors.append(DelimError(token_type, (line, col+1), lexeme, delim))
+                
+                else:
+                    cursor_advanced, _ = self._is_func_or_cwass_name(from_keyword=to_check)
+
+                    if not cursor_advanced:
+                        # check if identifier
+                        cursor_advanced, _ = self._is_identifier(from_keyword=to_check)
+
+                        # append to error
+                        if not cursor_advanced:
+                            _ = self._reverse()
+                            line, col = ending_position
+                            self._errors.append(DelimError(token_type, (line, col+1), lexeme, delim))
             
             is_end_of_file = self._advance()
             cursor_advanced = True
@@ -307,7 +311,6 @@ class Lexer():
         found = [False]*len(to_seek)
         beginning_of_file = False
         end_of_file = False
-
         for i in range(len(found)):
             if before:
                 while not found[i]:
@@ -335,12 +338,12 @@ class Lexer():
                         if preempt_success:
                             found[i] = True
                             break
+
                     elif self._current_char == ' ':
                         if ignore_space:
                             beginning_of_file = self._reverse()
                             cursor_advance_reverse_count += 1
                             if beginning_of_file:
-                                cursor_advance_reverse_count -= 1
                                 break
                             elif multi_line > self._position[0]:
                                 break
@@ -351,7 +354,6 @@ class Lexer():
                         cursor_advance_reverse_count += 1
                         # check again after reversing
                         if beginning_of_file:
-                            cursor_advance_reverse_count -= 1
                             break
                         # limit number of times reversing can go to newlines with multi_line_count
                         elif multi_line > self._position[0]:
@@ -400,12 +402,10 @@ class Lexer():
                         # limit number of times advancing can go to newlines with multi_line_count
                         elif multi_line < self._position[0]:
                             break
-
         if before:
             self._advance(cursor_advance_reverse_count)
         else:
             self._reverse(cursor_advance_reverse_count)
-
         return all(found)
 
 
@@ -413,7 +413,7 @@ class Lexer():
         for error in self.errors:
             print(error)
 
-    def _is_func_or_cwass_name(self, cwass = False) -> bool:
+    def _is_func_or_cwass_name(self, cwass = False, from_keyword: str = '') -> bool:
         """
         checks if the current character up to a fwunc/cwass delimiter is a proper fwunc/cwass name
 
@@ -426,7 +426,8 @@ class Lexer():
                 - the current character up to a delimiter is an incomplete cwass/fwunc name and is appended to self.errors
                 - NOTE: will return `False` if it doesn't meet these requirements (probably is an identifier name)
         """
-        
+        temp_id = from_keyword
+
         if cwass:
             token_type =  TokenType.CWASS
             open_paren_error = Error.CWASS_OPEN_PAREN
@@ -446,10 +447,10 @@ class Lexer():
         identifier_exists = self._seek('fwunc', before=True), self._seek('cwass', before=True)
 
         cursor_advanced = False
+        is_end_of_file = False
         if any(identifier_exists):
             if parentheses_exist and dash_datatype_exist:
                 # correct function name declaration, append to tokens
-                temp_id = ""
                 current_line = self._position[0]
 
                 while True:
@@ -481,7 +482,6 @@ class Lexer():
                     self._errors.append(CustomError(data_type_error, tuple(self._position)))
                 
                 # treat it as identifier, move cursor till an identifier delim and append to errors
-                temp_id = ""
                 current_line = self._position[0]
 
                 while True:
@@ -508,7 +508,6 @@ class Lexer():
         elif parentheses_exist:
             if dash_datatype_exist:
                 # correct function name declaration, append to tokens
-                temp_id = ""
                 current_line = self._position[0]
 
                 while True:
@@ -529,7 +528,6 @@ class Lexer():
                         break
             else:
                 # correct funciton name call, append to token
-                temp_id = ""
                 current_line = self._position[0]
 
                 while True:
@@ -552,8 +550,46 @@ class Lexer():
                         break
 
             cursor_advanced = True
-        
-        return cursor_advanced
+        return cursor_advanced, is_end_of_file
+    
+    def _is_identifier(self, from_keyword: str = '') -> bool:
+        cursor_advanced = False
+        temp_id = from_keyword
+        current_line = self._position[0]
+
+        while True:
+            temp_id += self._current_char
+            is_end_of_file = self._advance()
+            in_next_line = self._position[0] != current_line
+
+            if is_end_of_file or in_next_line:
+                if in_next_line:
+                    self._reverse()
+                line, col = self._position
+                self._errors.append(DelimError(TokenType.IDENTIFIER, (line, col + 1), temp_id, '\n'))
+                cursor_advanced = True
+                break
+
+            elif self._current_char in DELIMS['id']:
+                self._reverse()
+                starting_position = (self._position[0], self._position[1]-len(temp_id)+1)
+                ending_position = (self._position[0], self._position[1])
+                
+                if not any(temp_id.startswith(alpha) for alpha in ATOMS['alpha']):
+                    self._errors.append(CustomError(Error.IDEN_INVALID_START, starting_position, ending_position,
+                                                    f"'{temp_id}' is invalid"))
+
+                # check if all characters are either alpha or numbers
+                elif not temp_id.isalnum():
+                    self._errors.append(CustomError(Error.IDEN_INVALID_NAME, starting_position, ending_position,
+                                                    f"'{temp_id}' is invalid"))
+                else:
+                    self._tokens.append(Token(temp_id, TokenType.IDENTIFIER, starting_position, ending_position))
+
+                cursor_advanced = True
+                break
+
+        return cursor_advanced, is_end_of_file
     
     def _peek_string_literal(self):
         if self._current_char == '"':
@@ -615,7 +651,7 @@ class Lexer():
         return self._advance()
     
     def _peek_int_float_literal(self):
-        original_starting_char = temp_num =  self._current_char
+        original_starting_char = temp_num = self._current_char
         current_line = self._position[0]
         break_outside_loop = False
 
@@ -716,6 +752,17 @@ class Lexer():
 
                 if break_outside_loop:
                     break
+
+            # treat as invalid identifier if followed by non-number
+            if self._current_char not in ATOMS['number']:
+                cursor_advanced, _ = self._is_func_or_cwass_name(temp_num)
+                if cursor_advanced:
+                    break
+                else:
+                    # make temp_id to hold read chars
+                    cursor_advanced, _ = self._is_identifier(temp_num)
+                    if cursor_advanced:
+                        break
 
             temp_num += self._current_char
 

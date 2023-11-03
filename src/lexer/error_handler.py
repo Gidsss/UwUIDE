@@ -14,38 +14,42 @@ class Error(Enum):
     def message(self):
         return self._message
     
+    # function errors
     FUNC_OPEN_PAREN = ("MISSING PARENTHESIS",
                        "No opening parenthesis was found on function declaration")
-
     FUNC_DATA_TYPE = ("MISSING DATATYPE",
                       "No data type was indicated on function declaration")
-    
     INVALID_FUNC_DECLARE = ("INVALID FUNCTION NAME DECLARATION",
                             "Function name is missing a data type/parenthesis")
-    
     MISSING_FWUNC = ("MISSING FWUNC KEYWORD",
                      "Function declarations need to have a 'fwunc' before to indicate it is a function")
     
+    # class errors
     CWASS_OPEN_PAREN = ("MISSING PARENTHESIS",
                        "No opening parenthesis was found on class declaration")
-
     CWASS_DATA_TYPE = ("MISSING DATATYPE",
                       "No data type was indicated on class declaration")
-    
     INVALID_CWASS_DECLARE = ("INVALID CLASS NAME DECLARATION",
                             "class name is missing a data type/parenthesis")
-    
     MISSING_CWASS = ("MISSING CWASS KEYWORD",
                      "Class declarations need to have a 'cwass' before to indicate it is a class")
-    
+
+    # string errors    
     UNCLOSED_STRING = ("UNCLOSED STRING",
                        'String literals should be closed with "')
     
+    # int/float errors
     OUT_OF_BOUNDS_INT_FLOAT = ("OUT OF BOUNDS",
                                'chan and kun literals can only have up to 10 digits before and after the decimal (kun can have a max of 20 digits total)')
-    
     MULTIPLE_DECIMAL_POINT = ('MULTIPLE DECIMAL POINT',
                               "kun literals can only have 1 decimal point")
+    
+    # identifier errors
+    IDEN_INVALID_START = ("INVALID START OF IDENTIFIER",
+                          'identifiers can only start with lowercase/uppercase letters')
+    IDEN_INVALID_NAME = ("INVALID IDENTIFIER NAME",
+                         'identifiers can only have alphanumeric characters')
+    
     
 class Warn(Enum):
     def __init__(self, warn_type: str, message: str):
