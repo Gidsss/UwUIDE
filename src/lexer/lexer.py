@@ -791,12 +791,17 @@ def print_lex(source_code: list[str]):
     print('end of file\n')
     x = Lexer(source_code)
     x.print_error_logs()
-    print("\n\n","#"*30,"\nlexeme\ttoken\t\trange")
+    print("\n\n","#"*64)
+    print(f"{'lexeme':^20}{'token':^20}{'range':^20}")
+    print("","_"*63)
+    border = "|"
     for token in x.tokens:
-        print(f"{token.lexeme}", end="\t")
-        print(f"{token.token}", end="\t")
-        print(f"{token.position} - {token.end_position}", end="\t")
+        print(border, end='')
+        print(f"{token.lexeme:^18}", end=border)
+        print(f"{token.token:^20}", end=border)
+        print(f"{f'{token.position} - {token.end_position}':^23}", end=border)
         print()
+    print("","_"*63)
 
 if __name__ == "__main__":
     # file_path = argv[1]
