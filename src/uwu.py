@@ -47,10 +47,10 @@ class UwuAnalyzerPanel(CTkTabview):
         self.parser_tab = self.add('Parser')
 
         self.lexer_tab.grid_columnconfigure((0,1), weight=1)
-        self.lexer_tab.grid_columnconfigure((0,1), weight=1)
+        self.lexer_tab.grid_rowconfigure((0,1), weight=1)
 
         self.parser_tab.grid_columnconfigure((0,1), weight=1)
-        self.parser_tab.grid_columnconfigure((0,1), weight=1)
+        self.parser_tab.grid_rowconfigure((0,1), weight=1)
 
         self.lexer_tab_content = UwULexerTab(self.lexer_tab, fg_color='transparent')
         self.lexer_tab_content.grid(row=0, column=0, rowspan=2, columnspan=2, sticky='nsew')
