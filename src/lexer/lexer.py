@@ -437,8 +437,8 @@ class Lexer():
 
         else:
             token_type = TokenType.FUNC_NAME
-            open_paren_error = Error.FUNC_OPEN_PAREN
-            data_type_error = Error.FUNC_DATA_TYPE            
+            open_paren_error = Error.FWUNC_OPEN_PAREN
+            data_type_error = Error.FWUNC_DATA_TYPE            
             invalid_name_error = Error.INVALID_FUNC_DECLARE
             missing_keyword_error = Error.MISSING_FWUNC
 
@@ -458,7 +458,15 @@ class Lexer():
                         self._reverse()
                         starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                         ending_position = tuple([self._position[0], self._position[1]])
-                        self._tokens.append(Token(temp_id, token_type, starting_position, ending_position))
+                        
+                        if identifier_exists[0] and temp_id[0].isupper():
+                            self._errors.append(GenericError(Error.FWUNC_UPPERCASE, starting_position, ending_position,
+                                                            context = f"invalid function name: {temp_id}"))
+                        elif identifier_exists[1] and temp_id[0].islower():
+                            self._errors.append(GenericError(Error.CWASS_LOWERCASE, starting_position, ending_position,
+                                                            context = f'invalid class name: {temp_id}'))
+                        else:
+                            self._tokens.append(Token(temp_id, token_type, starting_position, ending_position))
                         break
 
                     temp_id += self._current_char
@@ -474,22 +482,20 @@ class Lexer():
                 cursor_advanced = True
 
             else:
-                if not parentheses_exist:
-                    # function declaration has no opening parenthesis as delimiter
-                    self._errors.append(CustomError(open_paren_error, tuple(self._position)))
-                if not dash_datatype_exist:
-                    # function declaration has no datatype indicated
-                    self._errors.append(CustomError(data_type_error, tuple(self._position)))
-                
                 # treat it as identifier, move cursor till an identifier delim and append to errors
                 current_line = self._position[0]
-
                 while True:
                     if self._current_char in DELIMS['id']:
                         self._reverse()
                         starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                         ending_position = tuple([self._position[0], self._position[1]])
-                        self._errors.append(CustomError(invalid_name_error, starting_position, ending_position))
+
+                        if not parentheses_exist:
+                            # function declaration has no opening parenthesis as delimiter
+                            self._errors.append(GenericError(open_paren_error, starting_position, ending_position))
+                        if not dash_datatype_exist:
+                            # function declaration has no datatype indicated
+                            self._errors.append(GenericError(data_type_error, starting_position, ending_position))
                         break
 
                     temp_id += self._current_char
@@ -501,7 +507,7 @@ class Lexer():
                             self._reverse()
                         starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                         ending_position = tuple([self._position[0], self._position[1]])
-                        self._errors.append(CustomError(invalid_name_error, starting_position, ending_position))
+                        self._errors.append(GenericError(invalid_name_error, starting_position, ending_position))
                         break
                 cursor_advanced = True
         
@@ -515,7 +521,7 @@ class Lexer():
                         self._reverse()
                         starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                         ending_position = tuple([self._position[0], self._position[1]])
-                        self._errors.append(CustomError(missing_keyword_error, starting_position, ending_position))
+                        self._errors.append(GenericError(missing_keyword_error, starting_position, ending_position))
                         break
 
                     temp_id += self._current_char
@@ -576,12 +582,12 @@ class Lexer():
                 ending_position = (self._position[0], self._position[1])
                 
                 if not any(temp_id.startswith(alpha) for alpha in ATOMS['alpha']):
-                    self._errors.append(CustomError(Error.IDEN_INVALID_START, starting_position, ending_position,
+                    self._errors.append(GenericError(Error.IDEN_INVALID_START, starting_position, ending_position,
                                                     f"'{temp_id}' is invalid"))
 
                 # check if all characters are either alpha or numbers
                 elif not temp_id.isalnum():
-                    self._errors.append(CustomError(Error.IDEN_INVALID_NAME, starting_position, ending_position,
+                    self._errors.append(GenericError(Error.IDEN_INVALID_NAME, starting_position, ending_position,
                                                     f"'{temp_id}' is invalid"))
                 else:
                     self._tokens.append(Token(temp_id, TokenType.IDENTIFIER, starting_position, ending_position))
@@ -611,7 +617,7 @@ class Lexer():
                     self._reverse()
                 starting_position = (self._position[0], self._position[1]-len(temp_string)+1)
                 ending_position = (self._position[0], self._position[1])
-                self._errors.append(CustomError(Error.UNCLOSED_STRING, starting_position, ending_position,
+                self._errors.append(GenericError(Error.UNCLOSED_STRING, starting_position, ending_position,
                                                 context = f"'{temp_string}' is unclosed"))
                 break
 
@@ -681,7 +687,7 @@ class Lexer():
                         self._errors.append(IntFloatWarning(Warn.LEADING_ZEROES_INT, corrected_value, temp_num, starting_position, ending_position))
 
                 if len(corrected_value) > 10:
-                    self._errors.append(CustomError(Error.OUT_OF_BOUNDS_INT_FLOAT, starting_position, ending_position,
+                    self._errors.append(GenericError(Error.OUT_OF_BOUNDS_INT_FLOAT, starting_position, ending_position,
                                                     context = f"'{corrected_value}' is {len(corrected_value)} digits long"))
                     break
 
@@ -727,14 +733,14 @@ class Lexer():
                         # has multiple decimal points
                         decimal_point_count = corrected_value.count('.')
                         if decimal_point_count > 1:
-                            self._errors.append(CustomError(Error.MULTIPLE_DECIMAL_POINT, starting_position, ending_position,
+                            self._errors.append(GenericError(Error.MULTIPLE_DECIMAL_POINT, starting_position, ending_position,
                                                             context = f"'{corrected_value}' has {decimal_point_count} decimal points"))
                             break_outside_loop = True
                             break
 
                         before_decimal_digit_count = len(corrected_value[:corrected_value.index('.')])
                         if before_decimal_digit_count > 10:
-                            self._errors.append(CustomError(Error.OUT_OF_BOUNDS_INT_FLOAT, starting_position, ending_position,
+                            self._errors.append(GenericError(Error.OUT_OF_BOUNDS_INT_FLOAT, starting_position, ending_position,
                                                             context = f"'{corrected_value}' is {len(corrected_value)} digits long"))
                             break_outside_loop = True
                             break

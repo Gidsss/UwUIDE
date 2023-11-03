@@ -39,7 +39,7 @@ if __name__ == "__main__":
         'fwunc Shion-chan() ',
         'fwunc Shion() ',
         'fwunc Shion-chan ',
-        'Shion-chan() ',
+        'Shionchan ',
         # 'Shion()',
         # 'cwass Shion-chan() ',
         # 'cwass Shion() ',

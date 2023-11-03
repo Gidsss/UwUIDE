@@ -15,14 +15,16 @@ class Error(Enum):
         return self._message
     
     # function errors
-    FUNC_OPEN_PAREN = ("MISSING PARENTHESIS",
+    FWUNC_OPEN_PAREN = ("MISSING PARENTHESIS",
                        "No opening parenthesis was found on function declaration")
-    FUNC_DATA_TYPE = ("MISSING DATATYPE",
+    FWUNC_DATA_TYPE = ("MISSING DATATYPE",
                       "No data type was indicated on function declaration")
     INVALID_FUNC_DECLARE = ("INVALID FUNCTION NAME DECLARATION",
                             "Function name is missing a data type/parenthesis")
     MISSING_FWUNC = ("MISSING FWUNC KEYWORD",
                      "Function declarations need to have a 'fwunc' before to indicate it is a function")
+    FWUNC_UPPERCASE = ("INVALID FUNCTION NAME",
+                      'Function names should only start with a lowercase letter')
     
     # class errors
     CWASS_OPEN_PAREN = ("MISSING PARENTHESIS",
@@ -33,6 +35,8 @@ class Error(Enum):
                             "class name is missing a data type/parenthesis")
     MISSING_CWASS = ("MISSING CWASS KEYWORD",
                      "Class declarations need to have a 'cwass' before to indicate it is a class")
+    CWASS_LOWERCASE = ("INVALID CLASS NAME",
+                      'Class names should only start with an uppercase letter')
 
     # string errors    
     UNCLOSED_STRING = ("UNCLOSED STRING",
@@ -76,7 +80,7 @@ class Warn(Enum):
     MISSING_TRAILING_ZERO_FLOAT = ("MISSING TRAILING ZERO",
                                    "kun literals should have digit/s present after the decimal point")
     
-class CustomError:
+class GenericError:
     def __init__(self, error_type: Error, position: tuple[int,int], end_position: tuple[int,int] = None, context: str = None):
         self._error_type = error_type
         self._position = position
@@ -140,7 +144,6 @@ class DelimError:
         return log
 
 class IntFloatWarning:
-
     def __init__(self, warn_type: Warn, corrected_value: str, temp_num: str, position: tuple[int,int], end_position: tuple[int,int], context: str = None):
         self._warn_type = warn_type
         self._corrected_value = corrected_value
