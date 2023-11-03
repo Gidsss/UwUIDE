@@ -148,27 +148,199 @@ class Lexer():
                 if cursor_advanced:
                     continue
 
-            if self._current_char == '-':
-                # check if unary first
-                cursor_advanced, is_end_of_file = self._peek('--', TokenType.UNARY)
+            # Symbol Checks
+            if self._current_char == '=':
+                cursor_advanced, is_end_of_file = self._peek('==', TokenType.EQUALITY)
                 if cursor_advanced:
                     continue
-                
-                # check if minus
-                # check if negative
 
-                # if ID_DELIM
-                starting_position = ending_position = tuple(self._position)
-                self._tokens.append(Token('-', 'ID_DELIM', starting_position, ending_position))                
-                is_end_of_file = self._advance()
-                continue
+                cursor_advanced, is_end_of_file = self._peek('=', TokenType.ASSIGN)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == '+':
+                cursor_advanced, is_end_of_file = self._peek('++', TokenType.UNARY)
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek('+', TokenType.ARITHMETIC)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == '-':
+                # Check if - is dash data type
+                line, column = tuple(self._position)
+                after_slice = self._lines[line][column+1:]
+                data_types = ["chan", "kun", "sama", "senpai", "san", "dono"]
+                valid_data_type = None
+                # Check if the valid data types exist after the -
+                for data_type in data_types:
+                    if len(data_type) <= len(after_slice):
+                        equal = True
+                        for expected_char, actual_char in zip(data_type, after_slice):
+                            if expected_char != actual_char:
+                                equal = False
+                                break
+                        if equal:
+                            valid_data_type = data_type
+                            break
+
+                # If there is a valid data type after the -
+                if valid_data_type is not None:
+                    if len(valid_data_type) < len(after_slice):
+                        delim = after_slice[len(valid_data_type)]
+                        if delim in TokenType.DATA_TYPE.expected_delims:
+                            starting_position = ending_position = tuple(self._position)
+                            self._tokens.append(Token('-', 'ID_DELIM', starting_position, ending_position))
+                            is_end_of_file = self._advance()
+                            continue
+                    elif len(valid_data_type) == len(after_slice):
+                        starting_position = ending_position = tuple(self._position)
+                        self._tokens.append(Token('-', 'ID_DELIM', starting_position, ending_position))
+                        is_end_of_file = self._advance()
+                        continue
+
+                # Check if - is negative
+                valid_ops = [TokenType.ASSIGN, TokenType.ARITHMETIC, TokenType.RELATIONAL,
+                             TokenType.EQUALITY, TokenType.LOGIC]
+                operator_before = self._check_prev_token(valid_ops)
+                if column == 0 or operator_before:
+                    cursor_advanced, is_end_of_file = self._peek('-', TokenType.NEGATIVE)
+                    if cursor_advanced:
+                        continue
+
+                # Differentiate between arithmetic and unary
+                if len(after_slice) > 0:
+                    # If next char is a dash, check if it is delimited by unary expected delims
+                    if self._lines[line][column+1] == '-':
+                        if len(after_slice) > 1:
+                            if self._lines[line][column+2] in TokenType.UNARY.expected_delims:
+                                # Check if prev token is identifier
+                                identifier_before = self._check_prev_token(TokenType.IDENTIFIER)
+                                if identifier_before:
+                                    starting_position = tuple(self._position)
+                                    ending_position = tuple([self._position[0], self._position[1]+1])
+                                    self._tokens.append(Token('--', TokenType.UNARY, starting_position, ending_position))
+                                else:
+                                    pass
+                                    # Throw custom error - Missing identifier
+                                is_end_of_file = self._advance(2)
+                                continue
+                    starting_position = ending_position = tuple(self._position)
+                    self._tokens.append(Token('-', TokenType.ARITHMETIC, starting_position, ending_position))
+                    is_end_of_file = self._advance()
+                    continue
+
+                # negative
+
+            if self._current_char == '!':
+                cursor_advanced, is_end_of_file = self._peek('!=', TokenType.EQUALITY)
+                if cursor_advanced:
+                    continue
+
+                # throw custom error - unexpected symbol
+
+            if self._current_char == '>':
+                cursor_advanced, is_end_of_file = self._peek('>=', TokenType.RELATIONAL)
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek('>', TokenType.RELATIONAL)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == '<':
+                cursor_advanced, is_end_of_file = self._peek('<=', TokenType.RELATIONAL)
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek('<', TokenType.RELATIONAL)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == '*':
+                cursor_advanced, is_end_of_file = self._peek('*', TokenType.ARITHMETIC)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == '/':
+                cursor_advanced, is_end_of_file = self._peek('/', TokenType.ARITHMETIC)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == '%':
+                cursor_advanced, is_end_of_file = self._peek('%', TokenType.ARITHMETIC)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == "|":
+                cursor_advanced, is_end_of_file = self._peek('||', TokenType.LOGIC)
+                if cursor_advanced:
+                    continue
+
+                # throw custom error - unexpected symbol
+
+            if self._current_char == "&":
+                cursor_advanced, is_end_of_file = self._peek('&&', TokenType.LOGIC)
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek('&', TokenType.CONCAT)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == "{":
+                cursor_advanced, is_end_of_file = self._peek('{', TokenType.OPEN_BRACE)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == "}":
+                cursor_advanced, is_end_of_file = self._peek('{', TokenType.CLOSE_BRACE)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == "(":
+                cursor_advanced, is_end_of_file = self._peek('(', TokenType.OPEN_PAREN)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == ")":
+                cursor_advanced, is_end_of_file = self._peek(')', TokenType.CLOSE_PAREN)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == "[":
+                cursor_advanced, is_end_of_file = self._peek('[[', TokenType.DOUBLE_OPEN_BRACKET)
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek('[', TokenType.OPEN_BRACKET)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == "]":
+                cursor_advanced, is_end_of_file = self._peek(']]', TokenType.DOUBLE_CLOSE_BRACKET)
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek(']', TokenType.CLOSE_BRACKET)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == ",":
+                cursor_advanced, is_end_of_file = self._peek(',', TokenType.COMMA)
+                if cursor_advanced:
+                    continue
+
+            if self._current_char == ".":
+                cursor_advanced, is_end_of_file = self._peek(',', TokenType.DOT_OP)
+                if cursor_advanced:
+                    continue
 
             if self._current_char == '~':
-                # always append '~'
-                starting_position = ending_position = tuple(self._position)
-                self._tokens.append(Token('~', 'LINE_BREAK', starting_position, ending_position))                
-                is_end_of_file = self._advance()
-                continue
+                cursor_advanced, is_end_of_file = self._peek('~', TokenType.TERMINATOR)
+                if cursor_advanced:
+                    continue
 
             # can be identifiers or function names
             if self._current_char.isalpha():
@@ -379,6 +551,22 @@ class Lexer():
         can go until end of file if "EOF" is passed as multi_line_count
         '''
         pass
+
+    def _check_prev_token(self, to_check: TokenType | list[TokenType]):
+        """
+        Checks prev token if it has the token type/s passed. Must be on the same line
+        """
+
+        # Convert input to list
+        if isinstance(to_check, TokenType):
+            to_check = [to_check]
+        present_flag = False
+        if len(self.tokens) > 0:
+            prev_token = self.tokens[-1]
+            if prev_token.token in to_check and prev_token.position[0] == self._position[0]:
+                present_flag = True
+
+        return present_flag
 
     def print_error_logs(self):
         for error in self.errors:
