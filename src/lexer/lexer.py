@@ -204,7 +204,8 @@ class Lexer():
                 valid_ops = [TokenType.ASSIGN, TokenType.ARITHMETIC, TokenType.RELATIONAL,
                              TokenType.EQUALITY, TokenType.LOGIC]
                 operator_before = self._check_prev_token(valid_ops)
-                if column == 0 or operator_before:
+                line_copy = self._lines[line]
+                if line_copy.lstrip()[0] == '-' or operator_before:
                     cursor_advanced, is_end_of_file = self._peek('-', TokenType.NEGATIVE)
                     if cursor_advanced:
                         continue
