@@ -27,7 +27,7 @@ DELIMS = {
     'conditional': {'('},
     'io': {'('},
     'mainuwu': {'-'},
-    'int_float': {' ', *ATOMS['general_operator'], ')', '}', ']', '~', '!', r'&', '|', '>', '<', '='},
+    'int_float': {',', ' ', *ATOMS['general_operator'], ')', '}', ']', '~', '!', r'&', '|', '>', '<', '='},
     'string': {' ', ')', ',', '&', '}', '[', ']', '~', '!', '='},
     'assign_delim': {*ATOMS['alpha'], *ATOMS['number'], '{', ' ', '-' '('},
     'operator_delim': {*ATOMS['alpha'], *ATOMS['number'], ' ', '-', '('},

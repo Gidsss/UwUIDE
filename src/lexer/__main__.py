@@ -4,10 +4,12 @@ from .lexer import *
 if __name__ == "__main__":
     # temporary test source code
     source_code = [
-        'aqua-vtuber = vtuber()~',
-        'aqua-Vtuber = Vtuber()~',
-        'Vtuber.uwuwuwu()~',
-        'vtuber.uwuwuwu()~',
+        'fwunc aqua-Vtuber(1, "string", fax, 2.50, shion-chan, ojou-Vtuber)',
+        '(1.0, 2.10, 3.)',
+        # 'aqua-vtuber = vtuber()~',
+        # 'aqua-Vtuber = Vtuber()~',
+        # 'Vtuber.uwuwuwu()~',
+        # 'vtuber.uwuwuwu()~',
         # 'channel-chan()~',
         # 'channel',
         # '"im an unterminated string"',

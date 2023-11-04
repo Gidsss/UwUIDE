@@ -309,7 +309,7 @@ class Lexer():
                     continue
 
             if self._current_char == "}":
-                cursor_advanced, is_end_of_file = self._peek('{', TokenType.CLOSE_BRACE)
+                cursor_advanced, is_end_of_file = self._peek('}', TokenType.CLOSE_BRACE)
                 if cursor_advanced:
                     continue
 
@@ -559,7 +559,7 @@ class Lexer():
 
         return cursor_advanced, is_end_of_file
     
-    def _seek(self, to_seek: str|list[str], before: bool = False, multi_line_count: int|str = 0, ignore_space = True) -> bool:
+    def _seek(self, to_seek: str|list[str], before: bool = False, multi_line_count: int|str = 0, ignore_space = True, max_space_count: int = None) -> bool:
         '''
         seeks concatenated characters ('ab') or multiple separate characters (['a', 'b']) in order;
 
@@ -585,6 +585,8 @@ class Lexer():
             multi_line = len(self._lines) - self._position[0]
         elif multi_line_count == "BOF":
             multi_line = self._position[0]
+
+        space_count = 0
 
         cursor_advance_reverse_count = 0
         found = [False]*len(to_seek)
@@ -620,6 +622,10 @@ class Lexer():
 
                     elif self._current_char == ' ':
                         if ignore_space:
+                            space_count += 1
+                            if max_space_count and space_count > max_space_count:
+                                break
+
                             beginning_of_file = self._reverse()
                             cursor_advance_reverse_count += 1
                             if beginning_of_file:
@@ -660,6 +666,10 @@ class Lexer():
                             break
                     elif self._current_char == ' ':
                         if ignore_space:
+                            space_count += 1
+                            if max_space_count and space_count > max_space_count:
+                                break
+                            
                             end_of_file = self._advance()
                             cursor_advance_reverse_count += 1
                             # check again after advancing
@@ -738,7 +748,7 @@ class Lexer():
 
         parentheses_exist = self._seek('(', ignore_space=False)
         dash_datatype_exist = self._seek('-', ignore_space=False)
-        identifier_exists = self._seek('fwunc', before=True), self._seek('cwass', before=True)
+        identifier_exists = self._seek('fwunc', before=True, max_space_count=1), self._seek('cwass', before=True, max_space_count=1)
 
         cursor_advanced = False
         is_end_of_file = False
@@ -803,7 +813,6 @@ class Lexer():
                                     self._errors.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
                                                         context=f"'{temp_id}' is invalid"))
                                 break
-
                             else:
                                 self._errors.append(GenericError(data_type_error, starting_position, ending_position))
                         break
@@ -852,14 +861,28 @@ class Lexer():
                     else:
                         delims = 'function'
 
-                    if self._current_char in DELIMS[delims]:
+                    if not cwass and self._current_char == '.':
                         self._reverse()
                         starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                         ending_position = tuple([self._position[0], self._position[1]])
 
                         # check if class/func name is alphanumeric
                         if temp_id.isalnum():
-                            self._tokens.append(Token(temp_id, token_type, starting_position, ending_position))
+                            self._errors.append(GenericError(Error.FWUNC_DOT_OPERATOR, starting_position, ending_position,
+                                                    context=f"instead of '{temp_id}', did you mean to type '{temp_id.capitalize()}'"))
+                        else:
+                            self._errors.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
+                                                context=f"'{temp_id}' is invalid"))
+                        break
+
+                    elif self._current_char in DELIMS[delims]:
+                        self._reverse()
+                        starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
+                        ending_position = tuple([self._position[0], self._position[1]])
+
+                        # check if class/func name is alphanumeric
+                        if temp_id.isalnum():
+                            self._tokens.append(Token(temp_id, token_type, starting_position, ending_position))    
                         else:
                             self._errors.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
                                                 context=f"'{temp_id}' is invalid"))
@@ -905,7 +928,6 @@ class Lexer():
                     self._errors.append(DelimError(TokenType.CWASS_TYPE, starting_position, ending_position))
                     break
             cursor_advanced = True
-        print(self._position)
         return cursor_advanced, is_end_of_file
     
     def _is_identifier(self, from_keyword: str = '') -> bool:
