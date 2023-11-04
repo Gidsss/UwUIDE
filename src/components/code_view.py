@@ -27,40 +27,57 @@ class Linenums(CTkCanvas):
          self.create_text(12, dlineinfo[1] + 10, text=f"{lineno}", anchor='center', fill='#333652', font=("Montserrat", 10))
 
 class CodeEditor(CTkFrame):
-   def __init__(self, master, lexer: Lexer, **kwargs):
-      super().__init__(master, **kwargs)
+    def __init__(self, master, lexer: Lexer, **kwargs):
+        super().__init__(master, **kwargs)
 
-      self.lexer = lexer
-      self.tokens: list[Token] = []
-      self.errors: list[Error] = []
+        self.lexer = lexer
+        self.tokens: list[Token] = []
+        self.errors: list[Error] = []
 
-      self.grid_columnconfigure(0, weight=1)
-      self.grid_columnconfigure(1, weight=25)
-      self.grid_rowconfigure(0, weight=1)
+        self.grid_columnconfigure(0, weight=1)
+        self.grid_columnconfigure(1, weight=25)
+        self.grid_rowconfigure(0, weight=1)
 
-      self.text = CTkTextbox(master=self, corner_radius=0,fg_color='#1A1B26', text_color='#FFFFFF')
-      self.text.grid(row=0, column=1, sticky='nsew')
+        self.text = CTkTextbox(master=self, corner_radius=0, fg_color='#1A1B26', text_color='#FFFFFF')
+        self.text.grid(row=0, column=1, sticky='nsew')
 
-      self.line_nums = Linenums(master=self, text_widget=self.text)
-      self.line_nums.grid(row=0, column=0, sticky='nsew')
+        self.line_nums = Linenums(master=self, text_widget=self.text)
+        self.line_nums.grid(row=0, column=0, sticky='nsew')
 
-      self.text.bind("<Button-1>", lambda e: self.line_nums.on_redraw(e))
-      self.text.bind("<Tab>", lambda e: self.on_tab(e))
+        self.text.bind("<Button-1>", lambda e: self.line_nums.on_redraw(e))
+        self.text.bind("<Tab>", lambda e: self.on_tab(e))
+        self.text.bind("<Return>", lambda e: self.line_nums.on_redraw(e))
+        self.text.bind("<BackSpace>", lambda e: self.line_nums.on_redraw(e))
 
-      self.text.bind("<Return>", lambda e: self.line_nums.on_redraw(e))
-      self.text.bind("<BackSpace>", lambda e: self.line_nums.on_redraw(e))
+        self.copy_paste_triggered = False
+        self.text.bind("<Control-c>", self.copy_text)
+        self.text.bind("<Control-v>", self.paste_text)
 
-   def on_tab(self, e: Event):
-      e.widget.insert(INSERT, " " * 6)
-      return  'break'
+    def on_tab(self, e):
+        self.text.insert(INSERT, " " * 6)
+        return 'break'
 
-   def run_lexer(self):
-      source_code = [v + '\n' for v in self.text.get('1.0','end-1c').split('\n')]
-      print(source_code)
-      lx: Lexer = self.lexer(source_code)
+    def run_lexer(self):
+        source_code = [v + '\n' for v in self.text.get('1.0', 'end-1c').split('\n')]
+        print(source_code)
+        lx: Lexer = self.lexer(source_code)
 
-      self.tokens = lx.tokens
-      self.errors = lx.errors
+        self.tokens = lx.tokens
+        self.errors = lx.errors
+
+    # Callback method for copying text
+    def copy_text(self, event):
+        if event.state == 0:  # Only trigger if no other modifiers (e.g., Shift, Control) are pressed
+            self.text.clipboard_clear()
+            selected_text = self.text.get("sel.first", "sel.last")
+            self.text.clipboard_append(selected_text)
+
+    # Callback method for pasting text
+    def paste_text(self, event):
+        if event.state == 0:  # Only trigger if no other modifiers (e.g., Shift, Control) are pressed
+            text_to_paste = self.text.clipboard_get()
+            self.text.insert(INSERT, text_to_paste)
+
 
 class CodeView(CTkTabview):
    def __init__(self, master, **kwargs):
@@ -84,3 +101,10 @@ class CodeView(CTkTabview):
       code_editor: CodeEditor = self.code_editors[tab]
 
       return code_editor
+
+
+
+
+
+
+

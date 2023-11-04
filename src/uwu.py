@@ -12,7 +12,7 @@ class UwUCodePanel(CTkFrame):
         self.grid_columnconfigure((0,1,2,3), weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure((1,2,3,4,5), weight=4)
-
+        
         self.code_view = CodeView(
             master=self,
             corner_radius=8,
@@ -37,14 +37,25 @@ class UwUCodePanel(CTkFrame):
         )
         self.console_view.grid(row=6, rowspan=1, columnspan=4, stick='nsew', padx=12, pady=12)
         self.update_logs = self.console_view.update_logs
-
+        
         self.command_menu = CommandMenu(
             master=self,
             fg_color='transparent',
             on_compiler_run=on_compiler_run
         )
         self.command_menu.grid(row=0, columnspan=4, sticky='nsew', pady=8)
+    # Initially, associate the first CodeEditor with the CommandMenu 
+        first_code_editor = self.code_view.code_editors['Untitled.uwu']
+        self.command_menu.set_code_editor(first_code_editor)
 
+    # When you switch tabs in your CodeView class, call this method to update the CodeEditor reference:
+    def switch_tab(self):
+        current_tab = self.code_view.get()
+        current_code_editor = self.code_view.code_editors[current_tab]
+        self.command_menu.set_code_editor(current_code_editor)
+        # Update the current_filename based on the tab name
+        self.command_menu.current_filename = current_tab
+    
     @property
     def editor(self):
         return self.code_view.editor()
