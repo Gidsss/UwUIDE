@@ -10,6 +10,7 @@ class Lexer():
 
     def __init__(self, source_code: list[str]):
         self._lines = source_code
+        ErrorSrc.src = source_code
 
         self._position = [0,0]
         self._current_char = self._lines[self._position[0]][self._position[1]]
@@ -17,7 +18,7 @@ class Lexer():
         self._nest_level = 0
 
         self._tokens: list[Token] = []
-        self._errors: list[DelimError] = []
+        self._logs: list[GenericError | DelimError] = []
 
         self._get_tokens()
 
@@ -27,7 +28,7 @@ class Lexer():
 
     @property
     def errors(self):
-        return self._errors
+        return self._logs
 
     def _get_tokens(self):
         is_end_of_file = False
@@ -223,14 +224,16 @@ class Lexer():
                         if len(after_slice) > 1:
                             if self._lines[line][column+2] in TokenType.UNARY.expected_delims:
                                 # Check if prev token is identifier
-                                identifier_before = self._check_prev_token(TokenType.IDENTIFIER)
-                                if identifier_before:
+                                operand_before = self._check_prev_token([TokenType.IDENTIFIER, TokenType.INT_LITERAL,
+                                                                            TokenType.FLOAT_LITERAL, TokenType.CLOSE_PAREN])
+                                if operand_before:
                                     starting_position = tuple(self._position)
                                     ending_position = tuple([self._position[0], self._position[1]+1])
                                     self._tokens.append(Token('--', TokenType.UNARY, starting_position, ending_position))
                                 else:
-                                    pass
-                                    # Throw custom error - Missing identifier
+                                    start_of_error = tuple(self._position)
+                                    end_of_error = tuple([line, column + 1])
+                                    self._logs.append(GenericError(Error.UNARY_MISSING_OPERAND, start_of_error, end_of_error))
                                 is_end_of_file = self._advance(2)
                                 continue
                     starting_position = ending_position = tuple(self._position)
@@ -238,14 +241,13 @@ class Lexer():
                     is_end_of_file = self._advance()
                     continue
 
-                # negative
-
             if self._current_char == '!':
                 cursor_advanced, is_end_of_file = self._peek('!=', TokenType.EQUALITY)
                 if cursor_advanced:
                     continue
 
-                # throw custom error - unexpected symbol
+                self._logs.append(GenericError(Error.UNEXPECTED_SYMBOL, tuple(self._position),
+                                               context=f"Symbol {self._current_char} is invalid. Did you mean '!='?"))
 
             if self._current_char == '>':
                 cursor_advanced, is_end_of_file = self._peek('>=', TokenType.RELATIONAL)
@@ -292,8 +294,6 @@ class Lexer():
                 cursor_advanced, is_end_of_file = self._peek('||', TokenType.LOGIC)
                 if cursor_advanced:
                     continue
-
-                # throw custom error - unexpected symbol
 
             if self._current_char == "&":
                 cursor_advanced, is_end_of_file = self._peek('&&', TokenType.LOGIC)
@@ -544,7 +544,7 @@ class Lexer():
                 if not any(char in ATOMS['alphanum'] for char in lexeme) or not self._current_char in ATOMS['alphanum'] or in_new_line:
                     _ = self._reverse()
                     line, col = ending_position
-                    self._errors.append(DelimError(token_type, (line, col+1), lexeme, delim))
+                    self._logs.append(DelimError(token_type, (line, col + 1), lexeme, delim))
                 else:
                     # check if function name before identifier
                     cursor_advanced, _ = self._is_func_or_cwass_name(from_keyword=to_check)
@@ -765,18 +765,18 @@ class Lexer():
                         ending_position = tuple([self._position[0], self._position[1]])
                         
                         if identifier_exists[0] and temp_id[0].isupper():
-                            self._errors.append(GenericError(Error.FWUNC_UPPERCASE, starting_position, ending_position,
-                                                            context = f"invalid function name: {temp_id}"))
+                            self._logs.append(GenericError(Error.FWUNC_UPPERCASE, starting_position, ending_position,
+                                                           context = f"invalid function name: {temp_id}"))
                         elif identifier_exists[1] and temp_id[0].islower():
-                            self._errors.append(GenericError(Error.CWASS_LOWERCASE, starting_position, ending_position,
-                                                            context = f'invalid class name: {temp_id}'))
+                            self._logs.append(GenericError(Error.CWASS_LOWERCASE, starting_position, ending_position,
+                                                           context = f'invalid class name: {temp_id}'))
                         else:
                             # check if class/func name is alphanumeric
                             if temp_id.isalnum():
                                 self._tokens.append(Token(temp_id, token_type, starting_position, ending_position))
                             else:
-                                self._errors.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
-                                                    context=f"'{temp_id}' is invalid"))
+                                self._logs.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
+                                                               context=f"'{temp_id}' is invalid"))
                             break
                         break
 
@@ -788,7 +788,7 @@ class Lexer():
                         if in_next_line:
                             self._reverse()
                         line, col = self._position
-                        self._errors.append(DelimError(token_type, (line, col + 1), temp_id, '\n'))
+                        self._logs.append(DelimError(token_type, (line, col + 1), temp_id, '\n'))
                         break
                 cursor_advanced = True
 
@@ -803,7 +803,7 @@ class Lexer():
 
                         if not parentheses_exist:
                             # function declaration has no opening parenthesis as delimiter
-                            self._errors.append(GenericError(open_paren_error, starting_position, ending_position))
+                            self._logs.append(GenericError(open_paren_error, starting_position, ending_position))
                         if not dash_datatype_exist:
                             # function declaration has no datatype indicated
                             if cwass:
@@ -811,11 +811,11 @@ class Lexer():
                                 if temp_id.isalnum():
                                     self._tokens.append(Token(temp_id, token_type, starting_position, ending_position))
                                 else:
-                                    self._errors.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
-                                                        context=f"'{temp_id}' is invalid"))
+                                    self._logs.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
+                                                                   context=f"'{temp_id}' is invalid"))
                                 break
                             else:
-                                self._errors.append(GenericError(data_type_error, starting_position, ending_position))
+                                self._logs.append(GenericError(data_type_error, starting_position, ending_position))
                         break
 
                     temp_id += self._current_char
@@ -827,7 +827,7 @@ class Lexer():
                             self._reverse()
                         starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                         ending_position = tuple([self._position[0], self._position[1]])
-                        self._errors.append(GenericError(invalid_name_error, starting_position, ending_position))
+                        self._logs.append(GenericError(invalid_name_error, starting_position, ending_position))
                         break
                 cursor_advanced = True
         
@@ -841,7 +841,7 @@ class Lexer():
                         self._reverse()
                         starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                         ending_position = tuple([self._position[0], self._position[1]])
-                        self._errors.append(GenericError(missing_keyword_error, starting_position, ending_position))
+                        self._logs.append(GenericError(missing_keyword_error, starting_position, ending_position))
                         break
 
                     temp_id += self._current_char
@@ -850,7 +850,7 @@ class Lexer():
                     if is_end_of_file:
                         self._reverse()
                         line, col = self._position
-                        self._errors.append(DelimError(token_type, (line, col + 1), temp_id, '\n'))
+                        self._logs.append(DelimError(token_type, (line, col + 1), temp_id, '\n'))
                         break
             else:
                 # correct funciton name call, append to token
@@ -869,11 +869,11 @@ class Lexer():
 
                         # check if class/func name is alphanumeric
                         if temp_id.isalnum():
-                            self._errors.append(GenericError(Error.FWUNC_DOT_OPERATOR, starting_position, ending_position,
-                                                    context=f"instead of '{temp_id}', did you mean to type '{temp_id.capitalize()}'"))
+                            self._logs.append(GenericError(Error.FWUNC_DOT_OPERATOR, starting_position, ending_position,
+                                                           context=f"instead of '{temp_id}', did you mean to type '{temp_id.capitalize()}'"))
                         else:
-                            self._errors.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
-                                                context=f"'{temp_id}' is invalid"))
+                            self._logs.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
+                                                           context=f"'{temp_id}' is invalid"))
                         break
 
                     elif self._current_char in DELIMS[delims]:
@@ -885,8 +885,8 @@ class Lexer():
                         if temp_id.isalnum():
                             self._tokens.append(Token(temp_id, token_type, starting_position, ending_position))    
                         else:
-                            self._errors.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
-                                                context=f"'{temp_id}' is invalid"))
+                            self._logs.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
+                                                           context=f"'{temp_id}' is invalid"))
                         break
 
                     temp_id += self._current_char
@@ -897,7 +897,7 @@ class Lexer():
                         if in_next_line:
                             self._reverse()
                         line, col = self._position
-                        self._errors.append(DelimError(token_type, (line, col + 1), temp_id, '\n'))
+                        self._logs.append(DelimError(token_type, (line, col + 1), temp_id, '\n'))
                         break
             cursor_advanced = True
 
@@ -913,8 +913,8 @@ class Lexer():
                     if temp_id.isalnum():
                         self._tokens.append(Token(temp_id, TokenType.CWASS_TYPE, starting_position, ending_position))
                     else:
-                        self._errors.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
-                                                         context=f"'{temp_id}' is invalid"))
+                        self._logs.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
+                                                       context=f"'{temp_id}' is invalid"))
                     break
 
                 temp_id += self._current_char
@@ -926,7 +926,7 @@ class Lexer():
                         self._reverse()
                     starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                     ending_position = tuple([self._position[0], self._position[1]])
-                    self._errors.append(DelimError(TokenType.CWASS_TYPE, starting_position, ending_position))
+                    self._logs.append(DelimError(TokenType.CWASS_TYPE, starting_position, ending_position))
                     break
             cursor_advanced = True
         return cursor_advanced, is_end_of_file
@@ -945,7 +945,7 @@ class Lexer():
                 if in_next_line:
                     self._reverse()
                 line, col = self._position
-                self._errors.append(DelimError(TokenType.IDENTIFIER, (line, col + 1), temp_id, '\n'))
+                self._logs.append(DelimError(TokenType.IDENTIFIER, (line, col + 1), temp_id, '\n'))
                 cursor_advanced = True
                 break
 
@@ -955,12 +955,12 @@ class Lexer():
                 ending_position = (self._position[0], self._position[1])
                 
                 if not any(temp_id.startswith(alpha) for alpha in ATOMS['alpha_small']):
-                    self._errors.append(GenericError(Error.IDEN_INVALID_START, starting_position, ending_position,
+                    self._logs.append(GenericError(Error.IDEN_INVALID_START, starting_position, ending_position,
                                                     f"'{temp_id}' is invalid"))
 
                 # check if all characters are either alpha or numbers
                 elif not temp_id.isalnum():
-                    self._errors.append(GenericError(Error.IDEN_INVALID_NAME, starting_position, ending_position,
+                    self._logs.append(GenericError(Error.IDEN_INVALID_NAME, starting_position, ending_position,
                                                     f"'{temp_id}' is invalid"))
                 else:
                     self._tokens.append(Token(temp_id, TokenType.IDENTIFIER, starting_position, ending_position))
@@ -990,8 +990,8 @@ class Lexer():
                     self._reverse()
                 starting_position = (self._position[0], self._position[1]-len(temp_string)+1)
                 ending_position = (self._position[0], self._position[1])
-                self._errors.append(GenericError(Error.UNCLOSED_STRING, starting_position, ending_position,
-                                                context = f"'{temp_string}' is unclosed"))
+                self._logs.append(GenericError(Error.UNCLOSED_STRING, starting_position, ending_position,
+                                               context = f"'{temp_string}' is unclosed"))
                 break
 
             elif self._current_char == '\\':
@@ -1024,7 +1024,7 @@ class Lexer():
                 if next_char_is_correct_delim:
                     self._tokens.append(Token(temp_string, token_type, starting_position, ending_position))
                 else:
-                    self._errors.append(DelimError(token_type, (ending_position[0], ending_position[1]+1), temp_string, delim))
+                    self._logs.append(DelimError(token_type, (ending_position[0], ending_position[1] + 1), temp_string, delim))
                 break
 
         return self._advance()
@@ -1041,7 +1041,7 @@ class Lexer():
                 if in_next_line:
                     self._reverse()
                 line, col = self._position
-                self._errors.append(DelimError(TokenType.INT_LITERAL, (line, col + 1), temp_num, '\n'))
+                self._logs.append(DelimError(TokenType.INT_LITERAL, (line, col + 1), temp_num, '\n'))
                 break
 
             # preemptively break when a delimiter is found for integers 
@@ -1057,11 +1057,11 @@ class Lexer():
                         corrected_value = str(int(temp_num))
                         starting_position = tuple([self._position[0], self._position[1]-len(temp_num)+1])
                         ending_position = tuple(self._position)
-                        self._errors.append(IntFloatWarning(Warn.LEADING_ZEROES_INT, corrected_value, temp_num, starting_position, ending_position))
+                        self._logs.append(IntFloatWarning(Warn.LEADING_ZEROES_INT, corrected_value, temp_num, starting_position, ending_position))
 
                 if len(corrected_value) > 10:
-                    self._errors.append(GenericError(Error.OUT_OF_BOUNDS_INT_FLOAT, starting_position, ending_position,
-                                                    context = f"'{corrected_value}' is {len(corrected_value)} digits long"))
+                    self._logs.append(GenericError(Error.OUT_OF_BOUNDS_INT_FLOAT, starting_position, ending_position,
+                                                   context = f"'{corrected_value}' is {len(corrected_value)} digits long"))
                     break
 
                 self._tokens.append(Token(corrected_value, TokenType.INT_LITERAL, starting_position, ending_position))
@@ -1078,7 +1078,7 @@ class Lexer():
                         if in_next_line:
                             self._reverse()
                         line, col = self._position
-                        self._errors.append(DelimError(TokenType.FLOAT_LITERAL, (line, col + 1), temp_num, '\n'))
+                        self._logs.append(DelimError(TokenType.FLOAT_LITERAL, (line, col + 1), temp_num, '\n'))
                         break_outside_loop = True
                         break
 
@@ -1094,27 +1094,27 @@ class Lexer():
                             corrected_value = str(float(temp_num))
                             starting_position = tuple([self._position[0], self._position[1]-len(temp_num)+1])
                             ending_position = tuple(self._position)
-                            self._errors.append(IntFloatWarning(Warn.TRAILING_ZEROES_FLOAT, corrected_value, temp_num, starting_position, ending_position))
+                            self._logs.append(IntFloatWarning(Warn.TRAILING_ZEROES_FLOAT, corrected_value, temp_num, starting_position, ending_position))
 
                         # has no numbers after decimal point
                         if temp_num[-1:] == '.':
                             corrected_value = temp_num + '0'
                             starting_position = tuple([self._position[0], self._position[1]-len(temp_num)+1])
                             ending_position = tuple(self._position)
-                            self._errors.append(IntFloatWarning(Warn.MISSING_TRAILING_ZERO_FLOAT, corrected_value, temp_num, starting_position, ending_position))
+                            self._logs.append(IntFloatWarning(Warn.MISSING_TRAILING_ZERO_FLOAT, corrected_value, temp_num, starting_position, ending_position))
 
                         # has multiple decimal points
                         decimal_point_count = corrected_value.count('.')
                         if decimal_point_count > 1:
-                            self._errors.append(GenericError(Error.MULTIPLE_DECIMAL_POINT, starting_position, ending_position,
-                                                            context = f"'{corrected_value}' has {decimal_point_count} decimal points"))
+                            self._logs.append(GenericError(Error.MULTIPLE_DECIMAL_POINT, starting_position, ending_position,
+                                                           context = f"'{corrected_value}' has {decimal_point_count} decimal points"))
                             break_outside_loop = True
                             break
 
                         before_decimal_digit_count = len(corrected_value[:corrected_value.index('.')])
                         if before_decimal_digit_count > 10:
-                            self._errors.append(GenericError(Error.OUT_OF_BOUNDS_INT_FLOAT, starting_position, ending_position,
-                                                            context = f"'{corrected_value}' is {len(corrected_value)} digits long"))
+                            self._logs.append(GenericError(Error.OUT_OF_BOUNDS_INT_FLOAT, starting_position, ending_position,
+                                                           context = f"'{corrected_value}' is {len(corrected_value)} digits long"))
                             break_outside_loop = True
                             break
                         
@@ -1122,8 +1122,8 @@ class Lexer():
                         if after_decimal_digit_count > 10:
                             temp_num = corrected_value
                             corrected_value = corrected_value[:corrected_value.index('.')] + corrected_value[corrected_value.index('.'):][:11]
-                            self._errors.append(IntFloatWarning(Error.OUT_OF_BOUNDS_INT_FLOAT, corrected_value, temp_num, starting_position, ending_position,
-                                                                context = f"'{temp_num}' is {len(temp_num)} digits long after the decimal point\n\tvalue = '{temp_num}' --> corrected valule = '{corrected_value}'"))
+                            self._logs.append(IntFloatWarning(Error.OUT_OF_BOUNDS_INT_FLOAT, corrected_value, temp_num, starting_position, ending_position,
+                                                              context = f"'{temp_num}' is {len(temp_num)} digits long after the decimal point\n\tvalue = '{temp_num}' --> corrected valule = '{corrected_value}'"))
 
                         self._tokens.append(Token(corrected_value, TokenType.FLOAT_LITERAL, starting_position, ending_position))
                         break_outside_loop = True
@@ -1198,7 +1198,7 @@ class Lexer():
 
                         if is_end_of_file:
                             ending_position = self._position.copy()
-                            self._errors.append(GenericWarning(Warn.UNCLOSED_MULTI_LINE_COMMENT, starting_position))
+                            self._logs.append(GenericWarning(Warn.UNCLOSED_MULTI_LINE_COMMENT, starting_position))
                             self._tokens.append(Token(temp_comment, TokenType.MULTI_LINE_COMMENT, starting_position, ending_position))
 
             else:

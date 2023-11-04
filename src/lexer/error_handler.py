@@ -57,6 +57,12 @@ class Error(Enum):
                           'identifiers can only start with lowercase letters')
     IDEN_INVALID_NAME = ("INVALID IDENTIFIER NAME",
                          'identifiers can only have alphanumeric characters')
+
+    # symbol errors
+    UNARY_MISSING_OPERAND = ("UNARY OPERATOR MISSING OPERAND",
+                             "Unary operators should be appended to an operand before it.")
+    UNEXPECTED_SYMBOL = ("UNEXPECTED SYMBOL",
+                         "Lexeme does not map to an appropriate token type")
     
     
 class Warn(Enum):
@@ -90,7 +96,7 @@ class GenericError:
     def __init__(self, error_type: Error, position: tuple[int,int], end_position: tuple[int,int] = None, context: str = None):
         self._error_type = error_type
         self._position = position
-        self._end_position = end_position
+        self._end_position = end_position if position != end_position else None
         self._context = context
 
     def __str__(self):
@@ -98,10 +104,20 @@ class GenericError:
         log += f"[{self.error_type}] Error on line {self._position[0]}"
         if self.end_position:
             log += f" from column {self._position[1]} to {self._end_position[1]}"
+        else:
+            log += f" column {self._position[1]}"
         log += ':\n'
         log += f"\t{self.message}\n"
         if self.context:
             log += f'\t{self.context}\n'
+
+        # Error preview
+        error_range = 1 if self.end_position is None else self.end_position[1] - self.position[1] + 1
+        index_str = str(self.position[0])
+        log += f"\t{'_'*20}\n"
+        log += f"\t{index_str} | {ErrorSrc.src[self.position[0]]}\n"
+        log += f"\t{' ' * len(index_str)} | {' '*self.position[1]}{'^'*error_range}\n"
+        log += f"\t{'_'*20}\n"
         return log
     
     @property
@@ -147,6 +163,13 @@ class DelimError:
             log += f"{delim} "
         log += f"\n\tafter {self.temp_id} but got {self.actual_delim if self.actual_delim != ' ' else 'WHITESPACE'} instead\n"
 
+        # Error preview
+        index_str = str(self.position[0])
+        log += f"\t{'_' * 20}\n"
+        log += f"\t{index_str} | {ErrorSrc.src[self.position[0]]}\n"
+        log += f"\t{' ' * len(index_str)} | {' ' * self.position[1]}{'^'}\n"
+        log += f"\t{'_' * 20}\n"
+
         return log
 
 class IntFloatWarning:
@@ -172,6 +195,15 @@ class IntFloatWarning:
             log += f'\t{self.context}\n'
         else:
             log += f"\tvalue = '{self.temp_num}' --> corrected value = '{self.corrected_value}'\n"
+
+        # Error preview
+        error_range = 1 if self.end_position is None else self.end_position[1] - self.position[1] + 1
+        index_str = str(self.position[0])
+        log += f"\t{'_' * 20}\n"
+        log += f"\t{index_str} | {ErrorSrc.src[self.position[0]]}\n"
+        log += f"\t{' ' * len(index_str)} | {' ' * self.position[1]}{'^' * error_range}\n"
+        log += f"\t{'_' * 20}\n"
+
         return log
 
     @property
@@ -222,6 +254,15 @@ class GenericWarning:
         log += f"\t{self.message}\n"
         if self.context:
             log += f'\t{self.context}\n'
+
+        # Error preview
+        error_range = 1 if self.end_position is None else self.end_position[1] - self.position[1] + 1
+        index_str = str(self.position[0])
+        log += f"\t{'_' * 20}\n"
+        log += f"\t{index_str} | {ErrorSrc.src[self.position[0]]}\n"
+        log += f"\t{' ' * len(index_str)} | {' ' * self.position[1]}{'^' * error_range}\n"
+        log += f"\t{'_' * 20}\n"
+
         return log
     
     @property
@@ -243,3 +284,7 @@ class GenericWarning:
     @property
     def context(self):
         return self._context
+
+
+class ErrorSrc:
+    src = [""]
