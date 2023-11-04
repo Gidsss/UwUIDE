@@ -169,6 +169,14 @@ class Lexer():
                 # Check if - is dash data type
                 line, column = tuple(self._position)
                 after_slice = self._lines[line][column+1:]
+
+                # Check if character after - is uppercase (then its a class data type)
+                if after_slice[0] in ATOMS["alpha_big"]:
+                    starting_position = ending_position = tuple(self._position)
+                    self._tokens.append(Token('-', 'ID_DELIM', starting_position, ending_position))
+                    is_end_of_file = self._advance()
+                    continue
+
                 data_types = ["chan", "kun", "sama", "senpai", "san", "dono"]
                 valid_data_type = None
                 # Check if the valid data types exist after the -
@@ -339,7 +347,7 @@ class Lexer():
                     continue
 
             if self._current_char == ".":
-                cursor_advanced, is_end_of_file = self._peek(',', TokenType.DOT_OP)
+                cursor_advanced, is_end_of_file = self._peek('.', TokenType.DOT_OP)
                 if cursor_advanced:
                     continue
 
@@ -714,10 +722,11 @@ class Lexer():
         temp_id = from_keyword
 
         if cwass:
-            token_type =  TokenType.CWASS
+            token_type =  TokenType.CWASS_NAME
             open_paren_error = Error.CWASS_OPEN_PAREN
             invalid_name_error = Error.INVALID_CWASS_DECLARE
             missing_keyword_error = Error.MISSING_CWASS
+            not_alphanumeric_error = Error.CWASS_INVALID_NAME
 
         else:
             token_type = TokenType.FUNC_NAME
@@ -725,6 +734,7 @@ class Lexer():
             data_type_error = Error.FWUNC_DATA_TYPE            
             invalid_name_error = Error.INVALID_FUNC_DECLARE
             missing_keyword_error = Error.MISSING_FWUNC
+            not_alphanumeric_error = Error.FWUNC_INVALID_NAME
 
         parentheses_exist = self._seek('(', ignore_space=False)
         dash_datatype_exist = self._seek('-', ignore_space=False)
@@ -750,7 +760,13 @@ class Lexer():
                             self._errors.append(GenericError(Error.CWASS_LOWERCASE, starting_position, ending_position,
                                                             context = f'invalid class name: {temp_id}'))
                         else:
-                            self._tokens.append(Token(temp_id, token_type, starting_position, ending_position))
+                            # check if class/func name is alphanumeric
+                            if temp_id.isalnum():
+                                self._tokens.append(Token(temp_id, token_type, starting_position, ending_position))
+                            else:
+                                self._errors.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
+                                                    context=f"'{temp_id}' is invalid"))
+                            break
                         break
 
                     temp_id += self._current_char
@@ -780,7 +796,14 @@ class Lexer():
                         if not dash_datatype_exist:
                             # function declaration has no datatype indicated
                             if cwass:
-                                self._tokens.append(Token(temp_id, token_type, starting_position, ending_position))
+                                # check if class/func name is alphanumeric
+                                if temp_id.isalnum():
+                                    self._tokens.append(Token(temp_id, token_type, starting_position, ending_position))
+                                else:
+                                    self._errors.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
+                                                        context=f"'{temp_id}' is invalid"))
+                                break
+
                             else:
                                 self._errors.append(GenericError(data_type_error, starting_position, ending_position))
                         break
@@ -824,11 +847,22 @@ class Lexer():
                 current_line = self._position[0]
 
                 while True:
-                    if self._current_char == '(':
+                    if cwass:
+                        delims = 'cwass'
+                    else:
+                        delims = 'function'
+
+                    if self._current_char in DELIMS[delims]:
                         self._reverse()
                         starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                         ending_position = tuple([self._position[0], self._position[1]])
-                        self._tokens.append(Token(temp_id, token_type, starting_position, ending_position))
+
+                        # check if class/func name is alphanumeric
+                        if temp_id.isalnum():
+                            self._tokens.append(Token(temp_id, token_type, starting_position, ending_position))
+                        else:
+                            self._errors.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
+                                                context=f"'{temp_id}' is invalid"))
                         break
 
                     temp_id += self._current_char
@@ -841,8 +875,37 @@ class Lexer():
                         line, col = self._position
                         self._errors.append(DelimError(token_type, (line, col + 1), temp_id, '\n'))
                         break
-
             cursor_advanced = True
+
+        elif cwass and not dash_datatype_exist:
+            current_line = self._position[0]
+            while True:
+                if self._current_char in DELIMS['data_type']:
+                    self._reverse()
+                    starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
+                    ending_position = tuple([self._position[0], self._position[1]])
+
+                    # check if class/func name is alphanumeric
+                    if temp_id.isalnum():
+                        self._tokens.append(Token(temp_id, TokenType.CWASS_TYPE, starting_position, ending_position))
+                    else:
+                        self._errors.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
+                                                         context=f"'{temp_id}' is invalid"))
+                    break
+
+                temp_id += self._current_char
+                is_end_of_file = self._advance()
+                in_next_line = self._position[0] != current_line
+
+                if is_end_of_file or in_next_line:
+                    if in_next_line:
+                        self._reverse()
+                    starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
+                    ending_position = tuple([self._position[0], self._position[1]])
+                    self._errors.append(DelimError(TokenType.CWASS_TYPE, starting_position, ending_position))
+                    break
+            cursor_advanced = True
+        print(self._position)
         return cursor_advanced, is_end_of_file
     
     def _is_identifier(self, from_keyword: str = '') -> bool:

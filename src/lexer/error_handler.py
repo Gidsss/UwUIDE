@@ -25,6 +25,8 @@ class Error(Enum):
                      "Function declarations need to have a 'fwunc' before to indicate it is a function")
     FWUNC_UPPERCASE = ("INVALID FUNCTION NAME",
                       'Function names should only start with a lowercase letter')
+    FWUNC_INVALID_NAME = ("INVALID FUNCTION NAME",
+                         'functions can only have alphanumeric characters')
     
     # class errors
     CWASS_OPEN_PAREN = ("MISSING PARENTHESIS",
@@ -35,6 +37,8 @@ class Error(Enum):
                      "Class declarations need to have a 'cwass' before to indicate it is a class")
     CWASS_LOWERCASE = ("INVALID CLASS NAME",
                       'Class names should only start with an uppercase letter')
+    CWASS_INVALID_NAME = ("INVALID CLASS NAME",
+                         'classes can only have alphanumeric characters')
 
     # string errors    
     UNCLOSED_STRING = ("UNCLOSED STRING",

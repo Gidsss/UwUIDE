@@ -30,9 +30,9 @@ class TokenType(Enum):
     FWUNC = ("FWUNC_KEYWORD", "whitespace")
     CWASS = ("CWASS_KEYWORD", "whitespace")
     GWOBAW = ("GWOBAW_KEYWORD", "whitespace")
-    INPWT = ("INPWT_KEYWORD", "function")
-    PWINT = ("PWINT_KEYWORD", "function")
-    WETUWN = ("WETUWN_KEYWORD", "function")
+    INPWT = ("INPWT_KEYWORD", "io")
+    PWINT = ("PWINT_KEYWORD", "io")
+    WETUWN = ("WETUWN_KEYWORD", "io")
 
     # CONTROL STRUCTURE KEYWORDS
     FOW = ("FOW_KEYWORD", "conditional")
@@ -89,7 +89,9 @@ class TokenType(Enum):
 
     # OTHER
     IDENTIFIER = ("IDENTIFIER", "id")
-    FUNC_NAME = ("FUNCTION NAME", "id")
+    FUNC_NAME = ("FUNCTION NAME", "function")
+    CWASS_NAME = ("CWASS NAME", "function")
+    CWASS_TYPE = ("CWASS TYPE", "cwass_type")
     SINGLE_LINE_COMMENT = ("COMMENT", "single_line_comment")
     MULTI_LINE_COMMENT = ("MULTI LINE COMMENT", "line")
 
