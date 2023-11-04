@@ -14,6 +14,7 @@ if __name__ == "__main__":
         'a',
         'multiline',
         'comment',
+        '>//<',
         # 'fwunc channel-chan()',
         # 'fwunc channel()',
         # 'fwunc channel-chan[()',

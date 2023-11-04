@@ -772,7 +772,7 @@ class Lexer():
                 # treat it as identifier, move cursor till an identifier delim and append to errors
                 current_line = self._position[0]
                 while True:
-                    if self._current_char in DELIMS['id']:
+                    if self._current_char == '(' or self._current_char in DELIMS['id']:
                         self._reverse()
                         starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                         ending_position = tuple([self._position[0], self._position[1]])
@@ -1079,6 +1079,7 @@ class Lexer():
                 temp_comment = to_seek
 
                 closing_comment_indicator_exists = self._seek(to_seek, multi_line_count='EOF')
+                input(closing_comment_indicator_exists)
                 if closing_comment_indicator_exists:
                     # keep appending until found >//< in order
                     while True:
@@ -1091,7 +1092,7 @@ class Lexer():
                         temp_comment += self._current_char
 
                         if self._current_char == '/' and self._lines[self._position[0]][self._position[1]+1] == '/' and self._lines[self._position[0]][self._position[1]+2] == '<':
-                            self._advance(2)
+                            self._advance(3)
                             temp_comment += '/<'
 
                             ending_position = self._position.copy()
@@ -1112,7 +1113,7 @@ class Lexer():
 
                         if is_end_of_file:
                             ending_position = self._position.copy()
-                            self._errors.append(GenericError(Warn.UNCLOSED_MULTI_LINE_COMMENT, starting_position))
+                            self._errors.append(GenericWarning(Warn.UNCLOSED_MULTI_LINE_COMMENT, starting_position))
                             self._tokens.append(Token(temp_comment, TokenType.MULTI_LINE_COMMENT, starting_position, ending_position))
 
             else:

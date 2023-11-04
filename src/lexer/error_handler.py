@@ -102,10 +102,7 @@ class GenericError:
     
     @property
     def error_type(self):
-        if isinstance(self._error_type, Warn):
-            return self._error_type.warn_type
-        else:
-            return self._error_type.error_type
+        return self._error_type.error_type
 
     @property
     def message(self):
@@ -202,4 +199,43 @@ class IntFloatWarning:
     
     @property
     def context(self) -> str:
+        return self._context
+    
+
+class GenericWarning:
+    def __init__(self, warn_type: Error, position: tuple[int,int], end_position: tuple[int,int] = None, context: str = None):
+        self._warn_type = warn_type
+        self._position = position
+        self._end_position = end_position
+        self._context = context
+
+    def __str__(self):
+        log = ''
+        log += f"[{self.warn_type}] Warning on line {self._position[0]}"
+        if self.end_position:
+            log += f" from column {self._position[1]} to {self._end_position[1]}"
+        log += ':\n'
+        log += f"\t{self.message}\n"
+        if self.context:
+            log += f'\t{self.context}\n'
+        return log
+    
+    @property
+    def warn_type(self):
+        return self._warn_type.warn_type
+
+    @property
+    def message(self):
+        return self._warn_type.message
+    
+    @property
+    def position(self):
+        return self._position
+
+    @property
+    def end_position(self):
+        return self._end_position
+    
+    @property
+    def context(self):
         return self._context
