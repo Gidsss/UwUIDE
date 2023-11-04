@@ -43,4 +43,5 @@ DELIMS = {
     'nuww': {' ', '~', ')', '}', ','},
     'whitespace': {' '},
     'negative_delim': {*ATOMS['alpha'], *ATOMS['number'], '('},
+    'single_line_comment': {'\n'},
 }

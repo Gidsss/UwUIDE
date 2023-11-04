@@ -245,6 +245,14 @@ class Lexer():
                 if cursor_advanced:
                     continue
 
+                cursor_advanced, is_end_of_file = self._peek_comments()
+                if cursor_advanced:
+                    continue
+
+                cursor_advanced, is_end_of_file = self._peek_comments(multiline=True)
+                if cursor_advanced:
+                    continue
+
                 cursor_advanced, is_end_of_file = self._peek('>', TokenType.RELATIONAL)
                 if cursor_advanced:
                     continue
@@ -384,6 +392,8 @@ class Lexer():
         temp_position += increment
         end_of_file = temp_position > len(self._lines[len(self._lines)-1])-1 and self._position[0] == len(self._lines)-1
         if end_of_file:
+            self._position[1] += increment
+            self._current_char = None
             return True
         
         # increment cursor
@@ -411,6 +421,8 @@ class Lexer():
         temp_position -= increment
         beginning_of_file = temp_position < 0 and self._position[0] == 0
         if beginning_of_file:
+            self._position[1] -= increment
+            self._current_char = None
             return True
         
         # decrement cursor
@@ -558,9 +570,9 @@ class Lexer():
             raise ValueError(f"{to_seek} is not a valid parameter. Please pass a list of strings")
         
         line = self._position[0]
-        if before:
+        if before and isinstance(multi_line_count, int):
             multi_line = line - multi_line_count
-        else:
+        elif not before and isinstance(multi_line_count, int):
             multi_line = line + multi_line_count
 
         if multi_line_count == "EOF":
@@ -646,7 +658,6 @@ class Lexer():
                             cursor_advance_reverse_count += 1
                             # check again after advancing
                             if end_of_file:
-                                cursor_advance_reverse_count -= 1
                                 break
                             # limit number of times advancing can go to newlines with multi_line_count
                             elif multi_line < self._position[0]:
@@ -658,7 +669,6 @@ class Lexer():
                         cursor_advance_reverse_count += 1
                         # check again after advancing
                         if end_of_file:
-                            cursor_advance_reverse_count -= 1
                             break
                         # limit number of times advancing can go to newlines with multi_line_count
                         elif multi_line < self._position[0]:
@@ -1052,7 +1062,84 @@ class Lexer():
             temp_num += self._current_char
 
         return self._advance()
-        
+    
+    def _peek_comments(self, multiline: bool = False) -> bool:
+        'returns true if found comments/error about comments, false otherwise'
+        to_seek = r'>//<' if multiline else '>.<'
+        comment_indicator_exists = self._seek(to_seek)
+
+        current_line = self._position[0]
+        cursor_advanced = False
+        is_end_of_file = True
+
+        if comment_indicator_exists:
+            if multiline:
+                starting_position = self._position.copy()
+                is_end_of_file = self._advance(len(to_seek) - 1)
+                temp_comment = to_seek
+
+                closing_comment_indicator_exists = self._seek(to_seek, multi_line_count='EOF')
+                if closing_comment_indicator_exists:
+                    # keep appending until found >//< in order
+                    while True:
+                        current_line = self._position[0]
+                        is_end_of_file = self._advance()
+
+                        # !TODO! CHANGE AFTER ADDING \n TO EVERY LINE (just remove it lul)
+                        if self._position[0] > current_line:
+                            temp_comment += '\n'
+                        temp_comment += self._current_char
+
+                        if self._current_char == '/' and self._lines[self._position[0]][self._position[1]+1] == '/' and self._lines[self._position[0]][self._position[1]+2] == '<':
+                            self._advance(2)
+                            temp_comment += '/<'
+
+                            ending_position = self._position.copy()
+                            self._tokens.append(Token(temp_comment, TokenType.MULTI_LINE_COMMENT, starting_position, ending_position))
+                            break
+
+                else:
+                    # comment out the rest of the code if there is no closing indicator is 
+                    while not is_end_of_file:
+                        current_line = self._position[0]
+                        is_end_of_file = self._advance()
+
+                        # !TODO! CHANGE AFTER ADDING \n TO EVERY LINE (just remove it lul)
+                        if self._position[0] > current_line:
+                            temp_comment += '\n'
+                        if not is_end_of_file:
+                            temp_comment += self._current_char
+
+                        if is_end_of_file:
+                            ending_position = self._position.copy()
+                            self._errors.append(GenericError(Warn.UNCLOSED_MULTI_LINE_COMMENT, starting_position))
+                            self._tokens.append(Token(temp_comment, TokenType.MULTI_LINE_COMMENT, starting_position, ending_position))
+
+            else:
+                temp_comment = to_seek
+                starting_position = self._position.copy()
+                is_end_of_file = self._advance(len(to_seek) - 1)
+                while True:
+                    is_end_of_file = self._advance()
+                    in_next_line = self._position[0] > current_line
+                    if not is_end_of_file and not in_next_line:
+                        temp_comment += self._current_char
+
+                    # !TODO! CHANGE AFTER ADDING \n TO EVERY LINE
+                    # new implementation could be looking at line length-2 and if character there is \n, that's newline 
+                    # every other \n will be treated as a comment
+                    if is_end_of_file or in_next_line:
+                        ending_position = self._position.copy()
+                        self._tokens.append(Token(temp_comment, TokenType.SINGLE_LINE_COMMENT, starting_position, ending_position))
+                        break
+
+
+            cursor_advanced = True
+        else:
+            cursor_advanced = False
+
+        return cursor_advanced, is_end_of_file
+
 
 """
 def read_file(file_path: Path) -> list[str]:

@@ -68,17 +68,19 @@ class Warn(Enum):
     def message(self):
         return self._message
     
+    # ints/floats
     LEADING_ZEROES_INT = ("LEADING ZEROES",
                       'chan literals should not have leading zeroes',)
-        
     LEADING_ZEROES_FLOAT = ("LEADING ZEROES",
                       "kun literals can have ONE leading zero before the decimal point ONLY IF it's the only digit present (0.1)")
-    
     TRAILING_ZEROES_FLOAT = ("TRAILING ZEROES",
                       "kun literals can have ONE trailing zero after the decimal point ONLY IF it's the only digit present (1.0)")
-    
     MISSING_TRAILING_ZERO_FLOAT = ("MISSING TRAILING ZERO",
                                    "kun literals should have digit/s present after the decimal point")
+    
+    # multi line comment
+    UNCLOSED_MULTI_LINE_COMMENT = ("UNCLOSED MULTI LINE COMMENT",
+                                   "All code after the opening indicator >//< will be treated as a comment")
     
 class GenericError:
     def __init__(self, error_type: Error, position: tuple[int,int], end_position: tuple[int,int] = None, context: str = None):
@@ -100,7 +102,10 @@ class GenericError:
     
     @property
     def error_type(self):
-        return self._error_type.error_type
+        if isinstance(self._error_type, Warn):
+            return self._error_type.warn_type
+        else:
+            return self._error_type.error_type
 
     @property
     def message(self):

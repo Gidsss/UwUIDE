@@ -90,6 +90,8 @@ class TokenType(Enum):
     # OTHER
     IDENTIFIER = ("IDENTIFIER", "id")
     FUNC_NAME = ("FUNCTION NAME", "id")
+    SINGLE_LINE_COMMENT = ("COMMENT", "single_line_comment")
+    MULTI_LINE_COMMENT = ("MULTI LINE COMMENT", "line")
 
 
 class Token:
