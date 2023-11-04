@@ -4,8 +4,12 @@ from .lexer import *
 if __name__ == "__main__":
     # temporary test source code
     source_code = [
-        'fwunc aqua-Vtuber(1, "string", fax, 2.50, shion-chan, ojou-Vtuber)',
-        '(1.0, 2.10, 3.)',
+        # r'pwint("hello \"hello\"")',
+        # 'pwint("hello \|hello\|")',
+        # '1bc ',
+        'aqua-chan = func()---5',
+        'fwunc aqua-Vtuber(shion-chan, 1, "string", fax, 2.50, ojou-Vtuber)',
+        # '(1.0, 2.10, 3.)',
         # 'aqua-vtuber = vtuber()~',
         # 'aqua-Vtuber = Vtuber()~',
         # 'Vtuber.uwuwuwu()~',
