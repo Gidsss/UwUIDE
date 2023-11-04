@@ -10,6 +10,7 @@ class Lexer():
 
     def __init__(self, source_code: list[str]):
         self._lines = source_code
+        ErrorSrc.src = source_code
 
         self._position = [0,0]
         self._current_char = self._lines[self._position[0]][self._position[1]]

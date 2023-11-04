@@ -110,6 +110,14 @@ class GenericError:
         log += f"\t{self.message}\n"
         if self.context:
             log += f'\t{self.context}\n'
+
+        # Error preview
+        error_range = 1 if self.end_position is None else self.end_position[1] - self.position[1] + 1
+        index_str = str(self.position[0])
+        log += f"\t{'_'*20}\n"
+        log += f"\t{index_str} | {ErrorSrc.src[self.position[0]]}\n"
+        log += f"\t{' ' * len(index_str)} | {' '*self.position[1]}{'^'*error_range}\n"
+        log += f"\t{'_'*20}\n"
         return log
     
     @property
@@ -155,6 +163,13 @@ class DelimError:
             log += f"{delim} "
         log += f"\n\tafter {self.temp_id} but got {self.actual_delim if self.actual_delim != ' ' else 'WHITESPACE'} instead\n"
 
+        # Error preview
+        index_str = str(self.position[0])
+        log += f"\t{'_' * 20}\n"
+        log += f"\t{index_str} | {ErrorSrc.src[self.position[0]]}\n"
+        log += f"\t{' ' * len(index_str)} | {' ' * self.position[1]}{'^'}\n"
+        log += f"\t{'_' * 20}\n"
+
         return log
 
 class IntFloatWarning:
@@ -180,6 +195,15 @@ class IntFloatWarning:
             log += f'\t{self.context}\n'
         else:
             log += f"\tvalue = '{self.temp_num}' --> corrected value = '{self.corrected_value}'\n"
+
+        # Error preview
+        error_range = 1 if self.end_position is None else self.end_position[1] - self.position[1] + 1
+        index_str = str(self.position[0])
+        log += f"\t{'_' * 20}\n"
+        log += f"\t{index_str} | {ErrorSrc.src[self.position[0]]}\n"
+        log += f"\t{' ' * len(index_str)} | {' ' * self.position[1]}{'^' * error_range}\n"
+        log += f"\t{'_' * 20}\n"
+
         return log
 
     @property
@@ -230,6 +254,15 @@ class GenericWarning:
         log += f"\t{self.message}\n"
         if self.context:
             log += f'\t{self.context}\n'
+
+        # Error preview
+        error_range = 1 if self.end_position is None else self.end_position[1] - self.position[1] + 1
+        index_str = str(self.position[0])
+        log += f"\t{'_' * 20}\n"
+        log += f"\t{index_str} | {ErrorSrc.src[self.position[0]]}\n"
+        log += f"\t{' ' * len(index_str)} | {' ' * self.position[1]}{'^' * error_range}\n"
+        log += f"\t{'_' * 20}\n"
+
         return log
     
     @property
@@ -251,3 +284,7 @@ class GenericWarning:
     @property
     def context(self):
         return self._context
+
+
+class ErrorSrc:
+    src = [""]
