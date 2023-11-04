@@ -223,14 +223,16 @@ class Lexer():
                         if len(after_slice) > 1:
                             if self._lines[line][column+2] in TokenType.UNARY.expected_delims:
                                 # Check if prev token is identifier
-                                identifier_before = self._check_prev_token(TokenType.IDENTIFIER)
-                                if identifier_before:
+                                operand_before = self._check_prev_token([TokenType.IDENTIFIER, TokenType.INT_LITERAL,
+                                                                            TokenType.FLOAT_LITERAL, TokenType.CLOSE_PAREN])
+                                if operand_before:
                                     starting_position = tuple(self._position)
                                     ending_position = tuple([self._position[0], self._position[1]+1])
                                     self._tokens.append(Token('--', TokenType.UNARY, starting_position, ending_position))
                                 else:
-                                    pass
-                                    # Throw custom error - Missing identifier
+                                    start_of_error = tuple(self._position)
+                                    end_of_error = tuple([line, column + 1])
+                                    self._logs.append(GenericError(Error.UNARY_MISSING_OPERAND, start_of_error, end_of_error))
                                 is_end_of_file = self._advance(2)
                                 continue
                     starting_position = ending_position = tuple(self._position)
@@ -245,7 +247,8 @@ class Lexer():
                 if cursor_advanced:
                     continue
 
-                # throw custom error - unexpected symbol
+                self._logs.append(GenericError(Error.UNEXPECTED_SYMBOL, tuple(self._position),
+                                               context=f"Symbol {self._current_char} is invalid. Did you mean '!='?"))
 
             if self._current_char == '>':
                 cursor_advanced, is_end_of_file = self._peek('>=', TokenType.RELATIONAL)

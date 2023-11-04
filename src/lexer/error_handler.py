@@ -57,6 +57,12 @@ class Error(Enum):
                           'identifiers can only start with lowercase letters')
     IDEN_INVALID_NAME = ("INVALID IDENTIFIER NAME",
                          'identifiers can only have alphanumeric characters')
+
+    # symbol errors
+    UNARY_MISSING_OPERAND = ("UNARY OPERATOR MISSING OPERAND",
+                             "Unary operators should be appended to an operand before it.")
+    UNEXPECTED_SYMBOL = ("UNEXPECTED SYMBOL",
+                         "Lexeme does not map to an appropriate token type")
     
     
 class Warn(Enum):
