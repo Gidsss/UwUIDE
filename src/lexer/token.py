@@ -30,9 +30,9 @@ class TokenType(Enum):
     FWUNC = ("FWUNC_KEYWORD", "whitespace")
     CWASS = ("CWASS_KEYWORD", "whitespace")
     GWOBAW = ("GWOBAW_KEYWORD", "whitespace")
-    INPWT = ("INPWT_KEYWORD", "function")
-    PWINT = ("PWINT_KEYWORD", "function")
-    WETUWN = ("WETUWN_KEYWORD", "function")
+    INPWT = ("INPWT_KEYWORD", "io")
+    PWINT = ("PWINT_KEYWORD", "io")
+    WETUWN = ("WETUWN_KEYWORD", "io")
 
     # CONTROL STRUCTURE KEYWORDS
     FOW = ("FOW_KEYWORD", "conditional")
@@ -50,13 +50,16 @@ class TokenType(Enum):
     SAMA = ("SAMA_DATA_TYPE", "data_type")  # boolean
     SENPAI = ("SENPAI_DATA_TYPE", "data_type")  # string
     SAN = ("SAN_DATA_TYPE", "data_type")  # void
-    DONO = ("DONO_DATA_TYPE", "data_type")  # constant
+    DONO = ("DONO_DATA_TYPE", "dono")  # constant
 
     # LITERALS
     NUWW = ("NUWW_LITERAL", "nuww")
     INT_LITERAL = ("INT_LITERAL", "int_float")
     FLOAT_LITERAL = ("FLOAT_LITERAL", "int_float")
     STRING_LITERAL = ("STRING_LITERAL", "string")
+    STRING_PART_START = ("STRING_PART_START", "logical_delim") # "|
+    STRING_PART_MID = ("STRING_PART_MID", "logical_delim") # ||
+    STRING_PART_END = ("STRING_PART_END", "logical_delim") # |"
     BOOL_LITERAL = ("BOOLEAN_LITERAL", "bool")  # fax, cap
 
     # OPERATORS
@@ -86,6 +89,11 @@ class TokenType(Enum):
 
     # OTHER
     IDENTIFIER = ("IDENTIFIER", "id")
+    FUNC_NAME = ("FUNCTION NAME", "function")
+    CWASS_NAME = ("CWASS NAME", "function")
+    CWASS_TYPE = ("CWASS TYPE", "cwass_type")
+    SINGLE_LINE_COMMENT = ("COMMENT", "single_line_comment")
+    MULTI_LINE_COMMENT = ("MULTI LINE COMMENT", "line")
 
 
 class Token:
