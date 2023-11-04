@@ -43,11 +43,9 @@ class Lexer():
                 cursor_advanced, is_end_of_file = self._peek('chan', TokenType.CHAN)
                 if cursor_advanced:
                     continue
-
                 cursor_advanced, is_end_of_file = self._peek('cap', TokenType.BOOL_LITERAL)
                 if cursor_advanced:
                     continue
-
 
                 cursor_advanced, is_end_of_file = self._peek('cwass', TokenType.CWASS)
                 if cursor_advanced:
@@ -351,7 +349,7 @@ class Lexer():
                     continue
 
             # can be identifiers or function names
-            if self._current_char.isalpha():
+            if self._current_char in ATOMS['alpha']:
                 cwass = False if self._current_char == self._current_char.lower() else True
                 cursor_advanced, is_end_of_file = self._is_func_or_cwass_name(cwass)
                 if cursor_advanced:
@@ -534,7 +532,7 @@ class Lexer():
                 is_end_of_file = self._advance()
                 # preemptively check if the lexeme or current character is not valid to be in a fwunc/cwass/identifier name
                 in_new_line = self._position[0] != line
-                if not any(char.isalnum() for char in lexeme) or not self._current_char.isalnum() or in_new_line:
+                if not any(char in ATOMS['alphanum'] for char in lexeme) or not self._current_char in ATOMS['alphanum'] or in_new_line:
                     _ = self._reverse()
                     line, col = ending_position
                     self._errors.append(DelimError(token_type, (line, col+1), lexeme, delim))
@@ -576,9 +574,9 @@ class Lexer():
             multi_line = line + multi_line_count
 
         if multi_line_count == "EOF":
-            multi_line = len(self._lines) - line - 1
+            multi_line = len(self._lines) - self._position[0]
         elif multi_line_count == "BOF":
-            multi_line = 0
+            multi_line = self._position[0]
 
         cursor_advance_reverse_count = 0
         found = [False]*len(to_seek)
@@ -593,10 +591,10 @@ class Lexer():
 
                     if self._current_char == to_seek[i][lengths[i]-1]:
                         beginning_of_file = self._reverse()
+                        cursor_advance_reverse_count += 1
                         if beginning_of_file:
                             break
 
-                        cursor_advance_reverse_count += 1
                         preempt_success = True
                         for preempt in range(lengths[i]-2 ,-1, -1):
                             cursor_advance_reverse_count += 1
@@ -868,7 +866,7 @@ class Lexer():
                 starting_position = (self._position[0], self._position[1]-len(temp_id)+1)
                 ending_position = (self._position[0], self._position[1])
                 
-                if not any(temp_id.startswith(alpha) for alpha in ATOMS['alpha']):
+                if not any(temp_id.startswith(alpha) for alpha in ATOMS['alpha_small']):
                     self._errors.append(GenericError(Error.IDEN_INVALID_START, starting_position, ending_position,
                                                     f"'{temp_id}' is invalid"))
 
@@ -1079,7 +1077,6 @@ class Lexer():
                 temp_comment = to_seek
 
                 closing_comment_indicator_exists = self._seek(to_seek, multi_line_count='EOF')
-                input(closing_comment_indicator_exists)
                 if closing_comment_indicator_exists:
                     # keep appending until found >//< in order
                     while True:

@@ -50,7 +50,7 @@ class Error(Enum):
     
     # identifier errors
     IDEN_INVALID_START = ("INVALID START OF IDENTIFIER",
-                          'identifiers can only start with lowercase/uppercase letters')
+                          'identifiers can only start with lowercase letters')
     IDEN_INVALID_NAME = ("INVALID IDENTIFIER NAME",
                          'identifiers can only have alphanumeric characters')
     
