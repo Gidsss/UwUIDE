@@ -50,7 +50,7 @@ class TokenType(Enum):
     SAMA = ("SAMA_DATA_TYPE", "data_type")  # boolean
     SENPAI = ("SENPAI_DATA_TYPE", "data_type")  # string
     SAN = ("SAN_DATA_TYPE", "data_type")  # void
-    DONO = ("DONO_DATA_TYPE", "data_type")  # constant
+    DONO = ("DONO_DATA_TYPE", "dono")  # constant
 
     # LITERALS
     NUWW = ("NUWW_LITERAL", "nuww")

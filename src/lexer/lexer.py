@@ -716,7 +716,6 @@ class Lexer():
         if cwass:
             token_type =  TokenType.CWASS
             open_paren_error = Error.CWASS_OPEN_PAREN
-            data_type_error = Error.CWASS_DATA_TYPE            
             invalid_name_error = Error.INVALID_CWASS_DECLARE
             missing_keyword_error = Error.MISSING_CWASS
 
@@ -780,7 +779,10 @@ class Lexer():
                             self._errors.append(GenericError(open_paren_error, starting_position, ending_position))
                         if not dash_datatype_exist:
                             # function declaration has no datatype indicated
-                            self._errors.append(GenericError(data_type_error, starting_position, ending_position))
+                            if cwass:
+                                self._tokens.append(Token(temp_id, token_type, starting_position, ending_position))
+                            else:
+                                self._errors.append(GenericError(data_type_error, starting_position, ending_position))
                         break
 
                     temp_id += self._current_char

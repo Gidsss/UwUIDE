@@ -29,10 +29,8 @@ class Error(Enum):
     # class errors
     CWASS_OPEN_PAREN = ("MISSING PARENTHESIS",
                        "No opening parenthesis was found on class declaration")
-    CWASS_DATA_TYPE = ("MISSING DATATYPE",
-                      "No data type was indicated on class declaration")
     INVALID_CWASS_DECLARE = ("INVALID CLASS NAME DECLARATION",
-                            "class name is missing a data type/parenthesis")
+                            "class name is missing a parenthesis")
     MISSING_CWASS = ("MISSING CWASS KEYWORD",
                      "Class declarations need to have a 'cwass' before to indicate it is a class")
     CWASS_LOWERCASE = ("INVALID CLASS NAME",
