@@ -96,7 +96,7 @@ class GenericError:
     def __init__(self, error_type: Error, position: tuple[int,int], end_position: tuple[int,int] = None, context: str = None):
         self._error_type = error_type
         self._position = position
-        self._end_position = end_position
+        self._end_position = end_position if position != end_position else None
         self._context = context
 
     def __str__(self):
@@ -104,6 +104,8 @@ class GenericError:
         log += f"[{self.error_type}] Error on line {self._position[0]}"
         if self.end_position:
             log += f" from column {self._position[1]} to {self._end_position[1]}"
+        else:
+            log += f" column {self._position[1]}"
         log += ':\n'
         log += f"\t{self.message}\n"
         if self.context:
