@@ -118,8 +118,6 @@ class UwU(CTk):
         code_editor.run_lexer()
         self.analyzer_panel.update_lexer(tokens=code_editor.tokens)
         self.code_panel.update_logs(errors=code_editor.errors)
-        # print("========== Tokens ==========",code_editor.tokens)
-        # print("========== Errors ==========", code_editor.errors[0].position)
         
 
 if __name__ == "__main__":
