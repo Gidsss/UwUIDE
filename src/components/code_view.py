@@ -67,14 +67,14 @@ class CodeEditor(CTkFrame):
 
     # Callback method for copying text
     def copy_text(self, event):
-        if event.state == 0:  # Only trigger if no other modifiers (e.g., Shift, Control) are pressed
+        if event.state == 0:  # Only trigger if no other modifiers are pressed
             self.text.clipboard_clear()
             selected_text = self.text.get("sel.first", "sel.last")
             self.text.clipboard_append(selected_text)
 
     # Callback method for pasting text
     def paste_text(self, event):
-        if event.state == 0:  # Only trigger if no other modifiers (e.g., Shift, Control) are pressed
+        if event.state == 0:  # Only trigger if no other modifiers are pressed
             text_to_paste = self.text.clipboard_get()
             self.text.insert(INSERT, text_to_paste)
 
