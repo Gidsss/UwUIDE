@@ -1,5 +1,8 @@
 from customtkinter import *
 from .logs_table import LogsCanvas
+from PIL import Image, ImageTk
+from constants.path import *
+
 
 class CompilerLogs(CTkScrollableFrame):
     def __init__(self, master, **kwargs):
@@ -19,6 +22,8 @@ class CompilerLogs(CTkScrollableFrame):
         self.logs_table.grid(row=1, column=0, columnspan=12, sticky='nsew')
 
         self.update_logs = self.logs_table.update_logs
+        
+
 
 class Console(CTkFrame):
     def __init__(self, master, **kwargs):
@@ -52,3 +57,5 @@ class ConsoleView(CTkTabview):
         self.console.grid(row=0,column=0, rowspan=2, columnspan=2, sticky='nsew')
 
         self.update_logs = self.compiler_logs.update_logs
+                    
+        

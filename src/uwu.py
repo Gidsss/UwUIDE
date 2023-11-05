@@ -5,6 +5,9 @@ from .components.console_view import ConsoleView
 from .components.command_menu import CommandMenu
 from .components.analyzer_tabs import UwULexerTab, UwUParserTab
 
+from PIL import Image, ImageTk
+from constants.path import *
+
 class UwUCodePanel(CTkFrame):
     def __init__(self, master, on_compiler_run, **kwargs):
         super().__init__(master, **kwargs)
@@ -25,25 +28,53 @@ class UwUCodePanel(CTkFrame):
         )
         self.code_view.grid(row=1, rowspan=5, columnspan=4, sticky='nsew', padx=12)
         
+        self.canvas = CTkCanvas(
+            master = self, 
+            bg = '#1A1B26', 
+            highlightthickness=0,
+        )
+        self.canvas.grid(row=6, rowspan=1, columnspan=4, stick='nsew', padx=12, pady=12)
+        self.canvas.image = ImageTk.PhotoImage(Image.open(f"{AQUACL_BG_ASSET}"))
+        self.canvas.create_image(5, 30, anchor='nw', image=self.canvas.image)
+        
+        
         self.console_view = ConsoleView(
             master=self,
-            fg_color='#1A1B26',
+            fg_color='transparent',
+            bg_color='transparent',
             corner_radius=8,
             anchor='nw',
             segmented_button_fg_color='#1A1B26',
             segmented_button_selected_color='#333652',
             segmented_button_selected_hover_color='gray',
-            segmented_button_unselected_color='#1A1B26',segmented_button_unselected_hover_color='gray'
+            segmented_button_unselected_color='#1A1B26',
+            segmented_button_unselected_hover_color='gray'
         )
         self.console_view.grid(row=6, rowspan=1, columnspan=4, stick='nsew', padx=12, pady=12)
         self.update_logs = self.console_view.update_logs
+<<<<<<< Updated upstream
 
+=======
+        
+        
+        
+>>>>>>> Stashed changes
         self.command_menu = CommandMenu(
             master=self,
             fg_color='transparent',
             on_compiler_run=on_compiler_run
         )
         self.command_menu.grid(row=0, columnspan=4, sticky='nsew', pady=8)
+<<<<<<< Updated upstream
+=======
+        
+        
+       
+        
+    # Initially, associate the first CodeEditor with the CommandMenu 
+        first_code_editor = self.code_view.code_editors['Untitled.uwu']
+        self.command_menu.set_code_editor(first_code_editor)
+>>>>>>> Stashed changes
 
     @property
     def editor(self):
