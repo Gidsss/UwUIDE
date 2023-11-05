@@ -162,25 +162,30 @@ class CodeEditor(CTkFrame):
 class CodeView(CTkTabview):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-        self.file_names = ['Untitled.uwu', 'Untitled(1).uwu']
+        self.file_names = ['Untitled.uwu']
         self.code_editors: dict[str, CodeEditor] = {}
 
         for file in self.file_names:
-            tab = self.add(file)
-            tab.grid_columnconfigure((0, 1), weight=1)
-            tab.grid_rowconfigure((0, 1), weight=1)
+            self.create_new_tab(file)
+    
+    def create_new_tab(self, file_name):
+        tab = self.add(file_name)
+        tab.grid_columnconfigure((0, 1), weight=1)
+        tab.grid_rowconfigure((0, 1), weight=1)
 
-            code_editor = CodeEditor(master=tab, fg_color='transparent', lexer=Lexer)
-            code_editor.grid(row=0, column=0, rowspan=2, columnspan=2, sticky='nsew')
+        code_editor = CodeEditor(master=tab, fg_color='transparent', lexer=Lexer)
+        code_editor.grid(row=0, column=0, rowspan=2, columnspan=2, sticky='nsew')
 
-            self.code_editors[file] = code_editor
+        self.code_editors[file_name] = code_editor
 
     def editor(self) -> CodeEditor:
-        tab = self.get()
-        code_editor: CodeEditor = self.code_editors[tab]
-
-        return code_editor
-
+        tab_index = self.get()  # Get the currently selected tab index
+        if tab_index < len(self.file_names):
+            tab_name = self.file_names[tab_index]
+            code_editor: CodeEditor = self.code_editors[tab_name]
+            return code_editor
+        else:
+            print('Handle the case when the tab index is out of bounds')
 
 class Remote:
     """

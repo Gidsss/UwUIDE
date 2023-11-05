@@ -5,8 +5,9 @@ from PIL import Image, ImageTk
 from tkinter import filedialog
 
 class CommandMenu(CTkFrame):
-    def __init__(self, master, on_compiler_run, **kwargs):
+    def __init__(self, master, code_view, on_compiler_run, **kwargs):
         super().__init__(master, **kwargs)
+        self.code_view = code_view
         self.columns = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
         self.rows = (0)
 
@@ -53,12 +54,16 @@ class CommandMenu(CTkFrame):
                 with open(file_name, "w") as file:
                     file.write(file_content)
 
+    
     def load_file(self):
-        if self.code_editor:
-            file_name = filedialog.askopenfilename(filetypes=[("UwU Files", "*.uwu")])
+        if self.code_view and self.code_view.code_editors:
+            file_path = filedialog.askopenfilename(filetypes=[("UwU Files", "*.uwu")])
+            file_name = os.path.basename(file_path)
             if file_name:
+                if file_name not in self.code_view.code_editors:
+                    self.code_view.create_new_tab(file_name)
                 with open(file_name, "r") as file:
                     file_content = file.read()
-                    self.code_editor.text.delete('1.0', 'end-1c')
-                    self.code_editor.text.insert('1.0', file_content)
-                self.current_filename = file_name  # Update current_filename
+                    self.code_view.code_editors[file_name].text.delete('1.0', 'end-1c')
+                    self.code_view.code_editors[file_name].text.insert('1.0', file_content)
+                self.code_view.current_filename = file_name

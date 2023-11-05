@@ -55,6 +55,7 @@ class UwUCodePanel(CTkFrame):
               
         self.command_menu = CommandMenu(
             master=self,
+            code_view=self.code_view,
             fg_color='transparent',
             on_compiler_run=on_compiler_run
         )
