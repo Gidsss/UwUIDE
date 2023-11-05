@@ -50,6 +50,10 @@ class CodeEditor(CTkFrame):
       self.text.bind("<Return>", lambda e: self.line_nums.on_redraw(e))
       self.text.bind("<BackSpace>", lambda e: self.line_nums.on_redraw(e))
 
+      self.copy_paste_triggered = False
+      self.text.bind("<Control-c>", self.copy_text)
+      self.text.bind("<Control-v>", self.paste_text)
+
    def on_tab(self, e: Event):
       e.widget.insert(INSERT, " " * 6)
       return  'break'
@@ -61,6 +65,19 @@ class CodeEditor(CTkFrame):
 
       self.tokens = lx.tokens
       self.errors = lx.errors
+
+     # Callback method for copying text
+   def copy_text(self, event):
+      if event.state == 0:  # Only trigger if no other modifiers are pressed
+         self.text.clipboard_clear()
+         selected_text = self.text.get("sel.first", "sel.last")
+         self.text.clipboard_append(selected_text)
+
+    # Callback method for pasting text
+   def paste_text(self, event):
+      if event.state == 0:  # Only trigger if no other modifiers are pressed
+         text_to_paste = self.text.clipboard_get()
+         self.text.insert(INSERT, text_to_paste)
 
 class CodeView(CTkTabview):
    def __init__(self, master, **kwargs):
