@@ -11,7 +11,7 @@ class LexerTable(CTkFrame):
 
         self.grid_columnconfigure(self.columns, weight=1)
         self.grid_rowconfigure(self.rows, weight=1)
-
+        print(self.tokens)
         for i in range(len(self.tokens)):
             self.lexeme = CTkLabel(master=self, text=self.tokens[i].lexeme, fg_color='transparent', text_color='#FFFFFF')
 

@@ -55,12 +55,13 @@ class CodeEditor(CTkFrame):
       return  'break'
 
    def run_lexer(self):
-      source_code = [v + '\n' for v in self.text.get('1.0','end-1c').split('\n')]
+      source_code = [v + '\n' if v == '' else v for v in self.text.get('1.0','end-1c').split('\n')]
       print(source_code)
       lx: Lexer = self.lexer(source_code)
 
       self.tokens = lx.tokens
       self.errors = lx.errors
+      print(lx.errors)
 
 class CodeView(CTkTabview):
    def __init__(self, master, **kwargs):

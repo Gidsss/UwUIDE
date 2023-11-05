@@ -101,7 +101,7 @@ def test(ct: ConsoleTools, filename = None) -> None:
     if filename is not None:
         script += f"{filename}.py"
     
-    ct.run_subprocess(["pytest"], script)
+    ct.run_subprocess(["pytest", "-s"], script)
 
 def run():
     ct = ConsoleTools()
