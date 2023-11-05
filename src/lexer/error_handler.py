@@ -101,7 +101,7 @@ class GenericError:
 
     def __str__(self):
         log = ''
-        log += f"[{self.error_type}] Error on line {self._position[0]}"
+        log += f"[{self.error_type}] Error on line {self._position[0] + 1}"
         if self.end_position:
             log += f" from column {self._position[1]} to {self._end_position[1]}"
         else:
@@ -113,11 +113,12 @@ class GenericError:
 
         # Error preview
         error_range = 1 if self.end_position is None else self.end_position[1] - self.position[1] + 1
-        index_str = str(self.position[0])
-        log += f"\t{'_'*20}\n"
+        index_str = str(self.position[0] + 1)
+        border = f"\t{'_' * (len(ErrorSrc.src[self.position[0]]) + len(index_str) + 3)}\n"
+        log += border
         log += f"\t{index_str} | {ErrorSrc.src[self.position[0]]}\n"
         log += f"\t{' ' * len(index_str)} | {' '*self.position[1]}{'^'*error_range}\n"
-        log += f"\t{'_'*20}\n"
+        log += border
         return log
     
     @property
@@ -155,7 +156,7 @@ class DelimError:
     def __str__(self):
         log = ""
 
-        log += f"[{self.error_type}] Error on line {self.position[0]} column {self.position[1]}:\n"
+        log += f"[{self.error_type}] Error on line {self.position[0] + 1} column {self.position[1]}:\n"
         log += f"\texpected any of these characters: "
 
         for delim in self.expected_delims:
@@ -164,11 +165,12 @@ class DelimError:
         log += f"\n\tafter {self.temp_id} but got {self.actual_delim if self.actual_delim != ' ' else 'WHITESPACE'} instead\n"
 
         # Error preview
-        index_str = str(self.position[0])
-        log += f"\t{'_' * 20}\n"
+        index_str = str(self.position[0] + 1)
+        border = f"\t{'_' * (len(ErrorSrc.src[self.position[0]]) + len(index_str) + 3)}\n"
+        log += border
         log += f"\t{index_str} | {ErrorSrc.src[self.position[0]]}\n"
         log += f"\t{' ' * len(index_str)} | {' ' * self.position[1]}{'^'}\n"
-        log += f"\t{'_' * 20}\n"
+        log += border
 
         return log
 
@@ -184,7 +186,7 @@ class IntFloatWarning:
     def __str__(self):
         log = ''
 
-        log += f"[{self.warn_type}] Warning on line {self._position[0]}"
+        log += f"[{self.warn_type}] Warning on line {self._position[0] + 1}"
 
         if self.end_position:
             log += f" from column {self._position[1]} to {self._end_position[1]}"
@@ -198,11 +200,12 @@ class IntFloatWarning:
 
         # Error preview
         error_range = 1 if self.end_position is None else self.end_position[1] - self.position[1] + 1
-        index_str = str(self.position[0])
-        log += f"\t{'_' * 20}\n"
+        index_str = str(self.position[0] + 1)
+        border = f"\t{'_'*(len(ErrorSrc.src[self.position[0]]) + len(index_str) + 3)}\n"
+        log += border
         log += f"\t{index_str} | {ErrorSrc.src[self.position[0]]}\n"
         log += f"\t{' ' * len(index_str)} | {' ' * self.position[1]}{'^' * error_range}\n"
-        log += f"\t{'_' * 20}\n"
+        log += border
 
         return log
 
@@ -247,7 +250,7 @@ class GenericWarning:
 
     def __str__(self):
         log = ''
-        log += f"[{self.warn_type}] Warning on line {self._position[0]}"
+        log += f"[{self.warn_type}] Warning on line {self._position[0] + 1}"
         if self.end_position:
             log += f" from column {self._position[1]} to {self._end_position[1]}"
         log += ':\n'
@@ -257,11 +260,12 @@ class GenericWarning:
 
         # Error preview
         error_range = 1 if self.end_position is None else self.end_position[1] - self.position[1] + 1
-        index_str = str(self.position[0])
-        log += f"\t{'_' * 20}\n"
+        index_str = str(self.position[0] + 1)
+        border = f"\t{'_' * (len(ErrorSrc.src[self.position[0]]) + len(index_str) + 3)}\n"
+        log += border
         log += f"\t{index_str} | {ErrorSrc.src[self.position[0]]}\n"
         log += f"\t{' ' * len(index_str)} | {' ' * self.position[1]}{'^' * error_range}\n"
-        log += f"\t{'_' * 20}\n"
+        log += border
 
         return log
     
