@@ -1,7 +1,7 @@
 from customtkinter import *
 
 from src.lexer import Token
-from src.components.code_view import Remote, Tags
+from .code_view import Remote, Tags
 
 
 class LexerTable(CTkFrame):
