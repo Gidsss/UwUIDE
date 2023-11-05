@@ -27,12 +27,12 @@ class Error(Enum):
                       'Function names should only start with a lowercase letter')
     FWUNC_INVALID_NAME = ("INVALID FUNCTION NAME",
                          'functions can only have alphanumeric characters')
-    FWUNC_DOT_OPERATOR = ("INVALID USAGE OF '.'",
-                          "functions don't have methods")
     
     # class errors
     CWASS_OPEN_PAREN = ("MISSING PARENTHESIS",
                        "No opening parenthesis was found on class declaration")
+    CWASS_DATA_TYPE = ("HAS DATATYPE",
+                      "classes cannot have return types")
     INVALID_CWASS_DECLARE = ("INVALID CLASS NAME DECLARATION",
                             "class name is missing a parenthesis")
     MISSING_CWASS = ("MISSING CWASS KEYWORD",
@@ -41,6 +41,8 @@ class Error(Enum):
                       'Class names should only start with an uppercase letter')
     CWASS_INVALID_NAME = ("INVALID CLASS NAME",
                          'classes can only have alphanumeric characters')
+    DIRECT_CALL_METHOD_PROP = ("DIRECTLY CALLING METHOD/PROPERTY",
+                         'you cannot call a class method/property by using the class directly. Consider creating an instance first')
 
     # string errors    
     UNCLOSED_STRING = ("UNCLOSED STRING",

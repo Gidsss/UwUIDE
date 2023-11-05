@@ -90,7 +90,7 @@ class TokenType(Enum):
     # OTHER
     IDENTIFIER = ("IDENTIFIER", "id")
     FUNC_NAME = ("FUNCTION NAME", "function")
-    CWASS_NAME = ("CWASS NAME", "function")
+    CWASS_NAME = ("CWASS NAME", "cwass")
     CWASS_TYPE = ("CWASS TYPE", "cwass_type")
     SINGLE_LINE_COMMENT = ("COMMENT", "single_line_comment")
     MULTI_LINE_COMMENT = ("MULTI LINE COMMENT", "line")
