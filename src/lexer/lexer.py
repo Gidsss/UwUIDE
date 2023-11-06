@@ -571,7 +571,6 @@ class Lexer():
 
         can go until end|beginning of file if "EOF|BOF" is passed as multi_line_count
         '''
-        # print(f"________________________{to_seek=}________________________{self._position}")
         if isinstance(to_seek, str):
             to_seek = [to_seek]
             
@@ -599,14 +598,11 @@ class Lexer():
                 else:
                     file_out_of_bounds = self._advance()
                 cursor_advance_reverse_count += 1
-                # input(f"{self._position} : not include current, {'reverse' if before else 'advance'} ({cursor_advance_reverse_count})")
 
             while not found[i]:
                 preempt_start_char_index = len(to_seek[i])-1 if before else 0
-                # input(f"{self._position} : {self._current_char} ? '{to_seek[i][preempt_start_char_index]}'")
                 # intial check if you already got to the beginning or end of file form previous searches
                 if file_out_of_bounds:
-                    # print(f"{self._position} : out of bounds")
                     break
                 
                 # limit number of times reversing can go to newlines with multi_line_count
@@ -617,13 +613,10 @@ class Lexer():
                         self._advance()
                     else:
                         self._reverse()
-                    # print(f"{self._position} : max multi line reached, {'advance' if before else 'reverse'} ({cursor_advance_reverse_count})")
                     break
                 
                 if self._current_char == to_seek[i][preempt_start_char_index]:
-                    # print(f"{self._position} : is equal; '{to_seek[i]}'({len(to_seek[i])})")
                     if len(to_seek[i]) == 1:
-                        # print(f"{self._position} : only one char, break")
                         found[i] = True
                         break
 
@@ -641,7 +634,6 @@ class Lexer():
                         else:
                             file_out_of_bounds = self._advance()
                         cursor_advance_reverse_count += 1
-                        # input(f"{self._position} : {'reverse' if before else 'advance'}, {self._current_char} =?= '{to_seek[i][preempt]}' ({cursor_advance_reverse_count})")
 
                         is_max_multi_line = multi_line > self._position[0] if before else multi_line < self._position[0]
                         # limit number of times reversing can go to newlines with multi_line_count
@@ -651,21 +643,17 @@ class Lexer():
                                 self._advance()
                             else:
                                 self._reverse()
-                            # print(f"{self._position} : out of bounds, {'advance' if before else 'reverse'} ({cursor_advance_reverse_count})")
                             break
 
                         # don't check for last character (not included in to_seek)
                         elif preempt == last_iter and not preempt_success:
-                            # print(f"{self._position} : last iteration, break")
                             preempt_success = False
                             break
                         elif to_seek[i][preempt] != self._current_char:
-                            # print(f"{self._position} : not equal, break")
                             preempt_success = False
                             break
 
                     if preempt_success:
-                        # print(f"{self._position} : found")
                         found[i] = True
                         break
 
@@ -680,7 +668,6 @@ class Lexer():
                             file_out_of_bounds = self._reverse()
                         else:
                             file_out_of_bounds = self._advance()
-                        # input(f"{self._position} : {'reverse' if before else 'advance'}, {self._current_char} =?= {to_seek[i][preempt_start_char_index]} ({cursor_advance_reverse_count})")
                         if file_out_of_bounds:
                             break
 
@@ -691,14 +678,11 @@ class Lexer():
                                 self._advance()
                             else:
                                 self._reverse()
-                            # print(f"{self._position} : max multi line reached, {'advance' if before else 'reverse'} ({cursor_advance_reverse_count})")
                             break
                     else:
-                        # print(f"{self._position} : ignoring space, break")
                         break
     
                 elif alphanum_only and self._current_char not in ATOMS['alphanum']:
-                    # print(f"{self._position} : alpha num only, break")
                     break
     
                 else:
@@ -707,7 +691,6 @@ class Lexer():
                     else:
                         file_out_of_bounds = self._advance()
                     cursor_advance_reverse_count += 1
-                    # input(f"{self._position} : {'reverse' if before else 'advance'} ({cursor_advance_reverse_count})")
                     # check again after reversing
                     if file_out_of_bounds:
                         break
@@ -718,14 +701,11 @@ class Lexer():
                             self._advance()
                         else:
                             self._reverse()
-                        # print(f"{self._position} : max multi line reached, {'advance' if before else 'reverse'} ({cursor_advance_reverse_count})")
                         break
-        # print(f"{self._position} : back to original position --{cursor_advance_reverse_count}",end='')
         if before:
             self._advance(cursor_advance_reverse_count)
         else:
             self._reverse(cursor_advance_reverse_count)
-        # input(f"--> {self._position}")
         return all(found)
 
 
@@ -790,9 +770,6 @@ class Lexer():
         cursor_advanced = False
         is_end_of_file = False
         current_line = self._position[0]
-
-        # !TODO! add error for when temp_id does not start with letter
-        
         if fwunc_exists:
             expected_delim = set()
             if dash_datatype_exist:
@@ -809,16 +786,22 @@ class Lexer():
                     corrected_value = None
 
                     # only valid class declaration
-                    # input(f"{self._position} : {parentheses_exist} and {dash_datatype_exist} and {temp_id.isalnum()} and {temp_id[0].islower()}")
-                    if parentheses_exist and dash_datatype_exist and temp_id.isalnum() and temp_id[0].islower():
-                        self._tokens.append(Token(temp_id, TokenType.FUNC_NAME, starting_position, ending_position))
+                    if parentheses_exist and dash_datatype_exist and temp_id.isalnum():
+                        if temp_id[0].isalpha() and temp_id[0].islower():
+                            self._tokens.append(Token(temp_id, TokenType.FUNC_NAME, starting_position, ending_position))
+                        elif not temp_id[0].isalpha():
+                            self._errors.append(GenericError(Error.FWUNC_INVALID_START, starting_position, ending_position,
+                                                             f"'{temp_id}' is invalid"))
                     
                     # errors
                     else:
+                        if not temp_id[0].isalpha():
+                            self._errors.append(GenericError(Error.FWUNC_INVALID_START, starting_position, ending_position,
+                                                             f"'{temp_id}' is invalid"))
                         # is a class name
-                        if temp_id[0].isupper():
+                        elif temp_id[0].isupper():
                             corrected_value = temp_id[0].lower() + temp_id[1:]
-                            self._errors.append(GenericError(Error.FWUNC_UPPERCASE, starting_position, ending_position, 
+                            self._errors.append(GenericError(Error.FWUNC_INVALID_START, starting_position, ending_position, 
                                                             context=f"instead of '{temp_id}', did you mean to type '{corrected_value}'?"))
                         if not temp_id.isalnum():
                             self._errors.append(GenericError(Error.FWUNC_INVALID_NAME, starting_position, ending_position,
@@ -830,7 +813,6 @@ class Lexer():
                             # recheck if there is a parenthesis after a dash since dash_datatype_exist
                             # checks if there is a dash WITH correct data type before checking for parenthesis
                             open_paren_exists = self._seek(['-', '('], ignore_space=True, alphanum_only=True)
-                            # input(f"{self._position} : {dash_datatype_exist}, {open_paren_exists}")
                             if dash_datatype_exist and open_paren_exists:
                                 # wrong data type after dash
                                 corrected_value = corrected_value
@@ -895,15 +877,22 @@ class Lexer():
                     corrected_value = None
 
                     # only valid class declaration
-                    if parentheses_exist and not dash_datatype_exist and temp_id.isalnum() and temp_id[0].isupper():
-                        self._tokens.append(Token(temp_id, TokenType.CWASS_NAME, starting_position, ending_position))
+                    if parentheses_exist and not dash_datatype_exist and temp_id.isalnum():
+                        if temp_id[0].isupper():
+                            self._tokens.append(Token(temp_id, TokenType.CWASS_NAME, starting_position, ending_position))
+                        elif not temp_id[0].isalpha():
+                            self._errors.append(GenericError(Error.CWASS_INVALID_START, starting_position, ending_position,
+                                                             f"'{temp_id}' is invalid"))
                     
                     # errors
                     else:
+                        if not temp_id[0].isalpha():
+                            self._errors.append(GenericError(Error.CWASS_INVALID_START, starting_position, ending_position,
+                                                             f"'{temp_id}' is invalid"))
                         # is a class name
-                        if temp_id[0].islower():
+                        elif temp_id[0].islower():
                             corrected_value = temp_id[0].upper() + temp_id[1:]
-                            self._errors.append(GenericError(Error.CWASS_LOWERCASE, starting_position, ending_position, 
+                            self._errors.append(GenericError(Error.CWASS_INVALID_START, starting_position, ending_position, 
                                                             context=f"instead of '{temp_id}', did you mean to type '{corrected_value}'?"))
                         if not temp_id.isalnum():
                             self._errors.append(GenericError(Error.CWASS_INVALID_NAME, starting_position, ending_position,
@@ -956,7 +945,6 @@ class Lexer():
             cursor_advanced = True
         
         elif dash_datatype_exist or parentheses_exist:
-            # !TODO! add cursor_advanced = True somewhere
             expected_delim = set()
             if dash_datatype_exist:
                 expected_delim.add('-')
@@ -972,8 +960,11 @@ class Lexer():
                     corrected_value = None
 
                     if parentheses_exist and not dash_datatype_exist and temp_id.isalnum():
+                        if not temp_id[0].isalpha():
+                            self._errors.append(GenericError(Error.FWUNC_INVALID_START, starting_position, ending_position,
+                                                             f"'{temp_id}' is invalid"))
                         # valid func call
-                        if temp_id[0].islower():
+                        elif temp_id[0].islower():
                             self._tokens.append(Token(temp_id, TokenType.FUNC_NAME, starting_position, ending_position))
 
                         # valid class call for creating instance
@@ -985,7 +976,10 @@ class Lexer():
                                 self._errors.append(GenericError(Error.CWASS_MISSING_ASSIGNMENT, starting_position, ending_position,
                                                                 context=context))
                     else:
-                        if not temp_id.isalnum():
+                        if not temp_id[0].isalpha():
+                            self._errors.append(GenericError(Error.FWUNC_INVALID_START, starting_position, ending_position,
+                                                             f"'{temp_id}' is invalid"))
+                        elif not temp_id.isalnum():
                             error_type = Error.CWASS_INVALID_NAME if temp_id[0].isupper() else Error.FWUNC_INVALID_NAME
                             self._errors.append(GenericError(error_type, starting_position, ending_position,
                                                             context=f"'{temp_id}' is invalid"))
@@ -1110,10 +1104,13 @@ class Lexer():
                 self._reverse()
                 starting_position = (self._position[0], self._position[1]-len(temp_id)+1)
                 ending_position = (self._position[0], self._position[1])
-                
+
                 # must start with lowercase letter
+                if not temp_id[0].isalpha():
+                    self._errors.append(GenericError(Error.IDEN_INVALID_START, starting_position, ending_position,
+                                                    f"'{temp_id}' is invalid"))
                 # if not any(temp_id.startswith(alpha) for alpha in ATOMS['alpha_small']): <-- !OLD!
-                if temp_id[0].isupper():
+                elif temp_id[0].isupper():
                     self._errors.append(GenericError(Error.IDEN_INVALID_START, starting_position, ending_position,
                                                     f"instead of '{temp_id}', did you mean to type {temp_id.lower()}"))
                 # check if all characters are either alpha or numbers
@@ -1295,6 +1292,7 @@ class Lexer():
 
             # treat as invalid identifier if followed by non-number
             if self._current_char in ATOMS['alpha']:
+                self._reverse()
                 cursor_advanced, _ = self._is_func_or_cwass_name(temp_num)
                 if cursor_advanced:
                     break

@@ -25,7 +25,7 @@ class Error(Enum):
                             "Function name is missing a data type/parenthesis")
     MISSING_FWUNC = ("MISSING FWUNC KEYWORD",
                      "Function declarations need to have a 'fwunc' before to indicate it is a function")
-    FWUNC_UPPERCASE = ("INVALID FUNCTION NAME",
+    FWUNC_INVALID_START = ("INVALID FUNCTION NAME",
                       'Function names should only start with a lowercase letter')
     FWUNC_INVALID_NAME = ("INVALID FUNCTION NAME",
                          'functions can only have alphanumeric characters')
@@ -39,7 +39,7 @@ class Error(Enum):
                             "class name is missing a parenthesis")
     MISSING_CWASS = ("MISSING CWASS KEYWORD",
                      "Class declarations need to have a 'cwass' before to indicate it is a class")
-    CWASS_LOWERCASE = ("INVALID CLASS NAME",
+    CWASS_INVALID_START = ("INVALID CLASS NAME",
                       'Class names should only start with an uppercase letter')
     CWASS_INVALID_NAME = ("INVALID CLASS NAME",
                          'classes can only have alphanumeric characters')
