@@ -793,24 +793,24 @@ class Lexer():
                             self._tokens.append(Token(temp_id, TokenType.FUNC_NAME, starting_position, ending_position))
                         elif temp_id[0].isalpha() and temp_id[0].isupper():
                             corrected_value = temp_id[0].lower() + temp_id[1:]
-                            self._errors.append(GenericError(Error.FWUNC_INVALID_START, starting_position, ending_position, 
+                            self._logs.append(GenericError(Error.FWUNC_INVALID_START, starting_position, ending_position, 
                                                             context=f"instead of '{temp_id}', did you mean to type '{corrected_value}'?"))
                         elif not temp_id[0].isalpha():
-                            self._errors.append(GenericError(Error.FWUNC_INVALID_START, starting_position, ending_position,
+                            self._logs.append(GenericError(Error.FWUNC_INVALID_START, starting_position, ending_position,
                                                              f"'{temp_id}' is invalid"))
                     
                     # errors
                     else:
                         if not temp_id[0].isalpha():
-                            self._errors.append(GenericError(Error.FWUNC_INVALID_START, starting_position, ending_position,
+                            self._logs.append(GenericError(Error.FWUNC_INVALID_START, starting_position, ending_position,
                                                              f"'{temp_id}' is invalid"))
                         # is a class name
                         elif temp_id[0].isupper():
                             corrected_value = temp_id[0].lower() + temp_id[1:]
-                            self._errors.append(GenericError(Error.FWUNC_INVALID_START, starting_position, ending_position, 
+                            self._logs.append(GenericError(Error.FWUNC_INVALID_START, starting_position, ending_position, 
                                                             context=f"instead of '{temp_id}', did you mean to type '{corrected_value}'?"))
                         if not temp_id.isalnum():
-                            self._errors.append(GenericError(Error.FWUNC_INVALID_NAME, starting_position, ending_position,
+                            self._logs.append(GenericError(Error.FWUNC_INVALID_NAME, starting_position, ending_position,
                                                             context=f"'{temp_id}' is invalid"))
                             
                         # incomplete func declaration
@@ -833,7 +833,7 @@ class Lexer():
                                             self._reverse()
                                             temp_id = temp_id[:-1]
                                         line, col = self._position
-                                        self._errors.append(DelimError(TokenType.DATA_TYPE, (line, col + 1), temp_id, '\n'))
+                                        self._logs.append(DelimError(TokenType.DATA_TYPE, (line, col + 1), temp_id, '\n'))
                                         break
                                     
                                     temp_id += self._current_char
@@ -845,16 +845,16 @@ class Lexer():
 
                                         starting_position = tuple([self._position[0], self._position[1]-len(invalid_data_type)+1])
                                         ending_position = tuple([self._position[0], self._position[1]])
-                                        self._errors.append(GenericError(Error.FWUNC_INVALID_DATA_TYPE, starting_position, ending_position,
+                                        self._logs.append(GenericError(Error.FWUNC_INVALID_DATA_TYPE, starting_position, ending_position,
                                                 context=f"'{invalid_data_type}' is not a valid data type.\n\tvalid data types: 'chan', 'kun', 'sama', 'senpai', 'san'"))
                                         break
                                         
                             else:
-                                self._errors.append(GenericError(Error.FWUNC_OPEN_PAREN, starting_position, ending_position,
+                                self._logs.append(GenericError(Error.FWUNC_OPEN_PAREN, starting_position, ending_position,
                                                                  context=f"'{corrected_value if corrected_value else temp_id}' has no opening parenthesis following it"))
                         # no data type
                         if not dash_datatype_exist:
-                            self._errors.append(GenericError(Error.FWUNC_DATA_TYPE, starting_position, ending_position,
+                            self._logs.append(GenericError(Error.FWUNC_DATA_TYPE, starting_position, ending_position,
                                                             context=f"'{corrected_value if corrected_value else temp_id}' has no datatype"))
                     break
                 
@@ -867,7 +867,7 @@ class Lexer():
                         self._reverse()
                         temp_id = temp_id[:-1]
                     line, col = self._position
-                    self._errors.append(DelimError(TokenType.FUNC_NAME, (line, col + 1), temp_id, '\n'))
+                    self._logs.append(DelimError(TokenType.FUNC_NAME, (line, col + 1), temp_id, '\n'))
                     break
             cursor_advanced = True
 
@@ -891,21 +891,21 @@ class Lexer():
                         if temp_id[0].isupper():
                             self._tokens.append(Token(temp_id, TokenType.CWASS_NAME, starting_position, ending_position))
                         elif not temp_id[0].isalpha():
-                            self._errors.append(GenericError(Error.CWASS_INVALID_START, starting_position, ending_position,
+                            self._logs.append(GenericError(Error.CWASS_INVALID_START, starting_position, ending_position,
                                                              f"'{temp_id}' is invalid"))
                     
                     # errors
                     else:
                         if not temp_id[0].isalpha():
-                            self._errors.append(GenericError(Error.CWASS_INVALID_START, starting_position, ending_position,
+                            self._logs.append(GenericError(Error.CWASS_INVALID_START, starting_position, ending_position,
                                                              f"'{temp_id}' is invalid"))
                         # is a class name
                         elif temp_id[0].islower():
                             corrected_value = temp_id[0].upper() + temp_id[1:]
-                            self._errors.append(GenericError(Error.CWASS_INVALID_START, starting_position, ending_position, 
+                            self._logs.append(GenericError(Error.CWASS_INVALID_START, starting_position, ending_position, 
                                                             context=f"instead of '{temp_id}', did you mean to type '{corrected_value}'?"))
                         if not temp_id.isalnum():
-                            self._errors.append(GenericError(Error.CWASS_INVALID_NAME, starting_position, ending_position,
+                            self._logs.append(GenericError(Error.CWASS_INVALID_NAME, starting_position, ending_position,
                                                             context=f"'{temp_id}' is invalid"))
 
                         # invalid class declaration
@@ -922,7 +922,7 @@ class Lexer():
                                         self._reverse()
                                         temp_id = temp_id[:-1]
                                     line, col = self._position
-                                    self._errors.append(DelimError(TokenType.CWASS_NAME, (line, col + 1), temp_id, '\n'))
+                                    self._logs.append(DelimError(TokenType.CWASS_NAME, (line, col + 1), temp_id, '\n'))
                                     break
                                 
                                 temp_id += self._current_char
@@ -933,13 +933,13 @@ class Lexer():
                                     corrected_value = temp_id[:original_length]
                                     starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                                     ending_position = tuple([self._position[0], self._position[1]])
-                                    self._errors.append(GenericError(Error.CWASS_DATA_TYPE, starting_position, ending_position,
+                                    self._logs.append(GenericError(Error.CWASS_DATA_TYPE, starting_position, ending_position,
                                             context=f"Consider replacing '{temp_id}' with '{corrected_value}'"))
                                     break
 
                         # no parenthesis
                         if not parentheses_exist:
-                            self._errors.append(GenericError(Error.CWASS_OPEN_PAREN, starting_position, ending_position,
+                            self._logs.append(GenericError(Error.CWASS_OPEN_PAREN, starting_position, ending_position,
                                                              context=f"'{corrected_value if corrected_value else temp_id}' has no opening parenthesis following it"))
                     break
                 
@@ -953,7 +953,7 @@ class Lexer():
 
                         temp_id = temp_id[:-1]
                     line, col = self._position
-                    self._errors.append(DelimError(TokenType.CWASS_NAME, (line, col + 1), temp_id, '\n'))
+                    self._logs.append(DelimError(TokenType.CWASS_NAME, (line, col + 1), temp_id, '\n'))
                     break
             cursor_advanced = True
         
@@ -976,7 +976,7 @@ class Lexer():
 
                     if parentheses_exist and not dash_datatype_exist and temp_id.isalnum():
                         if not temp_id[0].isalpha():
-                            self._errors.append(GenericError(Error.FWUNC_INVALID_START, starting_position, ending_position,
+                            self._logs.append(GenericError(Error.FWUNC_INVALID_START, starting_position, ending_position,
                                                              f"'{temp_id}' is invalid"))
                         # valid func call
                         elif temp_id[0].islower():
@@ -988,20 +988,20 @@ class Lexer():
                                 self._tokens.append(Token(temp_id, TokenType.CWASS_NAME, starting_position, ending_position))
                             else:
                                 context = f"try this: var-{temp_id} = {temp_id}()~\n\t              "+" "*len(temp_id)+" ^"
-                                self._errors.append(GenericError(Error.CWASS_MISSING_ASSIGNMENT, starting_position, ending_position,
+                                self._logs.append(GenericError(Error.CWASS_MISSING_ASSIGNMENT, starting_position, ending_position,
                                                                 context=context))
                     else:
                         if not temp_id[0].isalpha():
-                            self._errors.append(GenericError(Error.FWUNC_INVALID_START, starting_position, ending_position,
+                            self._logs.append(GenericError(Error.FWUNC_INVALID_START, starting_position, ending_position,
                                                              f"'{temp_id}' is invalid"))
                         elif not temp_id.isalnum():
                             error_type = Error.CWASS_INVALID_NAME if temp_id[0].isupper() else Error.FWUNC_INVALID_NAME
-                            self._errors.append(GenericError(error_type, starting_position, ending_position,
+                            self._logs.append(GenericError(error_type, starting_position, ending_position,
                                                             context=f"'{temp_id}' is invalid"))
                         # if function name
                         if temp_id[0].islower() and dash_datatype_exist and parentheses_exist:
                             # missing fwunc keyword
-                            self._errors.append(GenericError(Error.MISSING_FWUNC, starting_position, ending_position,
+                            self._logs.append(GenericError(Error.MISSING_FWUNC, starting_position, ending_position,
                                                             context=f"'{temp_id}' is missing a 'fwunc' identifier before it"))
 
                         if temp_id[0].isupper() and dash_datatype_exist:
@@ -1017,7 +1017,7 @@ class Lexer():
                                         self._reverse()
                                         temp_id = temp_id[:-1]
                                     line, col = self._position
-                                    self._errors.append(DelimError(TokenType.CWASS_NAME, (line, col + 1), temp_id, '\n'))
+                                    self._logs.append(DelimError(TokenType.CWASS_NAME, (line, col + 1), temp_id, '\n'))
                                     break
                                 
                                 temp_id += self._current_char
@@ -1028,16 +1028,16 @@ class Lexer():
                                     corrected_value = temp_id[:original_length]
                                     starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
                                     ending_position = tuple([self._position[0], self._position[1]])
-                                    self._errors.append(GenericError(Error.CWASS_DATA_TYPE, starting_position, ending_position,
+                                    self._logs.append(GenericError(Error.CWASS_DATA_TYPE, starting_position, ending_position,
                                             context=f"Consider replacing '{temp_id}' with '{corrected_value}'"))
                                     break
 
                             # missing cwass keyword
-                            self._errors.append(GenericError(Error.MISSING_CWASS, starting_position, ending_position,
+                            self._logs.append(GenericError(Error.MISSING_CWASS, starting_position, ending_position,
                                                              context=f"'{corrected_value if corrected_value else temp_id}' is missing a 'cwass' identifier before it"))
                         # no parenthesis
                         if not parentheses_exist and temp_id[0].isupper():
-                            self._errors.append(GenericError(Error.CWASS_OPEN_PAREN, starting_position, ending_position,
+                            self._logs.append(GenericError(Error.CWASS_OPEN_PAREN, starting_position, ending_position,
                                                              context=f"'{corrected_value if corrected_value else temp_id}' has no opening parenthesis following it"))
                             
                         # maybe an identifier
@@ -1055,7 +1055,7 @@ class Lexer():
                         temp_id = temp_id[:-1]
                     line, col = self._position
                     token_type = TokenType.CWASS_NAME if temp_id[0].islower() else TokenType.FUNC_NAME
-                    self._errors.append(DelimError(token_type, (line, col + 1), temp_id, '\n'))
+                    self._logs.append(DelimError(token_type, (line, col + 1), temp_id, '\n'))
                     break
 
             cursor_advanced = True if not probably_identifier else False
@@ -1085,7 +1085,7 @@ class Lexer():
                             ending_position = tuple([self._position[0], self._position[1]])
 
                             temp_id, cwass_property = temp_id[:temp_id.index('.')], temp_id[temp_id.index('.'):]
-                            self._errors.append(GenericError(Error.DIRECT_CALL_METHOD_PROP, starting_position, ending_position,
+                            self._logs.append(GenericError(Error.DIRECT_CALL_METHOD_PROP, starting_position, ending_position,
                                                 context=f"'{temp_id}' cannot call '{cwass_property}' property"))
                             break_outside_loop = True
                             break
@@ -1100,7 +1100,7 @@ class Lexer():
                             ending_position = tuple([self._position[0], self._position[1]])
 
                             temp_id, cwass_method = temp_id[:temp_id.index('.')], temp_id[temp_id.index('.'):]
-                            self._errors.append(GenericError(Error.DIRECT_CALL_METHOD_PROP, starting_position, ending_position,
+                            self._logs.append(GenericError(Error.DIRECT_CALL_METHOD_PROP, starting_position, ending_position,
                                                 context=f"'{temp_id}' cannot call '{cwass_method}' method"))
                             break_outside_loop = True
                             break
@@ -1126,7 +1126,7 @@ class Lexer():
                                 self._reverse(len(temp_id)-1)
                                 return False, False
                         else:
-                            self._errors.append(GenericError(Error.CWASS_INVALID_NAME, starting_position, ending_position,
+                            self._logs.append(GenericError(Error.CWASS_INVALID_NAME, starting_position, ending_position,
                                                             context=f"'{temp_id}' is invalid"))
 
                     break
@@ -1141,7 +1141,7 @@ class Lexer():
 
                     line, col = self._position
                     token_type = TokenType.CWASS_NAME if temp_id[0].islower() else TokenType.FUNC_NAME
-                    self._errors.append(DelimError(token_type, (line, col + 1), temp_id, '\n'))
+                    self._logs.append(DelimError(token_type, (line, col + 1), temp_id, '\n'))
 
                     break
             cursor_advanced = True
@@ -1172,12 +1172,12 @@ class Lexer():
 
                 # must start with lowercase letter
                 if not temp_id[0].isalpha():
-                    self._errors.append(GenericError(Error.IDEN_INVALID_START, starting_position, ending_position,
+                    self._logs.append(GenericError(Error.IDEN_INVALID_START, starting_position, ending_position,
 
                                                     f"'{temp_id}' is invalid"))
                 # if not any(temp_id.startswith(alpha) for alpha in ATOMS['alpha_small']): <-- !OLD!
                 elif temp_id[0].isupper():
-                    self._errors.append(GenericError(Error.IDEN_INVALID_START, starting_position, ending_position,
+                    self._logs.append(GenericError(Error.IDEN_INVALID_START, starting_position, ending_position,
                                                     f"instead of '{temp_id}', did you mean to type {temp_id.lower()}"))
                 # check if all characters are either alpha or numbers
                 elif not temp_id.isalnum():
