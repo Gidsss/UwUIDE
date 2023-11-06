@@ -1,11 +1,13 @@
 from customtkinter import *
 from constants.path import *
-from PIL import Image, ImageTk
 
 from tkinter import filedialog
+from PIL import Image, ImageTk
+
+from .code_view import CodeView, CodeEditor
 
 class CommandMenu(CTkFrame):
-    def __init__(self, master, code_view, on_compiler_run, **kwargs):
+    def __init__(self, master, code_view: CodeView, on_compiler_run, **kwargs):
         super().__init__(master, **kwargs)
         self.code_view = code_view
         self.columns = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
@@ -40,20 +42,15 @@ class CommandMenu(CTkFrame):
         self.loadButton.grid(row=0, column=15, sticky='', columnspan=1)
         self.loadButton.configure(command=self.load_file)  # Set the command to trigger file loading
 
-        # Create a reference to the code_editor
-        self.code_editor = None
-
-    def set_code_editor(self, code_editor):
-            self.code_editor = code_editor
-
     def save_file(self):
-        if self.code_editor:
-            file_content = self.code_editor.text.get('1.0', 'end-1c')
-            file_name = filedialog.asksaveasfilename(defaultextension=".uwu", filetypes=[("UwU Files", "*.uwu")])
+        code_editor: CodeEditor = self.code_view.editor
+
+        if code_editor:
+            file_content = code_editor.text.get('1.0', 'end-1c')
+            file_name = filedialog.asksaveasfilename(initialfile=self.code_view.get(),defaultextension=".uwu", filetypes=[("UwU Files", "*.uwu")])
             if file_name:
                 with open(file_name, "w") as file:
                     file.write(file_content)
-
     
     def load_file(self):
         if self.code_view and self.code_view.code_editors:
