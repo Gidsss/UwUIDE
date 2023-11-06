@@ -75,7 +75,7 @@ class UwUCodePanel(CTkFrame):
 
     @property
     def editor(self):
-        return self.code_view.editor()
+        return self.code_view.editor
 
 class UwuAnalyzerPanel(CTkTabview):
     def __init__(self, master, **kwargs):

@@ -178,14 +178,13 @@ class CodeView(CTkTabview):
 
         self.code_editors[file_name] = code_editor
 
+    @property
     def editor(self) -> CodeEditor:
-        tab_index = self.get()  # Get the currently selected tab index
-        if tab_index < len(self.file_names):
-            tab_name = self.file_names[tab_index]
-            code_editor: CodeEditor = self.code_editors[tab_name]
-            return code_editor
-        else:
-            print('Handle the case when the tab index is out of bounds')
+        try:
+            tab = self.get()
+            return self.code_editors[tab]
+        except:
+            raise KeyError('Code tab does not exist.')
 
 class Remote:
     """
