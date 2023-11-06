@@ -581,9 +581,9 @@ class Lexer():
             multi_line = line + multi_line_count
 
         if multi_line_count == "EOF":
-            multi_line = len(self._lines) - self._position[0]
+            multi_line = len(self._lines) - 1
         elif multi_line_count == "BOF":
-            multi_line = self._position[0]
+            multi_line = 0
 
         space_count = 0
 
@@ -638,6 +638,7 @@ class Lexer():
                         is_max_multi_line = multi_line > self._position[0] if before else multi_line < self._position[0]
                         # limit number of times reversing can go to newlines with multi_line_count
                         if is_max_multi_line or file_out_of_bounds:
+                            preempt_success = False
                             cursor_advance_reverse_count -= 1
                             if before:
                                 self._advance()
@@ -697,6 +698,7 @@ class Lexer():
                     
                     is_max_multi_line = multi_line > self._position[0] if before else multi_line < self._position[0]
                     if is_max_multi_line:
+                        cursor_advance_reverse_count -= 1
                         if before:
                             self._advance()
                         else:
@@ -770,6 +772,7 @@ class Lexer():
         cursor_advanced = False
         is_end_of_file = False
         current_line = self._position[0]
+
         if fwunc_exists:
             expected_delim = set()
             if dash_datatype_exist:
@@ -789,6 +792,10 @@ class Lexer():
                     if parentheses_exist and dash_datatype_exist and temp_id.isalnum():
                         if temp_id[0].isalpha() and temp_id[0].islower():
                             self._tokens.append(Token(temp_id, TokenType.FUNC_NAME, starting_position, ending_position))
+                        elif temp_id[0].isalpha() and temp_id[0].isupper():
+                            corrected_value = temp_id[0].lower() + temp_id[1:]
+                            self._errors.append(GenericError(Error.FWUNC_INVALID_START, starting_position, ending_position, 
+                                                            context=f"instead of '{temp_id}', did you mean to type '{corrected_value}'?"))
                         elif not temp_id[0].isalpha():
                             self._errors.append(GenericError(Error.FWUNC_INVALID_START, starting_position, ending_position,
                                                              f"'{temp_id}' is invalid"))
@@ -813,7 +820,7 @@ class Lexer():
                             # recheck if there is a parenthesis after a dash since dash_datatype_exist
                             # checks if there is a dash WITH correct data type before checking for parenthesis
                             open_paren_exists = self._seek(['-', '('], ignore_space=True, alphanum_only=True)
-                            if dash_datatype_exist and open_paren_exists:
+                            if dash_datatype_exist or open_paren_exists:
                                 # wrong data type after dash
                                 corrected_value = corrected_value
                                 original_length = len(temp_id)
@@ -824,16 +831,18 @@ class Lexer():
                                     if is_end_of_file or in_next_line:
                                         if in_next_line:
                                             self._reverse()
+                                            temp_id = temp_id[:-1]
                                         line, col = self._position
                                         self._errors.append(DelimError(TokenType.DATA_TYPE, (line, col + 1), temp_id, '\n'))
                                         break
                                     
                                     temp_id += self._current_char
 
-                                    if self._current_char == '(':
+                                    if self._current_char == '~' or self._current_char in DELIMS['cwass_type']:
                                         self._reverse()
                                         temp_id = temp_id[:-1]
                                         invalid_data_type = temp_id[original_length+1:]
+
                                         starting_position = tuple([self._position[0], self._position[1]-len(invalid_data_type)+1])
                                         ending_position = tuple([self._position[0], self._position[1]])
                                         self._errors.append(GenericError(Error.FWUNC_INVALID_DATA_TYPE, starting_position, ending_position,
@@ -856,6 +865,7 @@ class Lexer():
                 if is_end_of_file or in_next_line:
                     if in_next_line:
                         self._reverse()
+                        temp_id = temp_id[:-1]
                     line, col = self._position
                     self._errors.append(DelimError(TokenType.FUNC_NAME, (line, col + 1), temp_id, '\n'))
                     break
@@ -910,13 +920,14 @@ class Lexer():
                                 if is_end_of_file or in_next_line:
                                     if in_next_line:
                                         self._reverse()
+                                        temp_id = temp_id[:-1]
                                     line, col = self._position
                                     self._errors.append(DelimError(TokenType.CWASS_NAME, (line, col + 1), temp_id, '\n'))
                                     break
                                 
                                 temp_id += self._current_char
 
-                                if self._current_char in DELIMS['cwass_type']:
+                                if self._current_char == '~' or self._current_char in DELIMS['cwass_type']:
                                     self._reverse()
                                     temp_id = temp_id[:-1]
                                     corrected_value = temp_id[:original_length]
@@ -939,12 +950,15 @@ class Lexer():
                 if is_end_of_file or in_next_line:
                     if in_next_line:
                         self._reverse()
+                        temp_id = temp_id[:-1]
                     line, col = self._position
                     self._errors.append(DelimError(TokenType.CWASS_NAME, (line, col + 1), temp_id, '\n'))
                     break
             cursor_advanced = True
         
         elif dash_datatype_exist or parentheses_exist:
+            probably_identifier = False
+
             expected_delim = set()
             if dash_datatype_exist:
                 expected_delim.add('-')
@@ -972,7 +986,7 @@ class Lexer():
                             if assignment_before:
                                 self._tokens.append(Token(temp_id, TokenType.CWASS_NAME, starting_position, ending_position))
                             else:
-                                context = f"try this: var-{temp_id} = {temp_id}()\n\t              "+" "*len(temp_id)+" ^"
+                                context = f"try this: var-{temp_id} = {temp_id}()~\n\t              "+" "*len(temp_id)+" ^"
                                 self._errors.append(GenericError(Error.CWASS_MISSING_ASSIGNMENT, starting_position, ending_position,
                                                                 context=context))
                     else:
@@ -984,7 +998,7 @@ class Lexer():
                             self._errors.append(GenericError(error_type, starting_position, ending_position,
                                                             context=f"'{temp_id}' is invalid"))
                         # if function name
-                        if temp_id[0].islower() and dash_datatype_exist:
+                        if temp_id[0].islower() and dash_datatype_exist and parentheses_exist:
                             # missing fwunc keyword
                             self._errors.append(GenericError(Error.MISSING_FWUNC, starting_position, ending_position,
                                                             context=f"'{temp_id}' is missing a 'fwunc' identifier before it"))
@@ -1000,6 +1014,7 @@ class Lexer():
                                 if is_end_of_file or in_next_line:
                                     if in_next_line:
                                         self._reverse()
+                                        temp_id = temp_id[:-1]
                                     line, col = self._position
                                     self._errors.append(DelimError(TokenType.CWASS_NAME, (line, col + 1), temp_id, '\n'))
                                     break
@@ -1020,10 +1035,14 @@ class Lexer():
                             self._errors.append(GenericError(Error.MISSING_CWASS, starting_position, ending_position,
                                                              context=f"'{corrected_value if corrected_value else temp_id}' is missing a 'cwass' identifier before it"))
                         # no parenthesis
-                        if not parentheses_exist:
-                            error_type = Error.CWASS_OPEN_PAREN if temp_id[0].isupper() else Error.CWASS_OPEN_PAREN
-                            self._errors.append(GenericError(error_type, starting_position, ending_position,
+                        if not parentheses_exist and temp_id[0].isupper():
+                            self._errors.append(GenericError(Error.CWASS_OPEN_PAREN, starting_position, ending_position,
                                                              context=f"'{corrected_value if corrected_value else temp_id}' has no opening parenthesis following it"))
+                            
+                        # maybe an identifier
+                        elif not parentheses_exist and temp_id[0].islower() and dash_datatype_exist:
+                            self._reverse(len(temp_id)-1)
+                            probably_identifier = True
                     break
                 
                 temp_id += self._current_char
@@ -1033,11 +1052,13 @@ class Lexer():
                 if is_end_of_file or in_next_line:
                     if in_next_line:
                         self._reverse()
+                        temp_id = temp_id[:-1]
                     line, col = self._position
                     token_type = TokenType.CWASS_NAME if temp_id[0].islower() else TokenType.FUNC_NAME
                     self._errors.append(DelimError(token_type, (line, col + 1), temp_id, '\n'))
                     break
-            cursor_advanced = True
+
+            cursor_advanced = True if not probably_identifier else False
 
         # no fwunc, cwass, dash+datatype, or opening parenthesis
         # is either a class type, or an identifier (skip if latter)
@@ -1046,7 +1067,46 @@ class Lexer():
             if self._current_char.islower():
                 return False, False
             
+            break_outside_loop = False
+
             while True:
+                # can't call methods or properties directly from class
+                if self._current_char == '.':
+                    temp_id += self._current_char
+                    while True:
+                        is_end_of_file = self._advance()
+                        in_next_line = self._position[0] != current_line
+
+                        # is property
+                        if is_end_of_file or in_next_line or self._current_char in DELIMS['id']:
+                            self._reverse()
+                            starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
+                            ending_position = tuple([self._position[0], self._position[1]])
+
+                            temp_id, cwass_property = temp_id[:temp_id.index('.')], temp_id[temp_id.index('.'):]
+                            self._errors.append(GenericError(Error.DIRECT_CALL_METHOD_PROP, starting_position, ending_position,
+                                                context=f"'{temp_id}' cannot call '{cwass_property}' property"))
+                            break_outside_loop = True
+                            break
+
+                        temp_id += self._current_char
+
+                        # is method
+                        if self._current_char == '(':
+                            self._advance()
+                            temp_id += self._current_char
+                            starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
+                            ending_position = tuple([self._position[0], self._position[1]])
+
+                            temp_id, cwass_method = temp_id[:temp_id.index('.')], temp_id[temp_id.index('.'):]
+                            self._errors.append(GenericError(Error.DIRECT_CALL_METHOD_PROP, starting_position, ending_position,
+                                                context=f"'{temp_id}' cannot call '{cwass_method}' method"))
+                            break_outside_loop = True
+                            break
+
+                    if break_outside_loop:
+                        break
+
                 if self._current_char in DELIMS['cwass_type']:
                     self._reverse()
                     starting_position = tuple([self._position[0], self._position[1]-len(temp_id)+1])
@@ -1054,7 +1114,7 @@ class Lexer():
                     corrected_value = None
 
                     # valid class as data type / return type
-                    type_indicator_before = self._check_prev_token(TokenType.IDENTIFIER)
+                    type_indicator_before = self._check_prev_token(TokenType.TYPE_INDICATOR)
                     if temp_id[0].isupper():
                         if temp_id.isalnum():
                             if type_indicator_before:
@@ -1292,7 +1352,7 @@ class Lexer():
 
             # treat as invalid identifier if followed by non-number
             if self._current_char in ATOMS['alpha']:
-                self._reverse()
+                self._reverse(len(temp_num))
                 cursor_advanced, _ = self._is_func_or_cwass_name(temp_num)
                 if cursor_advanced:
                     break
@@ -1333,7 +1393,7 @@ class Lexer():
                         temp_comment += self._current_char
 
                         if self._current_char == '/' and self._lines[self._position[0]][self._position[1]+1] == '/' and self._lines[self._position[0]][self._position[1]+2] == '<':
-                            self._advance(2)
+                            is_end_of_file = self._advance(3)
                             temp_comment += '/<'
 
                             ending_position = tuple(self._position)
