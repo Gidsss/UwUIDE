@@ -570,7 +570,11 @@ class Lexer():
         can search through multi lines but line count should be indicated
 
         can go until end|beginning of file if "EOF|BOF" is passed as multi_line_count
-        '''        
+        '''
+        # print(f"________________________{to_seek=}________________________{self._position}")
+        if isinstance(to_seek, str):
+            to_seek = [to_seek]
+            
         line = self._position[0]
         if before and isinstance(multi_line_count, int):
             multi_line = line - multi_line_count
@@ -595,12 +599,14 @@ class Lexer():
                 else:
                     file_out_of_bounds = self._advance()
                 cursor_advance_reverse_count += 1
-                # print(f"{self._current_char} +1 ({cursor_advance_reverse_count})")
+                # input(f"{self._position} : not include current, {'reverse' if before else 'advance'} ({cursor_advance_reverse_count})")
 
             while not found[i]:
                 preempt_start_char_index = len(to_seek[i])-1 if before else 0
+                # input(f"{self._position} : {self._current_char} ? '{to_seek[i][preempt_start_char_index]}'")
                 # intial check if you already got to the beginning or end of file form previous searches
                 if file_out_of_bounds:
+                    # print(f"{self._position} : out of bounds")
                     break
                 
                 # limit number of times reversing can go to newlines with multi_line_count
@@ -611,11 +617,13 @@ class Lexer():
                         self._advance()
                     else:
                         self._reverse()
-
+                    # print(f"{self._position} : max multi line reached, {'advance' if before else 'reverse'} ({cursor_advance_reverse_count})")
                     break
                 
                 if self._current_char == to_seek[i][preempt_start_char_index]:
+                    # print(f"{self._position} : is equal; '{to_seek[i]}'({len(to_seek[i])})")
                     if len(to_seek[i]) == 1:
+                        # print(f"{self._position} : only one char, break")
                         found[i] = True
                         break
 
@@ -624,7 +632,7 @@ class Lexer():
                         preempt_iter = range(len(to_seek[i])-2, -1, -1)
                         last_iter = 0 
                     else:
-                        preempt_iter = range(1, len(to_seek[i], 1))
+                        preempt_iter = range(1, len(to_seek[i]), 1)
                         last_iter = len(to_seek[i])-1
 
                     for preempt in preempt_iter:
@@ -633,6 +641,7 @@ class Lexer():
                         else:
                             file_out_of_bounds = self._advance()
                         cursor_advance_reverse_count += 1
+                        # input(f"{self._position} : {'reverse' if before else 'advance'}, {self._current_char} =?= '{to_seek[i][preempt]}' ({cursor_advance_reverse_count})")
 
                         is_max_multi_line = multi_line > self._position[0] if before else multi_line < self._position[0]
                         # limit number of times reversing can go to newlines with multi_line_count
@@ -642,16 +651,21 @@ class Lexer():
                                 self._advance()
                             else:
                                 self._reverse()
+                            # print(f"{self._position} : out of bounds, {'advance' if before else 'reverse'} ({cursor_advance_reverse_count})")
                             break
 
                         # don't check for last character (not included in to_seek)
-                        elif preempt == last_iter:
+                        elif preempt == last_iter and not preempt_success:
+                            # print(f"{self._position} : last iteration, break")
+                            preempt_success = False
                             break
                         elif to_seek[i][preempt] != self._current_char:
+                            # print(f"{self._position} : not equal, break")
                             preempt_success = False
                             break
 
                     if preempt_success:
+                        # print(f"{self._position} : found")
                         found[i] = True
                         break
 
@@ -666,6 +680,7 @@ class Lexer():
                             file_out_of_bounds = self._reverse()
                         else:
                             file_out_of_bounds = self._advance()
+                        # input(f"{self._position} : {'reverse' if before else 'advance'}, {self._current_char} =?= {to_seek[i][preempt_start_char_index]} ({cursor_advance_reverse_count})")
                         if file_out_of_bounds:
                             break
 
@@ -676,11 +691,14 @@ class Lexer():
                                 self._advance()
                             else:
                                 self._reverse()
+                            # print(f"{self._position} : max multi line reached, {'advance' if before else 'reverse'} ({cursor_advance_reverse_count})")
                             break
                     else:
+                        # print(f"{self._position} : ignoring space, break")
                         break
     
                 elif alphanum_only and self._current_char not in ATOMS['alphanum']:
+                    # print(f"{self._position} : alpha num only, break")
                     break
     
                 else:
@@ -689,7 +707,7 @@ class Lexer():
                     else:
                         file_out_of_bounds = self._advance()
                     cursor_advance_reverse_count += 1
-
+                    # input(f"{self._position} : {'reverse' if before else 'advance'} ({cursor_advance_reverse_count})")
                     # check again after reversing
                     if file_out_of_bounds:
                         break
@@ -700,11 +718,14 @@ class Lexer():
                             self._advance()
                         else:
                             self._reverse()
+                        # print(f"{self._position} : max multi line reached, {'advance' if before else 'reverse'} ({cursor_advance_reverse_count})")
                         break
+        # print(f"{self._position} : back to original position --{cursor_advance_reverse_count}",end='')
         if before:
             self._advance(cursor_advance_reverse_count)
         else:
             self._reverse(cursor_advance_reverse_count)
+        # input(f"--> {self._position}")
         return all(found)
 
 
@@ -756,12 +777,12 @@ class Lexer():
             # if there is no - followed by a data type followed by a (, check if return value is a cwass name  
             if not parentheses_exist:
                 for alpha_big in ATOMS['alpha_big']:
-                    found_cwass_name = self._seek(['-', alpha_big, '('], ignore_space=False, alphanum_only=True, include_current=True)
+                    found_cwass_name = self._seek([f'-{alpha_big}', '('], ignore_space=False, alphanum_only=True, include_current=True)
                     if found_cwass_name:
                         parentheses_exist = True
                         break
         else:
-            parentheses_exist = self._seek('(', ignore_space=False, alphanum_only=True) 
+            parentheses_exist = self._seek('(', ignore_space=False, alphanum_only=True, include_current=True)
         
         # specifically for creating cwass instance eg. var-CwassName = CwassName()
         assignment_before = self._check_prev_token(TokenType.ASSIGN)
@@ -788,6 +809,7 @@ class Lexer():
                     corrected_value = None
 
                     # only valid class declaration
+                    # input(f"{self._position} : {parentheses_exist} and {dash_datatype_exist} and {temp_id.isalnum()} and {temp_id[0].islower()}")
                     if parentheses_exist and dash_datatype_exist and temp_id.isalnum() and temp_id[0].islower():
                         self._tokens.append(Token(temp_id, TokenType.FUNC_NAME, starting_position, ending_position))
                     
@@ -795,17 +817,50 @@ class Lexer():
                     else:
                         # is a class name
                         if temp_id[0].isupper():
-                            corrected_value = temp_id.lower()
+                            corrected_value = temp_id[0].lower() + temp_id[1:]
                             self._errors.append(GenericError(Error.FWUNC_UPPERCASE, starting_position, ending_position, 
                                                             context=f"instead of '{temp_id}', did you mean to type '{corrected_value}'?"))
                         if not temp_id.isalnum():
                             self._errors.append(GenericError(Error.FWUNC_INVALID_NAME, starting_position, ending_position,
                                                             context=f"'{temp_id}' is invalid"))
+                            
                         # incomplete func declaration
-                        # no parenthesis
+                        # no parenthesis OR wrong data type
                         if not parentheses_exist:
-                            self._errors.append(GenericError(Error.FWUNC_OPEN_PAREN, starting_position, ending_position,
-                                                            context=f"'{corrected_value if corrected_value else temp_id}' has no opening parenthesis following it"))
+                            # recheck if there is a parenthesis after a dash since dash_datatype_exist
+                            # checks if there is a dash WITH correct data type before checking for parenthesis
+                            open_paren_exists = self._seek(['-', '('], ignore_space=True, alphanum_only=True)
+                            # input(f"{self._position} : {dash_datatype_exist}, {open_paren_exists}")
+                            if dash_datatype_exist and open_paren_exists:
+                                # wrong data type after dash
+                                corrected_value = corrected_value
+                                original_length = len(temp_id)
+                                while True:
+                                    is_end_of_file = self._advance()
+                                    in_next_line = self._position[0] != current_line
+
+                                    if is_end_of_file or in_next_line:
+                                        if in_next_line:
+                                            self._reverse()
+                                        line, col = self._position
+                                        self._errors.append(DelimError(TokenType.DATA_TYPE, (line, col + 1), temp_id, '\n'))
+                                        break
+                                    
+                                    temp_id += self._current_char
+
+                                    if self._current_char == '(':
+                                        self._reverse()
+                                        temp_id = temp_id[:-1]
+                                        invalid_data_type = temp_id[original_length+1:]
+                                        starting_position = tuple([self._position[0], self._position[1]-len(invalid_data_type)+1])
+                                        ending_position = tuple([self._position[0], self._position[1]])
+                                        self._errors.append(GenericError(Error.FWUNC_INVALID_DATA_TYPE, starting_position, ending_position,
+                                                context=f"'{invalid_data_type}' is not a valid data type.\n\tvalid data types: 'chan', 'kun', 'sama', 'senpai', 'san'"))
+                                        break
+                                        
+                            else:
+                                self._errors.append(GenericError(Error.FWUNC_OPEN_PAREN, starting_position, ending_position,
+                                                                 context=f"'{corrected_value if corrected_value else temp_id}' has no opening parenthesis following it"))
                         # no data type
                         if not dash_datatype_exist:
                             self._errors.append(GenericError(Error.FWUNC_DATA_TYPE, starting_position, ending_position,
@@ -847,7 +902,7 @@ class Lexer():
                     else:
                         # is a class name
                         if temp_id[0].islower():
-                            corrected_value = temp_id.upper()
+                            corrected_value = temp_id[0].upper() + temp_id[1:]
                             self._errors.append(GenericError(Error.CWASS_LOWERCASE, starting_position, ending_position, 
                                                             context=f"instead of '{temp_id}', did you mean to type '{corrected_value}'?"))
                         if not temp_id.isalnum():
@@ -857,7 +912,7 @@ class Lexer():
                         # invalid class declaration
                         # has data type
                         if dash_datatype_exist:
-                            corrected_value = corrected_value
+                            temp_id = corrected_value if corrected_value else temp_id
                             original_length = len(temp_id)
                             while True:
                                 is_end_of_file = self._advance()
@@ -990,7 +1045,6 @@ class Lexer():
                     break
             cursor_advanced = True
 
-        # !TODO! add situation where it is just an identifier or a class type
         # no fwunc, cwass, dash+datatype, or opening parenthesis
         # is either a class type, or an identifier (skip if latter)
         else:
@@ -1012,9 +1066,9 @@ class Lexer():
                             if type_indicator_before:
                                 self._tokens.append(Token(temp_id, TokenType.CWASS_TYPE, starting_position, ending_position))
                             else:
-                                context = f"try this: var-{temp_id} = {temp_id}()\n\t             ^"
-                                self._errors.append(GenericError(Error.CWASS_TYPE_MISSING_TYPE_INDICATOR, starting_position, ending_position,
-                                                                    context=context))
+                                # probably an identifier typo, let _is_identifer() throw the error of wrong starting letter case
+                                self._reverse(len(temp_id)-1)
+                                return False, False
                         else:
                             self._errors.append(GenericError(Error.CWASS_INVALID_NAME, starting_position, ending_position,
                                                             context=f"'{temp_id}' is invalid"))
@@ -1034,9 +1088,9 @@ class Lexer():
             cursor_advanced = True
         return cursor_advanced, is_end_of_file
     
-    def _is_identifier(self, from_keyword: str = '') -> bool:
+    def _is_identifier(self, from_keyword: str = None) -> bool:
         cursor_advanced = False
-        temp_id = from_keyword
+        temp_id = from_keyword if from_keyword else ''
         current_line = self._position[0]
 
         while True:
@@ -1057,10 +1111,11 @@ class Lexer():
                 starting_position = (self._position[0], self._position[1]-len(temp_id)+1)
                 ending_position = (self._position[0], self._position[1])
                 
-                if not any(temp_id.startswith(alpha) for alpha in ATOMS['alpha_small']):
+                # must start with lowercase letter
+                # if not any(temp_id.startswith(alpha) for alpha in ATOMS['alpha_small']): <-- !OLD!
+                if temp_id[0].isupper():
                     self._errors.append(GenericError(Error.IDEN_INVALID_START, starting_position, ending_position,
-                                                    f"'{temp_id}' is invalid"))
-
+                                                    f"instead of '{temp_id}', did you mean to type {temp_id.lower()}"))
                 # check if all characters are either alpha or numbers
                 elif not temp_id.isalnum():
                     self._errors.append(GenericError(Error.IDEN_INVALID_NAME, starting_position, ending_position,

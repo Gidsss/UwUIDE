@@ -19,6 +19,8 @@ class Error(Enum):
                        "No opening parenthesis was found on function declaration")
     FWUNC_DATA_TYPE = ("MISSING DATATYPE",
                       "No data type was indicated on function declaration")
+    FWUNC_INVALID_DATA_TYPE = ("INVALID DATATYPE",
+                               "No data valid type was indicated on function declaration")
     INVALID_FUNC_DECLARE = ("INVALID FUNCTION NAME DECLARATION",
                             "Function name is missing a data type/parenthesis")
     MISSING_FWUNC = ("MISSING FWUNC KEYWORD",
