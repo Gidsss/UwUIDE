@@ -561,22 +561,16 @@ class Lexer():
 
         return cursor_advanced, is_end_of_file
     
-    def _seek(self, to_seek: str|list[str], before: bool = False, multi_line_count: int|str = 0, ignore_space = True, max_space_count: int = None) -> bool:
+    def _seek(self, to_seek: str|list[str], before: bool = False, multi_line_count: int|str = 0,
+              ignore_space = True, max_space_count: int = None, alphanum_only: bool = False,
+              include_current: bool = False) -> bool:
         '''
         seeks concatenated characters ('ab') or multiple separate characters (['a', 'b']) in order;
 
         can search through multi lines but line count should be indicated
 
         can go until end|beginning of file if "EOF|BOF" is passed as multi_line_count
-        '''
-        if isinstance(to_seek, str):
-            lengths = [len(to_seek)]
-            to_seek = [to_seek]
-        elif isinstance(to_seek, list) and all(isinstance(item, str) for item in to_seek):
-            lengths = [len(item) for item in to_seek]
-        else:
-            raise ValueError(f"{to_seek} is not a valid parameter. Please pass a list of strings")
-        
+        '''        
         line = self._position[0]
         if before and isinstance(multi_line_count, int):
             multi_line = line - multi_line_count
@@ -592,125 +586,121 @@ class Lexer():
 
         cursor_advance_reverse_count = 0
         found = [False]*len(to_seek)
-        beginning_of_file = False
-        end_of_file = False
+        file_out_of_bounds = False
+        
         for i in range(len(found)):
-            if before:
-                beginning_of_file = self._reverse()
+            if not include_current:
+                if before:
+                    file_out_of_bounds = self._reverse()
+                else:
+                    file_out_of_bounds = self._advance()
                 cursor_advance_reverse_count += 1
-                while not found[i]:
+                # print(f"{self._current_char} +1 ({cursor_advance_reverse_count})")
 
-                    # intial check if you already got to the beginning of file form previous searches
-                    if beginning_of_file:
+            while not found[i]:
+                preempt_start_char_index = len(to_seek[i])-1 if before else 0
+                # intial check if you already got to the beginning or end of file form previous searches
+                if file_out_of_bounds:
+                    break
+                
+                # limit number of times reversing can go to newlines with multi_line_count
+                is_max_multi_line = multi_line > self._position[0] if before else multi_line < self._position[0]
+                if is_max_multi_line:
+                    cursor_advance_reverse_count -= 1
+                    if before:
+                        self._advance()
+                    else:
+                        self._reverse()
+
+                    break
+                
+                if self._current_char == to_seek[i][preempt_start_char_index]:
+                    if len(to_seek[i]) == 1:
+                        found[i] = True
+                        break
+
+                    preempt_success = True
+                    if before:
+                        preempt_iter = range(len(to_seek[i])-2, -1, -1)
+                        last_iter = 0 
+                    else:
+                        preempt_iter = range(1, len(to_seek[i], 1))
+                        last_iter = len(to_seek[i])-1
+
+                    for preempt in preempt_iter:
+                        if before:
+                            file_out_of_bounds = self._reverse()
+                        else:
+                            file_out_of_bounds = self._advance()
+                        cursor_advance_reverse_count += 1
+
+                        is_max_multi_line = multi_line > self._position[0] if before else multi_line < self._position[0]
+                        # limit number of times reversing can go to newlines with multi_line_count
+                        if is_max_multi_line or file_out_of_bounds:
+                            cursor_advance_reverse_count -= 1
+                            if before:
+                                self._advance()
+                            else:
+                                self._reverse()
+                            break
+
+                        # don't check for last character (not included in to_seek)
+                        elif preempt == last_iter:
+                            break
+                        elif to_seek[i][preempt] != self._current_char:
+                            preempt_success = False
+                            break
+
+                    if preempt_success:
+                        found[i] = True
+                        break
+
+                elif self._current_char == ' ':
+                    if ignore_space:
+                        space_count += 1
+                        if max_space_count and space_count > max_space_count:
+                            break
+
+                        cursor_advance_reverse_count += 1
+                        if before:
+                            file_out_of_bounds = self._reverse()
+                        else:
+                            file_out_of_bounds = self._advance()
+                        if file_out_of_bounds:
+                            break
+
+                        is_max_multi_line = multi_line > self._position[0] if before else multi_line < self._position[0]
+                        if is_max_multi_line:
+                            cursor_advance_reverse_count -= 1
+                            if before:
+                                self._advance()
+                            else:
+                                self._reverse()
+                            break
+                    else:
+                        break
+    
+                elif alphanum_only and self._current_char not in ATOMS['alphanum']:
+                    break
+    
+                else:
+                    if before:
+                        file_out_of_bounds = self._reverse()
+                    else:
+                        file_out_of_bounds = self._advance()
+                    cursor_advance_reverse_count += 1
+
+                    # check again after reversing
+                    if file_out_of_bounds:
                         break
                     
-                    # limit number of times reversing can go to newlines with multi_line_count
-                    if multi_line > self._position[0]:
-                        cursor_advance_reverse_count -= 1
-                        self._advance()
-                        break
-
-                    if self._current_char == to_seek[i][lengths[i]-1]:
-                        beginning_of_file = self._reverse()
-                        cursor_advance_reverse_count += 1
-                        if beginning_of_file:
-                            break
-
-                        preempt_success = True
-                        for preempt in range(lengths[i]-2, -1, -1):
-                            # limit number of times reversing can go to newlines with multi_line_count
-
-                            beginning_of_file = self._reverse()
-                            cursor_advance_reverse_count += 1
-                            if multi_line > self._position[0] or beginning_of_file:
-                                cursor_advance_reverse_count -= 1
-                                self._advance()
-                                break
-                            elif preempt == 0:
-                                break
-                            elif to_seek[i][preempt-1] != self._current_char:
-                                preempt_success = False
-                                break
-
-                        if preempt_success:
-                            found[i] = True
-                            break
-
-                    elif self._current_char == ' ':
-                        if ignore_space:
-                            space_count += 1
-                            if max_space_count and space_count > max_space_count:
-                                break
-
-                            cursor_advance_reverse_count += 1
-                            beginning_of_file = self._reverse()
-                            if beginning_of_file:
-                                break
-                            elif multi_line > self._position[0]:
-                                cursor_advance_reverse_count -= 1
-                                self._advance()
-                                break
-                        else:
-                            break
-                    else:
-                        beginning_of_file = self._reverse()
-                        cursor_advance_reverse_count += 1
-
-                        # check again after reversing
-                        if beginning_of_file:
-                            break
-
-                        elif multi_line > self._position[0]:
-                            cursor_advance_reverse_count -= 1
+                    is_max_multi_line = multi_line > self._position[0] if before else multi_line < self._position[0]
+                    if is_max_multi_line:
+                        if before:
                             self._advance()
-                            break
-            else:
-                while not found[i]:
-                    # intial check if you already got to the end of file form previous searches
-                    if end_of_file:
-                        break
-
-                    if self._current_char == to_seek[i][0]:
-                        preempt_success = True
-                        for preempt in range(0, lengths[i]):
-                            cursor_advance_reverse_count += 1
-                            if to_seek[i][preempt] != self._current_char:
-                                preempt_success = False
-                                break
-                            elif preempt == lengths[i]-1:
-                                break
-                            self._advance()
-                        
-                        cursor_advance_reverse_count -= 1
-                        if preempt_success:
-                            found[i] = True
-                            break
-                    elif self._current_char == ' ':
-                        if ignore_space:
-                            space_count += 1
-                            if max_space_count and space_count > max_space_count:
-                                break
-                            
-                            cursor_advance_reverse_count += 1
-                            end_of_file = self._advance()
-                            # check again after advancing
-                            if end_of_file:
-                                break
-                            # limit number of times advancing can go to newlines with multi_line_count
-                            elif multi_line < self._position[0]:
-                                break
                         else:
-                            break
-                    else:
-                        end_of_file = self._advance()
-                        cursor_advance_reverse_count += 1
-                        # check again after advancing
-                        if end_of_file:
-                            break
-                        # limit number of times advancing can go to newlines with multi_line_count
-                        elif multi_line < self._position[0]:
-                            break
-        
+                            self._reverse()
+                        break
         if before:
             self._advance(cursor_advance_reverse_count)
         else:
@@ -769,19 +759,20 @@ class Lexer():
             missing_keyword_error = Error.MISSING_FWUNC
             not_alphanumeric_error = Error.FWUNC_INVALID_NAME
 
-        parentheses_exist = self._seek('(', ignore_space=False)
-        dash_datatype_exist = (self._seek('-', ignore_space=False)                      # search for a -
-                               and not self._seek(['(', '-'], ignore_space=False)       # but not a - after (
-                               and not self._seek([')', '-'], ignore_space=False)       # or a - after )
-                               and not self._seek(['=', '-'])                           # or a - after =
-                                                                                        # - after ( is invalid but the other way around is valid
-                               and (self._seek(['-', '('], ignore_space=False) or not self._seek(['(', '-'], ignore_space=False)))
+        fwunc_exists, cwass_exists = self._check_prev_token(TokenType.FWUNC), self._check_prev_token(TokenType.CWASS)
+        dash_datatype_exist = self._seek('-', ignore_space=False, alphanum_only=True)
+        if dash_datatype_exist:
+            parentheses_exist = self._seek(['-', '('], ignore_space=False, alphanum_only=True)
+        else:
+            parentheses_exist = self._seek('(', ignore_space=False, alphanum_only=True) 
         
-        identifier_exists = (self._check_prev_token(TokenType.FWUNC), self._check_prev_token(TokenType.CWASS))
+        # specifically for creating cwass instance eg. var-CwassName = CwassName()
+        assignment_before = self._check_prev_token(TokenType.ASSIGN)
 
         cursor_advanced = False
         is_end_of_file = False
-        if any(identifier_exists):
+
+        if fwunc_exists or cwass_exists:
             if parentheses_exist and dash_datatype_exist:
                 # correct function name declaration, append to tokens
                 current_line = self._position[0]
@@ -793,18 +784,18 @@ class Lexer():
                         ending_position = tuple([self._position[0], self._position[1]])
 
                         # validate func name
-                        if identifier_exists[0] and temp_id[0].isupper() and not cwass:
+                        if fwunc_exists and temp_id[0].isupper() and not cwass:
                             self._errors.append(GenericError(Error.FWUNC_UPPERCASE, starting_position, ending_position, 
                                                              context=f"instead of '{temp_id}', did you mean to type '{temp_id.lower()}'"))
                         # validate class name
-                        elif identifier_exists[1] and temp_id[0].islower():
+                        elif cwass_exists and temp_id[0].islower():
                             self._errors.append(GenericError(Error.CWASS_LOWERCASE, starting_position, ending_position, context=f"instead of '{temp_id}', did you mean to type '{temp_id.capitalize()}'"))
                             
                         else:
                             # check if class/func name is alphanumeric
                             if temp_id.isalnum():
                                 # classes cannot have data or return types
-                                if cwass and dash_datatype_exist and not identifier_exists[0]:
+                                if cwass and dash_datatype_exist and not fwunc_exists:
                                     original_length = len(temp_id)
                                     while True:
                                         is_end_of_file = self._advance()
@@ -829,7 +820,7 @@ class Lexer():
                                             break
                                 else:
                                     # if function
-                                    if not cwass and identifier_exists[0]:
+                                    if not cwass and fwunc_exists:
                                         self._tokens.append(Token(temp_id, token_type, starting_position, ending_position))
                                     # if class name but with 'fwunc'
                                     else:
@@ -895,7 +886,7 @@ class Lexer():
                                 # check if class/func name is alphanumeric
                                 if temp_id.isalnum():
                                     # has class keyword
-                                    if identifier_exists[1]:
+                                    if cwass_exists:
                                         self._tokens.append(Token(temp_id, token_type, starting_position, ending_position))
                                     # has fwunc keyword
                                     else:
@@ -905,9 +896,11 @@ class Lexer():
                                     self._errors.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
                                                         context=f"'{temp_id}' is invalid"))
 
-                            if not identifier_exists[1]:
+                            if not cwass_exists:
+                                if_fwunc, if_cwass = f"'{temp_id}' has no datatype", f"also, '{temp_id}' is an invalid function name so consider changing it to '{temp_id.lower()}'"
+                                context = f"{if_fwunc if not cwass else if_cwass}"
                                 self._errors.append(GenericError(Error.FWUNC_DATA_TYPE, starting_position, ending_position,
-                                                                 context=f"'{temp_id if not cwass else f'{temp_id} --> {temp_id.lower()}'}' has no datatype"))
+                                                                 context=context))
                         break
 
                     temp_id += self._current_char
@@ -1323,7 +1316,7 @@ class Lexer():
     def _peek_comments(self, multiline: bool = False) -> bool:
         'returns true if found comments/error about comments, false otherwise'
         to_seek = r'>//<' if multiline else '>.<'
-        comment_indicator_exists = self._seek(to_seek)
+        comment_indicator_exists = self._seek(to_seek, include_current=True)
 
         current_line = self._position[0]
         cursor_advanced = False
@@ -1331,7 +1324,7 @@ class Lexer():
 
         if comment_indicator_exists:
             if multiline:
-                starting_position = self._position.copy()
+                starting_position = tuple(self._position)
                 is_end_of_file = self._advance(len(to_seek) - 1)
                 temp_comment = to_seek
 
@@ -1342,16 +1335,15 @@ class Lexer():
                         current_line = self._position[0]
                         is_end_of_file = self._advance()
 
-                        # !TODO! CHANGE AFTER ADDING \n TO EVERY LINE (just remove it lul)
                         if self._position[0] > current_line:
                             temp_comment += '\n'
                         temp_comment += self._current_char
 
                         if self._current_char == '/' and self._lines[self._position[0]][self._position[1]+1] == '/' and self._lines[self._position[0]][self._position[1]+2] == '<':
-                            self._advance(3)
+                            self._advance(2)
                             temp_comment += '/<'
 
-                            ending_position = self._position.copy()
+                            ending_position = tuple(self._position)
                             self._tokens.append(Token(temp_comment, TokenType.MULTI_LINE_COMMENT, starting_position, ending_position))
                             break
 
@@ -1361,7 +1353,6 @@ class Lexer():
                         current_line = self._position[0]
                         is_end_of_file = self._advance()
 
-                        # !TODO! CHANGE AFTER ADDING \n TO EVERY LINE (just remove it lul)
                         if self._position[0] > current_line:
                             temp_comment += '\n'
                         if not is_end_of_file:
@@ -1374,7 +1365,7 @@ class Lexer():
 
             else:
                 temp_comment = to_seek
-                starting_position = self._position.copy()
+                starting_position = tuple(self._position)
                 is_end_of_file = self._advance(len(to_seek) - 1)
                 while True:
                     is_end_of_file = self._advance()
@@ -1382,11 +1373,8 @@ class Lexer():
                     if not is_end_of_file and not in_next_line:
                         temp_comment += self._current_char
 
-                    # !TODO! CHANGE AFTER ADDING \n TO EVERY LINE
-                    # new implementation could be looking at line length-2 and if character there is \n, that's newline 
-                    # every other \n will be treated as a comment
                     if is_end_of_file or in_next_line:
-                        ending_position = self._position.copy()
+                        ending_position = tuple(self._position)
                         self._tokens.append(Token(temp_comment, TokenType.SINGLE_LINE_COMMENT, starting_position, ending_position))
                         break
 
