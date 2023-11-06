@@ -94,6 +94,7 @@ class TokenType(Enum):
     CWASS_TYPE = ("CWASS TYPE", "cwass_type")
     SINGLE_LINE_COMMENT = ("COMMENT", "single_line_comment")
     MULTI_LINE_COMMENT = ("MULTI LINE COMMENT", "line")
+    TYPE_INDICATOR = ("TYPE INDICATOR", 'type_indicator')
 
 
 class Token:

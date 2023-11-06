@@ -21,8 +21,9 @@ ATOMS = {
 DELIMS = {
     'end': {'~'},
     'data_type': {',', '(', ')', ' ', '~', '=', '-'},
-    'cwass_type': {',', '(', ')', ' ', '='},
     'dono': {',', '(', ')', ' ', '='},
+    'cwass_type': {',', '(', ')', ' ', '='},
+    'cwass': {'(', ')', ' ', ',',},
     'bool': {',', ' ', '}', ')', '~'},
     'conditional': {'('},
     'io': {'('},
@@ -38,7 +39,6 @@ DELIMS = {
     'open_parenthesis': {*ATOMS['number'], *ATOMS['alpha'], ' ', '-', '\n', '>', '(', ')', '"'},
     'id': {' ', '~', ',', ')', '[', ']', '}', *ATOMS['general_operator'], r'&', '|', '.'},
     'function': {'(', '-'},
-    'cwass': {'(', ')', ' ', ',',},
     'close_parenthesis': {' ', *ATOMS['general_operator'], '&', '|', '\n', '~', '>', '.', ',', ')', '(', '[', ']', '}'},
     'open_bracket': {*ATOMS['number'], '-', *ATOMS['alpha'], '('},
     'double_open_bracket': {' ', '\n', *ATOMS['alpha'], '>'},
@@ -54,4 +54,5 @@ DELIMS = {
     'whitespace': {' '},
     'negative_delim': {*ATOMS['alpha'], *ATOMS['number'], '('},
     'single_line_comment': {'\n'},
+    'type_indicator': {*ATOMS['alpha_big'], 'c', 's', 'd', 'k'}
 }

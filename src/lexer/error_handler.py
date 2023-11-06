@@ -43,6 +43,10 @@ class Error(Enum):
                          'classes can only have alphanumeric characters')
     DIRECT_CALL_METHOD_PROP = ("DIRECTLY CALLING METHOD/PROPERTY",
                          'you cannot call a class method/property by using the class directly. Consider creating an instance first')
+    CWASS_MISSING_ASSIGNMENT = ("MISSING ASSIGNMENT OPERATOR BEFORE",
+                                "cannot create an instance of a class if a class is not assigned to a variable")
+    CWASS_TYPE_MISSING_TYPE_INDICATOR = ("MISSING TYPE INDICATOR",
+                                         "to be able to use a class as a data type, it must be after a type indicator (which must be after a variable)")
 
     # string errors    
     UNCLOSED_STRING = ("UNCLOSED STRING",
