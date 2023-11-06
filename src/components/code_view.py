@@ -1,5 +1,5 @@
 from customtkinter import *
-from tkinter import Event
+from tkinter import *
 from src.lexer import Lexer, Token, Error
 from enum import Enum
 
@@ -147,7 +147,6 @@ class CodeEditor(CTkFrame):
         for tag in tags:
             self.text.tag_remove(tag.name, "1.0", "end")
 
-
     def copy_text(self, event):
       if event.state == 0:  # Only trigger if no other modifiers are pressed
          self.text.clipboard_clear()
@@ -177,6 +176,17 @@ class CodeView(CTkTabview):
         code_editor.grid(row=0, column=0, rowspan=2, columnspan=2, sticky='nsew')
 
         self.code_editors[file_name] = code_editor
+        
+        # Pop up on right click
+        test = Menu(code_editor.text, tearoff=False)
+        test.add_command(label='Run Program', command=lambda : print('Hello world'))
+        test.add_command(label='Save Program', command=lambda : print('Hello world'))
+        test.add_separator()
+        test.add_command(label='Close File', command=lambda : print('Hello world'))
+        code_editor.text.bind('<Button-3>', lambda e: test.tk_popup(e.x_root, e.y_root))
+
+    def remove_tab(self, file_name):
+        pass
 
     @property
     def editor(self) -> CodeEditor:
