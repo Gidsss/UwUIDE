@@ -56,11 +56,13 @@ class CommandMenu(CTkFrame):
         if self.code_view and self.code_view.code_editors:
             file_path = filedialog.askopenfilename(filetypes=[("UwU Files", "*.uwu")])
             file_name = os.path.basename(file_path)
-            if file_name:
+            if file_path:
                 if file_name not in self.code_view.code_editors:
                     self.code_view.create_new_tab(file_name)
-                with open(file_name, "r") as file:
+                    self.code_view.set(file_name)
+                with open(file_path, "r") as file:
                     file_content = file.read()
                     self.code_view.code_editors[file_name].text.delete('1.0', 'end-1c')
                     self.code_view.code_editors[file_name].text.insert('1.0', file_content)
                 self.code_view.current_filename = file_name
+                self.code_view.editor.init_linenums()

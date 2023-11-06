@@ -89,7 +89,7 @@ class CodeEditor(CTkFrame):
 
         self.text.bind("<Button-1>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<Tab>", lambda e: self.on_tab(e))
-
+        self.text.bind("<FocusIn>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<Return>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<BackSpace>", lambda e: self.line_nums.on_redraw(e))
 
@@ -101,6 +101,9 @@ class CodeEditor(CTkFrame):
         # Initialize tags
         for tag in Tags:
             self.text.tag_config(tag.name, **tag.options)
+
+    def init_linenums(self):
+        self.text.focus_set()
 
     def on_tab(self, e: Event):
         e.widget.insert(INSERT, " " * 6)
