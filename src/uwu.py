@@ -5,11 +5,10 @@ from .components.console_view import ConsoleView
 from .components.command_menu import CommandMenu
 from .components.analyzer_tabs import UwULexerTab, UwUParserTab
 
-from PIL import Image, ImageTk
 from constants.path import *
 
 class UwUCodePanel(CTkFrame):
-    def __init__(self, master, on_compiler_run, **kwargs):
+    def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
 
         self.grid_columnconfigure((0,1,2,3), weight=1)
@@ -28,15 +27,6 @@ class UwUCodePanel(CTkFrame):
             segmented_button_unselected_color='#1A1B26',segmented_button_unselected_hover_color='gray'
         )
         self.code_view.grid(row=1, rowspan=5, columnspan=4, sticky='nsew', padx=12)
-        
-        self.canvas = CTkCanvas(
-            master = self, 
-            bg = '#1A1B26', 
-            highlightthickness=0,
-        )
-        # self.canvas.grid(row=6, rowspan=1, columnspan=4, stick='nsew', padx=12, pady=12)
-        # self.canvas.image = ImageTk.PhotoImage(Image.open(f"{AQUACL_BG_ASSET}"))
-        # self.canvas.create_image(5, 30, anchor='nw', image=self.canvas.image)
         
         self.console_view = ConsoleView(
             master=self,
@@ -60,9 +50,7 @@ class UwUCodePanel(CTkFrame):
         )
         self.command_menu.grid(row=0, columnspan=4, sticky='nsew', pady=8)
 
-    @property
-    def editor(self):
-        return self.code_view.editor
+        self.update_console_logs = self.console_view.update_logs
 
 class UwuAnalyzerPanel(CTkTabview):
     def __init__(self, master, **kwargs):
@@ -101,7 +89,6 @@ class UwU(CTk):
         self.code_panel = UwUCodePanel(
             master=self,
             fg_color='transparent',
-            on_compiler_run=self.on_compiler_run
         )
         self.code_panel.grid(row=0, column=0, rowspan=5, columnspan=4, sticky='nsew')
 
@@ -120,7 +107,7 @@ class UwU(CTk):
     def on_compiler_run(self, code_editor: CodeEditor):
         code_editor.run_lexer()
         self.analyzer_panel.update_lexer(tokens=code_editor.tokens)
-        self.code_panel.console_view.update_logs(errors=code_editor.errors)
+        self.code_panel.update_console_logs(errors=code_editor.errors)
         
 
 if __name__ == "__main__":
