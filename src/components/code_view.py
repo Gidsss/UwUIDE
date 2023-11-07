@@ -1,7 +1,10 @@
 from customtkinter import *
 from tkinter import *
 from constants.path import *
+
 from src.lexer import Lexer, Token, Error
+from src.uwu import UwU
+
 from enum import Enum
 from PIL import Image
 
@@ -162,7 +165,7 @@ class CodeEditor(CTkFrame):
          self.text.insert(INSERT, text_to_paste)
 
 class CodeView(CTkTabview):
-    def __init__(self, master, parent, **kwargs):
+    def __init__(self, master, parent: UwU, **kwargs):
         super().__init__(master, **kwargs)
         self.parent = parent
         self.file_names = ['Untitled.uwu']
