@@ -11,6 +11,7 @@ class Lexer():
     def __init__(self, source_code: list[str]):
         self._lines = source_code
         ErrorSrc.src = source_code
+        UniqueTokenType.clear()
 
         self._position = [0,0]
         self._current_char = self._lines[self._position[0]][self._position[1]]
@@ -224,8 +225,8 @@ class Lexer():
                         if len(after_slice) > 1:
                             if self._lines[line][column+2] in TokenType.UNARY.expected_delims:
                                 # Check if prev token is identifier
-                                operand_before = self._check_prev_token([TokenType.IDENTIFIER, TokenType.INT_LITERAL,
-                                                                            TokenType.FLOAT_LITERAL, TokenType.CLOSE_PAREN])
+                                operand_before = self._check_prev_token([TokenType.GEN_IDENTIFIER, TokenType.INT_LITERAL,
+                                                                         TokenType.FLOAT_LITERAL, TokenType.CLOSE_PAREN])
                                 if operand_before:
                                     starting_position = tuple(self._position)
                                     ending_position = tuple([self._position[0], self._position[1]+1])
@@ -806,7 +807,8 @@ class Lexer():
                     # only valid class declaration
                     if parentheses_exist and dash_datatype_exist and temp_id.isalnum():
                         if temp_id[0].isalpha() and temp_id[0].islower():
-                            self._tokens.append(Token(temp_id, TokenType.FUNC_NAME, starting_position, ending_position))
+                            self._tokens.append(Token(temp_id, UniqueTokenType(temp_id, UniqueTokenType.FWUNC),
+                                                      starting_position, ending_position))
                         elif temp_id[0].isalpha() and temp_id[0].isupper():
                             corrected_value = temp_id[0].lower() + temp_id[1:]
                             self._logs.append(GenericError(Error.FWUNC_INVALID_START, starting_position, ending_position, 
@@ -915,7 +917,7 @@ class Lexer():
                         self._reverse()
                         temp_id = temp_id[:-1]
                     line, col = self._position
-                    self._logs.append(DelimError(TokenType.FUNC_NAME, (line, col + 1), temp_id, '\n'))
+                    self._logs.append(DelimError(TokenType.GEN_FUNC_NAME, (line, col + 1), temp_id, '\n'))
                     break
             cursor_advanced = True
 
@@ -932,7 +934,8 @@ class Lexer():
                     # only valid class declaration
                     if parentheses_exist and not dash_datatype_exist and temp_id.isalnum():
                         if temp_id[0].isupper():
-                            self._tokens.append(Token(temp_id, TokenType.CWASS_NAME, starting_position, ending_position))
+                            self._tokens.append(Token(temp_id, UniqueTokenType(temp_id, UniqueTokenType.CWASS),
+                                                      starting_position, ending_position))
                         elif not temp_id[0].isalpha():
                             self._logs.append(GenericError(Error.CWASS_INVALID_START, starting_position, ending_position,
                                                              f"'{temp_id}' is invalid"))
@@ -967,7 +970,7 @@ class Lexer():
                                         self._reverse()
                                         temp_id = temp_id[:-1]
                                     line, col = self._position
-                                    self._logs.append(DelimError(TokenType.CWASS_NAME, (line, col + 1), temp_id, '\n'))
+                                    self._logs.append(DelimError(TokenType.GEN_CWASS_NAME, (line, col + 1), temp_id, '\n'))
                                     break
                                 
                                 temp_id += self._current_char
@@ -1030,7 +1033,7 @@ class Lexer():
 
                         temp_id = temp_id[:-1]
                     line, col = self._position
-                    self._logs.append(DelimError(TokenType.CWASS_NAME, (line, col + 1), temp_id, '\n'))
+                    self._logs.append(DelimError(TokenType.GEN_CWASS_NAME, (line, col + 1), temp_id, '\n'))
                     break
             cursor_advanced = True
         
@@ -1051,16 +1054,24 @@ class Lexer():
                                                              f"'{temp_id}' is invalid"))
                         # valid func call
                         elif temp_id[0].islower():
-                            self._tokens.append(Token(temp_id, TokenType.FUNC_NAME, starting_position, ending_position))
+                            self._tokens.append(Token(temp_id, UniqueTokenType(temp_id, UniqueTokenType.FWUNC),
+                                                      starting_position, ending_position))
 
                         elif temp_id[0].isupper():
                             # check if a return type of a function declaration
-                            fwunc_declaration_return_type = self._check_prev_token([TokenType.TYPE_INDICATOR,TokenType.FUNC_NAME,TokenType.FWUNC], in_order=True)
+                            fwunc_declaration_return_type = self._check_prev_token([TokenType.TYPE_INDICATOR, TokenType.GEN_FUNC_NAME, TokenType.FWUNC], in_order=True)
                             if fwunc_declaration_return_type:
-                                self._tokens.append(Token(temp_id, TokenType.CWASS_TYPE, starting_position, ending_position))
+                                cwass_type = UniqueTokenType(temp_id, UniqueTokenType.CWASS_TYPE)
+                                if cwass_type.token is not None:
+                                    self._tokens.append(Token(temp_id, cwass_type, starting_position, ending_position))
+                                else:
+                                    self._logs.append(
+                                        GenericError(Error.NONEXISTENT_CWASS_TYPE, starting_position, ending_position,
+                                                     f"'The cwass {temp_id}' does not exist"))
                             # valid class call for creating instance
                             elif assignment_before:
-                                self._tokens.append(Token(temp_id, TokenType.CWASS_NAME, starting_position, ending_position))
+                                self._tokens.append(Token(temp_id, UniqueTokenType(temp_id, UniqueTokenType.CWASS),
+                                                          starting_position, ending_position))
                             else:
                                 context = f"try this: var-{temp_id} = {temp_id}()~\n\t              "+" "*len(temp_id)+" ^"
                                 self._logs.append(GenericError(Error.CWASS_MISSING_ASSIGNMENT, starting_position, ending_position,
@@ -1092,7 +1103,7 @@ class Lexer():
                                         self._reverse()
                                         temp_id = temp_id[:-1]
                                     line, col = self._position
-                                    self._logs.append(DelimError(TokenType.CWASS_NAME, (line, col + 1), temp_id, '\n'))
+                                    self._logs.append(DelimError(TokenType.GEN_CWASS_NAME, (line, col + 1), temp_id, '\n'))
                                     break
                                 
                                 temp_id += self._current_char
@@ -1129,7 +1140,7 @@ class Lexer():
                         self._reverse()
                         temp_id = temp_id[:-1]
                     line, col = self._position
-                    token_type = TokenType.CWASS_NAME if temp_id[0].islower() else TokenType.FUNC_NAME
+                    token_type = TokenType.GEN_CWASS_NAME if temp_id[0].islower() else TokenType.GEN_FUNC_NAME
                     self._logs.append(DelimError(token_type, (line, col + 1), temp_id, '\n'))
                     break
 
@@ -1195,7 +1206,14 @@ class Lexer():
                     if temp_id[0].isupper():
                         if temp_id.isalnum():
                             if type_indicator_before:
-                                self._tokens.append(Token(temp_id, TokenType.CWASS_TYPE, starting_position, ending_position))
+                                cwass_type = UniqueTokenType(temp_id, UniqueTokenType.CWASS_TYPE)
+                                if cwass_type.token is not None:
+                                    self._tokens.append(
+                                        Token(temp_id, cwass_type, starting_position, ending_position))
+                                else:
+                                    self._logs.append(
+                                        GenericError(Error.NONEXISTENT_CWASS_TYPE, starting_position, ending_position,
+                                                     f"'The cwass {temp_id}' does not exist"))
                             else:
                                 # probably an identifier typo, let _is_identifer() throw the error of wrong starting letter case
                                 self._reverse(len(temp_id)-1)
@@ -1215,7 +1233,7 @@ class Lexer():
                         self._reverse()
 
                     line, col = self._position
-                    token_type = TokenType.CWASS_NAME if temp_id[0].islower() else TokenType.FUNC_NAME
+                    token_type = TokenType.GEN_CWASS_NAME if temp_id[0].islower() else TokenType.GEN_FUNC_NAME
                     self._logs.append(DelimError(token_type, (line, col + 1), temp_id, '\n'))
 
                     break
@@ -1236,7 +1254,7 @@ class Lexer():
                 if in_next_line:
                     self._reverse()
                 line, col = self._position
-                self._logs.append(DelimError(TokenType.IDENTIFIER, (line, col + 1), temp_id, '\n'))
+                self._logs.append(DelimError(TokenType.GEN_IDENTIFIER, (line, col + 1), temp_id, '\n'))
                 cursor_advanced = True
                 break
 
@@ -1259,7 +1277,8 @@ class Lexer():
                     self._logs.append(GenericError(Error.IDEN_INVALID_NAME, starting_position, ending_position,
                                                     f"'{temp_id}' is invalid"))
                 else:
-                    self._tokens.append(Token(temp_id, TokenType.IDENTIFIER, starting_position, ending_position))
+                    self._tokens.append(Token(temp_id, UniqueTokenType(temp_id, UniqueTokenType.ID),
+                                              starting_position, ending_position))
 
                 cursor_advanced = True
                 break
