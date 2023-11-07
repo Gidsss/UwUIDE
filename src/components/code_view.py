@@ -162,16 +162,14 @@ class CodeEditor(CTkFrame):
          self.text.insert(INSERT, text_to_paste)
 
 class CodeView(CTkTabview):
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, parent, **kwargs):
         super().__init__(master, **kwargs)
+        self.parent = parent
         self.file_names = ['Untitled.uwu']
         self.code_editors: dict[str, CodeEditor] = {}
 
         for file in self.file_names:
             self.create_new_tab(file)
-            
-    def set_compiler_instance(self, compiler_instance):
-        self.compiler_instance = compiler_instance
     
     def create_new_tab(self, file_name):
         tab = self.add(file_name)
@@ -184,19 +182,20 @@ class CodeView(CTkTabview):
         self.code_editors[file_name] = code_editor
         
         # Pop up on right click
-        test = Menu(code_editor.text, tearoff=False)
-        test.add_command(label='Run Program', command=lambda : self.compiler_instance.on_compiler_run())
-        test.add_command(label='Save Program', command=lambda : print('Hello world'))
-        test.add_separator()
-        test.add_command(label='Close File', command=lambda : self.remove_tab(file_name))
-        code_editor.text.bind('<Button-3>', lambda e: test.tk_popup(e.x_root, e.y_root))
+        options_menu = Menu(code_editor.text, tearoff=False)
+
+        options_menu.add_command(label='Run Program', command=lambda : self.parent.on_compiler_run(code_editor=code_editor))
+
+        options_menu.add_command(label='Save Program', command=lambda : print('Hello world'))
+        options_menu.add_separator()
+        options_menu.add_command(label='Close File', command=lambda : self.remove_tab(file_name))
+
+        code_editor.text.bind('<Button-3>', lambda e: options_menu.tk_popup(e.x_root, e.y_root))
 
     def remove_tab(self, file_name):
         self.delete(file_name)
         code_editor = self.code_editors.pop(file_name)
         code_editor.destroy()
-            
-      
 
     @property
     def editor(self) -> CodeEditor:

@@ -7,8 +7,9 @@ from PIL import Image, ImageTk
 from .code_view import CodeView, CodeEditor
 
 class CommandMenu(CTkFrame):
-    def __init__(self, master, code_view: CodeView, on_compiler_run, **kwargs):
+    def __init__(self, master, parent, code_view: CodeView, **kwargs):
         super().__init__(master, **kwargs)
+        self.parent = parent
         self.code_view = code_view
         self.columns = (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
         self.rows = (0)
@@ -28,7 +29,7 @@ class CommandMenu(CTkFrame):
             text='',
             width=99,
             height=30,
-            command=on_compiler_run
+            command=lambda : self.parent.on_compiler_run(code_editor=self.code_view.editor)
         )
         self.runButton.grid(row=0, column=13, sticky='', columnspan=1)
 
