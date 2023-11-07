@@ -34,9 +34,9 @@ class UwUCodePanel(CTkFrame):
             bg = '#1A1B26', 
             highlightthickness=0,
         )
-        self.canvas.grid(row=6, rowspan=1, columnspan=4, stick='nsew', padx=12, pady=12)
-        self.canvas.image = ImageTk.PhotoImage(Image.open(f"{AQUACL_BG_ASSET}"))
-        self.canvas.create_image(5, 30, anchor='nw', image=self.canvas.image)
+        # self.canvas.grid(row=6, rowspan=1, columnspan=4, stick='nsew', padx=12, pady=12)
+        # self.canvas.image = ImageTk.PhotoImage(Image.open(f"{AQUACL_BG_ASSET}"))
+        # self.canvas.create_image(5, 30, anchor='nw', image=self.canvas.image)
         
         self.console_view = ConsoleView(
             master=self,
@@ -88,7 +88,7 @@ class UwuAnalyzerPanel(CTkTabview):
 class UwU(CTk):
     def __init__(self):
         super().__init__()     
-        self.geometry("1280x720")
+        self.geometry("1280x720+200+60")
         self.resizable(False, False)
         self.title("UwU++")
         self.configure(fg_color='#16161E')

@@ -1,7 +1,9 @@
 from customtkinter import *
 from tkinter import *
+from constants.path import *
 from src.lexer import Lexer, Token, Error
 from enum import Enum
+from PIL import Image
 
 
 class Linenums(CTkCanvas):
@@ -75,28 +77,26 @@ class CodeEditor(CTkFrame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=25)
         self.grid_rowconfigure(0, weight=1)
-
-
-        self.text = CTkTextbox(master=self, corner_radius=0,fg_color='#1A1B26', text_color='#FFFFFF', undo=True)
+        
+        self.text = CTkTextbox(master=self, corner_radius=0,fg_color='transparent', text_color='#FFFFFF', undo=True)
         self.text.grid(row=0, column=1, sticky='nsew')
-
-        self.text = CTkTextbox(master=self, corner_radius=0, fg_color='#1A1B26', text_color='#FFFFFF')
-        self.text.grid(row=0, column=1, sticky='nsew')
-
 
         self.line_nums = Linenums(master=self, text_widget=self.text)
         self.line_nums.grid(row=0, column=0, sticky='nsew')
-
+       
+        self.bg_asset = CTkImage(light_image=Image.open(f"{AQUACE_BG_ASSET}"), size=(152, 160))
+        self.bg_asset_label = CTkLabel(self, image=self.bg_asset, text='')
+        self.bg_asset_label.place(x=655, y=160)#Position: 660 x 160
+        
         self.text.bind("<Button-1>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<Tab>", lambda e: self.on_tab(e))
         self.text.bind("<FocusIn>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<Return>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<BackSpace>", lambda e: self.line_nums.on_redraw(e))
 
-
         self.copy_paste_triggered = False
         self.text.bind("<Control-c>", self.copy_text)
-        self.text.bind("<Control-v>", self.paste_text)
+        self.text.bind("<Control-v>", self.paste_text) 
  
         # Initialize tags
         for tag in Tags:
@@ -167,7 +167,7 @@ class CodeView(CTkTabview):
         self.parent = parent
         self.file_names = ['Untitled.uwu']
         self.code_editors: dict[str, CodeEditor] = {}
-
+        
         for file in self.file_names:
             self.create_new_tab(file)
     
