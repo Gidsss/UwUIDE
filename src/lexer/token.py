@@ -57,9 +57,9 @@ class TokenType(Enum):
     INT_LITERAL = ("INT_LITERAL", "int_float")
     FLOAT_LITERAL = ("FLOAT_LITERAL", "int_float")
     STRING_LITERAL = ("STRING_LITERAL", "string")
-    STRING_PART_START = ("STRING_PART_START", "logical_delim") # "|
-    STRING_PART_MID = ("STRING_PART_MID", "logical_delim") # ||
-    STRING_PART_END = ("STRING_PART_END", "logical_delim") # |"
+    STRING_PART_START = ("STRING_PART_START", "string_parts") # "|
+    STRING_PART_MID = ("STRING_PART_MID", "string_parts") # ||
+    STRING_PART_END = ("STRING_PART_END", "string") # |"
     BOOL_LITERAL = ("BOOLEAN_LITERAL", "bool")  # fax, cap
 
     # OPERATORS
@@ -90,10 +90,11 @@ class TokenType(Enum):
     # OTHER
     IDENTIFIER = ("IDENTIFIER", "id")
     FUNC_NAME = ("FUNCTION NAME", "function")
-    CWASS_NAME = ("CWASS NAME", "function")
+    CWASS_NAME = ("CWASS NAME", "cwass")
     CWASS_TYPE = ("CWASS TYPE", "cwass_type")
     SINGLE_LINE_COMMENT = ("COMMENT", "single_line_comment")
     MULTI_LINE_COMMENT = ("MULTI LINE COMMENT", "line")
+    TYPE_INDICATOR = ("TYPE INDICATOR", 'type_indicator')
 
 
 class Token:

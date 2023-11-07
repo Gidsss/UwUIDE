@@ -19,28 +19,38 @@ class Error(Enum):
                        "No opening parenthesis was found on function declaration")
     FWUNC_DATA_TYPE = ("MISSING DATATYPE",
                       "No data type was indicated on function declaration")
+    FWUNC_INVALID_DATA_TYPE = ("INVALID DATATYPE",
+                               "No data valid type was indicated on function declaration")
     INVALID_FUNC_DECLARE = ("INVALID FUNCTION NAME DECLARATION",
                             "Function name is missing a data type/parenthesis")
     MISSING_FWUNC = ("MISSING FWUNC KEYWORD",
                      "Function declarations need to have a 'fwunc' before to indicate it is a function")
-    FWUNC_UPPERCASE = ("INVALID FUNCTION NAME",
+    FWUNC_INVALID_START = ("INVALID FUNCTION NAME",
                       'Function names should only start with a lowercase letter')
     FWUNC_INVALID_NAME = ("INVALID FUNCTION NAME",
                          'functions can only have alphanumeric characters')
-    FWUNC_DOT_OPERATOR = ("INVALID USAGE OF '.'",
-                          "functions don't have methods")
+    FWUNC_TYPE_INDICATOR = ("POSSIBLE INVALID TYPE INDICATOR",
+                            "the only valid type indicator is '-'")
     
     # class errors
     CWASS_OPEN_PAREN = ("MISSING PARENTHESIS",
                        "No opening parenthesis was found on class declaration")
+    CWASS_DATA_TYPE = ("HAS DATATYPE",
+                      "classes cannot have return types")
     INVALID_CWASS_DECLARE = ("INVALID CLASS NAME DECLARATION",
                             "class name is missing a parenthesis")
     MISSING_CWASS = ("MISSING CWASS KEYWORD",
                      "Class declarations need to have a 'cwass' before to indicate it is a class")
-    CWASS_LOWERCASE = ("INVALID CLASS NAME",
+    CWASS_INVALID_START = ("INVALID CLASS NAME",
                       'Class names should only start with an uppercase letter')
     CWASS_INVALID_NAME = ("INVALID CLASS NAME",
                          'classes can only have alphanumeric characters')
+    DIRECT_CALL_METHOD_PROP = ("DIRECTLY CALLING METHOD/PROPERTY",
+                         'you cannot call a class method/property by using the class directly. Consider creating an instance first')
+    CWASS_MISSING_ASSIGNMENT = ("MISSING ASSIGNMENT OPERATOR BEFORE",
+                                "cannot create an instance of a class if a class is not assigned to a variable")
+    CWASS_TYPE_MISSING_TYPE_INDICATOR = ("MISSING TYPE INDICATOR",
+                                         "to be able to use a class as a data type, it must be after a type indicator (which must be after a variable)")
 
     # string errors    
     UNCLOSED_STRING = ("UNCLOSED STRING",
@@ -101,7 +111,7 @@ class GenericError:
 
     def __str__(self):
         log = ''
-        log += f"[{self.error_type}] Error on line {self._position[0]}"
+        log += f"[{self.error_type}] Error on line {self._position[0] + 1}"
         if self.end_position:
             log += f" from column {self._position[1]} to {self._end_position[1]}"
         else:
@@ -113,11 +123,12 @@ class GenericError:
 
         # Error preview
         error_range = 1 if self.end_position is None else self.end_position[1] - self.position[1] + 1
-        index_str = str(self.position[0])
-        log += f"\t{'_'*20}\n"
+        index_str = str(self.position[0] + 1)
+        border = f"\t{'_' * (len(ErrorSrc.src[self.position[0]]) + len(index_str) + 3)}\n"
+        log += border
         log += f"\t{index_str} | {ErrorSrc.src[self.position[0]]}\n"
         log += f"\t{' ' * len(index_str)} | {' '*self.position[1]}{'^'*error_range}\n"
-        log += f"\t{'_'*20}\n"
+        log += border
         return log
     
     @property
@@ -155,7 +166,7 @@ class DelimError:
     def __str__(self):
         log = ""
 
-        log += f"[{self.error_type}] Error on line {self.position[0]} column {self.position[1]}:\n"
+        log += f"[{self.error_type}] Error on line {self.position[0] + 1} column {self.position[1]}:\n"
         log += f"\texpected any of these characters: "
 
         for delim in self.expected_delims:
@@ -164,11 +175,12 @@ class DelimError:
         log += f"\n\tafter {self.temp_id} but got {self.actual_delim if self.actual_delim != ' ' else 'WHITESPACE'} instead\n"
 
         # Error preview
-        index_str = str(self.position[0])
-        log += f"\t{'_' * 20}\n"
+        index_str = str(self.position[0] + 1)
+        border = f"\t{'_' * (len(ErrorSrc.src[self.position[0]]) + len(index_str) + 3)}\n"
+        log += border
         log += f"\t{index_str} | {ErrorSrc.src[self.position[0]]}\n"
         log += f"\t{' ' * len(index_str)} | {' ' * self.position[1]}{'^'}\n"
-        log += f"\t{'_' * 20}\n"
+        log += border
 
         return log
 
@@ -184,7 +196,7 @@ class IntFloatWarning:
     def __str__(self):
         log = ''
 
-        log += f"[{self.warn_type}] Warning on line {self._position[0]}"
+        log += f"[{self.warn_type}] Warning on line {self._position[0] + 1}"
 
         if self.end_position:
             log += f" from column {self._position[1]} to {self._end_position[1]}"
@@ -198,11 +210,12 @@ class IntFloatWarning:
 
         # Error preview
         error_range = 1 if self.end_position is None else self.end_position[1] - self.position[1] + 1
-        index_str = str(self.position[0])
-        log += f"\t{'_' * 20}\n"
+        index_str = str(self.position[0] + 1)
+        border = f"\t{'_'*(len(ErrorSrc.src[self.position[0]]) + len(index_str) + 3)}\n"
+        log += border
         log += f"\t{index_str} | {ErrorSrc.src[self.position[0]]}\n"
         log += f"\t{' ' * len(index_str)} | {' ' * self.position[1]}{'^' * error_range}\n"
-        log += f"\t{'_' * 20}\n"
+        log += border
 
         return log
 
@@ -247,7 +260,7 @@ class GenericWarning:
 
     def __str__(self):
         log = ''
-        log += f"[{self.warn_type}] Warning on line {self._position[0]}"
+        log += f"[{self.warn_type}] Warning on line {self._position[0] + 1}"
         if self.end_position:
             log += f" from column {self._position[1]} to {self._end_position[1]}"
         log += ':\n'
@@ -257,11 +270,12 @@ class GenericWarning:
 
         # Error preview
         error_range = 1 if self.end_position is None else self.end_position[1] - self.position[1] + 1
-        index_str = str(self.position[0])
-        log += f"\t{'_' * 20}\n"
+        index_str = str(self.position[0] + 1)
+        border = f"\t{'_' * (len(ErrorSrc.src[self.position[0]]) + len(index_str) + 3)}\n"
+        log += border
         log += f"\t{index_str} | {ErrorSrc.src[self.position[0]]}\n"
         log += f"\t{' ' * len(index_str)} | {' ' * self.position[1]}{'^' * error_range}\n"
-        log += f"\t{'_' * 20}\n"
+        log += border
 
         return log
     
