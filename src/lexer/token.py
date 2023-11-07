@@ -111,6 +111,7 @@ class UniqueTokenType:
     ID = "ID"
     FWUNC = "FWUNC"
     CWASS = "CWASS"
+    CWASS_TYPE = "CWASS_TYPE"
 
     def __init__(self, lexeme: str, token: str):
         if token == self.ID:
@@ -122,7 +123,14 @@ class UniqueTokenType:
             print(self.fwunc_dict)
         elif token == self.CWASS:
             self._token = self.cwass_dict.setdefault(lexeme, f"CWASS_{len(self.cwass_dict) + 1}")
-            self._delim_id = "function"
+            self._delim_id = "cwass"
+        elif token == self.CWASS_TYPE:
+            if lexeme in self.cwass_dict:
+                self._token = self.cwass_dict[lexeme]+"_TYPE"
+                self._delim_id = "cwass_type"
+            else:
+                self._token = None
+                return
         self._expected_delims = DELIMS[self.delim_id]
 
     @classmethod

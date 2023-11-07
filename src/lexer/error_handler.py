@@ -51,6 +51,8 @@ class Error(Enum):
                                 "cannot create an instance of a class if a class is not assigned to a variable")
     CWASS_TYPE_MISSING_TYPE_INDICATOR = ("MISSING TYPE INDICATOR",
                                          "to be able to use a class as a data type, it must be after a type indicator (which must be after a variable)")
+    NONEXISTENT_CWASS_TYPE = ("NON-EXISTENT CWASS TYPE",
+                              "cwass must be declared first before it can be used as a data type")
 
     # string errors    
     UNCLOSED_STRING = ("UNCLOSED STRING",
