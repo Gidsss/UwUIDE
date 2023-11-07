@@ -25,26 +25,25 @@ class TestCases(Enum):
     TC1 = (
         ['staart!','gwobaw helloworld-senpai~','mainuwu-chan()[[','pwint(helloworld)~',']]','donee~'],
         [
-        Token('staart!', TokenType.START.token, (0,0), (0,6)),
-        Token('gwobaw', TokenType.GWOBAW.token, (1,0), (1,5)),
-        Token('helloworld', TokenType.IDENTIFIER.token, (1,7), (1,16)),
+        Token('staart!', TokenType.START, (0,0), (0,6)),
+        Token('gwobaw', TokenType.GWOBAW, (1,0), (1,5)),
+        Token('helloworld', TokenType.IDENTIFIER, (1,7), (1,16)),
         Token('-', 'ID_DELIM', (1,17), (1,17)),
-        Token('senpai', TokenType.SENPAI.token, (1,18), (1,23)),
+        Token('senpai', TokenType.SENPAI, (1,18), (1,23)),
         Token('~', TokenType.TERMINATOR, (1,24), (1,24)),
-        Token('mainuwu', TokenType.MAINUWU.token, (2,0), (2,6)),
+        Token('mainuwu', TokenType.MAINUWU, (2,0), (2,6)),
         Token('-', 'ID_DELIM', (2,7), (2,7)),
-        Token('chan', TokenType.CHAN.token, (2,8), (2,11)),
-        Token('(', TokenType.OPEN_PAREN.token, (2,12), (2,12)),
-        Token(')', TokenType.CLOSE_PAREN.token, (2,13), (2,13)),
-        Token('[[', TokenType.DOUBLE_OPEN_BRACKET.token, (2,14), (2,15)),
-        Token('pwint', TokenType.PWINT.token, (3,0), (3,4)),
-        Token('(', TokenType.OPEN_PAREN.token, (3,5), (3,5)),
-        Token('helloworld', TokenType.IDENTIFIER.token, (3,6), (3,15)),
-        Token(')', TokenType.CLOSE_PAREN.token, (3,16), (3,16)),
-        Token('~', TokenType.TERMINATOR.token, (3,17), (3,17)),
-        Token(']]', TokenType.DOUBLE_CLOSE_BRACKET.token, (3,18), (3,19)),
-        Token('donee', TokenType.DONE.token, (4,0), (4,4)),
-        Token('~', TokenType.TERMINATOR.token, (4,5), (4,5))
+        Token('chan', TokenType.CHAN, (2,8), (2,11)),
+        Token('(', TokenType.OPEN_PAREN, (2,12), (2,12)),
+        Token(')', TokenType.CLOSE_PAREN, (2,13), (2,13)),
+        Token('[[', TokenType.DOUBLE_OPEN_BRACKET, (2,14), (2,15)),
+        Token('pwint', TokenType.PWINT, (3,0), (3,4)),
+        Token('(', TokenType.OPEN_PAREN, (3,5), (3,5)),
+        Token('helloworld', TokenType.IDENTIFIER, (3,6), (3,15)),
+        Token(')', TokenType.CLOSE_PAREN, (3,16), (3,16)),
+        Token('~', TokenType.TERMINATOR, (3,17), (3,17)),
+        Token(']]', TokenType.DOUBLE_CLOSE_BRACKET, (4, 0), (4, 1)),
+        Token('donee~', TokenType.DONE, (5,0), (5,4))  
         ]
     )
 
@@ -68,7 +67,7 @@ class TestLexer:
             print(token == e_token.token)
             
             assert lexeme == e_token.lexeme
-            # assert token == e_token.token
+            assert token == e_token.token
             assert line1 == e_line1
             assert start_pos == e_start_pos
             assert line2 == e_line2
