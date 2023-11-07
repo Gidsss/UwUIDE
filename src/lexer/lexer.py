@@ -11,6 +11,7 @@ class Lexer():
     def __init__(self, source_code: list[str]):
         self._lines = source_code
         ErrorSrc.src = source_code
+        UniqueTokenType.clear()
 
         self._position = [0,0]
         self._current_char = self._lines[self._position[0]][self._position[1]]
@@ -733,14 +734,16 @@ class Lexer():
         temp_id = from_keyword
 
         if cwass:
-            token_type =  TokenType.CWASS_NAME
+            token_type = TokenType.GEN_CWASS_NAME
+            unique_type = UniqueTokenType.CWASS
             open_paren_error = Error.CWASS_OPEN_PAREN
             invalid_name_error = Error.INVALID_CWASS_DECLARE
             missing_keyword_error = Error.MISSING_CWASS
             not_alphanumeric_error = Error.CWASS_INVALID_NAME
 
         else:
-            token_type = TokenType.FUNC_NAME
+            token_type = TokenType.GEN_FUNC_NAME
+            unique_type = UniqueTokenType.FWUNC
             open_paren_error = Error.FWUNC_OPEN_PAREN
             data_type_error = Error.FWUNC_DATA_TYPE            
             invalid_name_error = Error.INVALID_FUNC_DECLARE
@@ -773,7 +776,8 @@ class Lexer():
                         else:
                             # check if class/func name is alphanumeric
                             if temp_id.isalnum():
-                                self._tokens.append(Token(temp_id, token_type, starting_position, ending_position))
+                                self._tokens.append(Token(temp_id, UniqueTokenType(temp_id, unique_type),
+                                                          starting_position, ending_position))
                             else:
                                 self._logs.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
                                                                context=f"'{temp_id}' is invalid"))
@@ -809,7 +813,8 @@ class Lexer():
                             if cwass:
                                 # check if class/func name is alphanumeric
                                 if temp_id.isalnum():
-                                    self._tokens.append(Token(temp_id, token_type, starting_position, ending_position))
+                                    self._tokens.append(Token(temp_id, UniqueTokenType(temp_id, unique_type),
+                                                              starting_position, ending_position))
                                 else:
                                     self._logs.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
                                                                    context=f"'{temp_id}' is invalid"))
@@ -883,7 +888,8 @@ class Lexer():
 
                         # check if class/func name is alphanumeric
                         if temp_id.isalnum():
-                            self._tokens.append(Token(temp_id, token_type, starting_position, ending_position))    
+                            self._tokens.append(Token(temp_id, UniqueTokenType(temp_id, unique_type),
+                                                      starting_position, ending_position))
                         else:
                             self._logs.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
                                                            context=f"'{temp_id}' is invalid"))
@@ -911,7 +917,8 @@ class Lexer():
 
                     # check if class/func name is alphanumeric
                     if temp_id.isalnum():
-                        self._tokens.append(Token(temp_id, TokenType.CWASS_TYPE, starting_position, ending_position))
+                        self._tokens.append(Token(temp_id, UniqueTokenType(temp_id, unique_type),
+                                                  starting_position, ending_position))
                     else:
                         self._logs.append(GenericError(not_alphanumeric_error, starting_position, ending_position,
                                                        context=f"'{temp_id}' is invalid"))
@@ -945,7 +952,7 @@ class Lexer():
                 if in_next_line:
                     self._reverse()
                 line, col = self._position
-                self._logs.append(DelimError(TokenType.IDENTIFIER, (line, col + 1), temp_id, '\n'))
+                self._logs.append(DelimError(TokenType.GEN_IDENTIFIER, (line, col + 1), temp_id, '\n'))
                 cursor_advanced = True
                 break
 
@@ -963,7 +970,8 @@ class Lexer():
                     self._logs.append(GenericError(Error.IDEN_INVALID_NAME, starting_position, ending_position,
                                                     f"'{temp_id}' is invalid"))
                 else:
-                    self._tokens.append(Token(temp_id, TokenType.IDENTIFIER, starting_position, ending_position))
+                    self._tokens.append(Token(temp_id, UniqueTokenType(temp_id, UniqueTokenType.ID),
+                                              starting_position, ending_position))
 
                 cursor_advanced = True
                 break
