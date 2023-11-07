@@ -4,7 +4,7 @@ from .components.code_view import CodeView, CodeEditor
 from .components.console_view import ConsoleView
 from .components.command_menu import CommandMenu
 from .components.analyzer_tabs import UwULexerTab, UwUParserTab
-
+from PIL import Image
 from constants.path import *
 
 class ToplevelWindow(CTkToplevel):
@@ -14,6 +14,15 @@ class ToplevelWindow(CTkToplevel):
         self.resizable(False, False)
         self.label = CTkLabel(self, text="ToplevelWindow")
         self.label.pack(padx=20, pady=20)
+
+        # Load an image using PIL and convert it to a PhotoImage object
+        self.first_image = CTkImage(light_image=Image.open(f"{AQUACE_BG_ASSET}"), size=(100,150)) # Replace with the path to your image
+        self.first_image_label = CTkLabel(self, image=self.first_image, text='')
+        self.first_image_label.place(x=10, y=20)
+
+        # Create a label to display text and set its coordinates
+        self.text = CTkLabel(self, text="ToplevelWindow")
+        self.text.place(x=200, y=300)  # Adjust the coordinates as neede
 
 class UwUCodePanel(CTkFrame):
     def __init__(self, master, **kwargs):
