@@ -18,7 +18,7 @@ class WelcomeWindow(CTkToplevel):
         self.bgLabel.place(x = 0, y = 0)
 
         self.welcomeText = CTkLabel(master = self, anchor = 'center', text = 'Welcome to', 
-                                    text_color = '#FFFFFF', bg_color  = 'transparent', font = ('JetBrains Mono', 40))
+                                    text_color = '#FFFFFF', bg_color  = 'transparent', font = ('JetBrains Mono Bold', 40))
         self.welcomeText.place(x = 179, y = 94)
 
         self.uwuImage = CTkImage(dark_image = Image.open(f'{LOGO_WHITE_ASSET}'), size = (118, 41))
@@ -27,37 +27,37 @@ class WelcomeWindow(CTkToplevel):
         self.uwuLabel.place(x = 242, y = 167)
 
         self.versionText = CTkLabel(master = self, anchor = 'center', text = 'Version 0.1.0', 
-                                    text_color = '#FFFFFF', fg_color = 'transparent', font = ('JetBrains Mono', 14))
+                                    text_color = '#FFFFFF', fg_color = 'transparent', font = ('JetBrains Mono Light', 14))
         self.versionText.place(x = 246, y = 229)
 
         self.firstDesc = CTkLabel(master = self, anchor = 'center', text = 'UwU++ is a whimsical and delightful', 
-                                    text_color = '#FFFFFF', fg_color = 'transparent', font = ('JetBrains Mono', 17))
+                                    text_color = '#FFFFFF', fg_color = 'transparent', font = ('JetBrains Mono Bold', 17))
         self.firstDesc.place(x = 123, y = 271)
         
         self.secondDesc = CTkLabel(master = self, anchor = 'center', text = 'programming language that brings the charm of', 
-                                    text_color = '#FFFFFF', fg_color = 'transparent', font = ('JetBrains Mono', 17))
+                                    text_color = '#FFFFFF', fg_color = 'transparent', font = ('JetBrains Mono Bold', 17))
         self.secondDesc.place(x = 70, y = 299)
         
         self.thirdDesc = CTkLabel(master = self, anchor = 'center', text = 'cuteness to the world of coding.', 
-                                    text_color = '#FFFFFF', fg_color = 'transparent', font = ('JetBrains Mono', 17))
+                                    text_color = '#FFFFFF', fg_color = 'transparent', font = ('JetBrains Mono Bold', 17))
         self.thirdDesc.place(x = 138, y = 327)
 
         self.devLogsLabel = CTkLabel(master = self, anchor = 'center', text = 'Developer Logs', 
-                                    text_color = '#FFFFFF', fg_color = 'transparent', font = ('JetBrains Mono', 15))
+                                    text_color = '#FFFFFF', fg_color = 'transparent', font = ('JetBrains Mono Light', 15))
         self.devLogsLabel.place(x = 235, y = 376)
 
         self.firstLog = CTkLabel(master = self, anchor = 'center', text = '• Importing and Saving *.uwu files', 
-                                    text_color = '#FFFFFF', bg_color  = 'transparent', font = ('JetBrains Mono', 15))
+                                    text_color = '#FFFFFF', bg_color  = 'transparent', font = ('JetBrains Mono Light', 15))
         self.firstLog.place(x = 144, y = 403)
 
         self.secondLog = CTkLabel(master = self, anchor = 'center', text = '• Display logs on console view', 
-                                    text_color = '#FFFFFF', bg_color  = 'transparent', font = ('JetBrains Mono', 15))
+                                    text_color = '#FFFFFF', bg_color  = 'transparent', font = ('JetBrains Mono Light', 15))
         self.secondLog.place(x = 163, y = 430)
 
         self.thirdLog = CTkLabel(master = self, anchor = 'center', text = '• Token highlighting', 
-                                    text_color = '#FFFFFF', bg_color  = 'transparent', font = ('JetBrains Mono', 15))
+                                    text_color = '#FFFFFF', bg_color  = 'transparent', font = ('JetBrains Mono Light', 15))
         self.thirdLog.place(x = 209, y = 457)
 
         self.fourthLog = CTkLabel(master = self, anchor = 'center', text = '• Lexical Analyzer', 
-                                    text_color = '#FFFFFF', bg_color  = 'transparent', font = ('JetBrains Mono', 15))
+                                    text_color = '#FFFFFF', bg_color  = 'transparent', font = ('JetBrains Mono Light', 15))
         self.fourthLog.place(x = 217, y = 484)

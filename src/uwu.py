@@ -5,7 +5,6 @@ from .components.console_view import ConsoleView
 from .components.command_menu import CommandMenu
 from .components.analyzer_tabs import UwULexerTab, UwUParserTab
 from .components.welcome_window import WelcomeWindow
-
 from constants.path import *
 
 class UwUCodePanel(CTkFrame):
@@ -81,7 +80,6 @@ class UwU(CTk):
         self.resizable(False, False)
         self.title("UwU++")
         self.configure(fg_color='#16161E')
-        self.iconbitmap(f'{ICON_WHITE_ASSET}')
 
         # Open top level window
         self.welcomeWindow = WelcomeWindow(self)
