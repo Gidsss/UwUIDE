@@ -46,7 +46,7 @@ DELIMS = {
     'double_close_bracket': {' ', '\n', *ATOMS['alpha'], '>'},
     'unary': {'~', ')', *ATOMS['general_operator']},
     'concat': {' ', '"', *ATOMS['alpha']},
-    'line': {'\n', ' ', *ATOMS['alpha']},
+    'line': {'\n', ' ', *ATOMS['alpha'], ']'},
     'comma': {*ATOMS['alpha'], ' ', *ATOMS['number'], '"', '-', '\n', '>'},
     'dot_op': {*ATOMS['alpha'], '[', '('},
     'start_done': {'\n', ' ', '>'},

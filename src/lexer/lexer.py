@@ -710,19 +710,39 @@ class Lexer():
         return all(found)
 
 
-    def _check_prev_token(self, to_check: TokenType | list[TokenType]):
+    def _check_prev_token(self, to_check: TokenType | list[TokenType], prev_count: int = 1, in_order=False):
         """
         Checks prev token if it has the token type/s passed. Must be on the same line
+
+        can check for token a specific token behind from the current character
+            eg. `fwunc aqua-chan`, `fwunc` is 3 tokens behind from c in chan
+
+        can check for multiple token types if any is directly behind (default) or if all are behind in order
+            eg. `fwunc aqua-chan`, `-`, `aqua`, and `fwunc` are 1, 2, 3 tokens behind from c in chan respectivly
         """
 
         # Convert input to list
         if isinstance(to_check, TokenType):
             to_check = [to_check]
+        if in_order and prev_count > 1:
+            raise ValueError("You are checking for tokens in order. Please keep the prev_count as default '1'")
+
         present_flag = False
-        if len(self.tokens) > 0:
-            prev_token = self.tokens[-1]
-            if prev_token.token in to_check and prev_token.position[0] == self._position[0]:
-                present_flag = True
+        if in_order:
+            start = 1
+            prev_count = len(to_check)+1
+        else:
+            start = prev_count
+            prev_count += 1
+        
+        for i in range(start, prev_count):
+            if len(self.tokens) >= i:
+                prev_token = self.tokens[-i]
+                if prev_token.token in to_check and prev_token.position[0] == self._position[0]:
+                    present_flag = True
+                else:
+                    present_flag = False
+                    break
 
         return present_flag
 
@@ -982,9 +1002,13 @@ class Lexer():
                         elif temp_id[0].islower():
                             self._tokens.append(Token(temp_id, TokenType.FUNC_NAME, starting_position, ending_position))
 
-                        # valid class call for creating instance
                         elif temp_id[0].isupper():
-                            if assignment_before:
+                            # check if a return type of a function declaration
+                            fwunc_declaration_return_type = self._check_prev_token([TokenType.TYPE_INDICATOR,TokenType.FUNC_NAME,TokenType.FWUNC], in_order=True)
+                            if fwunc_declaration_return_type:
+                                self._tokens.append(Token(temp_id, TokenType.CWASS_TYPE, starting_position, ending_position))
+                            # valid class call for creating instance
+                            elif assignment_before:
                                 self._tokens.append(Token(temp_id, TokenType.CWASS_NAME, starting_position, ending_position))
                             else:
                                 context = f"try this: var-{temp_id} = {temp_id}()~\n\t              "+" "*len(temp_id)+" ^"
@@ -1456,7 +1480,7 @@ def print_lex(source_code: list[str]):
     print('\nsample text file')
     print("_"*20)
     for i, line in enumerate(source_code):
-        print(f"{i} | {line}")
+        print(f"{i+1} | {line}")
     print("_"*20)
     print('end of file\n')
     x = Lexer(source_code)
