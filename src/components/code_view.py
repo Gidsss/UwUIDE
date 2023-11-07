@@ -85,10 +85,6 @@ class CodeEditor(CTkFrame):
 
         self.line_nums = Linenums(master=self, text_widget=self.text)
         self.line_nums.grid(row=0, column=0, sticky='nsew')
-       
-        self.bg_asset = CTkImage(light_image=Image.open(f"{AQUACE_BG_ASSET}"), size=(152, 160))
-        self.bg_asset_label = CTkLabel(self, image=self.bg_asset, text='')
-        self.bg_asset_label.place(x=655, y=160)#Position: 660 x 160
         
         self.text.bind("<Button-1>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<Tab>", lambda e: self.on_tab(e))

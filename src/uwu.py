@@ -7,6 +7,14 @@ from .components.analyzer_tabs import UwULexerTab, UwUParserTab
 
 from constants.path import *
 
+class ToplevelWindow(CTkToplevel):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.geometry("500x500+700+150")
+        self.resizable(False, False)
+        self.label = CTkLabel(self, text="ToplevelWindow")
+        self.label.pack(padx=20, pady=20)
+
 class UwUCodePanel(CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
@@ -81,6 +89,9 @@ class UwU(CTk):
         self.title("UwU++")
         self.configure(fg_color='#16161E')
 
+        # Open top level window
+        self.open_toplevel()
+        
         # define grid
         self.grid_columnconfigure((0,1,2,3,4), weight=1)
         self.grid_rowconfigure((0,1,2,3,4), weight=1)
@@ -103,13 +114,19 @@ class UwU(CTk):
             segmented_button_unselected_color='#1A1B26',segmented_button_unselected_hover_color='gray'
         )
         self.analyzer_panel.grid(row=0, column=4, rowspan=5, columnspan=2, sticky='nsew')
+        
+    def open_toplevel(self):
+        toplevel_window = ToplevelWindow(self)
+        toplevel_window.title("Toplevel Window")
+        toplevel_window.geometry("500x500")
+        toplevel_window.label = CTkLabel(toplevel_window, text="ToplevelWindow")
+        toplevel_window.label.pack(padx=20, pady=20)
 
     def on_compiler_run(self, code_editor: CodeEditor):
         code_editor.run_lexer()
         self.analyzer_panel.update_lexer(tokens=code_editor.tokens)
         self.code_panel.update_console_logs(errors=code_editor.errors)
         
-
 if __name__ == "__main__":
-    app = UwU()
+    app = UwU()  
     app.mainloop()
