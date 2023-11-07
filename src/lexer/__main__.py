@@ -4,10 +4,14 @@ from .lexer import *
 if __name__ == "__main__":
     # temporary test source code
     source_code = [
-        'fwunc manji-Manji() [[',
-        '   var-Manji = Manji()~',
-        '   Manji()~',
-        '   func()----5~]]'
+        'fwunc manji+Class() ',
+        'manji+Class() ',
+        'cwass Manji+Manji() ',
+        'manji+manji() ',
+        'Manji+manji() ',
+        # '   var-Manji = Manji()~',
+        # '   Manji()~',
+        # '   func()----5~]]'
         # r'pwint("hello \"hello\"")',
         # 'pwint("hello \|hello\|")',
         # 'fwunc 1bc-chan() ',

@@ -793,11 +793,7 @@ class Lexer():
         current_line = self._position[0]
 
         if fwunc_exists:
-            expected_delim = set()
-            if dash_datatype_exist:
-                expected_delim.add('-')
-            if parentheses_exist:
-                expected_delim.add('(')
+            expected_delim = {'-', '('}
 
             while True:
                 # end of func name
@@ -833,16 +829,15 @@ class Lexer():
                             self._logs.append(GenericError(Error.FWUNC_INVALID_NAME, starting_position, ending_position,
                                                             context=f"'{temp_id}' is invalid"))
                             
+                        corrected_value = corrected_value if corrected_value else temp_id
                         # incomplete func declaration
                         # no parenthesis OR wrong data type
                         if not parentheses_exist:
-
                             # recheck if there is a parenthesis after a dash since dash_datatype_exist
                             # checks if there is a dash WITH correct data type before checking for parenthesis
                             open_paren_exists = self._seek(['-', '('], ignore_space=True, alphanum_only=True)
                             if dash_datatype_exist or open_paren_exists:
                                 # wrong data type after dash
-                                corrected_value = corrected_value
                                 original_length = len(temp_id)
                                 while True:
                                     is_end_of_file = self._advance()
@@ -868,14 +863,47 @@ class Lexer():
                                         self._logs.append(GenericError(Error.FWUNC_INVALID_DATA_TYPE, starting_position, ending_position,
                                                 context=f"'{invalid_data_type}' is not a valid data type.\n\tvalid data types: 'chan', 'kun', 'sama', 'senpai', 'san'"))
                                         break
-                                        
+
+                            # no open parenthesis
                             else:
-                                self._logs.append(GenericError(Error.FWUNC_OPEN_PAREN, starting_position, ending_position,
-                                                                 context=f"'{corrected_value if corrected_value else temp_id}' has no opening parenthesis following it"))
+                                # recheck for open parenthesis but this time without requiring a dash before it
+                                open_paren_exists = self._seek('(', ignore_space=True, alphanum_only=True)
+                                if not open_paren_exists:
+                                    self._logs.append(GenericError(Error.FWUNC_OPEN_PAREN, starting_position, ending_position,
+                                                                    context=f"'{corrected_value}' has no opening parenthesis following it"))
+
                         # no data type
                         if not dash_datatype_exist:
-                            self._logs.append(GenericError(Error.FWUNC_DATA_TYPE, starting_position, ending_position,
-                                                            context=f"'{corrected_value if corrected_value else temp_id}' has no datatype"))
+                            # take into account a wrong type indicator and show error (if only one special character exists in the name)
+                            special_chars = [corrected_value.index(char) for char in corrected_value if not char.isalnum()]
+                            if len(special_chars) == 1:
+                                self._reverse(special_chars[0])
+
+                                # check if correct data types are after the invalid type indicator
+                                data_types = ["chan", "kun", "sama", "senpai", "san", "dono"]
+                                open_paren_exist = False
+                                for dt in data_types:
+                                    found_type = self._seek(f'{self._current_char}{dt}(', ignore_space=False, alphanum_only=True, include_current=True)
+                                    if found_type:
+                                        open_paren_exist = True
+                                        break
+                                # if there is no - followed by a data type followed by a (, check if return value is a cwass name  
+                                if not open_paren_exist:
+                                    for alpha_big in ATOMS['alpha_big']:
+                                        found_cwass_name = self._seek([f'{self._current_char}{alpha_big}', '('], ignore_space=False, alphanum_only=True, include_current=True)
+                                        if found_cwass_name:
+                                            open_paren_exist = True
+                                            break
+
+                                self._advance(special_chars[0])
+                                if open_paren_exist:
+                                    possible_data_type = corrected_value[special_chars[0]+1:]
+                                    starting_position = ending_position = tuple([self._position[0], self._position[1]-len(possible_data_type)])
+                                    self._logs.append(GenericError(Error.FWUNC_TYPE_INDICATOR, starting_position, ending_position,
+                                                                   context=f"'{corrected_value[special_chars[0]]}' is an invalid type indicator"))
+                            else:
+                                self._logs.append(GenericError(Error.FWUNC_DATA_TYPE, starting_position, ending_position,
+                                                               context=f"'{corrected_value}' has no datatype"))
                     break
                 
                 temp_id += self._current_char
@@ -892,12 +920,7 @@ class Lexer():
             cursor_advanced = True
 
         elif cwass_exists:
-            expected_delim = set()
-            if dash_datatype_exist:
-                expected_delim.add('-')
-            if parentheses_exist:
-                expected_delim.add('(')
-
+            expected_delim = {'-', '('}
             while True:
                 # end of func name
                 if self._current_char in expected_delim:
@@ -925,13 +948,15 @@ class Lexer():
                             self._logs.append(GenericError(Error.CWASS_INVALID_START, starting_position, ending_position, 
                                                             context=f"instead of '{temp_id}', did you mean to type '{corrected_value}'?"))
                         if not temp_id.isalnum():
+                            corrected_value = corrected_value if corrected_value else temp_id
                             self._logs.append(GenericError(Error.CWASS_INVALID_NAME, starting_position, ending_position,
-                                                            context=f"'{temp_id}' is invalid"))
+                                                            context=f"'{corrected_value}' is invalid"))
 
+                        corrected_value = corrected_value if corrected_value else temp_id
                         # invalid class declaration
                         # has data type
                         if dash_datatype_exist:
-                            temp_id = corrected_value if corrected_value else temp_id
+                            temp_id = corrected_value
                             original_length = len(temp_id)
                             while True:
                                 is_end_of_file = self._advance()
@@ -957,10 +982,42 @@ class Lexer():
                                             context=f"Consider replacing '{temp_id}' with '{corrected_value}'"))
                                     break
 
+                        # might have a wrong type indicator
+                        else:
+                            # take into account a wrong type indicator and show error (if only one special character exists in the name)
+                            special_chars = [corrected_value.index(char) for char in corrected_value if not char.isalnum()]
+                            if len(special_chars) == 1:
+                                self._reverse(special_chars[0])
+                                
+                                # check if correct data types are after the invalid type indicator
+                                data_types = ["chan", "kun", "sama", "senpai", "san", "dono"]
+                                open_paren_exist = False
+                                for dt in data_types:
+                                    found_type = self._seek(f'{self._current_char}{dt}(', ignore_space=False, alphanum_only=True, include_current=True)
+                                    if found_type:
+                                        open_paren_exist = True
+                                        break
+                                # if there is no - followed by a data type followed by a (, check if return value is a cwass name  
+                                if not open_paren_exist:
+                                    for alpha_big in ATOMS['alpha_big']:
+                                        found_cwass_name = self._seek([f'{self._current_char}{alpha_big}', '('], ignore_space=False, alphanum_only=True, include_current=True)
+                                        if found_cwass_name:
+                                            open_paren_exist = True
+                                            break
+
+                                self._advance(special_chars[0])
+                                if open_paren_exist:
+                                    possible_data_type = corrected_value[special_chars[0]+1:]
+                                    starting_position = ending_position = tuple([self._position[0], self._position[1]-len(possible_data_type)])
+                                    self._logs.append(GenericError(Error.CWASS_DATA_TYPE, starting_position, ending_position,
+                                                                   context=f"is '{corrected_value[special_chars[0]]}' supposed to be a type indicator?\n\tif so Consider replacing '{corrected_value}' with '{corrected_value[special_chars[0]+1:]}'"))
                         # no parenthesis
                         if not parentheses_exist:
-                            self._logs.append(GenericError(Error.CWASS_OPEN_PAREN, starting_position, ending_position,
-                                                             context=f"'{corrected_value if corrected_value else temp_id}' has no opening parenthesis following it"))
+                            # recheck for open parenthesis but this time without requiring a dash before it
+                            open_paren_exists = self._seek('(', ignore_space=True, alphanum_only=True)
+                            if not open_paren_exists:
+                                self._logs.append(GenericError(Error.CWASS_OPEN_PAREN, starting_position, ending_position,
+                                                             context=f"'{corrected_value}' has no opening parenthesis following it"))
                     break
                 
                 temp_id += self._current_char
@@ -979,13 +1036,7 @@ class Lexer():
         
         elif dash_datatype_exist or parentheses_exist:
             probably_identifier = False
-
-            expected_delim = set()
-            if dash_datatype_exist:
-                expected_delim.add('-')
-            if parentheses_exist:
-                expected_delim.add('(')
-            
+            expected_delim = {'-', '('}
             while True:
                 # end of func name
                 if self._current_char in expected_delim:

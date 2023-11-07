@@ -29,6 +29,8 @@ class Error(Enum):
                       'Function names should only start with a lowercase letter')
     FWUNC_INVALID_NAME = ("INVALID FUNCTION NAME",
                          'functions can only have alphanumeric characters')
+    FWUNC_TYPE_INDICATOR = ("POSSIBLE INVALID TYPE INDICATOR",
+                            "the only valid type indicator is '-'")
     
     # class errors
     CWASS_OPEN_PAREN = ("MISSING PARENTHESIS",
