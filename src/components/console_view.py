@@ -23,8 +23,6 @@ class CompilerLogs(CTkScrollableFrame):
 
         self.update_logs = self.logs_table.update_logs
         
-
-
 class Console(CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
@@ -57,5 +55,4 @@ class ConsoleView(CTkTabview):
         self.console.grid(row=0,column=0, rowspan=2, columnspan=2, sticky='nsew')
 
         self.update_logs = self.compiler_logs.update_logs
-                    
         
