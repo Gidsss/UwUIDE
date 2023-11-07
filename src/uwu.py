@@ -127,4 +127,7 @@ class UwU(CTk):
 
 if __name__ == "__main__":
     app = UwU()
+    code_view = app.code_panel.code_view
+    code_view.set_compiler_instance(app) 
+    code_view.command_menu = app.code_panel.command_menu  
     app.mainloop()

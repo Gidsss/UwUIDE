@@ -169,6 +169,9 @@ class CodeView(CTkTabview):
 
         for file in self.file_names:
             self.create_new_tab(file)
+            
+    def set_compiler_instance(self, compiler_instance):
+        self.compiler_instance = compiler_instance
     
     def create_new_tab(self, file_name):
         tab = self.add(file_name)
@@ -182,14 +185,18 @@ class CodeView(CTkTabview):
         
         # Pop up on right click
         test = Menu(code_editor.text, tearoff=False)
-        test.add_command(label='Run Program', command=lambda : print('Hello world'))
+        test.add_command(label='Run Program', command=lambda : self.compiler_instance.on_compiler_run())
         test.add_command(label='Save Program', command=lambda : print('Hello world'))
         test.add_separator()
-        test.add_command(label='Close File', command=lambda : print('Hello world'))
+        test.add_command(label='Close File', command=lambda : self.remove_tab(file_name))
         code_editor.text.bind('<Button-3>', lambda e: test.tk_popup(e.x_root, e.y_root))
 
     def remove_tab(self, file_name):
-        pass
+        self.delete(file_name)
+        code_editor = self.code_editors.pop(file_name)
+        code_editor.destroy()
+            
+      
 
     @property
     def editor(self) -> CodeEditor:
