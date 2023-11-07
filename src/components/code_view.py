@@ -1,7 +1,9 @@
 from customtkinter import *
 from tkinter import *
 from constants.path import *
+
 from src.lexer import Lexer, Token, Error
+
 from enum import Enum
 from PIL import Image
 
@@ -94,9 +96,11 @@ class CodeEditor(CTkFrame):
         self.text.bind("<Return>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<BackSpace>", lambda e: self.line_nums.on_redraw(e))
 
-        self.copy_paste_triggered = False
-        self.text.bind("<Control-c>", self.copy_text)
-        self.text.bind("<Control-v>", self.paste_text) 
+        self.text.bind("<Control-c>", lambda e: self.copy_text(e))
+        self.text.bind("<Control-v>", lambda e: self.paste_text(e))
+        self.text.bind("<Control-z>", lambda e: self.line_nums.on_redraw(e))
+        self.text.bind("<Control-y>", lambda e: self.line_nums.on_redraw(e)) 
+         
  
         # Initialize tags
         for tag in Tags:
@@ -150,28 +154,33 @@ class CodeEditor(CTkFrame):
         for tag in tags:
             self.text.tag_remove(tag.name, "1.0", "end")
 
-    def copy_text(self, event):
-      if event.state == 0:  # Only trigger if no other modifiers are pressed
-         self.text.clipboard_clear()
-         selected_text = self.text.get("sel.first", "sel.last")
-         self.text.clipboard_append(selected_text)
+    def copy_text(self, event: Event):
+        event.widget.clipboard_clear()
+        selected_text = event.widget.get("sel.first", "sel.last")
+        event.widget.clipboard_append(selected_text)
 
-    def paste_text(self, event):
-      if event.state == 0:  # Only trigger if no other modifiers are pressed
-         text_to_paste = self.text.clipboard_get()
-         self.text.insert(INSERT, text_to_paste)
+        return "break"
+
+    def paste_text(self, event: Event):
+        try:
+            text_to_paste = event.widget.clipboard_get()
+            event.widget.insert(INSERT, text_to_paste)
+            print('Working')
+            self.line_nums.on_redraw(event)
+        except:
+            raise ValueError('Clipboard is empty')
+        
+        return "break"
 
 class CodeView(CTkTabview):
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, parent, **kwargs):
         super().__init__(master, **kwargs)
+        self.parent = parent
         self.file_names = ['Untitled.uwu']
         self.code_editors: dict[str, CodeEditor] = {}
         
         for file in self.file_names:
             self.create_new_tab(file)
-    
-    def set_compiler_instance(self, compiler_instance):
-        self.compiler_instance = compiler_instance
     
     def create_new_tab(self, file_name):
         tab = self.add(file_name)
@@ -184,17 +193,42 @@ class CodeView(CTkTabview):
         self.code_editors[file_name] = code_editor
         
         # Pop up on right click
-        test = Menu(code_editor.text, tearoff=False)
-        test.add_command(label='Run Program', command=lambda : self.compiler_instance.on_compiler_run())
-        test.add_command(label='Save Program', command=lambda : print('Hello world'))
-        test.add_separator()
-        test.add_command(label='Close File', command=lambda : self.remove_tab(file_name))
-        code_editor.text.bind('<Button-3>', lambda e: test.tk_popup(e.x_root, e.y_root))
+        options_menu = Menu(code_editor.text, tearoff=False)
+
+        options_menu.add_command(label='Run Program', command=lambda : self.parent.on_compiler_run(code_editor=code_editor))
+        options_menu.add_command(label='Save Program', command=self.save_file)
+        options_menu.add_separator()
+        options_menu.add_command(label='Close File', command=lambda : self.remove_tab(file_name))
+
+        code_editor.text.bind('<Button-3>', lambda e: options_menu.tk_popup(e.x_root, e.y_root))
 
     def remove_tab(self, file_name):
         self.delete(file_name)
         code_editor = self.code_editors.pop(file_name)
         code_editor.destroy()
+
+    def save_file(self):
+        code_editor: CodeEditor = self.editor
+
+        if code_editor:
+            file_content = code_editor.text.get('1.0', 'end-1c')
+            file_name = filedialog.asksaveasfilename(initialfile=self.get(),defaultextension=".uwu", filetypes=[("UwU Files", "*.uwu")])
+            if file_name:
+                with open(file_name, "w") as file:
+                    file.write(file_content)
+
+    def load_file(self):
+        file_path = filedialog.askopenfilename(filetypes=[("UwU Files", "*.uwu")])
+        file_name = os.path.basename(file_path)
+        if file_path:
+            if file_name not in self.code_editors:
+                self.create_new_tab(file_name)
+                self.set(file_name)
+            with open(file_path, "r") as file:
+                file_content = file.read()
+                self.code_editors[file_name].text.delete('1.0', 'end-1c')
+                self.code_editors[file_name].text.insert('1.0', file_content)
+            self.editor.init_linenums()
 
     @property
     def editor(self) -> CodeEditor:

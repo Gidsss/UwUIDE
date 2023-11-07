@@ -1,15 +1,14 @@
 from customtkinter import *
 
-from .components.code_view import CodeView
+from .components.code_view import CodeView, CodeEditor
 from .components.console_view import ConsoleView
 from .components.command_menu import CommandMenu
 from .components.analyzer_tabs import UwULexerTab, UwUParserTab
 
-from PIL import Image, ImageTk
 from constants.path import *
 
 class UwUCodePanel(CTkFrame):
-    def __init__(self, master, on_compiler_run, **kwargs):
+    def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
 
         self.grid_columnconfigure((0,1,2,3), weight=1)
@@ -18,6 +17,7 @@ class UwUCodePanel(CTkFrame):
 
         self.code_view = CodeView(
             master=self,
+            parent=master,
             corner_radius=8,
             anchor='nw',
             fg_color='#1A1B26',
@@ -27,16 +27,6 @@ class UwUCodePanel(CTkFrame):
             segmented_button_unselected_color='#1A1B26',segmented_button_unselected_hover_color='gray'
         )
         self.code_view.grid(row=1, rowspan=5, columnspan=4, sticky='nsew', padx=12)
-        
-        self.canvas = CTkCanvas(
-            master = self, 
-            bg = '#1A1B26', 
-            highlightthickness=0,
-        )
-        # self.canvas.grid(row=6, rowspan=1, columnspan=4, stick='nsew', padx=12, pady=12)
-        # self.canvas.image = ImageTk.PhotoImage(Image.open(f"{AQUACL_BG_ASSET}"))
-        # self.canvas.create_image(5, 30, anchor='nw', image=self.canvas.image)
-        
         
         self.console_view = ConsoleView(
             master=self,
@@ -51,19 +41,16 @@ class UwUCodePanel(CTkFrame):
             segmented_button_unselected_hover_color='gray'
         )
         self.console_view.grid(row=6, rowspan=1, columnspan=4, stick='nsew', padx=12, pady=12)
-        self.update_logs = self.console_view.update_logs
               
         self.command_menu = CommandMenu(
             master=self,
+            parent=master,
             code_view=self.code_view,
             fg_color='transparent',
-            on_compiler_run=on_compiler_run
         )
         self.command_menu.grid(row=0, columnspan=4, sticky='nsew', pady=8)
 
-    @property
-    def editor(self):
-        return self.code_view.editor
+        self.update_console_logs = self.console_view.update_logs
 
 class UwuAnalyzerPanel(CTkTabview):
     def __init__(self, master, **kwargs):
@@ -102,7 +89,6 @@ class UwU(CTk):
         self.code_panel = UwUCodePanel(
             master=self,
             fg_color='transparent',
-            on_compiler_run=self.on_compiler_run
         )
         self.code_panel.grid(row=0, column=0, rowspan=5, columnspan=4, sticky='nsew')
 
@@ -118,16 +104,12 @@ class UwU(CTk):
         )
         self.analyzer_panel.grid(row=0, column=4, rowspan=5, columnspan=2, sticky='nsew')
 
-    def on_compiler_run(self):
-        code_editor = self.code_panel.editor
+    def on_compiler_run(self, code_editor: CodeEditor):
         code_editor.run_lexer()
         self.analyzer_panel.update_lexer(tokens=code_editor.tokens)
-        self.code_panel.update_logs(errors=code_editor.errors)
+        self.code_panel.update_console_logs(errors=code_editor.errors)
         
 
 if __name__ == "__main__":
     app = UwU()
-    code_view = app.code_panel.code_view
-    code_view.set_compiler_instance(app) 
-    code_view.command_menu = app.code_panel.command_menu  
     app.mainloop()
