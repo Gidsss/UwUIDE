@@ -91,7 +91,6 @@ class TokenType(Enum):
     GEN_IDENTIFIER = ("IDENTIFIER", "id")
     GEN_FUNC_NAME = ("FUNCTION_NAME", "function")
     GEN_CWASS_NAME = ("CWASS_NAME", "cwass")
-    CWASS_TYPE = ("CWASS_TYPE", "cwass_type")
     SINGLE_LINE_COMMENT = ("COMMENT", "single_line_comment")
     MULTI_LINE_COMMENT = ("MULTI LINE COMMENT", "line")
     TYPE_INDICATOR = ("TYPE INDICATOR", 'type_indicator')
