@@ -23,6 +23,9 @@ class TokenType(Enum):
     def __str__(self):
         return self.token
 
+    def __format__(self, format_spec):
+        return str.__format__(str(self), format_spec)
+
     # GENERAL KEYWORDS
     START = ("START_KEYWORD", "start_done")
     DONE = ("DONE_KEYWORD", "start_done")
