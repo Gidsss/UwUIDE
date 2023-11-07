@@ -4,10 +4,9 @@ from constants.path import *
 from PIL import Image
 
 from .code_view import CodeView
-from src.uwu import UwU
 
 class CommandMenu(CTkFrame):
-    def __init__(self, master, parent: UwU, code_view: CodeView, **kwargs):
+    def __init__(self, master, parent, code_view: CodeView, **kwargs):
         super().__init__(master, **kwargs)
         self.parent = parent
         self.code_view = code_view
