@@ -96,9 +96,11 @@ class CodeEditor(CTkFrame):
         self.text.bind("<Return>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<BackSpace>", lambda e: self.line_nums.on_redraw(e))
 
-        self.copy_paste_triggered = False
-        self.text.bind("<Control-c>", self.copy_text)
-        self.text.bind("<Control-v>", self.paste_text) 
+        self.text.bind("<Control-c>", lambda e: self.copy_text(e))
+        self.text.bind("<Control-v>", lambda e: self.paste_text(e))
+        self.text.bind("<Control-z>", lambda e: self.line_nums.on_redraw(e))
+        self.text.bind("<Control-y>", lambda e: self.line_nums.on_redraw(e)) 
+         
  
         # Initialize tags
         for tag in Tags:
@@ -152,16 +154,23 @@ class CodeEditor(CTkFrame):
         for tag in tags:
             self.text.tag_remove(tag.name, "1.0", "end")
 
-    def copy_text(self, event):
-      if event.state == 0:  # Only trigger if no other modifiers are pressed
-         self.text.clipboard_clear()
-         selected_text = self.text.get("sel.first", "sel.last")
-         self.text.clipboard_append(selected_text)
+    def copy_text(self, event: Event):
+        event.widget.clipboard_clear()
+        selected_text = event.widget.get("sel.first", "sel.last")
+        event.widget.clipboard_append(selected_text)
 
-    def paste_text(self, event):
-      if event.state == 0:  # Only trigger if no other modifiers are pressed
-         text_to_paste = self.text.clipboard_get()
-         self.text.insert(INSERT, text_to_paste)
+        return "break"
+
+    def paste_text(self, event: Event):
+        try:
+            text_to_paste = event.widget.clipboard_get()
+            event.widget.insert(INSERT, text_to_paste)
+            print('Working')
+            self.line_nums.on_redraw(event)
+        except:
+            raise ValueError('Clipboard is empty')
+        
+        return "break"
 
 class CodeView(CTkTabview):
     def __init__(self, master, parent, **kwargs):
