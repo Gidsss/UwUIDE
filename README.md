@@ -5,7 +5,7 @@ Automata Project for 3rd Year
 ## Get Started
 
 1. Create a virtual environment `python -m venv .env`
-2. Activate environment For CMD `./.env/Scripts/activate.bat` For bash `source ./.env/Scripts/activate`
+2. Activate environment For CMD `.\venv\scripts\activate` For bash `source ./.env/Scripts/activate`
 3. Install dependencies using pip `python -m pip install -r requirements.txt`
 
 ## Unit Testing
