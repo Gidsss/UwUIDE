@@ -154,6 +154,9 @@ class UniqueTokenType:
 
     def __str__(self):
         return self.token
+    
+    def __format__(self, format_spec):
+        return str.__format__(str(self), format_spec)
 
 
 class Token:
