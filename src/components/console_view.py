@@ -48,30 +48,8 @@ class ConsoleView(CTkTabview):
         self.compiler_logs_tab = self.add('Compiler logs')
         self.console_tab = self.add('Console')
 
-        # Font settings for the tab labels in ConsoleView
-        tab_label_font = ('JetBrains Mono Bold', 12) 
-
         self.compiler_logs_tab.grid_columnconfigure((0,1), weight=1)
         self.console_tab.grid_columnconfigure((0,1), weight=1)
-        
-
-        # # Create custom label widgets for tab labels
-        compiler_logs_label = CTkLabel(
-            master=self.compiler_logs_tab,
-            text='Compiler logs',
-            font=tab_label_font
-        )
-        compiler_logs_label.configure(font=tab_label_font)
-        
-        console_label = CTkLabel(
-            master=self.console_tab,
-            text='Console',
-            font=tab_label_font
-        )
-        console_label.configure(font=tab_label_font)
-
-        compiler_logs_label.grid(row=0, column=0, sticky='nsew')
-        console_label.grid(row=0, column=0, sticky='nsew')
 
         self.compiler_logs = CompilerLogs(self.compiler_logs_tab, fg_color='transparent')
         self.compiler_logs.grid(row=0,column=0, rowspan=2, columnspan=2, sticky='nsew')

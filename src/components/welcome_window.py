@@ -7,10 +7,10 @@ class WelcomeWindow(CTkToplevel):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.geometry("600x600+600+100")
-        self.title('Welcome')
+        self.title('Welcome, cutie~!')
         self.configure(fg_color = '#16161E')
         self.resizable(False, False)
-        self.iconbitmap(f'{ICON_WHITE_ASSET}')
+        self.iconbitmap(f"{ICON_BLACK_ASSET}")
 
         self.bgImage = CTkImage(dark_image = Image.open(f'{WELCOME_BG_ASSET}'), size = (600, 600))
         self.bgLabel = CTkLabel(master = self, image = self.bgImage, 
@@ -61,3 +61,9 @@ class WelcomeWindow(CTkToplevel):
         self.fourthLog = CTkLabel(master = self, anchor = 'center', text = '• Lexical Analyzer', 
                                     text_color = '#FFFFFF', bg_color  = 'transparent', font = ('JetBrains Mono Light', 15))
         self.fourthLog.place(x = 217, y = 484)
+
+        self.button = CTkButton(self, text="Okay, got it <3", font=('JetBrains Mono Bold', 15), fg_color="#333652", command=self.close_window)
+        self.button.place(x=230, y=520)
+
+    def close_window(self):
+        self.destroy()

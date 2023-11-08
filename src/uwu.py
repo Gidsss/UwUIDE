@@ -80,6 +80,7 @@ class UwU(CTk):
         self.resizable(False, False)
         self.title("UwU++")
         self.configure(fg_color='#16161E')
+        self.iconbitmap(f"{ICON_BLACK_ASSET}")
 
         # Open top level window
         self.welcomeWindow = WelcomeWindow(self)

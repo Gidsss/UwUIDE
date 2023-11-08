@@ -80,7 +80,7 @@ class CodeEditor(CTkFrame):
         self.grid_columnconfigure(1, weight=25)
         self.grid_rowconfigure(0, weight=1)
         
-        self.text = CTkTextbox(master=self, corner_radius=0,fg_color='transparent', text_color='#FFFFFF', undo=True)
+        self.text = CTkTextbox(master=self, corner_radius=0,fg_color='transparent', font=('JetBrains Mono', 13), text_color='#FFFFFF', undo=True)
         self.text.grid(row=0, column=1, sticky='nsew')
 
         self.line_nums = Linenums(master=self, text_widget=self.text)
