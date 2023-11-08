@@ -122,7 +122,6 @@ class UniqueTokenType:
         elif token == self.FWUNC:
             self._token = self.fwunc_dict.setdefault(lexeme, f"FWUNC_{len(self.fwunc_dict) + 1}")
             self._delim_id = "function"
-            print(self.fwunc_dict)
         elif token == self.CWASS:
             self._token = self.cwass_dict.setdefault(lexeme, f"CWASS_{len(self.cwass_dict) + 1}")
             self._delim_id = "cwass"
@@ -155,6 +154,9 @@ class UniqueTokenType:
 
     def __str__(self):
         return self.token
+    
+    def __format__(self, format_spec):
+        return str.__format__(str(self), format_spec)
 
 
 class Token:
