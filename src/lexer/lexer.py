@@ -746,19 +746,21 @@ class Lexer():
         to_check_index = 0
         for i in range(start, prev_count):
             if len(self.tokens) >= i:
-                if to_check[to_check_index] == TokenType.GEN_FUNC_NAME and self.tokens[-i].token.token.startswith('FWUNC'):
-                    present_flag = True
-                elif to_check[to_check_index] == TokenType.GEN_CWASS_NAME and self.tokens[-i].token.token.startswith('CWASS'):
-                    present_flag = True
-                elif to_check[to_check_index] == TokenType.GEN_IDENTIFIER and self.tokens[-i].token.token.startswith('IDENTIFIER'):
-                    present_flag = True
-                else:
-                    prev_token = self.tokens[-i]
-                    if prev_token.token in to_check and prev_token.position[0] == self._position[0]:
+                prev_token = self.tokens[-i]
+                in_same_line = prev_token.position[0] == self._position[0]
+                if in_same_line:
+                    if to_check[to_check_index] == TokenType.GEN_FUNC_NAME and prev_token.token.token.startswith('FWUNC'):
+                        present_flag = True
+                    elif to_check[to_check_index] == TokenType.GEN_CWASS_NAME and prev_token.token.token.startswith('CWASS'):
+                        present_flag = True
+                    elif to_check[to_check_index] == TokenType.GEN_IDENTIFIER and prev_token.token.token.startswith('IDENTIFIER'):
                         present_flag = True
                     else:
-                        present_flag = False
-                        break
+                        if prev_token.token in to_check and prev_token.position[0] == self._position[0]:
+                            present_flag = True
+                        else:
+                            present_flag = False
+                            break
             to_check_index += 1
 
         return present_flag

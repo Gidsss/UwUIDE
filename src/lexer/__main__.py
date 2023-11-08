@@ -4,7 +4,7 @@ from .lexer import *
 if __name__ == "__main__":
     # temporary test source code
     source_code = [
-        'a-',
+        # 'a-',
         'cwass Manji() ',
         'fwunc manji-Manji() ',
         # 'fwunc manji+Class() ',
