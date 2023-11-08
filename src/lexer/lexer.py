@@ -173,8 +173,12 @@ class Lexer():
                 after_slice = self._lines[line][column+1:]
                 before_slice = self._lines[line][:column]
 
+                if len(after_slice) < 1:
+                    line, col = self._position
+                    self._logs.append(DelimError(TokenType.ARITHMETIC, (line, col + 1), '-', '\n'))
+
                 # Check if character after - is uppercase (then its a class data type) and before is alphanumeric (could be identifier or func name)
-                if after_slice[0] in ATOMS["alpha_big"] and before_slice[-1] in ATOMS['alphanum']:
+                elif after_slice[0] in ATOMS["alpha_big"] and before_slice[-1] in ATOMS['alphanum']:
                     starting_position = ending_position = tuple(self._position)
                     self._tokens.append(Token('-', TokenType.TYPE_INDICATOR, starting_position, ending_position))
                     is_end_of_file = self._advance()
@@ -584,6 +588,7 @@ class Lexer():
             multi_line = len(self._lines) - 1
         elif multi_line_count == "BOF":
             multi_line = 0
+        is_max_multi_line = None
 
         space_count = 0
 
@@ -606,7 +611,9 @@ class Lexer():
                     break
                 
                 # limit number of times reversing can go to newlines with multi_line_count
-                is_max_multi_line = multi_line > self._position[0] if before else multi_line < self._position[0]
+                if is_max_multi_line is None:
+                    is_max_multi_line = multi_line > self._position[0] if before else multi_line < self._position[0]
+
                 if is_max_multi_line:
                     cursor_advance_reverse_count -= 1
                     if before:
@@ -735,15 +742,26 @@ class Lexer():
         else:
             start = prev_count
             prev_count += 1
-        
+
+        to_check_index = 0
         for i in range(start, prev_count):
             if len(self.tokens) >= i:
                 prev_token = self.tokens[-i]
-                if prev_token.token in to_check and prev_token.position[0] == self._position[0]:
-                    present_flag = True
-                else:
-                    present_flag = False
-                    break
+                in_same_line = prev_token.position[0] == self._position[0]
+                if in_same_line:
+                    if to_check[to_check_index] == TokenType.GEN_FUNC_NAME and prev_token.token.token.startswith('FWUNC'):
+                        present_flag = True
+                    elif to_check[to_check_index] == TokenType.GEN_CWASS_NAME and prev_token.token.token.startswith('CWASS'):
+                        present_flag = True
+                    elif to_check[to_check_index] == TokenType.GEN_IDENTIFIER and prev_token.token.token.startswith('IDENTIFIER'):
+                        present_flag = True
+                    else:
+                        if prev_token.token in to_check and prev_token.position[0] == self._position[0]:
+                            present_flag = True
+                        else:
+                            present_flag = False
+                            break
+            to_check_index += 1
 
         return present_flag
 
@@ -792,7 +810,6 @@ class Lexer():
         cursor_advanced = False
         is_end_of_file = False
         current_line = self._position[0]
-
         if fwunc_exists:
             expected_delim = {'-', '('}
 
