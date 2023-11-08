@@ -23,6 +23,9 @@ class TokenType(Enum):
     def __str__(self):
         return self.token
 
+    def __format__(self, format_spec):
+        return str.__format__(str(self), format_spec)
+
     # GENERAL KEYWORDS
     START = ("START_KEYWORD", "start_done")
     DONE = ("DONE_KEYWORD", "start_done")
@@ -88,13 +91,70 @@ class TokenType(Enum):
     NEGATIVE = ("NEGATIVE_SIGN", "negative_delim")  # -
 
     # OTHER
-    IDENTIFIER = ("IDENTIFIER", "id")
-    FUNC_NAME = ("FUNCTION NAME", "function")
-    CWASS_NAME = ("CWASS NAME", "cwass")
-    CWASS_TYPE = ("CWASS TYPE", "cwass_type")
+    GEN_IDENTIFIER = ("IDENTIFIER", "id")
+    GEN_FUNC_NAME = ("FUNCTION_NAME", "function")
+    GEN_CWASS_NAME = ("CWASS_NAME", "cwass")
     SINGLE_LINE_COMMENT = ("COMMENT", "single_line_comment")
     MULTI_LINE_COMMENT = ("MULTI LINE COMMENT", "line")
     TYPE_INDICATOR = ("TYPE INDICATOR", 'type_indicator')
+
+
+class UniqueTokenType:
+    """
+    A class for generating unique token types.
+    Will have a unique token_type for every new lexeme read.
+    """
+
+    identifier_dict = {}
+    fwunc_dict = {}
+    cwass_dict = {}
+
+    # Unique Token Types
+    ID = "ID"
+    FWUNC = "FWUNC"
+    CWASS = "CWASS"
+    CWASS_TYPE = "CWASS_TYPE"
+
+    def __init__(self, lexeme: str, token: str):
+        if token == self.ID:
+            self._token = self.identifier_dict.setdefault(lexeme, f"IDENTIFIER_{len(self.identifier_dict) + 1}")
+            self._delim_id = "id"
+        elif token == self.FWUNC:
+            self._token = self.fwunc_dict.setdefault(lexeme, f"FWUNC_{len(self.fwunc_dict) + 1}")
+            self._delim_id = "function"
+            print(self.fwunc_dict)
+        elif token == self.CWASS:
+            self._token = self.cwass_dict.setdefault(lexeme, f"CWASS_{len(self.cwass_dict) + 1}")
+            self._delim_id = "cwass"
+        elif token == self.CWASS_TYPE:
+            if lexeme in self.cwass_dict:
+                self._token = self.cwass_dict[lexeme]+"_TYPE"
+                self._delim_id = "cwass_type"
+            else:
+                self._token = None
+                return
+        self._expected_delims = DELIMS[self.delim_id]
+
+    @classmethod
+    def clear(cls):
+        cls.identifier_dict.clear()
+        cls.fwunc_dict.clear()
+        cls.cwass_dict.clear()
+
+    @property
+    def token(self):
+        return self._token
+
+    @property
+    def delim_id(self):
+        return self._delim_id
+
+    @property
+    def expected_delims(self):
+        return self._expected_delims
+
+    def __str__(self):
+        return self.token
 
 
 class Token:

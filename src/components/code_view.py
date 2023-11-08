@@ -139,6 +139,24 @@ class CodeEditor(CTkFrame):
         # Format text in the index
         self.text.tag_add(tag, start_index, end_index)
 
+    def format_multiple(self, tag: str, ranges: list[(tuple[int, int], tuple[int, int] | None)]):
+        """
+        Formats text in the given list of positions
+            tag is a string that determines what formatting option will be applied.
+            positions is a list of start_pos and end_pos(optional) for tokens to be formatted
+        """
+
+        for start_pos, end_pos in ranges:
+            # Set end_pos to None if it is equal to start_pos
+            end_pos = None if end_pos == start_pos else end_pos
+
+            # Set string indices
+            start_index = f"{start_pos[0] + 1}.{start_pos[1]}"
+            end_index = None if end_pos is None else f"{end_pos[0] + 1}.{end_pos[1] + 1}"
+
+            # Format text in the index
+            self.text.tag_add(tag, start_index, end_index)
+
     def clear_format(self, tags_to_clear: list[Tags] = None):
         """
         Clear all tags(formatting) in the textbox
