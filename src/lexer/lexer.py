@@ -1434,7 +1434,10 @@ class Lexer():
                             corrected_value = temp_num + '0'
                             starting_position = tuple([self._position[0], self._position[1]-len(temp_num)+1])
                             ending_position = tuple(self._position)
-                            self._logs.append(IntFloatWarning(Warn.MISSING_TRAILING_ZERO_FLOAT, corrected_value, temp_num, starting_position, ending_position))
+                            self._logs.append(GenericError(Error.MISSING_TRAILING_ZERO_FLOAT, starting_position, ending_position,
+                                                           context=f"consider replacing '{temp_num}' with '{corrected_value}'"))
+                            break_outside_loop = True
+                            break
 
                         # has multiple decimal points
                         decimal_point_count = corrected_value.count('.')

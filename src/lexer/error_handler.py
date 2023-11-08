@@ -63,6 +63,8 @@ class Error(Enum):
                                'chan and kun literals can only have up to 10 digits before and after the decimal (kun can have a max of 20 digits total)')
     MULTIPLE_DECIMAL_POINT = ('MULTIPLE DECIMAL POINT',
                               "kun literals can only have 1 decimal point")
+    MISSING_TRAILING_ZERO_FLOAT = ("MISSING TRAILING ZERO",
+                                   "kun literals should have digit/s present after the decimal point")
     
     # identifier errors
     IDEN_INVALID_START = ("INVALID START OF IDENTIFIER",
@@ -97,8 +99,6 @@ class Warn(Enum):
                       "kun literals can have ONE leading zero before the decimal point ONLY IF it's the only digit present (0.1)")
     TRAILING_ZEROES_FLOAT = ("TRAILING ZEROES",
                       "kun literals can have ONE trailing zero after the decimal point ONLY IF it's the only digit present (1.0)")
-    MISSING_TRAILING_ZERO_FLOAT = ("MISSING TRAILING ZERO",
-                                   "kun literals should have digit/s present after the decimal point")
     
     # multi line comment
     UNCLOSED_MULTI_LINE_COMMENT = ("UNCLOSED MULTI LINE COMMENT",
