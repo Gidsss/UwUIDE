@@ -14,7 +14,7 @@ class LexerTable(CTkFrame):
         self.grid_columnconfigure(self.columns, weight=1)
         self.grid_rowconfigure(self.rows, weight=1)
 
-        code_editor = Remote.code_editor_instance
+        self.code_editor = Remote.code_editor_instance
         self.lexemes_labels = []
         self.token_labels = []
         for i, token in enumerate(self.tokens):
@@ -25,17 +25,22 @@ class LexerTable(CTkFrame):
             token_label.grid(row=i, column=1, sticky='ew')
 
             # Bind callbacks for token highlighting
-            lexeme_label.bind("<Enter>", lambda ev, t=token: code_editor.format(Tags.TOKEN_HIGHLIGHT.name,
-                                                                                tuple(t.position),
-                                                                                tuple(t.end_position)))
-            token_label.bind("<Enter>", lambda ev, t=token: code_editor.format(Tags.TOKEN_HIGHLIGHT.name,
-                                                                               tuple(t.position),
-                                                                               tuple(t.end_position)))
-            lexeme_label.bind("<Leave>", lambda ev: code_editor.clear_format())
-            token_label.bind("<Leave>", lambda ev: code_editor.clear_format())
+            lexeme_label.bind("<Enter>", lambda ev, t=token: self.on_hover(t))
+            token_label.bind("<Enter>", lambda ev, t=token: self.on_hover(t))
+            lexeme_label.bind("<Button-1>", lambda ev, t=token: self.on_click(t))
+            token_label.bind("<Button-1>", lambda ev, t=token: self.on_click(t))
+            lexeme_label.bind("<Leave>", lambda ev: self.code_editor.clear_format())
+            token_label.bind("<Leave>", lambda ev: self.code_editor.clear_format())
 
             self.lexemes_labels.append(lexeme_label)
             self.token_labels.append(token_label)
+
+    def on_hover(self, token):
+        self.code_editor.format(Tags.TOKEN_HIGHLIGHT.name, tuple(token.position), tuple(token.end_position))
+
+    def on_click(self, token):
+        positions = [(_t.position, _t.end_position) for _t in self.tokens if str(_t.token) == str(token.token)]
+        self.code_editor.format_multiple(Tags.TOKEN_HIGHLIGHT.name, positions)
 
 
 class LexerCanvas(CTkCanvas):
