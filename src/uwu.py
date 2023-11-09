@@ -116,3 +116,5 @@ class UwU(CTk):
 if __name__ == "__main__":
     app = UwU()  
     app.mainloop()
+
+# Version 0.1.1
