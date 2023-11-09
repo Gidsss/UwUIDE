@@ -15,21 +15,21 @@ class LogsTable(CTkFrame):
         self.code_editor = Remote.code_editor_instance
         self.line_labels = []
         self.log_message_labels = []
+
         for row in range(len(self.logs)):
             # TODO: Change render on Integ
             start_pos = line, col = self.logs[row].position
             end_pos = None if isinstance(self.logs[row], DelimError) else self.logs[row].end_position
-            line_label = CTkLabel(master=self, text=line + 1, fg_color='transparent', text_color='#FFFFFF', anchor='n')
+            line_label = CTkLabel(master=self, text=line + 1, fg_color='transparent', font=('JetBrains Mono', 13), text_color='#FFFFFF', anchor='n')
 
-            log_message_label = CTkLabel(master=self, text=self.logs[row], fg_color='transparent', text_color='#ff5349',
+            log_message_label = CTkLabel(master=self, text=self.logs[row], fg_color='transparent', font=('JetBrains Mono', 13), text_color='#ff5349',
                                          anchor='nw')
-
-            # Bind callbacks
+            
+             # Bind callbacks
             log_message_label.bind("<Enter>", lambda ev, sp=start_pos, ep=end_pos: self.code_editor.format(
                 Tags.ERROR_HIGHLIGHT.name, sp, ep
             ))
             log_message_label.bind("<Leave>", lambda ev: self.code_editor.clear_format())
-
             line_label.grid(row=row, column=0, sticky='nsew', padx=32, pady=8)
             log_message_label.grid(row=row, column=1, sticky='nsew', columnspan=9, pady=8)
 
