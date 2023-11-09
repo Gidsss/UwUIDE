@@ -123,7 +123,6 @@ class UniqueTokenType:
     @classmethod
     def clear(cls):
         cls.identifier_dict.clear()
-        cls.fwunc_dict.clear()
         cls.cwass_dict.clear()
 
     @property
