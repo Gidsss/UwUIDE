@@ -866,8 +866,16 @@ class Lexer():
                                         if in_next_line:
                                             self._reverse()
                                             temp_id = temp_id[:-1]
+                                        
+                                        data_type = temp_id[original_length+1:]
+                                        # data type not terminated
                                         line, col = self._position
-                                        self._logs.append(DelimError(TokenType.DATA_TYPE, (line, col + 1), temp_id, '\n'))
+                                        self._logs.append(DelimError(TokenType.DATA_TYPE, (line, col + 1), data_type, '\n'))
+                                        # function name's data type is invalid
+                                        starting_position = (self._position[0], self._position[1]-len(temp_id))
+                                        ending_position = (self._position[0], self._position[1]-len(temp_id)+original_length-1)
+                                        self._logs.append(GenericError(Error.FWUNC_INVALID_DATA_TYPE, starting_position, ending_position,
+                                                                       context=f"'{data_type}' was unterminated"))
                                         break
                                     
                                     temp_id += self._current_char
