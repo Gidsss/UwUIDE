@@ -22,7 +22,7 @@ class LogsTable(CTkFrame):
             line_label = CTkLabel(master=self, text=line + 1, fg_color='transparent', font=('JetBrains Mono', 13), text_color='#FFFFFF', anchor='n')
 
             log_message_label = CTkLabel(master=self, text=self.logs[row], fg_color='transparent', font=('JetBrains Mono', 13), text_color='#ff5349',
-                                         anchor='nw')
+                                         anchor='nw', justify="left")
             
              # Bind callbacks
             log_message_label.bind("<Enter>", lambda ev, sp=start_pos, ep=end_pos: self.code_editor.format(
