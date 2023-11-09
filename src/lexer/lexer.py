@@ -175,7 +175,7 @@ class Lexer():
 
             # class names
             if self._current_char in ATOMS['alpha_big']:
-                cursor_advanced, is_end_of_file = self._is_identifier()
+                cursor_advanced, is_end_of_file = self._is_identifier(cwass=True)
                 if cursor_advanced:
                     if is_end_of_file:
                         break
@@ -781,10 +781,17 @@ class Lexer():
         for error in self.errors:
             print(error)
     
-    def _is_identifier(self, from_keyword: str = None) -> bool:
+    def _is_identifier(self, from_keyword: str = None, cwass: bool = False) -> bool:
         cursor_advanced = False
         temp_id = from_keyword if from_keyword else ''
         current_line = self._position[0]
+        
+        if cwass:
+            expected_delims = DELIMS['cwass']
+            unique_token = UniqueTokenType.CWASS
+        else:
+            expected_delims = DELIMS['id'] 
+            unique_token = UniqueTokenType.ID 
 
         while True:
             temp_id += self._current_char
@@ -800,11 +807,11 @@ class Lexer():
                 cursor_advanced = True
                 break
 
-            elif self._current_char in DELIMS['id']:
+            elif self._current_char in expected_delims:
                 self._reverse()
                 starting_position = (self._position[0], self._position[1]-len(temp_id)+1)
                 ending_position = (self._position[0], self._position[1])
-                self._tokens.append(Token(temp_id, UniqueTokenType(temp_id, UniqueTokenType.ID),
+                self._tokens.append(Token(temp_id, UniqueTokenType(temp_id, unique_token),
                                               starting_position, ending_position))
                 cursor_advanced = True
                 break
