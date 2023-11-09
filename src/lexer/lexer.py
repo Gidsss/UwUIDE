@@ -787,9 +787,11 @@ class Lexer():
         if cwass:
             expected_delims = DELIMS['cwass']
             unique_token = UniqueTokenType.CWASS
+            delim_error_token = TokenType.GEN_CWASS_NAME
         else:
             expected_delims = DELIMS['id'] 
             unique_token = UniqueTokenType.ID 
+            delim_error_token = TokenType.GEN_IDENTIFIER
 
         while True:
             temp_id += self._current_char
@@ -819,7 +821,7 @@ class Lexer():
                 self._reverse()
 
                 line, col = self._position
-                self._logs.append(DelimError(TokenType.GEN_IDENTIFIER, (line, col + 1), temp_id, special_char))
+                self._logs.append(DelimError(delim_error_token, (line, col + 1), temp_id, special_char))
                 cursor_advanced = True
                 break
 
