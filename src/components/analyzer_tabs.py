@@ -22,8 +22,8 @@ class UwULexerTab(CTkScrollableFrame):
         self.grid_rowconfigure(1, weight=10)
         self.grid_rowconfigure(2, weight=10)
 
-        self.lexeme_label = CTkLabel(master=self, text='Lexeme', bg_color='#333652', text_color='#FFFFFF')
-        self.token_label = CTkLabel(master=self, text='Token', bg_color='#333652', text_color='#FFFFFF')
+        self.lexeme_label = CTkLabel(master=self, text='Lexeme', bg_color='#333652', font=('JetBrains Mono', 13), text_color='#FFFFFF')
+        self.token_label = CTkLabel(master=self, text='Token', bg_color='#333652', font=('JetBrains Mono', 13), text_color='#FFFFFF')
 
         self.lexeme_label.grid(row=0, column=0, sticky='nsew')
         self.token_label.grid(row=0, column=1, sticky='nsew')
