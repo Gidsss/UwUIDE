@@ -1069,14 +1069,6 @@ class Lexer():
 
         return cursor_advanced, is_end_of_file
 
-
-"""
-def read_file(file_path: Path) -> list[str]:
-    with open(file_path, 'r') as file:
-        lines = [line for line in file]
-
-    return lines
-"""
 def print_lex(source_code: list[str]):
     print('\nsample text file')
     print("_"*20)
@@ -1097,18 +1089,3 @@ def print_lex(source_code: list[str]):
         print(f"{f'{token.position} - {token.end_position}':^23}", end=border)
         print()
     print("","_"*63)
-
-if __name__ == "__main__":
-    # file_path = argv[1]
-    # source_code = read_file(file_path)
-    source_code = [
-        "a  fwunc aquachan(~",
-        # 'aqua-chan(args)~',
-        ' aqua-chan',
-        'aqua',
-        'aqua-chan = cap~',
-        'bweak~ bweak',
-        'shion-chan~ojou~'
-    ]
-    print_lex(source_code)
-    
