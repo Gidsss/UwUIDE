@@ -562,15 +562,12 @@ class Lexer():
                 # preemptively check if the lexeme or current character is not valid to be in a fwunc/cwass/identifier name
                 in_new_line = self._position[0] != line
                 if not any(char in ATOMS['alphanum'] for char in lexeme) or not self._current_char in ATOMS['alphanum'] or in_new_line:
-                    _ = self._reverse()
+                    self._reverse()
                     line, col = ending_position
                     self._logs.append(DelimError(token_type, (line, col + 1), lexeme, delim))
                 else:
-                    # check if function name before identifier
-                    cursor_advanced, _ = self._is_func_or_cwass_name(from_keyword=to_check)
-                    if not cursor_advanced:
-                        # check if identifier
-                        cursor_advanced, _ = self._is_identifier(from_keyword=to_check)
+                    # check if identifier
+                    cursor_advanced, _ = self._is_identifier(from_keyword=to_check)
             
             is_end_of_file = self._advance()
             cursor_advanced = True
