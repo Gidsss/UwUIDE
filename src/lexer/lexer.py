@@ -34,8 +34,22 @@ class Lexer():
     def _get_tokens(self):
         is_end_of_file = False
         cursor_advanced = False
+        valid_starting_chars = {*ATOMS['alphanum'], *ATOMS['general_operator'], '|', '&', '{', '}', '[', ']', '(', ')', ',', '.', '~', '"'}
         
         while not is_end_of_file:
+            if self._current_char in ['\n', ' ']:
+                is_end_of_file = self._advance()
+                if is_end_of_file:
+                    break
+                continue
+            
+            if self._current_char not in valid_starting_chars:
+                self._logs.append(GenericError(Error.UNEXPECTED_SYMBOL, tuple(self._position)))
+                is_end_of_file = self._advance()
+                if is_end_of_file:
+                    break
+                continue
+
             if self._current_char == 'b':
                 cursor_advanced, is_end_of_file = self._peek('bweak', TokenType.BWEAK)
                 if cursor_advanced:
