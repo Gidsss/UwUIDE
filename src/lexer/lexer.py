@@ -34,7 +34,8 @@ class Lexer():
     def _get_tokens(self):
         is_end_of_file = False
         cursor_advanced = False
-        valid_starting_chars = {*ATOMS['alphanum'], *ATOMS['general_operator'], '|', '&', '{', '}', '[', ']', '(', ')', ',', '.', '~', '"'}
+        valid_starting_chars = {*ATOMS['alphanum'], *ATOMS['general_operator'],
+                                '|', '&', '{', '}', '[', ']', '(', ')', ',', '.', '~', '"'}
         
         while not is_end_of_file:
             if self._current_char in ['\n', ' ']:
@@ -42,7 +43,7 @@ class Lexer():
                 if is_end_of_file:
                     break
                 continue
-            
+
             if self._current_char not in valid_starting_chars:
                 self._logs.append(GenericError(Error.UNEXPECTED_SYMBOL, tuple(self._position)))
                 is_end_of_file = self._advance()
@@ -161,6 +162,38 @@ class Lexer():
                 cursor_advanced, is_end_of_file = self._peek('wetuwn', TokenType.WETUWN)
                 if cursor_advanced:
                     continue
+            
+            # Literals check
+            # can be identifiers or function names
+            if self._current_char in ATOMS['alpha_small']:
+                cursor_advanced, is_end_of_file = self._is_identifier()
+                if cursor_advanced:
+                    if is_end_of_file:
+                        break
+                    is_end_of_file = self._advance()
+                    continue
+
+            # class names
+            if self._current_char in ATOMS['alpha_big']:
+                cursor_advanced, is_end_of_file = self._is_identifier()
+                if cursor_advanced:
+                    if is_end_of_file:
+                        break
+                    is_end_of_file = self._advance()
+                    continue
+            
+            if self._current_char in ATOMS['number']:
+                is_end_of_file = self._peek_int_float_literal()
+                if is_end_of_file:
+                    break
+                continue
+            
+            # string literals
+            if self._current_char in ['|', '"']:
+                is_end_of_file = self._peek_string_literal()
+                if is_end_of_file:
+                    break
+                continue
 
             # Symbol Checks
             if self._current_char == '=':
@@ -375,28 +408,6 @@ class Lexer():
                 cursor_advanced, is_end_of_file = self._peek('~', TokenType.TERMINATOR)
                 if cursor_advanced:
                     continue
-
-            # can be identifiers or function names
-            if self._current_char in ATOMS['alpha_small']:
-                cursor_advanced, is_end_of_file = self._is_identifier()
-                if cursor_advanced:
-                    if is_end_of_file:
-                        break
-                    is_end_of_file = self._advance()
-                    continue
-
-
-            if self._current_char in ['|', '"']:
-                is_end_of_file = self._peek_string_literal()
-                if is_end_of_file:
-                    break
-                continue
-
-            if self._current_char in ATOMS['number']:
-                is_end_of_file = self._peek_int_float_literal()
-                if is_end_of_file:
-                    break
-                continue
 
             if is_end_of_file:
                 break
