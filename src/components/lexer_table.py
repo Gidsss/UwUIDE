@@ -12,7 +12,6 @@ class LexerTable(CTkFrame):
         self.rows = tuple([i for i in range(len(self.tokens))]) if len(self.tokens) > 0 else (0, 1, 2, 3, 4)
 
         self.grid_columnconfigure(self.columns, weight=1)
-        self.grid_rowconfigure(self.rows, weight=1)
 
         self.code_editor = Remote.code_editor_instance
         self.lexemes_labels = []
@@ -49,7 +48,6 @@ class LexerCanvas(CTkCanvas):
         CTkCanvas.__init__(self, master=master, width=16, borderwidth=0, highlightthickness=0, bg='#1A1B26')
 
         self.grid_columnconfigure((0, 1), weight=1)
-        self.grid_rowconfigure((0, 1), weight=1)
 
         self.render_table()
 

@@ -10,7 +10,6 @@ class LogsTable(CTkFrame):
         
         self.rows = tuple([v for v in range(len(self.logs))]) if len(self.logs) > 0 else (0,1,2,3,4)
         self.grid_columnconfigure((0,1,2,3,4,5,6,7,8,9,10), weight=1)
-        self.grid_rowconfigure(self.rows, weight=1)
 
         self.code_editor = Remote.code_editor_instance
         self.line_labels = []
@@ -23,7 +22,7 @@ class LogsTable(CTkFrame):
             line_label = CTkLabel(master=self, text=line + 1, fg_color='transparent', font=('JetBrains Mono', 13), text_color='#FFFFFF', anchor='n')
 
             log_message_label = CTkLabel(master=self, text=self.logs[row], fg_color='transparent', font=('JetBrains Mono', 13), text_color='#ff5349',
-                                         anchor='nw')
+                                         anchor='nw', justify="left")
             
              # Bind callbacks
             log_message_label.bind("<Enter>", lambda ev, sp=start_pos, ep=end_pos: self.code_editor.format(
@@ -39,7 +38,6 @@ class LogsCanvas(CTkCanvas):
         CTkCanvas.__init__(self, master=master, width=16, borderwidth=0,highlightthickness=0, bg='#1A1B26')
 
         self.grid_columnconfigure((0,1), weight=1)
-        self.grid_rowconfigure((0,1), weight=1)
 
         self.render_table()
 

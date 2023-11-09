@@ -33,7 +33,6 @@ class Console(CTkFrame):
         cursor_font = ('JetBrains Mono Light', 12)
         self.grid_columnconfigure((0), weight=1)
         self.grid_columnconfigure((1,2,3,4,5,6,7,8,9,10), weight=2)
-        self.grid_rowconfigure((0), weight=1)
         self.console_cursor = CTkLabel(master=self, text='>', bg_color='transparent', text_color='#FFFFFF', font=cursor_font)
 
         self.console_cursor.grid(row=0, column=0, sticky='n')
