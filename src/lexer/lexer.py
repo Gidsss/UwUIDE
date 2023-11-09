@@ -779,11 +779,18 @@ class Lexer():
             is_end_of_file = self._advance()
             in_next_line = self._position[0] != current_line
 
-            if is_end_of_file or in_next_line:
-                if in_next_line:
-                    self._reverse()
+            if is_end_of_file:
                 line, col = self._position
                 self._logs.append(DelimError(TokenType.GEN_IDENTIFIER, (line, col + 1), temp_id, '\n'))
+                cursor_advanced = True
+                break
+
+            elif not self._current_char.isalnum() or in_next_line:
+                special_char = self._current_char if not in_next_line else '\n'
+                self._reverse()
+
+                line, col = self._position
+                self._logs.append(DelimError(TokenType.GEN_IDENTIFIER, (line, col + 1), temp_id, special_char))
                 cursor_advanced = True
                 break
 
@@ -791,24 +798,8 @@ class Lexer():
                 self._reverse()
                 starting_position = (self._position[0], self._position[1]-len(temp_id)+1)
                 ending_position = (self._position[0], self._position[1])
-
-                # must start with lowercase letter
-                if not temp_id[0].isalpha():
-                    self._logs.append(GenericError(Error.IDEN_INVALID_START, starting_position, ending_position,
-
-                                                    f"'{temp_id}' is invalid"))
-                # if not any(temp_id.startswith(alpha) for alpha in ATOMS['alpha_small']): <-- !OLD!
-                elif temp_id[0].isupper():
-                    self._logs.append(GenericError(Error.IDEN_INVALID_START, starting_position, ending_position,
-                                                    f"instead of '{temp_id}', did you mean to type {temp_id.lower()}"))
-                # check if all characters are either alpha or numbers
-                elif not temp_id.isalnum():
-                    self._logs.append(GenericError(Error.IDEN_INVALID_NAME, starting_position, ending_position,
-                                                    f"'{temp_id}' is invalid"))
-                else:
-                    self._tokens.append(Token(temp_id, UniqueTokenType(temp_id, UniqueTokenType.ID),
+                self._tokens.append(Token(temp_id, UniqueTokenType(temp_id, UniqueTokenType.ID),
                                               starting_position, ending_position))
-
                 cursor_advanced = True
                 break
 
