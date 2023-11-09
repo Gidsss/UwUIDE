@@ -761,9 +761,7 @@ class Lexer():
                 prev_token = self.tokens[-i]
                 in_same_line = prev_token.position[0] == self._position[0]
                 if in_same_line:
-                    if to_check[to_check_index] == TokenType.GEN_FUNC_NAME and prev_token.token.token.startswith('FWUNC'):
-                        present_flag = True
-                    elif to_check[to_check_index] == TokenType.GEN_CWASS_NAME and prev_token.token.token.startswith('CWASS'):
+                    if to_check[to_check_index] == TokenType.GEN_CWASS_NAME and prev_token.token.token.startswith('CWASS'):
                         present_flag = True
                     elif to_check[to_check_index] == TokenType.GEN_IDENTIFIER and prev_token.token.token.startswith('IDENTIFIER'):
                         present_flag = True
