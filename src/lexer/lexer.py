@@ -363,23 +363,13 @@ class Lexer():
                     continue
 
             # can be identifiers or function names
-            if self._current_char in ATOMS['alpha']:
-                cwass = False if self._current_char == self._current_char.lower() else True
-                cursor_advanced, is_end_of_file = self._is_func_or_cwass_name(cwass)
+            if self._current_char in ATOMS['alpha_small']:
+                cursor_advanced, is_end_of_file = self._is_identifier()
                 if cursor_advanced:
                     if is_end_of_file:
                         break
                     is_end_of_file = self._advance()
                     continue
-
-                else:
-                    # make temp_id to hold read chars
-                    cursor_advanced, is_end_of_file = self._is_identifier()
-                    if cursor_advanced:
-                        if is_end_of_file:
-                            break
-                        is_end_of_file = self._advance()
-                        continue
 
 
             if self._current_char in ['|', '"']:
@@ -779,18 +769,12 @@ class Lexer():
             is_end_of_file = self._advance()
             in_next_line = self._position[0] != current_line
 
-            if is_end_of_file:
+            if is_end_of_file or in_next_line:
+                if in_next_line:
+                    self._reverse()
+
                 line, col = self._position
                 self._logs.append(DelimError(TokenType.GEN_IDENTIFIER, (line, col + 1), temp_id, '\n'))
-                cursor_advanced = True
-                break
-
-            elif not self._current_char.isalnum() or in_next_line:
-                special_char = self._current_char if not in_next_line else '\n'
-                self._reverse()
-
-                line, col = self._position
-                self._logs.append(DelimError(TokenType.GEN_IDENTIFIER, (line, col + 1), temp_id, special_char))
                 cursor_advanced = True
                 break
 
@@ -800,6 +784,15 @@ class Lexer():
                 ending_position = (self._position[0], self._position[1])
                 self._tokens.append(Token(temp_id, UniqueTokenType(temp_id, UniqueTokenType.ID),
                                               starting_position, ending_position))
+                cursor_advanced = True
+                break
+
+            elif not self._current_char.isalnum():
+                special_char = self._current_char
+                self._reverse()
+
+                line, col = self._position
+                self._logs.append(DelimError(TokenType.GEN_IDENTIFIER, (line, col + 1), temp_id, special_char))
                 cursor_advanced = True
                 break
 
@@ -834,7 +827,7 @@ class Lexer():
                 if is_end_of_file:
                     break
 
-                # !NOTE! put escapable characters here
+                # NOTE put escapable characters here
                 if self._current_char not in ["|", '"']:
                     self._reverse()
                     temp_string += '\\'
