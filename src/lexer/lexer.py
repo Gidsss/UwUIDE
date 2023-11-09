@@ -785,7 +785,7 @@ class Lexer():
         cursor_advanced = False
         temp_id = from_keyword if from_keyword else ''
         current_line = self._position[0]
-        
+
         if cwass:
             expected_delims = DELIMS['cwass']
             unique_token = UniqueTokenType.CWASS
@@ -994,18 +994,6 @@ class Lexer():
 
                 if break_outside_loop:
                     break
-
-            # treat as invalid identifier if followed by non-number
-            if self._current_char in ATOMS['alpha']:
-                self._reverse(len(temp_num))
-                cursor_advanced, _ = self._is_func_or_cwass_name(temp_num)
-                if cursor_advanced:
-                    break
-                else:
-                    # make temp_id to hold read chars
-                    cursor_advanced, _ = self._is_identifier(temp_num)
-                    if cursor_advanced:
-                        break
 
             temp_num += self._current_char
 
