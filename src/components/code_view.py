@@ -1,7 +1,11 @@
 from customtkinter import *
-from tkinter import Event
+from tkinter import *
+from constants.path import *
+
 from src.lexer import Lexer, Token, Error
+
 from enum import Enum
+from PIL import Image
 
 
 class Linenums(CTkCanvas):
@@ -75,22 +79,31 @@ class CodeEditor(CTkFrame):
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=25)
         self.grid_rowconfigure(0, weight=1)
-
-        self.text = CTkTextbox(master=self, corner_radius=0, fg_color='#1A1B26', text_color='#FFFFFF')
+        
+        self.text = CTkTextbox(master=self, corner_radius=0,fg_color='transparent', font=('JetBrains Mono', 13), text_color='#FFFFFF', undo=True)
         self.text.grid(row=0, column=1, sticky='nsew')
 
         self.line_nums = Linenums(master=self, text_widget=self.text)
         self.line_nums.grid(row=0, column=0, sticky='nsew')
-
+        
         self.text.bind("<Button-1>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<Tab>", lambda e: self.on_tab(e))
-
+        self.text.bind("<FocusIn>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<Return>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<BackSpace>", lambda e: self.line_nums.on_redraw(e))
 
+        self.text.bind("<Control-c>", lambda e: self.copy_text(e))
+        self.text.bind("<Control-v>", lambda e: self.paste_text(e))
+        self.text.bind("<Control-z>", lambda e: self.line_nums.on_redraw(e))
+        self.text.bind("<Control-y>", lambda e: self.line_nums.on_redraw(e)) 
+         
+ 
         # Initialize tags
         for tag in Tags:
             self.text.tag_config(tag.name, **tag.options)
+
+    def init_linenums(self):
+        self.text.focus_set()
 
     def on_tab(self, e: Event):
         e.widget.insert(INSERT, " " * 6)
@@ -155,29 +168,89 @@ class CodeEditor(CTkFrame):
         for tag in tags:
             self.text.tag_remove(tag.name, "1.0", "end")
 
+    def copy_text(self, event: Event):
+        event.widget.clipboard_clear()
+        selected_text = event.widget.get("sel.first", "sel.last")
+        event.widget.clipboard_append(selected_text)
+
+        return "break"
+
+    def paste_text(self, event: Event):
+        try:
+            text_to_paste = event.widget.clipboard_get()
+            event.widget.insert(INSERT, text_to_paste)
+            print('Working')
+            self.line_nums.on_redraw(event)
+        except:
+            raise ValueError('Clipboard is empty')
+        
+        return "break"
 
 class CodeView(CTkTabview):
-    def __init__(self, master, **kwargs):
+    def __init__(self, master, parent, **kwargs):
         super().__init__(master, **kwargs)
-        self.file_names = ['Untitled.uwu', 'Untitled(1).uwu']
+        self.parent = parent
+        self.file_names = ['Untitled.uwu']
         self.code_editors: dict[str, CodeEditor] = {}
-
+        
         for file in self.file_names:
-            tab = self.add(file)
-            tab.grid_columnconfigure((0, 1), weight=1)
-            tab.grid_rowconfigure((0, 1), weight=1)
+            self.create_new_tab(file)
+    
+    def create_new_tab(self, file_name):
+        tab = self.add(file_name)
+        tab.grid_columnconfigure((0, 1), weight=1)
+        tab.grid_rowconfigure((0, 1), weight=1)
 
-            code_editor = CodeEditor(master=tab, fg_color='transparent', lexer=Lexer)
-            code_editor.grid(row=0, column=0, rowspan=2, columnspan=2, sticky='nsew')
+        code_editor = CodeEditor(master=tab, fg_color='transparent', lexer=Lexer)
+        code_editor.grid(row=0, column=0, rowspan=2, columnspan=2, sticky='nsew')
 
-            self.code_editors[file] = code_editor
+        self.code_editors[file_name] = code_editor
+        
+        # Pop up on right click
+        options_menu = Menu(code_editor.text, tearoff=False)
 
+        options_menu.add_command(label='Run Program', command=lambda : self.parent.on_compiler_run(code_editor=code_editor))
+        options_menu.add_command(label='Save Program', command=self.save_file)
+        options_menu.add_separator()
+        options_menu.add_command(label='Close File', command=lambda : self.remove_tab(file_name))
+
+        code_editor.text.bind('<Button-3>', lambda e: options_menu.tk_popup(e.x_root, e.y_root))
+
+    def remove_tab(self, file_name):
+        self.delete(file_name)
+        code_editor = self.code_editors.pop(file_name)
+        code_editor.destroy()
+
+    def save_file(self):
+        code_editor: CodeEditor = self.editor
+
+        if code_editor:
+            file_content = code_editor.text.get('1.0', 'end-1c')
+            file_name = filedialog.asksaveasfilename(initialfile=self.get(),defaultextension=".uwu", filetypes=[("UwU Files", "*.uwu")])
+            if file_name:
+                with open(file_name, "w") as file:
+                    file.write(file_content)
+
+    def load_file(self):
+        file_path = filedialog.askopenfilename(filetypes=[("UwU Files", "*.uwu")])
+        file_name = os.path.basename(file_path)
+        if file_path:
+            if file_name not in self.code_editors:
+                self.create_new_tab(file_name)
+                self.set(file_name)
+            with open(file_path, "r") as file:
+                file_content = file.read()
+                self.code_editors[file_name].text.delete('1.0', 'end-1c')
+                self.code_editors[file_name].text.insert('1.0', file_content)
+            self.editor.init_linenums()
+
+    @property
     def editor(self) -> CodeEditor:
-        tab = self.get()
-        code_editor: CodeEditor = self.code_editors[tab]
-
-        return code_editor
-
+        try:
+            tab = self.get()
+            return self.code_editors[tab]
+        except:
+            raise KeyError('Code tab does not exist.')
 
 class Remote:
     """
