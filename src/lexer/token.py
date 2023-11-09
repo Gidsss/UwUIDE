@@ -56,14 +56,15 @@ class TokenType(Enum):
     DONO = ("dono", "dono")  # constant
 
     # LITERALS
-    NUWW = ("NUWW_LITERAL", "nuww")
+    NUWW = ("nuww", "nuww")
     INT_LITERAL = ("INT_LITERAL", "int_float")
     FLOAT_LITERAL = ("FLOAT_LITERAL", "int_float")
     STRING_LITERAL = ("STRING_LITERAL", "string")
     STRING_PART_START = ("STRING_PART_START", "string_parts") # "|
     STRING_PART_MID = ("STRING_PART_MID", "string_parts") # ||
     STRING_PART_END = ("STRING_PART_END", "string") # |"
-    BOOL_LITERAL = ("BOOLEAN_LITERAL", "bool")  # fax, cap
+    FAX = ("fax", "fax") 
+    CAP = ("cap", "cap")
 
     # OPERATORS
     ASSIGN = ("ASSIGNMENT_OPERATOR", "assign_delim")  # =
