@@ -912,10 +912,13 @@ class Lexer():
                 if original_starting_char == '0':
                     # only floats or literal '0' can start with 0
                     if len(temp_num) > 1:
-                        corrected_value = str(int(temp_num))
+                        leading_zero_count = len(temp_num) - len(str(int(temp_num)))
+
                         starting_position = tuple([self._position[0], self._position[1]-len(temp_num)+1])
                         ending_position = tuple(self._position)
-                        self._logs.append(IntFloatWarning(Warn.LEADING_ZEROES_INT, corrected_value, temp_num, starting_position, ending_position))
+                        self._logs.append(GenericError(Error.LEADING_ZEROES_INT, starting_position, ending_position,
+                                                       context=f"'{temp_num}' has {leading_zero_count} leading zeroes. consider removing them ({str(int(temp_num))})"))
+                        break
 
                 if len(corrected_value) > 10:
                     self._logs.append(GenericError(Error.OUT_OF_BOUNDS_INT_FLOAT, starting_position, ending_position,
@@ -925,7 +928,7 @@ class Lexer():
                 self._tokens.append(Token(corrected_value, TokenType.INT_LITERAL, starting_position, ending_position))
                 break
 
-            # floats with one leading zero
+            # floats that can have one leading zero
             elif self._current_char == '.':
                 temp_num += self._current_char
                 while True:
@@ -983,7 +986,7 @@ class Lexer():
                         if after_decimal_digit_count > 10:
                             temp_num = corrected_value
                             corrected_value = corrected_value[:corrected_value.index('.')] + corrected_value[corrected_value.index('.'):][:11]
-                            self._logs.append(IntFloatWarning(Error.OUT_OF_BOUNDS_INT_FLOAT, corrected_value, temp_num, starting_position, ending_position,
+                            self._logs.append(GenericError(Error.OUT_OF_BOUNDS_INT_FLOAT, corrected_value, temp_num, starting_position, ending_position,
                                                               context = f"'{temp_num}' is {len(temp_num)} digits long after the decimal point\n\tvalue = '{temp_num}' --> corrected valule = '{corrected_value}'"))
 
                         self._tokens.append(Token(corrected_value, TokenType.FLOAT_LITERAL, starting_position, ending_position))
@@ -998,7 +1001,7 @@ class Lexer():
             temp_num += self._current_char
 
         return self._advance()
-    
+
     def _peek_comments(self, multiline: bool = False) -> bool:
         'returns true if found comments/error about comments, false otherwise'
         to_seek = r'>//<' if multiline else '>.<'
