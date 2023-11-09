@@ -3,9 +3,6 @@ from .logs_table import LogsCanvas
 from PIL import Image, ImageTk
 from constants.path import *
 
-class CustomTabLabel(CTkLabel):
-    def __init__(self, master, text, font=None, **kwargs):
-        super().__init__(master, text=text, font=font, **kwargs)
 
 class CompilerLogs(CTkScrollableFrame):
     def __init__(self, master, **kwargs):
