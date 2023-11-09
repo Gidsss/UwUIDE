@@ -944,7 +944,7 @@ class Lexer():
                         break
 
                     # preemptively break when a delimiter is found for floats
-                    if self._current_char in DELIMS['int_float']:
+                    elif self._current_char in DELIMS['int_float']:
                         self._reverse()
                         corrected_value = temp_num
                         starting_position = tuple([self._position[0], self._position[1]-len(temp_num)+1])
@@ -955,7 +955,9 @@ class Lexer():
                             corrected_value = str(float(temp_num))
                             starting_position = tuple([self._position[0], self._position[1]-len(temp_num)+1])
                             ending_position = tuple(self._position)
-                            self._logs.append(IntFloatWarning(Warn.TRAILING_ZEROES_FLOAT, corrected_value, temp_num, starting_position, ending_position))
+                            self._logs.append(GenericError(Error.TRAILING_ZEROES_FLOAT, starting_position, ending_position))
+                            break_outside_loop = True
+                            break
 
                         # has no numbers after decimal point
                         if temp_num[-1:] == '.':
@@ -993,10 +995,23 @@ class Lexer():
                         break_outside_loop = True
                         break
 
+                    elif not self._current_char.isdigit():
+                        invalid_delim = self._current_char
+                        self._reverse()
+                        self._logs.append(DelimError(TokenType.INT_LITERAL, tuple(self._position), temp_num, invalid_delim))
+                        break_outside_loop = True
+                        break
+
                     temp_num += self._current_char
 
                 if break_outside_loop:
                     break
+            
+            elif not self._current_char.isdigit():
+                invalid_delim = self._current_char
+                self._reverse()
+                self._logs.append(DelimError(TokenType.INT_LITERAL, tuple(self._position), temp_num, invalid_delim))
+                break
 
             temp_num += self._current_char
 
