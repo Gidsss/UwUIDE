@@ -67,13 +67,23 @@ class TokenType(Enum):
     CAP = ("cap", "cap")
 
     # OPERATORS
-    ASSIGN = ("ASSIGNMENT_OPERATOR", "assign_delim")  # =
-    ARITHMETIC = ("ARITHMETIC_OPERATOR", "operator_delim")  # + - * / %
-    RELATIONAL = ("RELATIONAL_OPERATOR", "operator_delim")  # > < >= <=
-    EQUALITY = ("EQUALITY_OPERATOR", "logical_delim")  # == !=
-    LOGIC = ("LOGICAL_OPERATOR", "logical_delim")  # && ||
-    UNARY = ("UNARY_OPERATOR", "unary")  # ++ --
-    CONCAT = ("CONCATENATION_OPERATOR", "concat")  # &
+    ASSIGNMENT_OPERATOR = ("=", "assign_delim")
+    ADDITION_SIGN = ("+", "operator_delim")
+    SUBTRACTION_SIGN = ("-", "operator_delim")
+    MULTIPLICATION_SIGN = ("*", "operator_delim")
+    DIVISION_SIGN = ("/", "operator_delim")
+    MODULO_SIGN = ("%", "operator_delim")
+    GREATER_THAN_SIGN = (">", "operator_delim")
+    LESS_THAN_SIGN = ("<", "operator_delim")
+    GREATER_THAN_OR_EQUAL_SIGN = (">=", "operator_delim")
+    LESS_THAN_OR_EQUAL_SIGN = ("<=", "operator_delim")
+    EQUALITY_OPERATOR = ("==", "logical_delim")
+    INEQUALITY_OPERATOR = ("!=", "logical_delim")
+    AND_OPERATOR = ("&&", "logical_delim")
+    OR_OPERATOR = ("||", "logical_delim")
+    INCREMENT_OPERATOR = ("++", "unary")
+    DECREMENT_OPERATOR = ("--", "unary")
+    CONCATENATION_OPERATOR = ("&", "concat")  # &
 
     # GROUPING SYMBOLS
     OPEN_BRACE = ("OPEN_BRACE", "open_brace")  # {
