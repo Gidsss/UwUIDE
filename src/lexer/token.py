@@ -86,20 +86,19 @@ class TokenType(Enum):
     CONCATENATION_OPERATOR = ("&", "concat")  # &
 
     # GROUPING SYMBOLS
-    OPEN_BRACE = ("OPEN_BRACE", "open_brace")  # {
-    CLOSE_BRACE = ("CLOSE_BRACE", "close_brace")  # }
-    OPEN_PAREN = ("OPEN_PARENTHESIS", "open_parenthesis")  # (
-    CLOSE_PAREN = ("CLOSE_PARENTHESIS", "close_parenthesis")  # )
-    OPEN_BRACKET = ("OPEN_BRACKET", "open_bracket")  # [
-    CLOSE_BRACKET = ("CLOSE_BRACKET", "close_bracket")  # ]
-    DOUBLE_OPEN_BRACKET = ("DOUBLE_OPEN_BRACKET", "double_open_bracket")  # [[
-    DOUBLE_CLOSE_BRACKET = ("DOUBLE_CLOSE_BRACKET", "double_close_bracket")  # ]]
+    OPEN_BRACE = ("{", "open_brace")  # {
+    CLOSE_BRACE = ("}", "close_brace")  # }
+    OPEN_PAREN = ("(", "open_parenthesis")  # (
+    CLOSE_PAREN = (")", "close_parenthesis")  # )
+    OPEN_BRACKET = ("[", "open_bracket")  # [
+    CLOSE_BRACKET = ("]", "close_bracket")  # ]
+    DOUBLE_OPEN_BRACKET = ("[[", "double_open_bracket")  # [[
+    DOUBLE_CLOSE_BRACKET = ("]]", "double_close_bracket")  # ]]
 
     # OTHER SYMBOLS
-    TERMINATOR = ("TERMINATOR", "line")  # ~
-    COMMA = ("COMMA", "comma")  # ,
-    DOT_OP = ("DOT_OPERATOR", "dot_op")  # .
-    NEGATIVE = ("NEGATIVE_SIGN", "negative_delim")  # -
+    TERMINATOR = ("~", "line")  # ~
+    COMMA = (",", "comma")  # ,
+    DOT_OP = (".", "dot_op")  # .
 
     # OTHER
     GEN_IDENTIFIER = ("IDENTIFIER", "id")
@@ -107,7 +106,7 @@ class TokenType(Enum):
     GEN_CWASS_NAME = ("CWASS_NAME", "cwass")
     SINGLE_LINE_COMMENT = ("COMMENT", "single_line_comment")
     MULTI_LINE_COMMENT = ("MULTI LINE COMMENT", "line")
-    TYPE_INDICATOR = ("TYPE INDICATOR", 'type_indicator')
+    TYPE_INDICATOR = ("-", 'type_indicator')
 
 
 class UniqueTokenType:
