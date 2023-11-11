@@ -45,7 +45,7 @@ class Lexer():
                 cursor_advanced, is_end_of_file = self._peek('chan', TokenType.CHAN)
                 if cursor_advanced:
                     continue
-                cursor_advanced, is_end_of_file = self._peek('cap', TokenType.BOOL_LITERAL)
+                cursor_advanced, is_end_of_file = self._peek('cap', TokenType.CAP)
                 if cursor_advanced:
                     continue
 
@@ -80,7 +80,7 @@ class Lexer():
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('fax', TokenType.BOOL_LITERAL)
+                cursor_advanced, is_end_of_file = self._peek('fax', TokenType.FAX)
                 if cursor_advanced:
                     continue
 
@@ -150,20 +150,20 @@ class Lexer():
 
             # Symbol Checks
             if self._current_char == '=':
-                cursor_advanced, is_end_of_file = self._peek('==', TokenType.EQUALITY)
+                cursor_advanced, is_end_of_file = self._peek('==', TokenType.EQUALITY_OPERATOR)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('=', TokenType.ASSIGN)
+                cursor_advanced, is_end_of_file = self._peek('=', TokenType.ASSIGNMENT_OPERATOR)
                 if cursor_advanced:
                     continue
 
             if self._current_char == '+':
-                cursor_advanced, is_end_of_file = self._peek('++', TokenType.UNARY)
+                cursor_advanced, is_end_of_file = self._peek('++', TokenType.INCREMENT_OPERATOR)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('+', TokenType.ARITHMETIC)
+                cursor_advanced, is_end_of_file = self._peek('+', TokenType.ADDITION_SIGN)
                 if cursor_advanced:
                     continue
 
@@ -175,12 +175,12 @@ class Lexer():
 
                 if len(after_slice) < 1:
                     line, col = self._position
-                    self._logs.append(DelimError(TokenType.ARITHMETIC, (line, col + 1), '-', '\n'))
+                    self._logs.append(DelimError(TokenType.DASH, (line, col + 1), '-', '\n'))
 
                 # Check if character after - is uppercase (then its a class data type) and before is alphanumeric (could be identifier or func name)
                 elif after_slice[0] in ATOMS["alpha_big"] and before_slice[-1] in ATOMS['alphanum']:
                     starting_position = ending_position = tuple(self._position)
-                    self._tokens.append(Token('-', TokenType.TYPE_INDICATOR, starting_position, ending_position))
+                    self._tokens.append(Token('-', TokenType.DASH, starting_position, ending_position))
                     is_end_of_file = self._advance()
                     continue
 
@@ -201,7 +201,7 @@ class Lexer():
                 if valid_data_type is not None:
                     if len(valid_data_type) < len(after_slice):
                         delim = after_slice[len(valid_data_type)]
-                        if delim in TokenType.DATA_TYPE.expected_delims:
+                        if delim in DELIMS['data_type']:
                             starting_position = ending_position = tuple(self._position)
                             self._tokens.append(Token('-', TokenType.TYPE_INDICATOR, starting_position, ending_position))
                             is_end_of_file = self._advance()
@@ -213,12 +213,15 @@ class Lexer():
                         continue
 
                 # Check if - is negative
-                valid_ops = [TokenType.ASSIGN, TokenType.ARITHMETIC, TokenType.RELATIONAL,
-                             TokenType.EQUALITY, TokenType.LOGIC]
+                valid_ops = [TokenType.ASSIGNMENT_OPERATOR, 
+                             TokenType.ADDITION_SIGN, TokenType.DASH, TokenType.MULTIPLICATION_SIGN, TokenType.DIVISION_SIGN, TokenType.MODULO_SIGN,
+                             TokenType.GREATER_THAN_SIGN, TokenType.LESS_THAN_SIGN ,TokenType.GREATER_THAN_OR_EQUAL_SIGN ,TokenType.LESS_THAN_OR_EQUAL_SIGN,
+                             TokenType.EQUALITY, TokenType.INEQUALITY_OPERATOR, 
+                             TokenType.AND, TokenType.OR,]
                 operator_before = self._check_prev_token(valid_ops)
                 line_copy = self._lines[line]
                 if line_copy.lstrip()[0] == '-' or operator_before:
-                    cursor_advanced, is_end_of_file = self._peek('-', TokenType.NEGATIVE)
+                    cursor_advanced, is_end_of_file = self._peek('-', TokenType.DASH)
                     if cursor_advanced:
                         continue
 
@@ -227,14 +230,14 @@ class Lexer():
                     # If next char is a dash, check if it is delimited by unary expected delims
                     if self._lines[line][column+1] == '-':
                         if len(after_slice) > 1:
-                            if self._lines[line][column+2] in TokenType.UNARY.expected_delims:
+                            if self._lines[line][column+2] in DELIMS['unary']:
                                 # Check if prev token is identifier
                                 operand_before = self._check_prev_token([TokenType.GEN_IDENTIFIER, TokenType.INT_LITERAL,
                                                                          TokenType.FLOAT_LITERAL, TokenType.CLOSE_PAREN])
                                 if operand_before:
                                     starting_position = tuple(self._position)
                                     ending_position = tuple([self._position[0], self._position[1]+1])
-                                    self._tokens.append(Token('--', TokenType.UNARY, starting_position, ending_position))
+                                    self._tokens.append(Token('--', TokenType.DECREMENT_OPERATOR, starting_position, ending_position))
                                 else:
                                     start_of_error = tuple(self._position)
                                     end_of_error = tuple([line, column + 1])
@@ -242,12 +245,12 @@ class Lexer():
                                 is_end_of_file = self._advance(2)
                                 continue
                     starting_position = ending_position = tuple(self._position)
-                    self._tokens.append(Token('-', TokenType.ARITHMETIC, starting_position, ending_position))
+                    self._tokens.append(Token('-', TokenType.DASH, starting_position, ending_position))
                     is_end_of_file = self._advance()
                     continue
 
             if self._current_char == '!':
-                cursor_advanced, is_end_of_file = self._peek('!=', TokenType.EQUALITY)
+                cursor_advanced, is_end_of_file = self._peek('!=', TokenType.INEQUALITY_OPERATOR)
                 if cursor_advanced:
                     continue
 
@@ -255,7 +258,7 @@ class Lexer():
                                                context=f"Symbol {self._current_char} is invalid. Did you mean '!='?"))
 
             if self._current_char == '>':
-                cursor_advanced, is_end_of_file = self._peek('>=', TokenType.RELATIONAL)
+                cursor_advanced, is_end_of_file = self._peek('>=', TokenType.GREATER_THAN_OR_EQUAL_SIGN)
                 if cursor_advanced:
                     continue
 
@@ -267,45 +270,45 @@ class Lexer():
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('>', TokenType.RELATIONAL)
+                cursor_advanced, is_end_of_file = self._peek('>', TokenType.GREATER_THAN_SIGN)
                 if cursor_advanced:
                     continue
 
             if self._current_char == '<':
-                cursor_advanced, is_end_of_file = self._peek('<=', TokenType.RELATIONAL)
+                cursor_advanced, is_end_of_file = self._peek('<=', TokenType.LESS_THAN_OR_EQUAL_SIGN)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('<', TokenType.RELATIONAL)
+                cursor_advanced, is_end_of_file = self._peek('<', TokenType.LESS_THAN_SIGN)
                 if cursor_advanced:
                     continue
 
             if self._current_char == '*':
-                cursor_advanced, is_end_of_file = self._peek('*', TokenType.ARITHMETIC)
+                cursor_advanced, is_end_of_file = self._peek('*', TokenType.MULTIPLICATION_SIGN)
                 if cursor_advanced:
                     continue
 
             if self._current_char == '/':
-                cursor_advanced, is_end_of_file = self._peek('/', TokenType.ARITHMETIC)
+                cursor_advanced, is_end_of_file = self._peek('/', TokenType.DIVISION_SIGN)
                 if cursor_advanced:
                     continue
 
             if self._current_char == '%':
-                cursor_advanced, is_end_of_file = self._peek('%', TokenType.ARITHMETIC)
+                cursor_advanced, is_end_of_file = self._peek('%', TokenType.MODULO_SIGN)
                 if cursor_advanced:
                     continue
 
             if self._current_char == "|":
-                cursor_advanced, is_end_of_file = self._peek('||', TokenType.LOGIC)
+                cursor_advanced, is_end_of_file = self._peek('||', TokenType.OR_OPERATOR)
                 if cursor_advanced:
                     continue
 
             if self._current_char == "&":
-                cursor_advanced, is_end_of_file = self._peek('&&', TokenType.LOGIC)
+                cursor_advanced, is_end_of_file = self._peek('&&', TokenType.AND_OPERATOR)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('&', TokenType.CONCAT)
+                cursor_advanced, is_end_of_file = self._peek('&', TokenType.CONCATENATION_OPERATOR)
                 if cursor_advanced:
                     continue
 
