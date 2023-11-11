@@ -27,68 +27,78 @@ class TokenType(Enum):
         return str.__format__(str(self), format_spec)
 
     # GENERAL KEYWORDS
-    START = ("START_KEYWORD", "start_done")
-    DONE = ("DONE_KEYWORD", "start_done")
-    MAINUWU = ("MAINUWU_KEYWORD", "mainuwu")
-    FWUNC = ("FWUNC_KEYWORD", "whitespace")
-    CWASS = ("CWASS_KEYWORD", "whitespace")
-    GWOBAW = ("GWOBAW_KEYWORD", "whitespace")
-    INPWT = ("INPWT_KEYWORD", "io")
-    PWINT = ("PWINT_KEYWORD", "io")
-    WETUWN = ("WETUWN_KEYWORD", "io")
+    START = ("staart!", "start_done")
+    DONE = ("donee~", "start_done")
+    MAINUWU = ("mainuwu", "mainuwu")
+    FWUNC = ("fwunc", "whitespace")
+    CWASS = ("cwass", "whitespace")
+    GWOBAW = ("gwobaw", "whitespace")
+    INPWT = ("inpwt", "io")
+    PWINT = ("pwint", "io")
+    WETUWN = ("wetuwn", "io")
 
     # CONTROL STRUCTURE KEYWORDS
-    FOW = ("FOW_KEYWORD", "conditional")
-    WHIWE = ("WHIWE_KEYWORD", "conditional")
-    DO_WHIWE = ("DO_WHIWE_KEYWORD", "conditional")
-    IWF = ("IWF_KEYWORD", "conditional")
-    EWSE = ("EWSE_KEYWORD", "conditional")
-    EWSE_IWF = ("EWSE_IWF_KEYWORD", "conditional")
-    BWEAK = ("BWEAK_KEYWORD", "end")
+    FOW = ("fow", "conditional")
+    WHIWE = ("whiwe", "conditional")
+    DO_WHIWE = ("do whiwe", "conditional")
+    IWF = ("iwf", "conditional")
+    EWSE = ("ewse", "conditional")
+    EWSE_IWF = ("ewse iwf", "conditional")
+    BWEAK = ("bweak", "end")
 
     # DATA TYPES
     DATA_TYPE = ("GENERAL_DATA_TYPE", "data_type")  # only for dev
-    CHAN = ("CHAN_DATA_TYPE", "data_type")  # int
-    KUN = ("KUN_DATA_TYPE", "data_type")  # float
-    SAMA = ("SAMA_DATA_TYPE", "data_type")  # boolean
-    SENPAI = ("SENPAI_DATA_TYPE", "data_type")  # string
-    SAN = ("SAN_DATA_TYPE", "data_type")  # void
-    DONO = ("DONO_DATA_TYPE", "dono")  # constant
+    CHAN = ("chan", "data_type")  # int
+    KUN = ("kun", "data_type")  # float
+    SAMA = ("sama", "data_type")  # boolean
+    SENPAI = ("senpai", "data_type")  # string
+    SAN = ("san", "data_type")  # void
+    DONO = ("dono", "dono")  # constant
 
     # LITERALS
-    NUWW = ("NUWW_LITERAL", "nuww")
+    NUWW = ("nuww", "nuww")
     INT_LITERAL = ("INT_LITERAL", "int_float")
     FLOAT_LITERAL = ("FLOAT_LITERAL", "int_float")
     STRING_LITERAL = ("STRING_LITERAL", "string")
     STRING_PART_START = ("STRING_PART_START", "string_parts") # "|
     STRING_PART_MID = ("STRING_PART_MID", "string_parts") # ||
     STRING_PART_END = ("STRING_PART_END", "string") # |"
-    BOOL_LITERAL = ("BOOLEAN_LITERAL", "bool")  # fax, cap
+    FAX = ("fax", "fax")
+    CAP = ("cap", "cap")
 
     # OPERATORS
-    ASSIGN = ("ASSIGNMENT_OPERATOR", "assign_delim")  # =
-    ARITHMETIC = ("ARITHMETIC_OPERATOR", "operator_delim")  # + - * / %
-    RELATIONAL = ("RELATIONAL_OPERATOR", "operator_delim")  # > < >= <=
-    EQUALITY = ("EQUALITY_OPERATOR", "logical_delim")  # == !=
-    LOGIC = ("LOGICAL_OPERATOR", "logical_delim")  # && ||
-    UNARY = ("UNARY_OPERATOR", "unary")  # ++ --
-    CONCAT = ("CONCATENATION_OPERATOR", "concat")  # &
+    ASSIGNMENT_OPERATOR = ("=", "assign_delim")
+    ADDITION_SIGN = ("+", "operator_delim")
+    SUBTRACTION_SIGN = ("-", "operator_delim")
+    MULTIPLICATION_SIGN = ("*", "operator_delim")
+    DIVISION_SIGN = ("/", "operator_delim")
+    MODULO_SIGN = ("%", "operator_delim")
+    GREATER_THAN_SIGN = (">", "operator_delim")
+    LESS_THAN_SIGN = ("<", "operator_delim")
+    GREATER_THAN_OR_EQUAL_SIGN = (">=", "operator_delim")
+    LESS_THAN_OR_EQUAL_SIGN = ("<=", "operator_delim")
+    EQUALITY_OPERATOR = ("==", "logical_delim")
+    INEQUALITY_OPERATOR = ("!=", "logical_delim")
+    AND_OPERATOR = ("&&", "logical_delim")
+    OR_OPERATOR = ("||", "logical_delim")
+    INCREMENT_OPERATOR = ("++", "unary")
+    DECREMENT_OPERATOR = ("--", "unary")
+    CONCATENATION_OPERATOR = ("&", "concat")  # &
 
     # GROUPING SYMBOLS
-    OPEN_BRACE = ("OPEN_BRACE", "open_brace")  # {
-    CLOSE_BRACE = ("CLOSE_BRACE", "close_brace")  # }
-    OPEN_PAREN = ("OPEN_PARENTHESIS", "open_parenthesis")  # (
-    CLOSE_PAREN = ("CLOSE_PARENTHESIS", "close_parenthesis")  # )
-    OPEN_BRACKET = ("OPEN_BRACKET", "open_bracket")  # [
-    CLOSE_BRACKET = ("CLOSE_BRACKET", "close_bracket")  # ]
-    DOUBLE_OPEN_BRACKET = ("DOUBLE_OPEN_BRACKET", "double_open_bracket")  # [[
-    DOUBLE_CLOSE_BRACKET = ("DOUBLE_CLOSE_BRACKET", "double_close_bracket")  # ]]
+    OPEN_BRACE = ("{", "open_brace")  # {
+    CLOSE_BRACE = ("}", "close_brace")  # }
+    OPEN_PAREN = ("(", "open_parenthesis")  # (
+    CLOSE_PAREN = (")", "close_parenthesis")  # )
+    OPEN_BRACKET = ("[", "open_bracket")  # [
+    CLOSE_BRACKET = ("]", "close_bracket")  # ]
+    DOUBLE_OPEN_BRACKET = ("[[", "double_open_bracket")  # [[
+    DOUBLE_CLOSE_BRACKET = ("]]", "double_close_bracket")  # ]]
 
     # OTHER SYMBOLS
-    TERMINATOR = ("TERMINATOR", "line")  # ~
-    COMMA = ("COMMA", "comma")  # ,
-    DOT_OP = ("DOT_OPERATOR", "dot_op")  # .
-    NEGATIVE = ("NEGATIVE_SIGN", "negative_delim")  # -
+    TERMINATOR = ("~", "line")  # ~
+    COMMA = (",", "comma")  # ,
+    DOT_OP = (".", "dot_op")  # .
 
     # OTHER
     GEN_IDENTIFIER = ("IDENTIFIER", "id")
@@ -96,8 +106,6 @@ class TokenType(Enum):
     GEN_CWASS_NAME = ("CWASS_NAME", "cwass")
     SINGLE_LINE_COMMENT = ("COMMENT", "single_line_comment")
     MULTI_LINE_COMMENT = ("MULTI LINE COMMENT", "line")
-    TYPE_INDICATOR = ("TYPE INDICATOR", 'type_indicator')
-
 
 class UniqueTokenType:
     """
