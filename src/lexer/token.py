@@ -63,13 +63,13 @@ class TokenType(Enum):
     STRING_PART_START = ("STRING_PART_START", "string_parts") # "|
     STRING_PART_MID = ("STRING_PART_MID", "string_parts") # ||
     STRING_PART_END = ("STRING_PART_END", "string") # |"
-    FAX = ("fax", "fax")
-    CAP = ("cap", "cap")
+    FAX = ("fax", "bool")
+    CAP = ("cap", "bool")
 
     # OPERATORS
     ASSIGNMENT_OPERATOR = ("=", "assign_delim")
     ADDITION_SIGN = ("+", "operator_delim")
-    SUBTRACTION_SIGN = ("-", "operator_delim")
+    DASH = ("-", "operator_delim")
     MULTIPLICATION_SIGN = ("*", "operator_delim")
     DIVISION_SIGN = ("/", "operator_delim")
     MODULO_SIGN = ("%", "operator_delim")
