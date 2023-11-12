@@ -215,7 +215,6 @@ class Lexer():
                     continue
 
             if self._current_char == '-':
-                # Check if - is dash data type
                 line, column = tuple(self._position)
                 after_slice = self._lines[line][column+1:]
                 before_slice = self._lines[line][:column]
@@ -223,41 +222,6 @@ class Lexer():
                 if len(after_slice) < 1:
                     line, col = self._position
                     self._logs.append(DelimError(TokenType.DASH, (line, col + 1), '-', '\n'))
-
-                # Check if character after - is uppercase (then its a class data type) and before is alphanumeric (could be identifier or func name)
-                elif after_slice[0] in ATOMS["alpha_big"] and before_slice[-1] in ATOMS['alphanum']:
-                    starting_position = ending_position = tuple(self._position)
-                    self._tokens.append(Token('-', TokenType.DASH, starting_position, ending_position))
-                    is_end_of_file = self._advance()
-                    continue
-
-                data_types = ["chan", "kun", "sama", "senpai", "san", "dono"]
-                valid_data_type = None
-                # Check if the valid data types exist after the -
-                for data_type in data_types:
-                    if len(data_type) <= len(after_slice):
-                        equal = True
-                        for expected_char, actual_char in zip(data_type, after_slice):
-                            if expected_char != actual_char:
-                                equal = False
-                                break
-                        if equal:
-                            valid_data_type = data_type
-                            break
-                # If there is a valid data type after the -
-                if valid_data_type is not None:
-                    if len(valid_data_type) < len(after_slice):
-                        delim = after_slice[len(valid_data_type)]
-                        if delim in DELIMS['data_type']:
-                            starting_position = ending_position = tuple(self._position)
-                            self._tokens.append(Token('-', TokenType.DASH, starting_position, ending_position))
-                            is_end_of_file = self._advance()
-                            continue
-                    elif len(valid_data_type) == len(after_slice):
-                        starting_position = ending_position = tuple(self._position)
-                        self._tokens.append(Token('-', TokenType.DASH, starting_position, ending_position))
-                        is_end_of_file = self._advance()
-                        continue
 
                 # Check if - is negative
                 valid_ops = [TokenType.ASSIGNMENT_OPERATOR, 
@@ -281,17 +245,9 @@ class Lexer():
                     if self._lines[line][column+1] == '-':
                         if len(after_slice) > 1:
                             if self._lines[line][column+2] in DELIMS['unary']:
-                                # Check if prev token is identifier
-                                operand_before = self._check_prev_token([TokenType.GEN_IDENTIFIER, TokenType.INT_LITERAL,
-                                                                         TokenType.FLOAT_LITERAL, TokenType.CLOSE_PAREN])
-                                if operand_before:
-                                    starting_position = tuple(self._position)
-                                    ending_position = tuple([self._position[0], self._position[1]+1])
-                                    self._tokens.append(Token('--', TokenType.DECREMENT_OPERATOR, starting_position, ending_position))
-                                else:
-                                    start_of_error = tuple(self._position)
-                                    end_of_error = tuple([line, column + 1])
-                                    self._logs.append(GenericError(Error.UNARY_MISSING_OPERAND, start_of_error, end_of_error))
+                                starting_position = tuple(self._position)
+                                ending_position = tuple([self._position[0], self._position[1]+1])
+                                self._tokens.append(Token('--', TokenType.DECREMENT_OPERATOR, starting_position, ending_position))
                                 is_end_of_file = self._advance(2)
                                 continue
                     starting_position = ending_position = tuple(self._position)
