@@ -250,12 +250,12 @@ class Lexer():
                         delim = after_slice[len(valid_data_type)]
                         if delim in DELIMS['data_type']:
                             starting_position = ending_position = tuple(self._position)
-                            self._tokens.append(Token('-', TokenType.TYPE_INDICATOR, starting_position, ending_position))
+                            self._tokens.append(Token('-', TokenType.DASH, starting_position, ending_position))
                             is_end_of_file = self._advance()
                             continue
                     elif len(valid_data_type) == len(after_slice):
                         starting_position = ending_position = tuple(self._position)
-                        self._tokens.append(Token('-', TokenType.TYPE_INDICATOR, starting_position, ending_position))
+                        self._tokens.append(Token('-', TokenType.DASH, starting_position, ending_position))
                         is_end_of_file = self._advance()
                         continue
 
