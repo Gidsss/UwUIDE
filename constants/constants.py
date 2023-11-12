@@ -50,7 +50,5 @@ DELIMS = {
     'start_done': {'\n', ' ', '>'},
     'nuww': {' ', '~', ')', '}', ','},
     'whitespace': {' '},
-    'negative_delim': {*ATOMS['alpha'], *ATOMS['number'], '('},
     'single_line_comment': {'\n'},
-    'type_indicator': {*ATOMS['alpha_big'], 'c', 's', 'd', 'k', ' '}
 }
