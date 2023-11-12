@@ -216,8 +216,8 @@ class Lexer():
                 valid_ops = [TokenType.ASSIGNMENT_OPERATOR, 
                              TokenType.ADDITION_SIGN, TokenType.DASH, TokenType.MULTIPLICATION_SIGN, TokenType.DIVISION_SIGN, TokenType.MODULO_SIGN,
                              TokenType.GREATER_THAN_SIGN, TokenType.LESS_THAN_SIGN ,TokenType.GREATER_THAN_OR_EQUAL_SIGN ,TokenType.LESS_THAN_OR_EQUAL_SIGN,
-                             TokenType.EQUALITY, TokenType.INEQUALITY_OPERATOR, 
-                             TokenType.AND, TokenType.OR,]
+                             TokenType.EQUALITY_OPERATOR, TokenType.INEQUALITY_OPERATOR, 
+                             TokenType.AND_OPERATOR, TokenType.OR_OPERATOR,]
                 operator_before = self._check_prev_token(valid_ops)
                 line_copy = self._lines[line]
                 if line_copy.lstrip()[0] == '-' or operator_before:
@@ -808,7 +808,7 @@ class Lexer():
             parentheses_exist = self._seek('(', ignore_space=False, alphanum_only=True, include_current=True)
         
         # specifically for creating cwass instance eg. var-CwassName = CwassName()
-        assignment_before = self._check_prev_token(TokenType.ASSIGN)
+        assignment_before = self._check_prev_token(TokenType.ASSIGNMENT_OPERATOR)
 
         cursor_advanced = False
         is_end_of_file = False
@@ -1087,7 +1087,7 @@ class Lexer():
 
                         elif temp_id[0].isupper():
                             # check if a return type of a function declaration
-                            fwunc_declaration_return_type = self._check_prev_token([TokenType.TYPE_INDICATOR, TokenType.GEN_FUNC_NAME, TokenType.FWUNC], in_order=True)
+                            fwunc_declaration_return_type = self._check_prev_token([TokenType.DASH, TokenType.GEN_FUNC_NAME, TokenType.FWUNC], in_order=True)
                             if fwunc_declaration_return_type:
                                 cwass_type = UniqueTokenType(temp_id, UniqueTokenType.CWASS_TYPE)
                                 if cwass_type.token is not None:
