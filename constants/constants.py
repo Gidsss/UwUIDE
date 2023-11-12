@@ -19,14 +19,14 @@ ATOMS = {
 }
 
 DELIMS = {
-    'end': {'~'},
+    'end': {'~', ' '},
     'data_type': {',', '(', ')', ' ', '~', '=', '-'},
     'dono': {',', '(', ')', ' ', '='},
     'cwass': {',', '(', ')', ' ', '='},
     'bool': {',', ' ', '}', ')', '~'},
-    'conditional': {'('},
-    'io': {'('},
-    'mainuwu': {'-'},
+    'conditional': {'(', ' '},
+    'io': {'(', ' '},
+    'mainuwu': {'-', ' '},
     'int_float': {',', ' ', *ATOMS['general_operator'], ')', '}', ']', '~', '!', r'&', '|', '>', '<', '='},
     'string': {' ', ')', ',', '&', '}', '[', ']', '~', '!', '='},
     'assign_delim': {*ATOMS['alpha'], *ATOMS['number'], '{', ' ', '-' '('},
@@ -38,7 +38,7 @@ DELIMS = {
     'open_parenthesis': {*ATOMS['number'], *ATOMS['alpha'], ' ', '-', '\n', '>', '(', ')', '"'},
     'id': {' ', '~', ',', '(', ')', '[', ']', '}', *ATOMS['general_operator'], r'&', '|', '.'},
     'close_parenthesis': {' ', *ATOMS['general_operator'], '&', '|', '\n', '~', '>', '.', ',', ')', '(', '[', ']', '}'},
-    'open_bracket': {*ATOMS['number'], '-', *ATOMS['alpha'], '('},
+    'open_bracket': {*ATOMS['number'], '-', *ATOMS['alpha'], '(', ' '},
     'double_open_bracket': {' ', '\n', *ATOMS['alpha'], '>'},
     'close_bracket': {' ', '~', ',', ')', '[', ']', '}', *ATOMS['general_operator'], r'&', '|', '.',},
     'double_close_bracket': {' ', '\n', *ATOMS['alpha'], '>'},
@@ -50,7 +50,5 @@ DELIMS = {
     'start_done': {'\n', ' ', '>'},
     'nuww': {' ', '~', ')', '}', ','},
     'whitespace': {' '},
-    'negative_delim': {*ATOMS['alpha'], *ATOMS['number'], '('},
     'single_line_comment': {'\n'},
-    'type_indicator': {*ATOMS['alpha_big'], 'c', 's', 'd', 'k'}
 }
