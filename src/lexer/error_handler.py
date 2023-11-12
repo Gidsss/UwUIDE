@@ -34,8 +34,6 @@ class Error(Enum):
                       "kun literals can have ONE trailing zero after the decimal point ONLY IF it's the only digit present (1.0)")
 
     # symbol errors
-    UNARY_MISSING_OPERAND = ("UNARY OPERATOR MISSING OPERAND",
-                             "Unary operators should be appended to an operand before it.")
     UNEXPECTED_SYMBOL = ("UNEXPECTED SYMBOL",
                          "Lexeme does not map to an appropriate token type")
     
