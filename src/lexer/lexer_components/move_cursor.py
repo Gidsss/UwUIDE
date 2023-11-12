@@ -1,4 +1,6 @@
-def _advance(increment: int = 1) -> bool:        
+def _advance(context: tuple[list[str], list[int], str], increment: int = 1) -> bool:
+    lines, position, current_char = context
+
     # initial check if EOF already
     temp_position = position[1]
     temp_position += increment
@@ -27,7 +29,9 @@ def _advance(increment: int = 1) -> bool:
         current_char = lines[position[0]][position[1]]
         return False
 
-def _reverse(increment: int = 1) -> bool:
+def _reverse(context: tuple[list[str], list[int], str], increment: int = 1) -> bool:
+    lines, position, current_char = context
+    
     # initial check if BOF already
     temp_position = position[1]
     temp_position -= increment
