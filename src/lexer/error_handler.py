@@ -32,12 +32,6 @@ class Error(Enum):
                       "kun literals can have ONE leading zero before the decimal point ONLY IF it's the only digit present (0.1)")
     TRAILING_ZEROES_FLOAT = ("TRAILING ZEROES",
                       "kun literals can have ONE trailing zero after the decimal point ONLY IF it's the only digit present (1.0)")
-    
-    # identifier errors
-    IDEN_INVALID_START = ("INVALID START OF IDENTIFIER",
-                          'identifiers can only start with lowercase letters')
-    IDEN_INVALID_NAME = ("INVALID IDENTIFIER NAME",
-                         'identifiers can only have alphanumeric characters')
 
     # symbol errors
     UNARY_MISSING_OPERAND = ("UNARY OPERATOR MISSING OPERAND",
