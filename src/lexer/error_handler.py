@@ -14,24 +14,6 @@ class Error(Enum):
     def message(self):
         return self._message
     
-    # function errors
-    FWUNC_OPEN_PAREN = ("MISSING PARENTHESIS",
-                       "No opening parenthesis was found on function declaration")
-    FWUNC_DATA_TYPE = ("MISSING DATATYPE",
-                      "No data type was indicated on function declaration")
-    FWUNC_INVALID_DATA_TYPE = ("INVALID DATATYPE",
-                               "No data valid type was indicated on function declaration")
-    INVALID_FUNC_DECLARE = ("INVALID FUNCTION NAME DECLARATION",
-                            "Function name is missing a data type/parenthesis")
-    MISSING_FWUNC = ("MISSING FWUNC KEYWORD",
-                     "Function declarations need to have a 'fwunc' before to indicate it is a function")
-    FWUNC_INVALID_START = ("INVALID FUNCTION NAME",
-                      'Function names should only start with a lowercase letter')
-    FWUNC_INVALID_NAME = ("INVALID FUNCTION NAME",
-                         'functions can only have alphanumeric characters')
-    FWUNC_TYPE_INDICATOR = ("POSSIBLE INVALID TYPE INDICATOR",
-                            "the only valid type indicator is '-'")
-    
     # class errors
     CWASS_OPEN_PAREN = ("MISSING PARENTHESIS",
                        "No opening parenthesis was found on class declaration")
