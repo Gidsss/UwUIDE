@@ -268,8 +268,11 @@ class Lexer():
                 operator_before = self._check_prev_token(valid_ops)
                 line_copy = self._lines[line]
                 if line_copy.lstrip()[0] == '-' or operator_before:
-                    cursor_advanced, is_end_of_file = self._peek('-', TokenType.DASH)
-                    if cursor_advanced:
+                    if after_slice[0] in ATOMS["number"]:
+                        is_end_of_file = self._advance()
+                        is_end_of_file = self._peek_int_float_literal(negative=True)
+                        if is_end_of_file:
+                            break
                         continue
 
                 # Differentiate between arithmetic and unary
@@ -889,9 +892,9 @@ class Lexer():
                 break
 
         return self._advance()
-    
-    def _peek_int_float_literal(self):
-        original_starting_char = temp_num = self._current_char
+
+    def _peek_int_float_literal(self, negative=False):
+        temp_num = "-"+self._current_char if negative else self._current_char
         current_line = self._position[0]
         break_outside_loop = False
 
@@ -905,28 +908,12 @@ class Lexer():
                 self._logs.append(DelimError(TokenType.INT_LITERAL, (line, col + 1), temp_num, '\n'))
                 break
 
-            # preemptively break when a delimiter is found for integers 
+            # preemptively break when a delimiter is found for integers
             if self._current_char in DELIMS['int_float']:
                 self._reverse()
                 corrected_value = temp_num
-                starting_position = (self._position[0], self._position[1]-len(temp_num)+1)
+                starting_position = (self._position[0], self._position[1] - len(temp_num) + 1)
                 ending_position = (self._position[0], self._position[1])
-
-                if original_starting_char == '0':
-                    # only floats or literal '0' can start with 0
-                    if len(temp_num) > 1:
-                        leading_zero_count = len(temp_num) - len(str(int(temp_num)))
-
-                        starting_position = tuple([self._position[0], self._position[1]-len(temp_num)+1])
-                        ending_position = tuple(self._position)
-                        self._logs.append(GenericError(Error.LEADING_ZEROES_INT, starting_position, ending_position,
-                                                       context=f"'{temp_num}' has {leading_zero_count} leading zeroes. consider removing them ({str(int(temp_num))})"))
-                        break
-
-                if len(corrected_value) > 10:
-                    self._logs.append(GenericError(Error.OUT_OF_BOUNDS_INT_FLOAT, starting_position, ending_position,
-                                                   context = f"'{corrected_value}' is {len(corrected_value)} digits long"))
-                    break
 
                 self._tokens.append(Token(corrected_value, TokenType.INT_LITERAL, starting_position, ending_position))
                 break
@@ -943,73 +930,40 @@ class Lexer():
                             self._reverse()
                         line, col = self._position
                         self._logs.append(DelimError(TokenType.FLOAT_LITERAL, (line, col + 1), temp_num, '\n'))
-                        break_outside_loop = True
                         break
 
                     # preemptively break when a delimiter is found for floats
                     elif self._current_char in DELIMS['int_float']:
                         self._reverse()
                         corrected_value = temp_num
-                        starting_position = tuple([self._position[0], self._position[1]-len(temp_num)+1])
+                        starting_position = tuple([self._position[0], self._position[1] - len(temp_num) + 1])
                         ending_position = tuple(self._position)
-
-                        # has trailing zero but not the only trailing zero
-                        if temp_num[-1:] == '0' and not temp_num[-2:-1] == '.':
-                            corrected_value = str(float(temp_num))
-                            starting_position = tuple([self._position[0], self._position[1]-len(temp_num)+1])
-                            ending_position = tuple(self._position)
-                            self._logs.append(GenericError(Error.TRAILING_ZEROES_FLOAT, starting_position, ending_position))
-                            break_outside_loop = True
-                            break
 
                         # has no numbers after decimal point
                         if temp_num[-1:] == '.':
                             corrected_value = temp_num + '0'
-                            starting_position = tuple([self._position[0], self._position[1]-len(temp_num)+1])
+                            starting_position = tuple([self._position[0], self._position[1] - len(temp_num) + 1])
                             ending_position = tuple(self._position)
-                            self._logs.append(GenericError(Error.MISSING_TRAILING_ZERO_FLOAT, starting_position, ending_position,
-                                                           context=f"consider replacing '{temp_num}' with '{corrected_value}'"))
+                            self._logs.append(
+                                GenericError(Error.MISSING_TRAILING_ZERO_FLOAT, starting_position, ending_position,
+                                             context=f"consider replacing '{temp_num}' with '{corrected_value}'"))
                             break_outside_loop = True
                             break
 
-                        # has multiple decimal points
-                        decimal_point_count = corrected_value.count('.')
-                        if decimal_point_count > 1:
-                            self._logs.append(GenericError(Error.MULTIPLE_DECIMAL_POINT, starting_position, ending_position,
-                                                           context = f"'{corrected_value}' has {decimal_point_count} decimal points"))
-                            break_outside_loop = True
-                            break
-
-                        before_decimal_digit_count = len(corrected_value[:corrected_value.index('.')])
-                        if before_decimal_digit_count > 10:
-                            self._logs.append(GenericError(Error.OUT_OF_BOUNDS_INT_FLOAT, starting_position, ending_position,
-                                                           context = f"'{corrected_value}' is {len(corrected_value)} digits long"))
-                            break_outside_loop = True
-                            break
-                        
-                        after_decimal_digit_count = len(corrected_value[corrected_value.index('.')+1:])
-                        if after_decimal_digit_count > 10:
-                            temp_num = corrected_value
-                            corrected_value = corrected_value[:corrected_value.index('.')] + corrected_value[corrected_value.index('.'):][:11]
-                            self._logs.append(GenericError(Error.OUT_OF_BOUNDS_INT_FLOAT, corrected_value, temp_num, starting_position, ending_position,
-                                                              context = f"'{temp_num}' is {len(temp_num)} digits long after the decimal point\n\tvalue = '{temp_num}' --> corrected valule = '{corrected_value}'"))
-
-                        self._tokens.append(Token(corrected_value, TokenType.FLOAT_LITERAL, starting_position, ending_position))
-                        break_outside_loop = True
+                        self._tokens.append(
+                            Token(corrected_value, TokenType.FLOAT_LITERAL, starting_position, ending_position))
                         break
 
                     elif not self._current_char.isdigit():
                         invalid_delim = self._current_char
                         self._reverse()
-                        self._logs.append(DelimError(TokenType.INT_LITERAL, tuple(self._position), temp_num, invalid_delim))
-                        break_outside_loop = True
+                        self._logs.append(
+                            DelimError(TokenType.INT_LITERAL, tuple(self._position), temp_num, invalid_delim))
                         break
 
                     temp_num += self._current_char
+                break
 
-                if break_outside_loop:
-                    break
-            
             elif not self._current_char.isdigit():
                 invalid_delim = self._current_char
                 self._reverse()
