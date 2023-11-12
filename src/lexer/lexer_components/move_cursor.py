@@ -1,4 +1,4 @@
-def advance(context: tuple[list[str], list[int], str], increment: int = 1) -> bool:
+def advance_cursor(context: tuple[list[str], list[int], str], increment: int = 1) -> bool:
     lines, position, current_char = context
 
     # initial check if EOF already
@@ -26,7 +26,7 @@ def advance(context: tuple[list[str], list[int], str], increment: int = 1) -> bo
     current_char = lines[position[0]][position[1]] if not end_of_file else None
     return end_of_file, current_char
 
-def reverse(context: tuple[list[str], list[int], str], increment: int = 1) -> bool:
+def reverse_cursor(context: tuple[list[str], list[int], str], increment: int = 1) -> bool:
     lines, position, current_char = context
 
     # initial check if BOF already
