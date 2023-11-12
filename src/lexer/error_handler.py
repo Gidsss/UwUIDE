@@ -65,6 +65,13 @@ class Error(Enum):
                               "kun literals can only have 1 decimal point")
     MISSING_TRAILING_ZERO_FLOAT = ("MISSING TRAILING ZERO",
                                    "kun literals should have digit/s present after the decimal point")
+    # ints/floats
+    LEADING_ZEROES_INT = ("LEADING ZEROES",
+                      'chan literals should not have leading zeroes',)
+    LEADING_ZEROES_FLOAT = ("LEADING ZEROES",
+                      "kun literals can have ONE leading zero before the decimal point ONLY IF it's the only digit present (0.1)")
+    TRAILING_ZEROES_FLOAT = ("TRAILING ZEROES",
+                      "kun literals can have ONE trailing zero after the decimal point ONLY IF it's the only digit present (1.0)")
     
     # identifier errors
     IDEN_INVALID_START = ("INVALID START OF IDENTIFIER",
@@ -91,14 +98,6 @@ class Warn(Enum):
     @property
     def message(self):
         return self._message
-    
-    # ints/floats
-    LEADING_ZEROES_INT = ("LEADING ZEROES",
-                      'chan literals should not have leading zeroes',)
-    LEADING_ZEROES_FLOAT = ("LEADING ZEROES",
-                      "kun literals can have ONE leading zero before the decimal point ONLY IF it's the only digit present (0.1)")
-    TRAILING_ZEROES_FLOAT = ("TRAILING ZEROES",
-                      "kun literals can have ONE trailing zero after the decimal point ONLY IF it's the only digit present (1.0)")
     
     # multi line comment
     UNCLOSED_MULTI_LINE_COMMENT = ("UNCLOSED MULTI LINE COMMENT",
