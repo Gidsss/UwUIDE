@@ -102,6 +102,7 @@ class TokenType(Enum):
 
     # OTHER
     GEN_IDENTIFIER = ("IDENTIFIER", "id")
+    GEN_FUNC_NAME = ("FUNCTION_NAME", "function")
     GEN_CWASS_NAME = ("CWASS_NAME", "cwass")
     SINGLE_LINE_COMMENT = ("COMMENT", "single_line_comment")
     MULTI_LINE_COMMENT = ("MULTI LINE COMMENT", "line")
@@ -113,24 +114,38 @@ class UniqueTokenType:
     """
 
     identifier_dict = {}
+    fwunc_dict = {}
     cwass_dict = {}
 
     # Unique Token Types
     ID = "ID"
+    FWUNC = "FWUNC"
     CWASS = "CWASS"
+    CWASS_TYPE = "CWASS_TYPE"
 
     def __init__(self, lexeme: str, token: str):
         if token == self.ID:
             self._token = self.identifier_dict.setdefault(lexeme, f"IDENTIFIER_{len(self.identifier_dict) + 1}")
             self._delim_id = "id"
+        elif token == self.FWUNC:
+            self._token = self.fwunc_dict.setdefault(lexeme, f"FWUNC_{len(self.fwunc_dict) + 1}")
+            self._delim_id = "function"
         elif token == self.CWASS:
             self._token = self.cwass_dict.setdefault(lexeme, f"CWASS_{len(self.cwass_dict) + 1}")
             self._delim_id = "cwass"
+        elif token == self.CWASS_TYPE:
+            if lexeme in self.cwass_dict:
+                self._token = self.cwass_dict[lexeme]+"_TYPE"
+                self._delim_id = "cwass_type"
+            else:
+                self._token = None
+                return
         self._expected_delims = DELIMS[self.delim_id]
 
     @classmethod
     def clear(cls):
         cls.identifier_dict.clear()
+        cls.fwunc_dict.clear()
         cls.cwass_dict.clear()
 
     @property
