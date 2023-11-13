@@ -266,6 +266,8 @@ class Lexer():
 
                 self._logs.append(GenericError(Error.UNEXPECTED_SYMBOL, tuple(self._position),
                                                context=f"Symbol {self._current_char} is invalid. Did you mean '!='?"))
+                is_end_of_file, self._current_char = advance_cursor(self.context)
+                continue
 
             if self._current_char == '>':
                 cursor_advanced, is_end_of_file, self._current_char = peek.reserved('>=', TokenType.GREATER_THAN_OR_EQUAL_SIGN, self.context)
