@@ -1,12 +1,13 @@
-from verify_delim import verify_delim
-from move_cursor import advance_cursor, reverse_cursor
+from .verify_delim import verify_delim
+from .move_cursor import advance_cursor, reverse_cursor
 
 from constants.constants import *
 from ..token import *
 from ..error_handler import *
 
-def reserved(context: tuple[list[str], list[int], str], tokens: list[Token], logs: list[DelimError],
-          to_check: str, token_type: TokenType, before: bool = False, ignore_space: bool = False) -> tuple[bool,bool,str]:
+def reserved(to_check: str, token_type: TokenType, 
+             context: tuple[list[str], list[int], str, list[Token], list[DelimError]],
+             before: bool = False, ignore_space: bool = False) -> tuple[bool,bool,str]:
     '''
     returns
     1. if cursor moved (token was appended to either tokens or logs)
@@ -29,7 +30,7 @@ def reserved(context: tuple[list[str], list[int], str], tokens: list[Token], log
             - this is useful for checking if a keyword is present directly before/after the current character which may be separated by whitespace/s
 
     '''
-    lines, position, current_char = context
+    lines, position, current_char, tokens, logs = context
 
     length = len(to_check)
     line, column = position
@@ -82,7 +83,9 @@ def reserved(context: tuple[list[str], list[int], str], tokens: list[Token], log
         else:
             starting_position = (line, column)
             ending_position = (line, end[1]-1)
-            current_char = advance_cursor(context, end[1]-column-1)
+
+            is_end_of_file, current_char = advance_cursor(context, end[1]-column-1)
+            context = lines, position, current_char, tokens, logs
             
         lexeme = to_check
         next_char_is_correct_delim, delim = verify_delim(context, token_type.expected_delims)
@@ -90,16 +93,21 @@ def reserved(context: tuple[list[str], list[int], str], tokens: list[Token], log
             tokens.append(Token(lexeme, token_type, starting_position, ending_position))
         else:
             is_end_of_file, current_char = advance_cursor(context)
+            context = lines, position, current_char, tokens, logs
+
             # preemptively check if the lexeme or current character is not valid to be in a fwunc/cwass/identifier name
             in_new_line = position[0] != line
             if not any(char in ATOMS['alphanum'] for char in lexeme) or not current_char in ATOMS['alphanum'] or in_new_line:
-                current_char = reverse_cursor(context)
+                _, current_char = reverse_cursor(context)
+                context = lines, position, current_char, tokens, logs
+
                 line, col = ending_position
                 logs.append(DelimError(token_type, (line, col + 1), lexeme, delim))
             else:
                 # check if identifier
-                is_end_of_file, current_char = identifier(from_keyword=to_check)
-        
+                is_end_of_file, current_char = identifier(context, from_keyword=to_check)
+                context = lines, position, current_char, tokens, logs
+
         is_end_of_file, current_char = advance_cursor(context)
         cursor_advanced = True
 
@@ -109,9 +117,9 @@ def reserved(context: tuple[list[str], list[int], str], tokens: list[Token], log
     return cursor_advanced, is_end_of_file, current_char
 
 
-def identifier(context: tuple[list[str], list[int], str], tokens: list[Token], logs: list[DelimError],
+def identifier(context: tuple[list[str], list[int], str, list[Token], list[DelimError]],
                from_keyword: str = None, cwass: bool = False) -> tuple[bool, str]:
-        lines, position, current_char = context
+        lines, position, current_char, tokens, logs = context
 
         temp_id = from_keyword if from_keyword else ''
         current_line = position[0]
@@ -128,14 +136,14 @@ def identifier(context: tuple[list[str], list[int], str], tokens: list[Token], l
         while True:
             temp_id += current_char
             is_end_of_file, current_char = advance_cursor(context)
-            context = lines, position, current_char
+            context = lines, position, current_char, tokens, logs
 
             in_next_line = position[0] != current_line
 
             if is_end_of_file or in_next_line:
                 if in_next_line:
-                    current_char = reverse_cursor(context)
-                    context = lines, position, current_char
+                    _, current_char = reverse_cursor(context)
+                    context = lines, position, current_char, tokens, logs
 
                 line, col = position
                 logs.append(DelimError(TokenType.GEN_IDENTIFIER, (line, col + 1), temp_id, '\n'))
@@ -143,8 +151,8 @@ def identifier(context: tuple[list[str], list[int], str], tokens: list[Token], l
                 break
 
             elif current_char in expected_delims:
-                current_char = reverse_cursor(context)
-                context = lines, position, current_char
+                _, current_char = reverse_cursor(context)
+                context = lines, position, current_char, tokens, logs
 
                 starting_position = (position[0], position[1]-len(temp_id)+1)
                 ending_position = (position[0], position[1])
@@ -154,12 +162,14 @@ def identifier(context: tuple[list[str], list[int], str], tokens: list[Token], l
 
             elif not current_char.isalnum():
                 special_char = current_char
-                current_char = reverse_cursor(context)
-                context = lines, position, current_char
+
+                _, current_char = reverse_cursor(context)
+                context = lines, position, current_char, tokens, logs
 
                 line, col = position
                 logs.append(DelimError(delim_error_token, (line, col + 1), temp_id, special_char))
                 break
         
+        context = lines, position, current_char
         is_end_of_file, current_char = advance_cursor(context)
         return is_end_of_file, current_char
