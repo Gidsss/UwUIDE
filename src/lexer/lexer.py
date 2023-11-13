@@ -199,7 +199,7 @@ class Lexer():
             
             # string literals
             if self._current_char in ['|', '"']:
-                is_end_of_file = self._peek_string_literal()
+                is_end_of_file, self._current_char = peek.string(self.context)
                 if is_end_of_file:
                     break
                 continue
@@ -428,67 +428,6 @@ class Lexer():
     def print_error_logs(self):
         for error in self.errors:
             print(error)
-    
-    def _peek_string_literal(self):
-        if self._current_char == '"':
-            token_types = (TokenType.STRING_PART_START, TokenType.STRING_LITERAL)
-        elif self._current_char == "|":
-            token_types = (TokenType.STRING_PART_MID, TokenType.STRING_PART_END)
-        
-        temp_string = ''
-        escape_count = 0
-        current_line = self._position[0]
-
-        while True:
-            temp_string += self._current_char
-            is_end_of_file, self._current_char = advance_cursor(self.context)
-            in_next_line = self._position[0] != current_line
-
-            if is_end_of_file or in_next_line:
-                if in_next_line:
-                    self._current_char = reverse_cursor(self.context)
-                starting_position = (self._position[0], self._position[1]-len(temp_string)+1)
-                ending_position = (self._position[0], self._position[1])
-                self._logs.append(GenericError(Error.UNCLOSED_STRING, starting_position, ending_position,
-                                               context = f"'{temp_string}' is unclosed"))
-                break
-
-            elif self._current_char == '\\':
-                is_end_of_file, self._current_char = advance_cursor(self.context)
-                if is_end_of_file:
-                    break
-
-                # NOTE put escapable characters here
-                if self._current_char not in ["|", '"']:
-                    self._current_char = reverse_cursor(self.context)
-                    temp_string += '\\'
-                else:
-                    escape_count += 1
-            
-            elif self._current_char in ['|', '"']:
-                if self._current_char == '|':
-                    token_type = token_types[0]
-                    delims = DELIMS['string_parts'] 
-                else:
-                    token_type = token_types[1]
-                    delims = DELIMS['string'] 
-
-                temp_string += self._current_char
-                temp_string = '"' + temp_string[1:-1] + '"'
-                temp_string_length = len(temp_string) + escape_count
-
-                starting_position = (self._position[0], self._position[1]-temp_string_length+1)
-                ending_position = (self._position[0], self._position[1])
-
-                next_char_is_correct_delim, delim = verify_delim(self.context, delims)
-                if next_char_is_correct_delim:
-                    self._tokens.append(Token(temp_string, token_type, starting_position, ending_position))
-                else:
-                    self._logs.append(DelimError(token_type, (ending_position[0], ending_position[1] + 1), temp_string, delim))
-                break
-        
-        is_end_of_file, self._current_char = advance_cursor(self.context)
-        return is_end_of_file
 
 def print_lex(source_code: list[str]):
     print('\nsample text file')
