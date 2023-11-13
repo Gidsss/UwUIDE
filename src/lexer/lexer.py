@@ -47,6 +47,10 @@ class Lexer():
                                 '|', '&', '{', '}', '[', ']', '(', ')', ',', '.', '~', '"'}
         
         while not is_end_of_file:
+            # initial check if end of file
+            if is_end_of_file:
+                break
+
             if self._current_char in ['\n', ' ']:
                 is_end_of_file, self._current_char = advance_cursor(self.context)
                 if is_end_of_file:
@@ -375,10 +379,6 @@ class Lexer():
                 cursor_advanced, is_end_of_file, self._current_char = peek.reserved('~', TokenType.TERMINATOR, self.context)
                 if cursor_advanced:
                     continue
-
-            if is_end_of_file:
-                break
-            is_end_of_file, self._current_char = advance_cursor(self.context)
     
     def _seek(self, to_seek: str|list[str], before: bool = False, multi_line_count: int|str = 0,
               ignore_space = True, max_space_count: int = None, alphanum_only: bool = False,
