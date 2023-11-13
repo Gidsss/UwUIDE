@@ -1,5 +1,6 @@
 from .verify_delim import verify_delim
 from .move_cursor import advance_cursor, reverse_cursor
+from .seek import seek
 
 from constants.constants import *
 from ..token import *
