@@ -1,12 +1,11 @@
 from sys import argv
 from pathlib import Path
 
-from constants.constants import *
-from .token import *
-from .error_handler import *
+from constants.constants import DELIMS, ATOMS
+from .token import Token, TokenType, UniqueTokenType
+from .error_handler import Error, DelimError, GenericError, ErrorSrc
 
-from .lexer_components.move_cursor import advance_cursor, reverse_cursor
-from .lexer_components.verify_delim import verify_delim
+from .lexer_components.move_cursor import advance_cursor
 from .lexer_components import peek
 
 class Lexer():
