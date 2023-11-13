@@ -177,12 +177,12 @@ def identifier(context: tuple[list[str], list[int], str, list[Token], list[Delim
 
 
 def comments(context: tuple[list[str], list[int], str, list[Token], list[DelimError]],
-             multiline: bool = False) -> bool:
+             multiline: bool = False) -> tuple[bool, bool, str]:
     'returns true if found comments/error about comments, false otherwise'
-    lines, position, current_char, tokens, logs = context
     to_seek = r'>//<' if multiline else '>.<'
-    comment_indicator_exists = seek(to_seek, include_current=True)
+    comment_indicator_exists = seek(context, to_seek, include_current=True)
 
+    lines, position, current_char, tokens, logs = context
     current_line = position[0]
     cursor_advanced = False
     is_end_of_file = True
@@ -194,7 +194,7 @@ def comments(context: tuple[list[str], list[int], str, list[Token], list[DelimEr
             context = lines, position, current_char, tokens, logs
             temp_comment = to_seek
 
-            closing_comment_indicator_exists = seek(to_seek, multi_line_count='EOF')
+            closing_comment_indicator_exists = seek(context, to_seek, multi_line_count='EOF')
             if closing_comment_indicator_exists:
                 # keep appending until found >//< in order
                 while True:
@@ -207,12 +207,15 @@ def comments(context: tuple[list[str], list[int], str, list[Token], list[DelimEr
                     temp_comment += current_char
 
                     if current_char == '/' and lines[position[0]][position[1]+1] == '/' and lines[position[0]][position[1]+2] == '<':
-                        is_end_of_file, current_char = advance_cursor(context, 3)
+                        is_end_of_file, current_char = advance_cursor(context, 2)
                         context = lines, position, current_char, tokens, logs
                         temp_comment += '/<'
 
                         ending_position = tuple(position)
                         tokens.append(Token(temp_comment, TokenType.MULTI_LINE_COMMENT, starting_position, ending_position))
+                        
+                        is_end_of_file, current_char = advance_cursor(context)
+                        context = lines, position, current_char, tokens, logs
                         break
 
             else:
