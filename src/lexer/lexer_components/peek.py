@@ -1,5 +1,6 @@
 from .verify_delim import verify_delim
 from .move_cursor import advance_cursor, reverse_cursor
+from .seek import seek
 
 from constants.constants import *
 from ..token import *
@@ -119,57 +120,143 @@ def reserved(to_check: str, token_type: TokenType,
 
 def identifier(context: tuple[list[str], list[int], str, list[Token], list[DelimError]],
                from_keyword: str = None, cwass: bool = False) -> tuple[bool, str]:
-        lines, position, current_char, tokens, logs = context
+    lines, position, current_char, tokens, logs = context
 
-        temp_id = from_keyword if from_keyword else ''
-        current_line = position[0]
+    temp_id = from_keyword if from_keyword else ''
+    current_line = position[0]
 
-        if cwass:
-            expected_delims = DELIMS['cwass']
-            unique_token = UniqueTokenType.CWASS
-            delim_error_token = TokenType.GEN_CWASS_NAME
-        else:
-            expected_delims = DELIMS['id'] 
-            unique_token = UniqueTokenType.ID 
-            delim_error_token = TokenType.GEN_IDENTIFIER
+    if cwass:
+        expected_delims = DELIMS['cwass']
+        unique_token = UniqueTokenType.CWASS
+        delim_error_token = TokenType.GEN_CWASS_NAME
+    else:
+        expected_delims = DELIMS['id'] 
+        unique_token = UniqueTokenType.ID 
+        delim_error_token = TokenType.GEN_IDENTIFIER
 
-        while True:
-            temp_id += current_char
-            is_end_of_file, current_char = advance_cursor(context)
+    while True:
+        temp_id += current_char
+        is_end_of_file, current_char = advance_cursor(context)
+        context = lines, position, current_char, tokens, logs
+
+        in_next_line = position[0] != current_line
+
+        if is_end_of_file or in_next_line:
+            if in_next_line:
+                _, current_char = reverse_cursor(context)
+                context = lines, position, current_char, tokens, logs
+
+            line, col = position
+            logs.append(DelimError(TokenType.GEN_IDENTIFIER, (line, col + 1), temp_id, '\n'))
+            cursor_advanced = True
+            break
+
+        elif current_char in expected_delims:
+            _, current_char = reverse_cursor(context)
             context = lines, position, current_char, tokens, logs
 
-            in_next_line = position[0] != current_line
+            starting_position = (position[0], position[1]-len(temp_id)+1)
+            ending_position = (position[0], position[1])
+            tokens.append(Token(temp_id, UniqueTokenType(temp_id, unique_token),
+                                            starting_position, ending_position))
+            break
 
-            if is_end_of_file or in_next_line:
-                if in_next_line:
-                    _, current_char = reverse_cursor(context)
+        elif not current_char.isalnum():
+            special_char = current_char
+
+            _, current_char = reverse_cursor(context)
+            context = lines, position, current_char, tokens, logs
+
+            line, col = position
+            logs.append(DelimError(delim_error_token, (line, col + 1), temp_id, special_char))
+            break
+    
+    context = lines, position, current_char
+    is_end_of_file, current_char = advance_cursor(context)
+    return is_end_of_file, current_char
+
+
+def comments(context: tuple[list[str], list[int], str, list[Token], list[DelimError]],
+             multiline: bool = False) -> tuple[bool, bool, str]:
+    'returns true if found comments/error about comments, false otherwise'
+    to_seek = r'>//<' if multiline else '>.<'
+    comment_indicator_exists = seek(context, to_seek, include_current=True)
+
+    lines, position, current_char, tokens, logs = context
+    current_line = position[0]
+    cursor_advanced = False
+    is_end_of_file = True
+
+    if comment_indicator_exists:
+        if multiline:
+            starting_position = tuple(position)
+            is_end_of_file, current_char = advance_cursor(context, len(to_seek)-1)
+            context = lines, position, current_char, tokens, logs
+            temp_comment = to_seek
+
+            closing_comment_indicator_exists = seek(context, to_seek, multi_line_count='EOF')
+            if closing_comment_indicator_exists:
+                # keep appending until found >//< in order
+                while True:
+                    current_line = position[0]
+                    is_end_of_file, current_char = advance_cursor(context)
                     context = lines, position, current_char, tokens, logs
 
-                line, col = position
-                logs.append(DelimError(TokenType.GEN_IDENTIFIER, (line, col + 1), temp_id, '\n'))
-                cursor_advanced = True
-                break
+                    if position[0] > current_line:
+                        temp_comment += '\n'
+                    temp_comment += current_char
 
-            elif current_char in expected_delims:
-                _, current_char = reverse_cursor(context)
+                    if current_char == '/' and lines[position[0]][position[1]+1] == '/' and lines[position[0]][position[1]+2] == '<':
+                        is_end_of_file, current_char = advance_cursor(context, 2)
+                        context = lines, position, current_char, tokens, logs
+                        temp_comment += '/<'
+
+                        ending_position = tuple(position)
+                        tokens.append(Token(temp_comment, TokenType.MULTI_LINE_COMMENT, starting_position, ending_position))
+                        
+                        is_end_of_file, current_char = advance_cursor(context)
+                        context = lines, position, current_char, tokens, logs
+                        break
+
+            else:
+                # comment out the rest of the code if there is no closing indicator is 
+                while not is_end_of_file:
+                    current_line = position[0]
+                    is_end_of_file, current_char = advance_cursor(context)
+                    context = lines, position, current_char, tokens, logs
+
+                    if position[0] > current_line:
+                        temp_comment += '\n'
+                    if not is_end_of_file:
+                        temp_comment += current_char
+
+                    if is_end_of_file:
+                        ending_position = tuple(position)
+                        logs.append(GenericWarning(Warn.UNCLOSED_MULTI_LINE_COMMENT, starting_position))
+                        tokens.append(Token(temp_comment, TokenType.MULTI_LINE_COMMENT, starting_position, ending_position))
+
+        else:
+            temp_comment = to_seek
+            starting_position = tuple(position)
+            is_end_of_file, current_char = advance_cursor(context, len(to_seek)-1)
+            context = lines, position, current_char, tokens, logs
+
+            while True:
+                is_end_of_file, current_char = advance_cursor(context)
                 context = lines, position, current_char, tokens, logs
 
-                starting_position = (position[0], position[1]-len(temp_id)+1)
-                ending_position = (position[0], position[1])
-                tokens.append(Token(temp_id, UniqueTokenType(temp_id, unique_token),
-                                              starting_position, ending_position))
-                break
+                in_next_line = position[0] > current_line
+                if not is_end_of_file and not in_next_line:
+                    temp_comment += current_char
 
-            elif not current_char.isalnum():
-                special_char = current_char
+                if is_end_of_file or in_next_line:
+                    ending_position = tuple(position)
+                    tokens.append(Token(temp_comment, TokenType.SINGLE_LINE_COMMENT, starting_position, ending_position))
+                    break
 
-                _, current_char = reverse_cursor(context)
-                context = lines, position, current_char, tokens, logs
 
-                line, col = position
-                logs.append(DelimError(delim_error_token, (line, col + 1), temp_id, special_char))
-                break
-        
-        context = lines, position, current_char
-        is_end_of_file, current_char = advance_cursor(context)
-        return is_end_of_file, current_char
+        cursor_advanced = True
+    else:
+        cursor_advanced = False
+
+    return cursor_advanced, is_end_of_file, current_char
