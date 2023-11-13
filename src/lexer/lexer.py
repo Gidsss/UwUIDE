@@ -47,10 +47,6 @@ class Lexer():
                                 '|', '&', '{', '}', '[', ']', '(', ')', ',', '.', '~', '"'}
         
         while not is_end_of_file:
-            # initial check if end of file
-            if is_end_of_file:
-                break
-
             if self._current_char in ['\n', ' ']:
                 is_end_of_file, self._current_char = advance_cursor(self.context)
                 if is_end_of_file:
