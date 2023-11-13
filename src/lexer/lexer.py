@@ -192,7 +192,7 @@ class Lexer():
                 continue
             
             if self._current_char in ATOMS['number']:
-                is_end_of_file = self._peek_int_float_literal()
+                is_end_of_file, self._current_char = peek.int_float(self.context)
                 if is_end_of_file:
                     break
                 continue
@@ -243,7 +243,7 @@ class Lexer():
                 if line_copy.lstrip()[0] == '-' or operator_before:
                     if after_slice[0] in ATOMS["number"]:
                         is_end_of_file, self._current_char = advance_cursor(self.context)
-                        is_end_of_file = self._peek_int_float_literal(negative=True)
+                        is_end_of_file, self._current_char = peek.int_float(self.context, negative=True)
                         if is_end_of_file:
                             break
                         continue
@@ -487,88 +487,6 @@ class Lexer():
                     self._logs.append(DelimError(token_type, (ending_position[0], ending_position[1] + 1), temp_string, delim))
                 break
         
-        is_end_of_file, self._current_char = advance_cursor(self.context)
-        return is_end_of_file
-
-    def _peek_int_float_literal(self, negative=False):
-        temp_num = "-"+self._current_char if negative else self._current_char
-        current_line = self._position[0]
-        break_outside_loop = False
-
-        while True:
-            is_end_of_file, self._current_char = advance_cursor(self.context)
-            in_next_line = self._position[0] != current_line
-            if is_end_of_file or in_next_line:
-                if in_next_line:
-                    self._current_char = reverse_cursor(self.context)
-                line, col = self._position
-                self._logs.append(DelimError(TokenType.INT_LITERAL, (line, col + 1), temp_num, '\n'))
-                break
-
-            # preemptively break when a delimiter is found for integers
-            if self._current_char in DELIMS['int_float']:
-                self._current_char = reverse_cursor(self.context)
-                corrected_value = temp_num
-                starting_position = (self._position[0], self._position[1] - len(temp_num) + 1)
-                ending_position = (self._position[0], self._position[1])
-
-                self._tokens.append(Token(corrected_value, TokenType.INT_LITERAL, starting_position, ending_position))
-                break
-
-            # floats that can have one leading zero
-            elif self._current_char == '.':
-                temp_num += self._current_char
-                while True:
-                    is_end_of_file, self._current_char = advance_cursor(self.context)
-                    in_next_line = self._position[0] != current_line
-
-                    if is_end_of_file or in_next_line:
-                        if in_next_line:
-                            self._current_char = reverse_cursor(self.context)
-                        line, col = self._position
-                        self._logs.append(DelimError(TokenType.FLOAT_LITERAL, (line, col + 1), temp_num, '\n'))
-                        break
-
-                    # preemptively break when a delimiter is found for floats
-                    elif self._current_char in DELIMS['int_float']:
-                        self._current_char = reverse_cursor(self.context)
-                        corrected_value = temp_num
-                        starting_position = tuple([self._position[0], self._position[1] - len(temp_num) + 1])
-                        ending_position = tuple(self._position)
-
-                        # has no numbers after decimal point
-                        if temp_num[-1:] == '.':
-                            corrected_value = temp_num + '0'
-                            starting_position = tuple([self._position[0], self._position[1] - len(temp_num) + 1])
-                            ending_position = tuple(self._position)
-                            self._logs.append(
-                                GenericError(Error.MISSING_TRAILING_ZERO_FLOAT, starting_position, ending_position,
-                                             context=f"consider replacing '{temp_num}' with '{corrected_value}'"))
-                            break_outside_loop = True
-                            break
-
-                        self._tokens.append(
-                            Token(corrected_value, TokenType.FLOAT_LITERAL, starting_position, ending_position))
-                        break
-
-                    elif not self._current_char.isdigit():
-                        invalid_delim = self._current_char
-                        self._current_char = reverse_cursor(self.context)
-                        self._logs.append(
-                            DelimError(TokenType.INT_LITERAL, tuple(self._position), temp_num, invalid_delim))
-                        break
-
-                    temp_num += self._current_char
-                break
-
-            elif not self._current_char.isdigit():
-                invalid_delim = self._current_char
-                self._current_char = reverse_cursor(self.context)
-                self._logs.append(DelimError(TokenType.INT_LITERAL, tuple(self._position), temp_num, invalid_delim))
-                break
-
-            temp_num += self._current_char
-
         is_end_of_file, self._current_char = advance_cursor(self.context)
         return is_end_of_file
 
