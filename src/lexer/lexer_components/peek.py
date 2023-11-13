@@ -260,3 +260,176 @@ def comments(context: tuple[list[str], list[int], str, list[Token], list[DelimEr
         cursor_advanced = False
 
     return cursor_advanced, is_end_of_file, current_char
+
+
+def int_float(context: tuple[list[str], list[int], str, list[Token], list[DelimError]],
+                             negative=False) -> tuple[bool, str]:
+    lines, position, current_char, tokens, logs = context
+
+    temp_num = "-"+current_char if negative else current_char
+    current_line = position[0]
+    break_outside_loop = False
+
+    while True:
+        is_end_of_file, current_char = advance_cursor(context)
+        context = lines, position, current_char, tokens, logs
+
+        in_next_line = position[0] != current_line
+        if is_end_of_file or in_next_line:
+            if in_next_line:
+                _, current_char = reverse_cursor(context)
+                context = lines, position, current_char, tokens, logs
+                
+            line, col = position
+            logs.append(DelimError(TokenType.INT_LITERAL, (line, col + 1), temp_num, '\n'))
+            break
+
+        # preemptively break when a delimiter is found for integers
+        if current_char in DELIMS['int_float']:
+            _, current_char = reverse_cursor(context)
+            context = lines, position, current_char, tokens, logs
+
+            corrected_value = temp_num
+            starting_position = (position[0], position[1] - len(temp_num) + 1)
+            ending_position = (position[0], position[1])
+
+            tokens.append(Token(corrected_value, TokenType.INT_LITERAL, starting_position, ending_position))
+            break
+
+        # floats that can have one leading zero
+        elif current_char == '.':
+            temp_num += current_char
+            while True:
+                is_end_of_file, current_char = advance_cursor(context)
+                context = lines, position, current_char, tokens, logs
+
+                in_next_line = position[0] != current_line
+
+                if is_end_of_file or in_next_line:
+                    if in_next_line:
+                        _, current_char = reverse_cursor(context)
+                        context = lines, position, current_char, tokens, logs
+
+                    line, col = position
+                    logs.append(DelimError(TokenType.FLOAT_LITERAL, (line, col + 1), temp_num, '\n'))
+                    break
+
+                # preemptively break when a delimiter is found for floats
+                elif current_char in DELIMS['int_float']:
+                    _, current_char = reverse_cursor(context)
+                    context = lines, position, current_char, tokens, logs
+
+                    corrected_value = temp_num
+                    starting_position = tuple([position[0], position[1] - len(temp_num) + 1])
+                    ending_position = tuple(position)
+
+                    # has no numbers after decimal point
+                    if temp_num[-1:] == '.':
+                        corrected_value = temp_num + '0'
+                        starting_position = tuple([position[0], position[1] - len(temp_num) + 1])
+                        ending_position = tuple(position)
+                        logs.append(
+                            GenericError(Error.MISSING_TRAILING_ZERO_FLOAT, starting_position, ending_position,
+                                            context=f"consider replacing '{temp_num}' with '{corrected_value}'"))
+                        break_outside_loop = True
+                        break
+
+                    tokens.append(
+                        Token(corrected_value, TokenType.FLOAT_LITERAL, starting_position, ending_position))
+                    break
+
+                elif not current_char.isdigit():
+                    invalid_delim = current_char
+                    _, current_char = reverse_cursor(context)
+                    context = lines, position, current_char, tokens, logs
+
+                    logs.append(
+                        DelimError(TokenType.INT_LITERAL, tuple(position), temp_num, invalid_delim))
+                    break
+
+                temp_num += current_char
+            break
+
+        elif not current_char.isdigit():
+            invalid_delim = current_char
+            _, current_char = reverse_cursor(context)
+            context = lines, position, current_char, tokens, logs
+
+            logs.append(DelimError(TokenType.INT_LITERAL, tuple(position), temp_num, invalid_delim))
+            break
+
+        temp_num += current_char
+
+    is_end_of_file, current_char = advance_cursor(context)
+    return is_end_of_file, current_char
+
+def string(context: tuple[list[str], list[int], str, list[Token], list[DelimError]]) -> tuple[bool, str]:
+    lines, position, current_char, tokens, logs = context
+
+    if current_char == '"':
+        token_types = (TokenType.STRING_PART_START, TokenType.STRING_LITERAL)
+    elif current_char == "|":
+        token_types = (TokenType.STRING_PART_MID, TokenType.STRING_PART_END)
+    
+    temp_string = ''
+    escape_count = 0
+    current_line = position[0]
+
+    while True:
+        temp_string += current_char
+        is_end_of_file, current_char = advance_cursor(context)
+        context = lines, position, current_char, tokens, logs
+
+        in_next_line = position[0] != current_line
+
+        if is_end_of_file or in_next_line:
+            if in_next_line:
+                _, current_char = reverse_cursor(context)
+                context = lines, position, current_char, tokens, logs
+
+            starting_position = (position[0], position[1]-len(temp_string)+1)
+            ending_position = (position[0], position[1])
+            logs.append(GenericError(Error.UNCLOSED_STRING, starting_position, ending_position,
+                                            context = f"'{temp_string}' is unclosed"))
+            break
+
+        elif current_char == '\\':
+            is_end_of_file, current_char = advance_cursor(context)
+            context = lines, position, current_char, tokens, logs
+
+            if is_end_of_file:
+                break
+
+            # NOTE put escapable characters here
+            if current_char not in ["|", '"']:
+                _, current_char = reverse_cursor(context)
+                context = lines, position, current_char, tokens, logs
+
+                temp_string += '\\'
+            else:
+                escape_count += 1
+        
+        elif current_char in ['|', '"']:
+            if current_char == '|':
+                token_type = token_types[0]
+                delims = DELIMS['string_parts'] 
+            else:
+                token_type = token_types[1]
+                delims = DELIMS['string'] 
+
+            temp_string += current_char
+            temp_string = '"' + temp_string[1:-1] + '"'
+            temp_string_length = len(temp_string) + escape_count
+
+            starting_position = (position[0], position[1]-temp_string_length+1)
+            ending_position = (position[0], position[1])
+
+            next_char_is_correct_delim, delim = verify_delim(context, delims)
+            if next_char_is_correct_delim:
+                tokens.append(Token(temp_string, token_type, starting_position, ending_position))
+            else:
+                logs.append(DelimError(token_type, (ending_position[0], ending_position[1] + 1), temp_string, delim))
+            break
+    
+    is_end_of_file, current_char = advance_cursor(context)
+    return is_end_of_file, current_char
