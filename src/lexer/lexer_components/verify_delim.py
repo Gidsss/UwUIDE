@@ -1,4 +1,5 @@
-def _verify_delim(context: tuple[list[str], list[int], str], expected_delims, current = False) -> tuple[bool, str]:
+def verify_delim(context: tuple[list[str], list[int], str], expected_delims, current = False) -> tuple[bool, str]:
+    'verifies if the next character is the correct delim. also returns the next character regarless if correct delim or not'
     lines, position, _ = context
     line, column = position
 
