@@ -7,6 +7,7 @@ from .error_handler import *
 
 from .lexer_components.move_cursor import advance_cursor, reverse_cursor
 from .lexer_components.verify_delim import verify_delim
+from .lexer_components import peek
 
 class Lexer():
     'description'
@@ -35,9 +36,9 @@ class Lexer():
         return self._logs
     
     @property
-    def move_cursor_context(self):
+    def context(self):
         'to be passed to outside modules'
-        return self._lines, self._position, self._current_char
+        return self._lines, self._position, self._current_char, self._tokens, self._logs
 
     def _get_tokens(self):
         is_end_of_file = False
@@ -46,149 +47,149 @@ class Lexer():
                                 '|', '&', '{', '}', '[', ']', '(', ')', ',', '.', '~', '"'}
         
         while not is_end_of_file:
+            # initial check if end of file
+            if is_end_of_file:
+                break
+
             if self._current_char in ['\n', ' ']:
-                is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context)
+                is_end_of_file, self._current_char = advance_cursor(self.context)
                 if is_end_of_file:
                     break
                 continue
 
             if self._current_char not in valid_starting_chars:
                 self._logs.append(GenericError(Error.UNEXPECTED_SYMBOL, tuple(self._position)))
-                is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context)
+                is_end_of_file, self._current_char = advance_cursor(self.context)
                 if is_end_of_file:
                     break
                 continue
 
             if self._current_char == 'b':
-                cursor_advanced, is_end_of_file = self._peek('bweak', TokenType.BWEAK)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('bweak', TokenType.BWEAK, self.context)
                 if cursor_advanced:
                     continue
 
             if self._current_char == 'c':
-                cursor_advanced, is_end_of_file = self._peek('chan', TokenType.CHAN)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('chan', TokenType.CHAN, self.context)
                 if cursor_advanced:
                     continue
-                cursor_advanced, is_end_of_file = self._peek('cap', TokenType.CAP)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('cap', TokenType.CAP, self.context)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('cwass', TokenType.CWASS)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('cwass', TokenType.CWASS, self.context)
                 if cursor_advanced:
                     continue
             
             if self._current_char == 'd':
-                cursor_advanced, is_end_of_file = self._peek('dono', TokenType.DONO)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('dono', TokenType.DONO, self.context)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('do whiwe', TokenType.DO_WHIWE)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('do whiwe', TokenType.DO_WHIWE, self.context)
                 if cursor_advanced:
                     continue
                 
-                cursor_advanced, is_end_of_file = self._peek('donee~', TokenType.DONE)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('donee~', TokenType.DONE, self.context)
                 if cursor_advanced:
                     continue
             
             if self._current_char == 'e':
-                cursor_advanced, is_end_of_file = self._peek('ewse iwf', TokenType.EWSE_IWF)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('ewse iwf', TokenType.EWSE_IWF, self.context)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('ewse', TokenType.EWSE)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('ewse', TokenType.EWSE, self.context)
                 if cursor_advanced:
                     continue
                 
             if self._current_char == 'f':
-                cursor_advanced, is_end_of_file = self._peek("fwunc", TokenType.FWUNC)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved("fwunc", TokenType.FWUNC, self.context)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('fax', TokenType.FAX)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('fax', TokenType.FAX, self.context)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('fow', TokenType.FOW)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('fow', TokenType.FOW, self.context)
                 if cursor_advanced:
                     continue
         
             if self._current_char == 'g':
-                cursor_advanced, is_end_of_file = self._peek('gwobaw', TokenType.GWOBAW)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('gwobaw', TokenType.GWOBAW, self.context)
                 if cursor_advanced:
                     continue
             
             if self._current_char == 'i':
-                cursor_advanced, is_end_of_file = self._peek('iwf', TokenType.IWF)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('iwf', TokenType.IWF, self.context)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('inpwt', TokenType.INPWT)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('inpwt', TokenType.INPWT, self.context)
                 if cursor_advanced:
                     continue
             
             if self._current_char == 'k':
-                cursor_advanced, is_end_of_file = self._peek('kun', TokenType.KUN)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('kun', TokenType.KUN, self.context)
                 if cursor_advanced:
                     continue
             
             if self._current_char == 'm':
-                cursor_advanced, is_end_of_file = self._peek('mainuwu', TokenType.MAINUWU)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('mainuwu', TokenType.MAINUWU, self.context)
                 if cursor_advanced:
                     continue
 
             if self._current_char == 'n':
-                cursor_advanced, is_end_of_file = self._peek('nuww', TokenType.NUWW)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('nuww', TokenType.NUWW, self.context)
                 if cursor_advanced:
                     continue
             
             if self._current_char == 'p':
-                cursor_advanced, is_end_of_file = self._peek('pwint', TokenType.PWINT)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('pwint', TokenType.PWINT, self.context)
                 if cursor_advanced:
                     continue
 
             if self._current_char == 's':
-                cursor_advanced, is_end_of_file = self._peek('san', TokenType.SAN)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('san', TokenType.SAN, self.context)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('sama', TokenType.SAMA)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('sama', TokenType.SAMA, self.context)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('senpai', TokenType.SENPAI)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('senpai', TokenType.SENPAI, self.context)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('staart!', TokenType.START)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('staart!', TokenType.START, self.context)
                 if cursor_advanced:
                     continue
 
             if self._current_char == 'w':
-                cursor_advanced, is_end_of_file = self._peek('whiwe', TokenType.WHIWE)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('whiwe', TokenType.WHIWE, self.context)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('wetuwn', TokenType.WETUWN)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('wetuwn', TokenType.WETUWN, self.context)
                 if cursor_advanced:
                     continue
             
             # Literals check
             # can be identifiers or function names
             if self._current_char in ATOMS['alpha_small']:
-                cursor_advanced, is_end_of_file = self._is_identifier()
-                if cursor_advanced:
-                    if is_end_of_file:
-                        break
-                    is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context)
-                    continue
+                is_end_of_file, self._current_char = peek.identifier(self.context)
+                if is_end_of_file:
+                    break
+                continue
 
             # class names
             if self._current_char in ATOMS['alpha_big']:
-                cursor_advanced, is_end_of_file = self._is_identifier(cwass=True)
-                if cursor_advanced:
-                    if is_end_of_file:
-                        break
-                    is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context)
-                    continue
+                is_end_of_file, self._current_char  = peek.identifier(self.context, cwass=True)
+                if is_end_of_file:
+                    break
+                continue
             
             if self._current_char in ATOMS['number']:
                 is_end_of_file = self._peek_int_float_literal()
@@ -205,20 +206,20 @@ class Lexer():
 
             # Symbol Checks
             if self._current_char == '=':
-                cursor_advanced, is_end_of_file = self._peek('==', TokenType.EQUALITY_OPERATOR)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('==', TokenType.EQUALITY_OPERATOR, self.context)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('=', TokenType.ASSIGNMENT_OPERATOR)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('=', TokenType.ASSIGNMENT_OPERATOR, self.context)
                 if cursor_advanced:
                     continue
 
             if self._current_char == '+':
-                cursor_advanced, is_end_of_file = self._peek('++', TokenType.INCREMENT_OPERATOR)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('++', TokenType.INCREMENT_OPERATOR, self.context)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('+', TokenType.ADDITION_SIGN)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('+', TokenType.ADDITION_SIGN, self.context)
                 if cursor_advanced:
                     continue
 
@@ -241,7 +242,7 @@ class Lexer():
                 line_copy = self._lines[line]
                 if line_copy.lstrip()[0] == '-' or operator_before:
                     if after_slice[0] in ATOMS["number"]:
-                        is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context)
+                        is_end_of_file, self._current_char = advance_cursor(self.context)
                         is_end_of_file = self._peek_int_float_literal(negative=True)
                         if is_end_of_file:
                             break
@@ -256,15 +257,15 @@ class Lexer():
                                 starting_position = tuple(self._position)
                                 ending_position = tuple([self._position[0], self._position[1]+1])
                                 self._tokens.append(Token('--', TokenType.DECREMENT_OPERATOR, starting_position, ending_position))
-                                is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context, 2)
+                                is_end_of_file, self._current_char = advance_cursor(self.context, 2)
                                 continue
                     starting_position = ending_position = tuple(self._position)
                     self._tokens.append(Token('-', TokenType.DASH, starting_position, ending_position))
-                    is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context)
+                    is_end_of_file, self._current_char = advance_cursor(self.context)
                     continue
 
             if self._current_char == '!':
-                cursor_advanced, is_end_of_file = self._peek('!=', TokenType.INEQUALITY_OPERATOR)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('!=', TokenType.INEQUALITY_OPERATOR, self.context)
                 if cursor_advanced:
                     continue
 
@@ -272,7 +273,7 @@ class Lexer():
                                                context=f"Symbol {self._current_char} is invalid. Did you mean '!='?"))
 
             if self._current_char == '>':
-                cursor_advanced, is_end_of_file = self._peek('>=', TokenType.GREATER_THAN_OR_EQUAL_SIGN)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('>=', TokenType.GREATER_THAN_OR_EQUAL_SIGN, self.context)
                 if cursor_advanced:
                     continue
 
@@ -284,200 +285,100 @@ class Lexer():
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('>', TokenType.GREATER_THAN_SIGN)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('>', TokenType.GREATER_THAN_SIGN, self.context)
                 if cursor_advanced:
                     continue
 
             if self._current_char == '<':
-                cursor_advanced, is_end_of_file = self._peek('<=', TokenType.LESS_THAN_OR_EQUAL_SIGN)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('<=', TokenType.LESS_THAN_OR_EQUAL_SIGN, self.context)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('<', TokenType.LESS_THAN_SIGN)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('<', TokenType.LESS_THAN_SIGN, self.context)
                 if cursor_advanced:
                     continue
 
             if self._current_char == '*':
-                cursor_advanced, is_end_of_file = self._peek('*', TokenType.MULTIPLICATION_SIGN)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('*', TokenType.MULTIPLICATION_SIGN, self.context)
                 if cursor_advanced:
                     continue
 
             if self._current_char == '/':
-                cursor_advanced, is_end_of_file = self._peek('/', TokenType.DIVISION_SIGN)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('/', TokenType.DIVISION_SIGN, self.context)
                 if cursor_advanced:
                     continue
 
             if self._current_char == '%':
-                cursor_advanced, is_end_of_file = self._peek('%', TokenType.MODULO_SIGN)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('%', TokenType.MODULO_SIGN, self.context)
                 if cursor_advanced:
                     continue
 
             if self._current_char == "|":
-                cursor_advanced, is_end_of_file = self._peek('||', TokenType.OR_OPERATOR)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('||', TokenType.OR_OPERATOR, self.context)
                 if cursor_advanced:
                     continue
 
             if self._current_char == "&":
-                cursor_advanced, is_end_of_file = self._peek('&&', TokenType.AND_OPERATOR)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('&&', TokenType.AND_OPERATOR, self.context)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('&', TokenType.CONCATENATION_OPERATOR)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('&', TokenType.CONCATENATION_OPERATOR, self.context)
                 if cursor_advanced:
                     continue
 
             if self._current_char == "{":
-                cursor_advanced, is_end_of_file = self._peek('{', TokenType.OPEN_BRACE)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('{', TokenType.OPEN_BRACE, self.context)
                 if cursor_advanced:
                     continue
 
             if self._current_char == "}":
-                cursor_advanced, is_end_of_file = self._peek('}', TokenType.CLOSE_BRACE)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('}', TokenType.CLOSE_BRACE, self.context)
                 if cursor_advanced:
                     continue
 
             if self._current_char == "(":
-                cursor_advanced, is_end_of_file = self._peek('(', TokenType.OPEN_PAREN)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('(', TokenType.OPEN_PAREN, self.context)
                 if cursor_advanced:
                     continue
 
             if self._current_char == ")":
-                cursor_advanced, is_end_of_file = self._peek(')', TokenType.CLOSE_PAREN)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved(')', TokenType.CLOSE_PAREN, self.context)
                 if cursor_advanced:
                     continue
 
             if self._current_char == "[":
-                cursor_advanced, is_end_of_file = self._peek('[[', TokenType.DOUBLE_OPEN_BRACKET)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('[[', TokenType.DOUBLE_OPEN_BRACKET, self.context)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek('[', TokenType.OPEN_BRACKET)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('[', TokenType.OPEN_BRACKET, self.context)
                 if cursor_advanced:
                     continue
 
             if self._current_char == "]":
-                cursor_advanced, is_end_of_file = self._peek(']]', TokenType.DOUBLE_CLOSE_BRACKET)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved(']]', TokenType.DOUBLE_CLOSE_BRACKET, self.context)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file = self._peek(']', TokenType.CLOSE_BRACKET)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved(']', TokenType.CLOSE_BRACKET, self.context)
                 if cursor_advanced:
                     continue
 
             if self._current_char == ",":
-                cursor_advanced, is_end_of_file = self._peek(',', TokenType.COMMA)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved(',', TokenType.COMMA, self.context)
                 if cursor_advanced:
                     continue
 
             if self._current_char == ".":
-                cursor_advanced, is_end_of_file = self._peek('.', TokenType.DOT_OP)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('.', TokenType.DOT_OP, self.context)
                 if cursor_advanced:
                     continue
 
             if self._current_char == '~':
-                cursor_advanced, is_end_of_file = self._peek('~', TokenType.TERMINATOR)
+                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('~', TokenType.TERMINATOR, self.context)
                 if cursor_advanced:
                     continue
-
-            if is_end_of_file:
-                break
-            is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context)
-
-    def _peek(self, to_check: str, token_type: TokenType,
-              before: bool = False, ignore_space: bool = False) -> tuple[bool,bool]:
-        '''
-        Main process
-
-        1. checks whether the given to_check string is equal to characters directly before/after the current character (current character included in check)
-        2. if equal, call _verify_delim to verify the delimiter
-        3. if delimiter is correct, this will append the to_check string as a lexeme to the list of tokens
-
-        _____________________
-
-        Optional processes
-
-        4. if before is true, the function will check the characters before the current character instead (current character included in check)
-        5. if ignore_space is true, the function will skip checking whitespaces present in the source code
-                - so "a q u a" will be equal to to_check="aqua"
-                - this is useful for checking if a keyword is present directly before/after the current character which may be separated by whitespace/s
-
-        '''
-        length = len(to_check)
-        line, column = self._position
-
-        if before:
-            # if length = 5; [0,1,2,3,4] start at index 4 and end in -1 to include 0
-            start = (length-1, column)
-            end = (-1, column-length)
-            increment = -1
-        else:
-            start = (0, column)
-            end = (length, column+length)
-            increment = 1
-
-        is_equal = True
-        if ignore_space:
-            i = start[0]
-            j = start[1]
-            if before:
-                while (i > end[0]) and (j > end[1]):
-                    if self._lines[line][j] == " ":
-                        continue
-                    if to_check[i] != self._lines[line][j]:
-                        is_equal = False
-                        break
-                    i -= 1
-                    j -= 1
-            else:
-                while (i < end[0]) and (j < end[1]):
-                    if self._lines[line][j] == " ":
-                        continue
-                    if to_check[i] != self._lines[line][j]:
-                        is_equal = False
-                        break
-                    i += 1
-                    j += 1
-        else:
-            for i,j in zip(range(start[0], end[0], increment), range(start[1], end[1], increment)):
-                if j >= len(self._lines[line]) or to_check[i] != self._lines[line][j]:
-                    is_equal = False
-                    break
-        
-        is_end_of_file = False
-        cursor_advanced = False
-        if is_equal:
-            if before:
-                starting_position = (line, end[1]+1)
-                ending_position = (line, column)
-            
-            else:
-                starting_position = (line, column)
-                ending_position = (line, end[1]-1)
-                self._current_char = advance_cursor(self.move_cursor_context, end[1]-column-1)
-                
-            lexeme = to_check
-            next_char_is_correct_delim, delim = verify_delim(self.move_cursor_context, token_type.expected_delims)
-            if next_char_is_correct_delim:
-                self._tokens.append(Token(lexeme, token_type, starting_position, ending_position))
-            else:
-                is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context)
-                # preemptively check if the lexeme or current character is not valid to be in a fwunc/cwass/identifier name
-                in_new_line = self._position[0] != line
-                if not any(char in ATOMS['alphanum'] for char in lexeme) or not self._current_char in ATOMS['alphanum'] or in_new_line:
-                    self._current_char = reverse_cursor(self.move_cursor_context)
-                    line, col = ending_position
-                    self._logs.append(DelimError(token_type, (line, col + 1), lexeme, delim))
-                else:
-                    # check if identifier
-                    cursor_advanced, _ = self._is_identifier(from_keyword=to_check)
-            
-            is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context)
-            cursor_advanced = True
-
-        else:
-            cursor_advanced = False
-
-        return cursor_advanced, is_end_of_file
     
     def _seek(self, to_seek: str|list[str], before: bool = False, multi_line_count: int|str = 0,
               ignore_space = True, max_space_count: int = None, alphanum_only: bool = False,
@@ -513,9 +414,9 @@ class Lexer():
         for i in range(len(found)):
             if not include_current:
                 if before:
-                    file_out_of_bounds, self._current_char = reverse_cursor(self.move_cursor_context)
+                    file_out_of_bounds, self._current_char = reverse_cursor(self.context)
                 else:
-                    file_out_of_bounds, self._current_char = advance_cursor(self.move_cursor_context)
+                    file_out_of_bounds, self._current_char = advance_cursor(self.context)
                 cursor_advance_reverse_count += 1
 
             while not found[i]:
@@ -531,9 +432,9 @@ class Lexer():
                 if is_max_multi_line:
                     cursor_advance_reverse_count -= 1
                     if before:
-                        self._current_char = advance_cursor(self.move_cursor_context)
+                        self._current_char = advance_cursor(self.context)
                     else:
-                        self._current_char = reverse_cursor(self.move_cursor_context)
+                        self._current_char = reverse_cursor(self.context)
                     break
                 
                 if self._current_char == to_seek[i][preempt_start_char_index]:
@@ -551,9 +452,9 @@ class Lexer():
 
                     for preempt in preempt_iter:
                         if before:
-                            file_out_of_bounds, self._current_char = reverse_cursor(self.move_cursor_context)
+                            file_out_of_bounds, self._current_char = reverse_cursor(self.context)
                         else:
-                            file_out_of_bounds, self._current_char = advance_cursor(self.move_cursor_context)
+                            file_out_of_bounds, self._current_char = advance_cursor(self.context)
                         cursor_advance_reverse_count += 1
 
                         is_max_multi_line = multi_line > self._position[0] if before else multi_line < self._position[0]
@@ -562,9 +463,9 @@ class Lexer():
                             preempt_success = False
                             cursor_advance_reverse_count -= 1
                             if before:
-                                self._current_char = advance_cursor(self.move_cursor_context)
+                                self._current_char = advance_cursor(self.context)
                             else:
-                                self._current_char = reverse_cursor(self.move_cursor_context)
+                                self._current_char = reverse_cursor(self.context)
                             break
 
                         # don't check for last character (not included in to_seek)
@@ -587,9 +488,9 @@ class Lexer():
 
                         cursor_advance_reverse_count += 1
                         if before:
-                            file_out_of_bounds, self._current_char = reverse_cursor(self.move_cursor_context)
+                            file_out_of_bounds, self._current_char = reverse_cursor(self.context)
                         else:
-                            file_out_of_bounds, self._current_char = advance_cursor(self.move_cursor_context)
+                            file_out_of_bounds, self._current_char = advance_cursor(self.context)
                         if file_out_of_bounds:
                             break
 
@@ -597,9 +498,9 @@ class Lexer():
                         if is_max_multi_line:
                             cursor_advance_reverse_count -= 1
                             if before:
-                                self._current_char = advance_cursor(self.move_cursor_context)
+                                self._current_char = advance_cursor(self.context)
                             else:
-                                self._current_char = reverse_cursor(self.move_cursor_context)
+                                self._current_char = reverse_cursor(self.context)
                             break
                     else:
                         break
@@ -609,9 +510,9 @@ class Lexer():
     
                 else:
                     if before:
-                        file_out_of_bounds, self._current_char = reverse_cursor(self.move_cursor_context)
+                        file_out_of_bounds, self._current_char = reverse_cursor(self.context)
                     else:
-                        file_out_of_bounds, self._current_char = advance_cursor(self.move_cursor_context)
+                        file_out_of_bounds, self._current_char = advance_cursor(self.context)
                     cursor_advance_reverse_count += 1
                     # check again after reversing
                     if file_out_of_bounds:
@@ -621,14 +522,14 @@ class Lexer():
                     if is_max_multi_line:
                         cursor_advance_reverse_count -= 1
                         if before:
-                            self._current_char = advance_cursor(self.move_cursor_context)
+                            self._current_char = advance_cursor(self.context)
                         else:
-                            self._current_char = reverse_cursor(self.move_cursor_context)
+                            self._current_char = reverse_cursor(self.context)
                         break
         if before:
-            self._current_char = advance_cursor(self.move_cursor_context, cursor_advance_reverse_count)
+            self._current_char = advance_cursor(self.context, cursor_advance_reverse_count)
         else:
-            self._current_char = reverse_cursor(self.move_cursor_context, cursor_advance_reverse_count)
+            self._current_char = reverse_cursor(self.context, cursor_advance_reverse_count)
         return all(found)
 
 
@@ -681,54 +582,6 @@ class Lexer():
         for error in self.errors:
             print(error)
     
-    def _is_identifier(self, from_keyword: str = None, cwass: bool = False) -> bool:
-        cursor_advanced = False
-        temp_id = from_keyword if from_keyword else ''
-        current_line = self._position[0]
-
-        if cwass:
-            expected_delims = DELIMS['cwass']
-            unique_token = UniqueTokenType.CWASS
-            delim_error_token = TokenType.GEN_CWASS_NAME
-        else:
-            expected_delims = DELIMS['id'] 
-            unique_token = UniqueTokenType.ID 
-            delim_error_token = TokenType.GEN_IDENTIFIER
-
-        while True:
-            temp_id += self._current_char
-            is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context)
-            in_next_line = self._position[0] != current_line
-
-            if is_end_of_file or in_next_line:
-                if in_next_line:
-                    self._current_char = reverse_cursor(self.move_cursor_context)
-
-                line, col = self._position
-                self._logs.append(DelimError(TokenType.GEN_IDENTIFIER, (line, col + 1), temp_id, '\n'))
-                cursor_advanced = True
-                break
-
-            elif self._current_char in expected_delims:
-                self._current_char = reverse_cursor(self.move_cursor_context)
-                starting_position = (self._position[0], self._position[1]-len(temp_id)+1)
-                ending_position = (self._position[0], self._position[1])
-                self._tokens.append(Token(temp_id, UniqueTokenType(temp_id, unique_token),
-                                              starting_position, ending_position))
-                cursor_advanced = True
-                break
-
-            elif not self._current_char.isalnum():
-                special_char = self._current_char
-                self._current_char = reverse_cursor(self.move_cursor_context)
-
-                line, col = self._position
-                self._logs.append(DelimError(delim_error_token, (line, col + 1), temp_id, special_char))
-                cursor_advanced = True
-                break
-
-        return cursor_advanced, is_end_of_file
-    
     def _peek_string_literal(self):
         if self._current_char == '"':
             token_types = (TokenType.STRING_PART_START, TokenType.STRING_LITERAL)
@@ -741,12 +594,12 @@ class Lexer():
 
         while True:
             temp_string += self._current_char
-            is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context)
+            is_end_of_file, self._current_char = advance_cursor(self.context)
             in_next_line = self._position[0] != current_line
 
             if is_end_of_file or in_next_line:
                 if in_next_line:
-                    self._current_char = reverse_cursor(self.move_cursor_context)
+                    self._current_char = reverse_cursor(self.context)
                 starting_position = (self._position[0], self._position[1]-len(temp_string)+1)
                 ending_position = (self._position[0], self._position[1])
                 self._logs.append(GenericError(Error.UNCLOSED_STRING, starting_position, ending_position,
@@ -754,13 +607,13 @@ class Lexer():
                 break
 
             elif self._current_char == '\\':
-                is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context)
+                is_end_of_file, self._current_char = advance_cursor(self.context)
                 if is_end_of_file:
                     break
 
                 # NOTE put escapable characters here
                 if self._current_char not in ["|", '"']:
-                    self._current_char = reverse_cursor(self.move_cursor_context)
+                    self._current_char = reverse_cursor(self.context)
                     temp_string += '\\'
                 else:
                     escape_count += 1
@@ -780,14 +633,14 @@ class Lexer():
                 starting_position = (self._position[0], self._position[1]-temp_string_length+1)
                 ending_position = (self._position[0], self._position[1])
 
-                next_char_is_correct_delim, delim = verify_delim(self.move_cursor_context, delims)
+                next_char_is_correct_delim, delim = verify_delim(self.context, delims)
                 if next_char_is_correct_delim:
                     self._tokens.append(Token(temp_string, token_type, starting_position, ending_position))
                 else:
                     self._logs.append(DelimError(token_type, (ending_position[0], ending_position[1] + 1), temp_string, delim))
                 break
         
-        is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context)
+        is_end_of_file, self._current_char = advance_cursor(self.context)
         return is_end_of_file
 
     def _peek_int_float_literal(self, negative=False):
@@ -796,18 +649,18 @@ class Lexer():
         break_outside_loop = False
 
         while True:
-            is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context)
+            is_end_of_file, self._current_char = advance_cursor(self.context)
             in_next_line = self._position[0] != current_line
             if is_end_of_file or in_next_line:
                 if in_next_line:
-                    self._current_char = reverse_cursor(self.move_cursor_context)
+                    self._current_char = reverse_cursor(self.context)
                 line, col = self._position
                 self._logs.append(DelimError(TokenType.INT_LITERAL, (line, col + 1), temp_num, '\n'))
                 break
 
             # preemptively break when a delimiter is found for integers
             if self._current_char in DELIMS['int_float']:
-                self._current_char = reverse_cursor(self.move_cursor_context)
+                self._current_char = reverse_cursor(self.context)
                 corrected_value = temp_num
                 starting_position = (self._position[0], self._position[1] - len(temp_num) + 1)
                 ending_position = (self._position[0], self._position[1])
@@ -819,19 +672,19 @@ class Lexer():
             elif self._current_char == '.':
                 temp_num += self._current_char
                 while True:
-                    is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context)
+                    is_end_of_file, self._current_char = advance_cursor(self.context)
                     in_next_line = self._position[0] != current_line
 
                     if is_end_of_file or in_next_line:
                         if in_next_line:
-                            self._current_char = reverse_cursor(self.move_cursor_context)
+                            self._current_char = reverse_cursor(self.context)
                         line, col = self._position
                         self._logs.append(DelimError(TokenType.FLOAT_LITERAL, (line, col + 1), temp_num, '\n'))
                         break
 
                     # preemptively break when a delimiter is found for floats
                     elif self._current_char in DELIMS['int_float']:
-                        self._current_char = reverse_cursor(self.move_cursor_context)
+                        self._current_char = reverse_cursor(self.context)
                         corrected_value = temp_num
                         starting_position = tuple([self._position[0], self._position[1] - len(temp_num) + 1])
                         ending_position = tuple(self._position)
@@ -853,7 +706,7 @@ class Lexer():
 
                     elif not self._current_char.isdigit():
                         invalid_delim = self._current_char
-                        self._current_char = reverse_cursor(self.move_cursor_context)
+                        self._current_char = reverse_cursor(self.context)
                         self._logs.append(
                             DelimError(TokenType.INT_LITERAL, tuple(self._position), temp_num, invalid_delim))
                         break
@@ -863,13 +716,13 @@ class Lexer():
 
             elif not self._current_char.isdigit():
                 invalid_delim = self._current_char
-                self._current_char = reverse_cursor(self.move_cursor_context)
+                self._current_char = reverse_cursor(self.context)
                 self._logs.append(DelimError(TokenType.INT_LITERAL, tuple(self._position), temp_num, invalid_delim))
                 break
 
             temp_num += self._current_char
 
-        is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context)
+        is_end_of_file, self._current_char = advance_cursor(self.context)
         return is_end_of_file
 
     def _peek_comments(self, multiline: bool = False) -> bool:
@@ -884,7 +737,7 @@ class Lexer():
         if comment_indicator_exists:
             if multiline:
                 starting_position = tuple(self._position)
-                is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context, len(to_seek)-1)
+                is_end_of_file, self._current_char = advance_cursor(self.context, len(to_seek)-1)
                 temp_comment = to_seek
 
                 closing_comment_indicator_exists = self._seek(to_seek, multi_line_count='EOF')
@@ -892,14 +745,14 @@ class Lexer():
                     # keep appending until found >//< in order
                     while True:
                         current_line = self._position[0]
-                        is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context)
+                        is_end_of_file, self._current_char = advance_cursor(self.context)
 
                         if self._position[0] > current_line:
                             temp_comment += '\n'
                         temp_comment += self._current_char
 
                         if self._current_char == '/' and self._lines[self._position[0]][self._position[1]+1] == '/' and self._lines[self._position[0]][self._position[1]+2] == '<':
-                            is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context, 3)
+                            is_end_of_file, self._current_char = advance_cursor(self.context, 3)
                             temp_comment += '/<'
 
                             ending_position = tuple(self._position)
@@ -910,7 +763,7 @@ class Lexer():
                     # comment out the rest of the code if there is no closing indicator is 
                     while not is_end_of_file:
                         current_line = self._position[0]
-                        is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context)
+                        is_end_of_file, self._current_char = advance_cursor(self.context)
 
                         if self._position[0] > current_line:
                             temp_comment += '\n'
@@ -925,9 +778,9 @@ class Lexer():
             else:
                 temp_comment = to_seek
                 starting_position = tuple(self._position)
-                is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context, len(to_seek)-1)
+                is_end_of_file, self._current_char = advance_cursor(self.context, len(to_seek)-1)
                 while True:
-                    is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context)
+                    is_end_of_file, self._current_char = advance_cursor(self.context)
                     in_next_line = self._position[0] > current_line
                     if not is_end_of_file and not in_next_line:
                         temp_comment += self._current_char

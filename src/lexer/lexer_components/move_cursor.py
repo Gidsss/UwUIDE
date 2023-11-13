@@ -1,5 +1,10 @@
-def advance_cursor(context: tuple[list[str], list[int], str], increment: int = 1) -> bool:
-    lines, position, current_char = context
+def advance_cursor(context: tuple[list[str], list[int], str], increment: int = 1) -> tuple[bool, str]:
+    if len(context) == 5:
+        lines, position, current_char, _, _ = context
+    elif len(context) == 3:
+        lines, position, current_char = context
+    else:
+        raise ValueError('wrong context')
 
     # initial check if EOF already
     temp_position = position[1]
@@ -26,8 +31,13 @@ def advance_cursor(context: tuple[list[str], list[int], str], increment: int = 1
     current_char = lines[position[0]][position[1]] if not end_of_file else None
     return end_of_file, current_char
 
-def reverse_cursor(context: tuple[list[str], list[int], str], increment: int = 1) -> bool:
-    lines, position, current_char = context
+def reverse_cursor(context: tuple[list[str], list[int], str], increment: int = 1) -> tuple[bool, str]:
+    if len(context) == 5:
+        lines, position, current_char, _, _ = context
+    elif len(context) == 3:
+        lines, position, current_char = context
+    else:
+        raise ValueError('wrong context')
 
     # initial check if BOF already
     temp_position = position[1]
