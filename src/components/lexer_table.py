@@ -16,12 +16,17 @@ class LexerTable(CTkFrame):
         self.code_editor = Remote.code_editor_instance
         self.lexemes_labels = []
         self.token_labels = []
+
         for i, token in enumerate(self.tokens):
+
             lexeme_label = CTkLabel(master=self, text=token.lexeme, fg_color='transparent', font=('JetBrains Mono', 13), text_color='#FFFFFF')
             token_label = CTkLabel(master=self, text=token.token, fg_color='transparent', font=('JetBrains Mono', 13), text_color='#FFFFFF')
 
-            lexeme_label.grid(row=i, column=0, sticky='ew')
-            token_label.grid(row=i, column=1, sticky='ew')
+            lexeme_label.grid(row=i*2, column=0, sticky='ew')
+            token_label.grid(row=i*2, column=1, sticky='ew')
+
+            separator_line = CTkCanvas(master=self, height=2, bg='#16161e', highlightthickness=0)
+            separator_line.grid(row=i * 2 + 1, column=0, columnspan=2, sticky='ew')
 
             # Bind callbacks for token highlighting
             lexeme_label.bind("<Enter>", lambda ev, t=token: self.on_hover(t))
