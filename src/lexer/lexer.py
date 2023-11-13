@@ -6,6 +6,7 @@ from .token import *
 from .error_handler import *
 
 from .lexer_components.move_cursor import advance_cursor, reverse_cursor
+from .lexer_components.verify_delim import verify_delim
 
 class Lexer():
     'description'
@@ -382,20 +383,6 @@ class Lexer():
                 break
             is_end_of_file, self._current_char = advance_cursor(self.move_cursor_context)
 
-    def _verify_delim(self, delim_set: set[str], current = False) -> tuple[bool, str]:
-        line, column = self._position
-
-        if current:
-            next_char = self._lines[line][column]
-        elif column+1 >= len(self._lines[line]):
-            next_char = '\n'
-        else:
-            next_char = self._lines[line][column+1]
-
-        is_delim = True if next_char in delim_set else False
-            
-        return is_delim, next_char
-
     def _peek(self, to_check: str, token_type: TokenType,
               before: bool = False, ignore_space: bool = False) -> tuple[bool,bool]:
         '''
@@ -469,7 +456,7 @@ class Lexer():
                 self._current_char = advance_cursor(self.move_cursor_context, end[1]-column-1)
                 
             lexeme = to_check
-            next_char_is_correct_delim, delim = self._verify_delim(token_type.expected_delims)
+            next_char_is_correct_delim, delim = verify_delim(self.move_cursor_context, token_type.expected_delims)
             if next_char_is_correct_delim:
                 self._tokens.append(Token(lexeme, token_type, starting_position, ending_position))
             else:
@@ -793,7 +780,7 @@ class Lexer():
                 starting_position = (self._position[0], self._position[1]-temp_string_length+1)
                 ending_position = (self._position[0], self._position[1])
 
-                next_char_is_correct_delim, delim = self._verify_delim(delims)
+                next_char_is_correct_delim, delim = verify_delim(self.move_cursor_context, delims)
                 if next_char_is_correct_delim:
                     self._tokens.append(Token(temp_string, token_type, starting_position, ending_position))
                 else:
