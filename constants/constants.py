@@ -15,7 +15,7 @@ ATOMS = {
         '0','1','2','3','4','5','6','7','8','9',
     },
     'arithmetic_operator': {'+', '-', '*', r'/', r'%'},
-    'general_operator': {'+', '-', '*', '/', '%', '!', '>', '<', '='},
+    'general_operator': {'+', '-', '*', '/', '%', '>', '<', '='},
 }
 
 DELIMS = {
@@ -36,13 +36,13 @@ DELIMS = {
     'open_brace': {*ATOMS['number'], ' ', '"', *ATOMS['alpha'], '\n', '>'},
     'close_brace': {'~', ' ', ',', ')', '>'},
     'open_parenthesis': {*ATOMS['number'], *ATOMS['alpha'], ' ', '-', '\n', '>', '(', ')', '"'},
-    'id': {' ', '~', ',', '(', ')', '[', ']', '}', *ATOMS['general_operator'], r'&', '|', '.'},
-    'close_parenthesis': {' ', *ATOMS['general_operator'], '&', '|', '\n', '~', '>', '.', ',', ')', '(', '[', ']', '}'},
+    'id': {' ', '~', ',', '(', ')', '[', ']', '}', *ATOMS['general_operator'], '!', r'&', '|', '.'},
+    'close_parenthesis': {' ', *ATOMS['general_operator'], '!', '&', '|', '\n', '~', '>', '.', ',', ')', '(', '[', ']', '}'},
     'open_bracket': {*ATOMS['number'], '-', *ATOMS['alpha'], '(', ' '},
     'double_open_bracket': {' ', '\n', *ATOMS['alpha'], '>'},
-    'close_bracket': {' ', '~', ',', ')', '[', ']', '}', *ATOMS['general_operator'], r'&', '|', '.',},
+    'close_bracket': {' ', '~', ',', ')', '[', ']', '}', *ATOMS['general_operator'], '!', r'&', '|', '.',},
     'double_close_bracket': {' ', '\n', *ATOMS['alpha'], '>'},
-    'unary': {'~', ')', *ATOMS['general_operator'], ' '},
+    'unary': {'~', ')', *ATOMS['general_operator'], '!', ' '},
     'concat': {' ', '"', *ATOMS['alpha']},
     'line': {'\n', ' ', *ATOMS['alpha'], ']'},
     'comma': {*ATOMS['alpha'], ' ', *ATOMS['number'], '"', '-', '\n', '>'},

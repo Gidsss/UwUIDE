@@ -43,7 +43,7 @@ class Lexer():
         is_end_of_file = False
         cursor_advanced = False
         valid_starting_chars = {*ATOMS['alphanum'], *ATOMS['general_operator'],
-                                '|', '&', '{', '}', '[', ']', '(', ')', ',', '.', '~', '"'}
+                                '|', '!', '&', '{', '}', '[', ']', '(', ')', ',', '.', '~', '"'}
         
         while not is_end_of_file:
             if self._current_char in ['\n', ' ']:
