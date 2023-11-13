@@ -107,3 +107,59 @@ def reserved(context: tuple[list[str], list[int], str], tokens: list[Token], log
         cursor_advanced = False
 
     return cursor_advanced, is_end_of_file, current_char
+
+
+def identifier(context: tuple[list[str], list[int], str], tokens: list[Token], logs: list[DelimError],
+               from_keyword: str = None, cwass: bool = False) -> tuple[bool, str]:
+        lines, position, current_char = context
+
+        temp_id = from_keyword if from_keyword else ''
+        current_line = position[0]
+
+        if cwass:
+            expected_delims = DELIMS['cwass']
+            unique_token = UniqueTokenType.CWASS
+            delim_error_token = TokenType.GEN_CWASS_NAME
+        else:
+            expected_delims = DELIMS['id'] 
+            unique_token = UniqueTokenType.ID 
+            delim_error_token = TokenType.GEN_IDENTIFIER
+
+        while True:
+            temp_id += current_char
+            is_end_of_file, current_char = advance_cursor(context)
+            context = lines, position, current_char
+
+            in_next_line = position[0] != current_line
+
+            if is_end_of_file or in_next_line:
+                if in_next_line:
+                    current_char = reverse_cursor(context)
+                    context = lines, position, current_char
+
+                line, col = position
+                logs.append(DelimError(TokenType.GEN_IDENTIFIER, (line, col + 1), temp_id, '\n'))
+                cursor_advanced = True
+                break
+
+            elif current_char in expected_delims:
+                current_char = reverse_cursor(context)
+                context = lines, position, current_char
+
+                starting_position = (position[0], position[1]-len(temp_id)+1)
+                ending_position = (position[0], position[1])
+                tokens.append(Token(temp_id, UniqueTokenType(temp_id, unique_token),
+                                              starting_position, ending_position))
+                break
+
+            elif not current_char.isalnum():
+                special_char = current_char
+                current_char = reverse_cursor(context)
+                context = lines, position, current_char
+
+                line, col = position
+                logs.append(DelimError(delim_error_token, (line, col + 1), temp_id, special_char))
+                break
+        
+        is_end_of_file, current_char = advance_cursor(context)
+        return is_end_of_file, current_char
