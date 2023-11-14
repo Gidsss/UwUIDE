@@ -219,7 +219,7 @@ def comments(context: tuple[list[str], list[int], str, list[Token], list[DelimEr
                         break
 
             else:
-                # comment out the rest of the code if there is no closing indicator is 
+                # comment out the rest of the code if there is no closing indicator is
                 while not is_end_of_file:
                     current_line = position[0]
                     is_end_of_file, current_char = advance_cursor(context)
@@ -227,7 +227,7 @@ def comments(context: tuple[list[str], list[int], str, list[Token], list[DelimEr
 
                     if position[0] > current_line:
                         temp_comment += '\n'
-                    if not is_end_of_file:
+                    if not is_end_of_file and current_char != '\n':
                         temp_comment += current_char
 
                     if is_end_of_file:
@@ -246,7 +246,7 @@ def comments(context: tuple[list[str], list[int], str, list[Token], list[DelimEr
                 context = lines, position, current_char, tokens, logs
 
                 in_next_line = position[0] > current_line
-                if not is_end_of_file and not in_next_line:
+                if not is_end_of_file and not in_next_line and current_char != '\n':
                     temp_comment += current_char
 
                 if is_end_of_file or in_next_line:
@@ -260,6 +260,7 @@ def comments(context: tuple[list[str], list[int], str, list[Token], list[DelimEr
         cursor_advanced = False
 
     return cursor_advanced, is_end_of_file, current_char
+
 
 
 def int_float(context: tuple[list[str], list[int], str, list[Token], list[DelimError]],
