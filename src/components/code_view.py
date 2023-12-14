@@ -110,7 +110,7 @@ class CodeEditor(CTkFrame):
         return 'break'
 
     def run_lexer(self):
-        source_code = [v + '\n' for v in self.text.get('1.0', 'end-1c').split('\n')]
+        source_code = [v if v else v + '\n' for v in self.text.get('1.0', 'end-1c').split('\n')]
         print(source_code)
         lx: Lexer = self.lexer(source_code)
 

@@ -226,6 +226,8 @@ class Lexer():
                 if len(after_slice) < 1:
                     line, col = self._position
                     self._logs.append(DelimError(TokenType.DASH, (line, col + 1), '-', '\n'))
+                    is_end_of_file, self._current_char = advance_cursor(self.context)
+                    continue
 
                 # Check if - is negative
                 valid_ops = [TokenType.ASSIGNMENT_OPERATOR, 
