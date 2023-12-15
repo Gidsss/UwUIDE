@@ -105,6 +105,7 @@ class TokenType(Enum):
     GEN_CWASS_NAME = ("CWASS_NAME", "cwass")
     SINGLE_LINE_COMMENT = ("COMMENT", "single_line_comment")
     MULTI_LINE_COMMENT = ("MULTI LINE COMMENT", "line")
+    WHITESPACE = ("WHITESPACE", "all")
 
 class UniqueTokenType:
     """

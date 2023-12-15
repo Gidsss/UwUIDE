@@ -51,4 +51,5 @@ DELIMS = {
     'nuww': {' ', '~', ')', '}', ','},
     'whitespace': {' '},
     'single_line_comment': {'\n'},
+    'all': {None}
 }

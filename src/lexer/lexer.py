@@ -46,7 +46,8 @@ class Lexer():
                                 '|', '!', '&', '{', '}', '[', ']', '(', ')', ',', '.', '~', '"'}
         
         while not is_end_of_file:
-            if self._current_char in ['\n', ' ']:
+            if self._current_char in ['\n', ' ', '\t']:
+                self._tokens.append(Token(self._current_char, TokenType.WHITESPACE, tuple(self._position), tuple(self._position)))
                 is_end_of_file, self._current_char = advance_cursor(self.context)
                 if is_end_of_file:
                     break
