@@ -14,46 +14,6 @@ class Error(Enum):
     def message(self):
         return self._message
     
-    # function errors
-    FWUNC_OPEN_PAREN = ("MISSING PARENTHESIS",
-                       "No opening parenthesis was found on function declaration")
-    FWUNC_DATA_TYPE = ("MISSING DATATYPE",
-                      "No data type was indicated on function declaration")
-    FWUNC_INVALID_DATA_TYPE = ("INVALID DATATYPE",
-                               "No data valid type was indicated on function declaration")
-    INVALID_FUNC_DECLARE = ("INVALID FUNCTION NAME DECLARATION",
-                            "Function name is missing a data type/parenthesis")
-    MISSING_FWUNC = ("MISSING FWUNC KEYWORD",
-                     "Function declarations need to have a 'fwunc' before to indicate it is a function")
-    FWUNC_INVALID_START = ("INVALID FUNCTION NAME",
-                      'Function names should only start with a lowercase letter')
-    FWUNC_INVALID_NAME = ("INVALID FUNCTION NAME",
-                         'functions can only have alphanumeric characters')
-    FWUNC_TYPE_INDICATOR = ("POSSIBLE INVALID TYPE INDICATOR",
-                            "the only valid type indicator is '-'")
-    
-    # class errors
-    CWASS_OPEN_PAREN = ("MISSING PARENTHESIS",
-                       "No opening parenthesis was found on class declaration")
-    CWASS_DATA_TYPE = ("HAS DATATYPE",
-                      "classes cannot have return types")
-    INVALID_CWASS_DECLARE = ("INVALID CLASS NAME DECLARATION",
-                            "class name is missing a parenthesis")
-    MISSING_CWASS = ("MISSING CWASS KEYWORD",
-                     "Class declarations need to have a 'cwass' before to indicate it is a class")
-    CWASS_INVALID_START = ("INVALID CLASS NAME",
-                      'Class names should only start with an uppercase letter')
-    CWASS_INVALID_NAME = ("INVALID CLASS NAME",
-                         'classes can only have alphanumeric characters')
-    DIRECT_CALL_METHOD_PROP = ("DIRECTLY CALLING METHOD/PROPERTY",
-                         'you cannot call a class method/property by using the class directly. Consider creating an instance first')
-    CWASS_MISSING_ASSIGNMENT = ("MISSING ASSIGNMENT OPERATOR BEFORE",
-                                "cannot create an instance of a class if a class is not assigned to a variable")
-    CWASS_TYPE_MISSING_TYPE_INDICATOR = ("MISSING TYPE INDICATOR",
-                                         "to be able to use a class as a data type, it must be after a type indicator (which must be after a variable)")
-    NONEXISTENT_CWASS_TYPE = ("NON-EXISTENT CWASS TYPE",
-                              "cwass must be declared first before it can be used as a data type")
-
     # string errors    
     UNCLOSED_STRING = ("UNCLOSED STRING",
                        'String literals should be closed with "')
@@ -65,16 +25,15 @@ class Error(Enum):
                               "kun literals can only have 1 decimal point")
     MISSING_TRAILING_ZERO_FLOAT = ("MISSING TRAILING ZERO",
                                    "kun literals should have digit/s present after the decimal point")
-    
-    # identifier errors
-    IDEN_INVALID_START = ("INVALID START OF IDENTIFIER",
-                          'identifiers can only start with lowercase letters')
-    IDEN_INVALID_NAME = ("INVALID IDENTIFIER NAME",
-                         'identifiers can only have alphanumeric characters')
+    # ints/floats
+    LEADING_ZEROES_INT = ("LEADING ZEROES",
+                      'chan literals should not have leading zeroes',)
+    LEADING_ZEROES_FLOAT = ("LEADING ZEROES",
+                      "kun literals can have ONE leading zero before the decimal point ONLY IF it's the only digit present (0.1)")
+    TRAILING_ZEROES_FLOAT = ("TRAILING ZEROES",
+                      "kun literals can have ONE trailing zero after the decimal point ONLY IF it's the only digit present (1.0)")
 
     # symbol errors
-    UNARY_MISSING_OPERAND = ("UNARY OPERATOR MISSING OPERAND",
-                             "Unary operators should be appended to an operand before it.")
     UNEXPECTED_SYMBOL = ("UNEXPECTED SYMBOL",
                          "Lexeme does not map to an appropriate token type")
     
@@ -91,14 +50,6 @@ class Warn(Enum):
     @property
     def message(self):
         return self._message
-    
-    # ints/floats
-    LEADING_ZEROES_INT = ("LEADING ZEROES",
-                      'chan literals should not have leading zeroes',)
-    LEADING_ZEROES_FLOAT = ("LEADING ZEROES",
-                      "kun literals can have ONE leading zero before the decimal point ONLY IF it's the only digit present (0.1)")
-    TRAILING_ZEROES_FLOAT = ("TRAILING ZEROES",
-                      "kun literals can have ONE trailing zero after the decimal point ONLY IF it's the only digit present (1.0)")
     
     # multi line comment
     UNCLOSED_MULTI_LINE_COMMENT = ("UNCLOSED MULTI LINE COMMENT",
@@ -162,7 +113,7 @@ class DelimError:
         self.temp_id = temp_id
         self.actual_delim = actual_delim if actual_delim != '\n' else 'NEWLINE'
 
-        self.error_type = f"UNTERMINATED {self.token_type.token.replace('_', ' ')}" if not fatal else 'FATAL'
+        self.error_type = f"UNDELIMITED {self.token_type.token.replace('_', ' ')}" if not fatal else 'FATAL'
         self.expected_delims = token_type.expected_delims
 
     def __str__(self):
