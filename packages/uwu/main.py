@@ -75,6 +75,15 @@ def lexer(ct: ConsoleTools) -> None:
     print('Running lexer package...')
     ct.run_subprocess([sys.executable, '-m'], 'src.lexer')
 
+def parser(ct: ConsoleTools) -> None:
+    """
+    This function can run parser package.
+
+    uwu parser
+    """  
+    print('Running parser package...')
+    ct.run_subprocess([sys.executable, '-m'], 'src.parser')
+
 # Run IDE
 def build(ct: ConsoleTools) -> None:      
     """

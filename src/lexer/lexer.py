@@ -1,6 +1,3 @@
-from sys import argv
-from pathlib import Path
-
 from constants.constants import DELIMS, ATOMS
 from .token import Token, TokenType, UniqueTokenType
 from .error_handler import Error, DelimError, GenericError, ErrorSrc

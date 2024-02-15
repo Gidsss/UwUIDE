@@ -106,6 +106,7 @@ class TokenType(Enum):
     SINGLE_LINE_COMMENT = ("COMMENT", "single_line_comment")
     MULTI_LINE_COMMENT = ("MULTI LINE COMMENT", "line")
     WHITESPACE = ("WHITESPACE", "all")
+    EOF = ("EOF", "all")
 
 class UniqueTokenType:
     """
@@ -174,11 +175,11 @@ class Token:
         self._lexeme = lexeme
 
     @property
-    def token(self) -> str:
+    def token(self) -> TokenType:
         return self._token
 
     @token.setter
-    def token(self, token: str):
+    def token(self, token: TokenType):
         self._token = token
 
     @property
