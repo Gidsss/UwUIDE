@@ -11,13 +11,14 @@ class Parser:
 
     @property
     def curr_tok(self) -> Token:
-        'returns none if no more tokens'
+        'returns TokenType.EOF if no more tokens'
         if self.pos >= len(self.tokens):
             return Token("", TokenType.EOF, (0, 0), (0, 0))
         return self.tokens[self.pos]
 
+    @property
     def peek_tok(self) -> Token:
-        'returns none if no more tokens'
+        'returns TokenType.EOF if no more tokens'
         if self.pos + 1 >= len(self.tokens):
             return Token("", TokenType.EOF, (0, 0), (0, 0))
         return self.tokens[self.pos + 1]
@@ -27,6 +28,9 @@ class Parser:
         if self.pos >= len(self.tokens):
             return None
         self.pos += 1
+
+    def at_EOF(self) -> bool:
+        return self.curr_tok.token == TokenType.EOF
 
     def parse_program(self) -> Program:
         '''
@@ -67,16 +71,15 @@ class Parser:
         will early return if found EOF
         '''
         f = Fwunc()
-
         self.advance()
-        if self.pos is None:
+        if self.at_EOF():
             self.errors.append("expected function declaration, got EOF")
             return f
 
         if self.curr_tok.token.token.startswith("IDENTIFIER"):
             f.id = self.curr_tok
             self.advance()
-            if self.pos is None:
+            if self.at_EOF():
                 self.errors.append(f"expected function declaration for {f.id.lexeme}, got EOF")
                 return f
         else:
@@ -84,7 +87,7 @@ class Parser:
 
         if self.curr_tok.token == TokenType.DASH:
             self.advance()
-            if self.pos is None:
+            if self.at_EOF():
                 self.errors.append(f"expected type after '-' for function declaration, got EOF")
                 return f
         else:
@@ -101,7 +104,7 @@ class Parser:
         if self.curr_tok.token in data_types:
             f.dtype = self.curr_tok
             self.advance()
-            if self.pos is None:
+            if self.at_EOF():
                 self.errors.append(f"expected open parenthesis for function declaration, got EOF")
                 return f
         else:
@@ -109,7 +112,7 @@ class Parser:
 
         if self.curr_tok.token == TokenType.OPEN_PAREN:
             self.advance()
-            if self.pos is None:
+            if self.at_EOF():
                 self.errors.append(f"expected a closing parenthesis for function declaration, got EOF")
                 return f
         else:
@@ -120,7 +123,7 @@ class Parser:
 
         if self.curr_tok.token == TokenType.CLOSE_PAREN:
             self.advance()
-            if self.pos is None:
+            if self.at_EOF():
                 self.errors.append(f"expected a double open bracket for function declaration, got EOF")
                 return f
         else:
@@ -128,7 +131,7 @@ class Parser:
 
         if self.curr_tok.token == TokenType.DOUBLE_OPEN_BRACKET:
             self.advance()
-            if self.pos is None:
+            if self.at_EOF():
                 self.errors.append(f"expected a body for function declaration, got EOF")
                 return f
         else:
@@ -139,7 +142,7 @@ class Parser:
 
         if self.curr_tok.token == TokenType.DOUBLE_CLOSE_BRACKET:
             self.advance()
-            if self.pos is None:
+            if self.at_EOF():
                 return f
         else:
             self.errors.append(f"functions must end with a double close bracket, got '{self.curr_tok.lexeme}'")
