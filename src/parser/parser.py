@@ -47,6 +47,9 @@ class Parser:
                 p.gwobaws.append(self.parse_gwobaw_dec())
 
             else:
+                # TODO: add error messages for unexpected tokens in global scope
+                # up to you if you want to be super specific and provide hints
+                # based on the token type encountered
                 self.advance()
 
         p.print()
