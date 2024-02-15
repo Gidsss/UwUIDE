@@ -3,18 +3,9 @@ from ..lexer import Lexer
 
 if __name__ == "__main__":
     sc = """
-    fwunc shion-chan() [[
-
-    ]]
-
-    fwunc shion-chan() [[
-
-    ]]
-
-    fwunc shion-chan() [[
-
-    ]]
-
+    gwobaw shion-chan~
+    gwobaw aqua-chan[]~
+    gwobaw ojou-chan-dono = 5~
     """
     source: list[str] = [line if line else '\n' for line in sc.split("\n")]
     max_digit_length = len(str(len(source)))
