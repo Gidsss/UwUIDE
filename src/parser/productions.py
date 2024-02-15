@@ -12,17 +12,26 @@ class Fwunc:
     params: list[Token]
     body: list[Token]
 
-    def as_iter(self):
-        yield f"{self.id.lexeme}"
-        yield f"{TREE_INDENT}return type: {self.dtype.lexeme}"
+    def __str__(self, indent: int = 0):
+        result =  f"{' ' * indent}fwunc {self.id.lexeme}\n"
+        result += f"{' ' * indent}|__ return type: {self.dtype.lexeme}\n"
+        result += f"{' ' * indent}|__ params:"
         if self.params:
-            yield f"{TREE_INDENT}params:"
+            result += "\n"
             for param in self.params:
-                yield f"{TREE_INDENT}{param.token}"
+                result += f"{' ' * (indent+4)}|__ {param.lexeme}\n"
+        else:
+            result += f" no params\n"
+
+        result += f"{' ' * indent}|__ body:"
         if self.body:
-            yield f"{TREE_INDENT}body:"
+            result += "\n"
             for stmt in self.body:
-                yield f"{TREE_INDENT}{stmt.token}"
+                result += f"{' ' * (indent+4)}|__ {stmt.lexeme}\n"
+        else:
+            result += f" no body\n"
+
+        return result
 
 class Cwass:
     id: Token
@@ -31,24 +40,41 @@ class Cwass:
     methods: list[Fwunc]
     body: list[Token]
 
-    def as_iter(self):
-        yield f"id: {self.id.lexeme}"
+    def __str__(self, indent: int = 0):
+        result =  f"{' ' * indent}cwass {self.id.lexeme}\n"
+        result += f"{' ' * indent}|__ params:"
         if self.params:
-            yield f"params:"
+            result += "\n"
             for param in self.params:
-                yield f"\t{param.token}"
-        if self.body:
-            yield f"body:"
-            for stmt in self.body:
-                yield f"\t{stmt.token}"
+                result += f"{' ' * (indent+4)}|__ {param.lexeme}\n"
+        else:
+            result += f" no params\n"
+
+        result += f"{' ' * indent}|__ properties:"
         if self.properties:
-            yield f"properties:"
+            result += "\n"
             for prop in self.properties:
-                yield f"\t{prop.token}"
+                result += f"{' ' * (indent+4)}|__ {prop.lexeme}\n"
+        else:
+            result += f" no properties\n"
+
+        result += f"{' ' * indent}|__ methods:"
         if self.methods:
-            yield f"methods:"
+            result += "\n"
             for method in self.methods:
-                yield f"\t{method}"
+                result += f"{' ' * (indent+4)}|__ {method}\n"
+        else:
+            result += f" no methods\n"
+
+        result += f"{' ' * indent}|__ body:"
+        if self.body:
+            result += "\n"
+            for stmt in self.body:
+                result += f"{' ' * (indent+4)}|__ {stmt.lexeme}\n"
+        else:
+            result += f" no body\n"
+
+        return result
 
 class GwobawDec:
     pass
@@ -61,11 +87,8 @@ class Program:
     def print(self):
         print("Fwuncs:")
         for fwunc in self.fwuncs:
-            for j in fwunc.as_iter():
-                print(j)
-            print()
-        print()
-
+            print(fwunc)
+        # todo
         print("Cwass:")
         # todo
         print("Gwobaws:")
