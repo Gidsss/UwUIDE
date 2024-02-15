@@ -4,7 +4,7 @@ from ..lexer import Lexer
 if __name__ == "__main__":
     sc = """
     gwobaw shion-chan~
-    gwobaw aqua-chan = 5~
+    gwobaw aqua-chan[] = {5,4,3,2,1}~
     gwobaw ojou-chan-dono = 5~
     """
     source: list[str] = [line if line else '\n' for line in sc.split("\n")]
