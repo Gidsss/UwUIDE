@@ -2,8 +2,6 @@ from src.lexer.token import Token
 
 '''
 All productions must have an as_iter() method
-
-TODO: make this better (it looks bad in console)
 '''
 
 TREE_INDENT = "|__ "
@@ -15,15 +13,16 @@ class Fwunc:
     body: list[Token]
 
     def as_iter(self):
-        yield f"{self.id.lexeme}-{self.dtype.token}"
+        yield f"{self.id.lexeme}"
+        yield f"{TREE_INDENT}return type: {self.dtype.lexeme}"
         if self.params:
             yield f"{TREE_INDENT}params:"
             for param in self.params:
                 yield f"{TREE_INDENT}{param.token}"
         if self.body:
-            yield f"body:"
+            yield f"{TREE_INDENT}body:"
             for stmt in self.body:
-                yield f"\t{stmt.token}"
+                yield f"{TREE_INDENT}{stmt.token}"
 
 class Cwass:
     id: Token
@@ -63,7 +62,6 @@ class Program:
         print("Fwuncs:")
         for fwunc in self.fwuncs:
             for j in fwunc.as_iter():
-                print(TREE_INDENT, end='')
                 print(j)
             print()
         print()
