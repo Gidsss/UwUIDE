@@ -7,7 +7,7 @@ class PrefixExpression:
     op = None
     right = None
     def __str__(self):
-        return f"{self.op}, {self.right.lexeme}"
+        return f"{self.op} {self.right}"
 
 class ExpressionStatement:
     expression = None
@@ -17,7 +17,7 @@ class ArrayLiteral:
     def __str__(self):
         result = "{"
         for e in self.elements:
-            result += f"{e.lexeme}, "
+            result += f"{e}, "
         return result[:-2] + "}"
 
 class ArrayDeclaration:
@@ -29,8 +29,8 @@ class ArrayDeclaration:
     is_const: bool = False
 
     def __str__(self, indent = 0):
-        result =  f"declare: {self.id.lexeme}\n"
-        result += f"{' ' * (indent+4)}type: {self.dtype.lexeme}\n"
+        result =  f"declare: {self.id}\n"
+        result += f"{' ' * (indent+4)}type: {self.dtype}\n"
         if self.value:
             result += f"{' ' * (indent+4)}value: {self.value.expression}\n"
         if self.size:
@@ -48,8 +48,8 @@ class Declaration:
     is_const: bool = False
 
     def __str__(self, indent = 0):
-        result =  f"declare: {self.id.lexeme}\n"
-        result += f"{' ' * (indent+4)}type: {self.dtype.lexeme}\n"
+        result =  f"declare: {self.id}\n"
+        result += f"{' ' * (indent+4)}type: {self.dtype}\n"
         if self.value and self.value.expression:
             result += f"{' ' * (indent+4)}value: {self.value.expression}\n"
         if self.is_const:
