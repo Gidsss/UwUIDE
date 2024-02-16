@@ -3,7 +3,7 @@ from ..lexer import Lexer
 
 if __name__ == "__main__":
     sc = """
-    gwobaw shion-chan = aqua~
+    gwobaw shion-chan = -aqua~
     gwobaw aqua-chan[] = {5,4,3,2,1}~
     gwobaw ojou-chan-dono = 5~
     """

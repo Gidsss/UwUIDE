@@ -65,6 +65,7 @@ class Parser:
         self.register_prefix("IDENTIFIER", self.parse_identifier)
         self.register_prefix(TokenType.INT_LITERAL, self.parse_int_lit)
         self.register_prefix(TokenType.DASH, self.parse_prefix_expression)
+        self.register_prefix(TokenType.OPEN_BRACE, self.parse_array)
 
         # infixes
 
@@ -98,7 +99,8 @@ class Parser:
     
     def parse_declaration(self):
         '''
-        parse declarations of variables/constants, whether global or local
+        parse declarations of variables/constants, whether global or local.
+        if encountered brackets, the parsed declaration is an array declaration.
 
         eg.
         `aqua-chan = 5~`
@@ -131,21 +133,59 @@ class Parser:
                 return None
             d.is_const = True
 
-            if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
+            # constant variable
+            if self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
+                self.advance()
+                d.value = self.parse_expression_statement()
+                return d
+
+            # constant array declaration
+            elif self.expect_peek(TokenType.OPEN_BRACKET):
+                ad = ArrayDeclaration()
+                ad.id, ad.dtype, ad.value, ad.is_const = d.id, d.dtype, d.value, d.is_const
+                if self.expect_peek(TokenType.INT_LITERAL) or self.expect_peek_as_identifier():
+                    ad.size = self.curr_tok
+                if not self.expect_peek(TokenType.CLOSE_BRACKET):
+                    return None
+                if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
+                    return None
+                self.advance()
+                ad.value = self.parse_expression_statement()
+                ad.length = len(ad.value.expression.elements)
+                if not self.expect_peek(TokenType.TERMINATOR):
+                    return None
+                return ad
+            else:
                 return None
-            self.advance()
-            d.value = self.parse_expression_statement()
-            return d
 
         # variable declaration without value
         if self.expect_peek(TokenType.TERMINATOR):
             return d
 
+        # variable array declaration
+        if self.expect_peek(TokenType.OPEN_BRACKET):
+            ad = ArrayDeclaration()
+            ad.id, ad.dtype, ad.value, ad.is_const = d.id, d.dtype, d.value, d.is_const
+            if self.expect_peek(TokenType.INT_LITERAL) or self.expect_peek_as_identifier():
+                ad.size = self.curr_tok
+            if not self.expect_peek(TokenType.CLOSE_BRACKET):
+                return None
+            if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
+                return None
+            self.advance()
+            ad.value = self.parse_expression_statement()
+            ad.length = len(ad.value.expression.elements)
+            if not self.expect_peek(TokenType.TERMINATOR):
+                return None
+            return ad
+
         # variable declaration with value
-        if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
+        elif not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
             return None
         self.advance()
         d.value = self.parse_expression_statement()
+        if not self.expect_peek(TokenType.TERMINATOR):
+            return None
 
         return d
 
@@ -160,8 +200,6 @@ class Parser:
         es = ExpressionStatement()
         tmp = self.parse_expression(Precedence.LOWEST)
         es.expression = tmp
-        if self.peek_tok_is(TokenType.TERMINATOR):
-            self.advance()
         return es
 
     def parse_expression(self, precedence: Precedence):
@@ -189,6 +227,18 @@ class Parser:
     def parse_int_lit(self):
         'returns the current token'
         return self.curr_tok
+    def parse_array(self):
+        al = ArrayLiteral()
+        self.advance() # consume the opening brace
+        while not self.curr_tok_is_in([TokenType.CLOSE_BRACE, TokenType.TERMINATOR, TokenType.EOF]):
+            al.elements.append(self.parse_expression(Precedence.LOWEST))
+            if not self.expect_peek(TokenType.COMMA):
+                break
+            self.advance()
+
+        if not self.expect_peek(TokenType.CLOSE_BRACE):
+            return None
+        return al
 
     def parse_prefix_expression(self):
         '''
@@ -227,6 +277,8 @@ class Parser:
             return True
         else:
             return False
+    def curr_tok_is_in(self, token_types: list[TokenType]) -> bool:
+        return self.curr_tok.token in token_types
     def peek_tok_is_in(self, token_types: list[TokenType]) -> bool:
         return self.peek_tok.token in token_types
     def expect_peek_in(self, token_types: list[TokenType]) -> bool:
