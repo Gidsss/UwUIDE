@@ -5,6 +5,16 @@ from src.lexer.token import Token, TokenType, UniqueTokenType
 from src.parser.productions import *
 
 class Precedence(Enum):
+    '''
+    To keep track of the precedence of each token.
+
+    idents:                 LOWEST
+    ==, !=, <, >, <=, >=:   EQUALS
+    +, -:                   SUM
+    *, /, %:                PRODUCT
+    - (as in negative):     PREFIX
+    ident():                FN_CALL
+    '''
     LOWEST = 0
     EQUALS = 1
     LESS_GREATER = 2
@@ -19,14 +29,17 @@ class Parser:
         self.tokens.append(Token("", TokenType.EOF, (0, 0), (0, 0)))
         self.errors: list = []
 
+        # to keep track of tokens
         self.pos = 0
         self.curr_tok = self.tokens[self.pos]
         self.peek_tok = self.tokens[self.pos + 1]
 
+        # to associate prefix and infix parsing functions for certain token types
+        # key : val == TokenType : ParsingFunction
         self.prefix_parse_fns: dict = {}
         self.infix_parse_fns: dict = {}
-
         self.register_init()
+
         program = self.parse_program()
         program.print()
 
@@ -44,28 +57,33 @@ class Parser:
         self.peek_tok = self.tokens[self.pos + 1]
 
     def register_init(self):
+        '''
+        Put here the functions for parsing prefix and infix expressions for
+        certain token types
+        '''
         # prefixes
-        self.prefix_parse_fns["IDENTIFIER"] = self.parse_identifier
-        self.prefix_parse_fns[TokenType.INT_LITERAL] = self.parse_int_lit
-        self.prefix_parse_fns[TokenType.DASH] = self.parse_prefix_expression
+        self.register_prefix("IDENTIFIER", self.parse_identifier)
+        self.register_prefix(TokenType.INT_LITERAL, self.parse_int_lit)
+        self.register_prefix(TokenType.DASH, self.parse_prefix_expression)
 
-    def register_prefix(self, token_type: str, fn: Callable):
-        self.prefix_parse_fns[token_type] = fn
-
-    def register_infix(self, token_type: str, fn: Callable):
-        self.infix_parse_fns[token_type] = fn
+        # infixes
 
     def parse_program(self) -> Program:
+        '''
+        parse the entire program
+        '''
         p = Program()
-
         while self.curr_tok.token != TokenType.EOF:
-            statement = self.parse_statement()
+            statement = self.parse_global_statement()
             if statement:
                 p.statements.append(statement)
             self.advance()
         return p
 
-    def parse_statement(self):
+    def parse_global_statement(self):
+        '''
+        parse global function/class/variable/constant declarations
+        '''
         while not self.curr_tok_is(TokenType.EOF):
             match self.curr_tok.token:
                 case TokenType.FWUNC:
@@ -79,9 +97,18 @@ class Parser:
                     self.advance()
     
     def parse_declaration(self):
+        '''
+        parse declarations of variables/constants, whether global or local
+
+        eg.
+        `aqua-chan = 5~`
+        `shion-chan~`
+        `ojou-chan-dono = 5~`
+        `lap-chan = another_ident~`
+        '''
         d = Declaration()
 
-        if not self.expect_peek_identifier():
+        if not self.expect_peek_as_identifier():
             return None
         d.id = self.curr_tok
 
@@ -123,6 +150,13 @@ class Parser:
         return d
 
     def parse_expression_statement(self):
+        '''
+        parse an expression statement
+        Expressions can be:
+        - literal
+        - prefix expression
+        - infix expression
+        '''
         es = ExpressionStatement()
         tmp = self.parse_expression(Precedence.LOWEST)
         es.expression = tmp
@@ -131,26 +165,39 @@ class Parser:
         return es
 
     def parse_expression(self, precedence: Precedence):
+        '''
+        parse expressions.
+        Expressions can be:
+        - literal
+        - prefix expression
+        - infix expression
+        '''
         if isinstance(self.curr_tok.token, UniqueTokenType):
             prefix = self.prefix_parse_fns["IDENTIFIER"]
         else:
             prefix = self.prefix_parse_fns[self.curr_tok.token]
 
         if prefix is None:
-            self.no_prefix_parse_fn(self.curr_tok.token)
+            self.no_prefix_parse_fn_error(self.curr_tok.token)
             return None
         left_exp = prefix()
         return left_exp
 
     def parse_identifier(self):
+        'returns the current token'
         return self.curr_tok
-
     def parse_int_lit(self):
+        'returns the current token'
         return self.curr_tok
 
     def parse_prefix_expression(self):
+        '''
+        parse prefix expressions.
+        Only prefix expression in UwU++ that is parsed here are negative idents.
+        This is because negative int/float literals are tokenized
+        '''
         pe = PrefixExpression()
-        pe.prefix_token = self.curr_tok
+        pe.prefix_tok = self.curr_tok
         pe.op = self.curr_tok.token
         self.advance()
         pe.right = self.parse_expression(Precedence.PREFIX)
@@ -162,7 +209,14 @@ class Parser:
     def parse_class(self):
         pass
 
-    # helper methods
+    ### helper methods
+    # registering prefix and infix functions to parse certain token types
+    def register_prefix(self, token_type: str | TokenType, fn: Callable):
+        self.prefix_parse_fns[token_type] = fn
+    def register_infix(self, token_type: str, fn: Callable):
+        self.infix_parse_fns[token_type] = fn
+
+    # keeping track of tokens
     def curr_tok_is(self, token_type: TokenType) -> bool:
         return self.curr_tok.token == token_type
     def peek_tok_is(self, token_type: TokenType) -> bool:
@@ -181,7 +235,7 @@ class Parser:
             return True
         else:
             return False
-    def expect_peek_identifier(self) -> bool:
+    def expect_peek_as_identifier(self) -> bool:
         if self.peek_tok.token.token.startswith("IDENTIFIER"):
             self.advance()
             return True
@@ -189,5 +243,5 @@ class Parser:
             return False
 
     # error functions
-    def no_prefix_fn_err(self, token_type):
-        self.errors.append("no prefix parsing function found for {token_type}")
+    def no_prefix_parse_fn_error(self, token_type):
+        self.errors.append(f"no prefix parsing function found for {token_type}")
