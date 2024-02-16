@@ -191,11 +191,11 @@ class Parser:
 
     def parse_expression_statement(self):
         '''
-        parse an expression statement
+        This is a common interface for handling all types of expression statements
         Expressions can be:
-        - literal
-        - prefix expression
-        - infix expression
+        - literal int, string, float, bool
+        - prefix expression (int, string, float, bool)
+        - infix expression (int, string, float, bool)
         '''
         es = ExpressionStatement()
         tmp = self.parse_expression(Precedence.LOWEST)
@@ -206,9 +206,9 @@ class Parser:
         '''
         parse expressions.
         Expressions can be:
-        - literal
-        - prefix expression
-        - infix expression
+        - literal int, string, float, bool
+        - prefix expression (int, string, float, bool)
+        - infix expression (int, string, float, bool)
         '''
         if isinstance(self.curr_tok.token, UniqueTokenType):
             prefix = self.prefix_parse_fns["IDENTIFIER"]

@@ -2,15 +2,16 @@
 All productions must have an __str__() method
 '''
 
+class ExpressionStatement:
+    'common interface for expression statements'
+    expression = None
+
 class PrefixExpression:
     prefix_tok = None
     op = None
     right = None
     def __str__(self):
         return f"{self.op} {self.right}"
-
-class ExpressionStatement:
-    expression = None
 
 class ArrayLiteral:
     elements = []
