@@ -1,5 +1,17 @@
-from src.lexer.token import Token, TokenType
+from typing import Callable
+from enum import Enum
+
+from src.lexer.token import Token, TokenType, UniqueTokenType
 from src.parser.productions import *
+
+class Precedence(Enum):
+    LOWEST = 0
+    EQUALS = 1
+    LESS_GREATER = 2
+    SUM = 3
+    PRODUCT = 4
+    PREFIX = 5
+    FN_CALL = 6
 
 class Parser:
     def __init__(self, tokens: list[Token]):
@@ -7,11 +19,14 @@ class Parser:
         self.tokens.append(Token("", TokenType.EOF, (0, 0), (0, 0)))
         self.errors: list = []
 
-
         self.pos = 0
         self.curr_tok = self.tokens[self.pos]
         self.peek_tok = self.tokens[self.pos + 1]
 
+        self.prefix_parse_fns: dict = {}
+        self.infix_parse_fns: dict = {}
+
+        self.register_init()
         program = self.parse_program()
         program.print()
 
@@ -27,6 +42,18 @@ class Parser:
         self.pos += 1
         self.curr_tok = self.peek_tok
         self.peek_tok = self.tokens[self.pos + 1]
+
+    def register_init(self):
+        # prefixes
+        self.prefix_parse_fns["IDENTIFIER"] = self.parse_identifier
+        self.prefix_parse_fns[TokenType.INT_LITERAL] = self.parse_int_lit
+        self.prefix_parse_fns[TokenType.DASH] = self.parse_prefix_expression
+
+    def register_prefix(self, token_type: str, fn: Callable):
+        self.prefix_parse_fns[token_type] = fn
+
+    def register_infix(self, token_type: str, fn: Callable):
+        self.infix_parse_fns[token_type] = fn
 
     def parse_program(self) -> Program:
         p = Program()
@@ -79,9 +106,8 @@ class Parser:
 
             if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
                 return None
-            # TODO: parse expressions
             self.advance()
-            d.value = self.curr_tok
+            d.value = self.parse_expression_statement()
             return d
 
         # variable declaration without value
@@ -91,12 +117,45 @@ class Parser:
         # variable declaration with value
         if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
             return None
-        # TODO: parse expressions
         self.advance()
-        d.value = self.curr_tok
+        d.value = self.parse_expression_statement()
 
         return d
 
+    def parse_expression_statement(self):
+        es = ExpressionStatement()
+        tmp = self.parse_expression(Precedence.LOWEST)
+        es.expression = tmp
+        if self.peek_tok_is(TokenType.TERMINATOR):
+            self.advance()
+        return es
+
+    def parse_expression(self, precedence: Precedence):
+        if isinstance(self.curr_tok.token, UniqueTokenType):
+            prefix = self.prefix_parse_fns["IDENTIFIER"]
+        else:
+            prefix = self.prefix_parse_fns[self.curr_tok.token]
+
+        if prefix is None:
+            self.no_prefix_parse_fn(self.curr_tok.token)
+            return None
+        left_exp = prefix()
+        return left_exp
+
+    def parse_identifier(self):
+        return self.curr_tok
+
+    def parse_int_lit(self):
+        return self.curr_tok
+
+    def parse_prefix_expression(self):
+        pe = PrefixExpression()
+        pe.prefix_token = self.curr_tok
+        pe.op = self.curr_tok.token
+        self.advance()
+        pe.right = self.parse_expression(Precedence.PREFIX)
+        return pe
+        
 
     def parse_function(self):
         pass
@@ -129,3 +188,6 @@ class Parser:
         else:
             return False
 
+    # error functions
+    def no_prefix_fn_err(self, token_type):
+        self.errors.append("no prefix parsing function found for {token_type}")

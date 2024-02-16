@@ -1,6 +1,14 @@
 '''
-All productions must have an as_iter() method
+All productions must have an __str__() method
 '''
+
+class PrefixExpression:
+    prefix_tok = None
+    op = None
+    right = None
+
+class ExpressionStatement:
+    expression = None
 
 class Declaration:
     id = None
@@ -11,8 +19,8 @@ class Declaration:
     def __str__(self, indent = 0):
         result =  f"declare: {self.id.lexeme}\n"
         result += f"{' ' * (indent+4)}type: {self.dtype.lexeme}\n"
-        if self.value:
-            result += f"{' ' * (indent+4)}value: {self.value.lexeme}\n"
+        if self.value and self.value.expression:
+            result += f"{' ' * (indent+4)}value: {self.value.expression}\n"
         if self.is_const:
             result += f"{' ' * (indent+4)}constant\n"
         return result
@@ -29,7 +37,6 @@ class Class:
     body: list = []
     properties: list = []
     methods: list = []
-
 
 class Program:
     statements: list = []

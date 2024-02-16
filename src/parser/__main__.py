@@ -3,7 +3,7 @@ from ..lexer import Lexer
 
 if __name__ == "__main__":
     sc = """
-    gwobaw shion-chan~
+    gwobaw shion-chan = aqua~
     gwobaw aqua-chan[] = {5,4,3,2,1}~
     gwobaw ojou-chan-dono = 5~
     """
@@ -23,3 +23,5 @@ if __name__ == "__main__":
         exit(1)
 
     p = Parser(l.tokens)
+    for err in p.errors:
+        print(err)
