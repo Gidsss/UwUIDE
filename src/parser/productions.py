@@ -4,7 +4,6 @@ All productions must have an __str__() method
 
 class PrefixExpression:
     def __init__(self):
-        self.prefix_tok = None
         self.op = None
         self.right = None
 
