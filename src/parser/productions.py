@@ -2,10 +2,6 @@
 All productions must have an __str__() method
 '''
 
-class ExpressionStatement:
-    'common interface for expression statements'
-    expression = None
-
 class PrefixExpression:
     prefix_tok = None
     op = None
@@ -33,7 +29,7 @@ class ArrayDeclaration:
         result =  f"declare: {self.id}\n"
         result += f"{' ' * (indent+4)}type: {self.dtype}\n"
         if self.value:
-            result += f"{' ' * (indent+4)}value: {self.value.expression}\n"
+            result += f"{' ' * (indent+4)}value: {self.value}\n"
         if self.size:
             result += f"{' ' * (indent+4)}size: {self.size}\n"
         if self.length:
@@ -51,8 +47,8 @@ class Declaration:
     def __str__(self, indent = 0):
         result =  f"declare: {self.id}\n"
         result += f"{' ' * (indent+4)}type: {self.dtype}\n"
-        if self.value and self.value.expression:
-            result += f"{' ' * (indent+4)}value: {self.value.expression}\n"
+        if self.value and self.value:
+            result += f"{' ' * (indent+4)}value: {self.value}\n"
         if self.is_const:
             result += f"{' ' * (indent+4)}constant\n"
         return result
@@ -71,8 +67,18 @@ class Class:
     methods: list = []
 
 class Program:
-    statements: list = []
+    'the root node of the syntax tree'
+    globals: list = []
+    functions: list = []
+    classes: list = []
 
     def print(self):
-        for statement in self.statements:
-            print(statement)
+        print("globals")
+        for g in self.globals:
+            print(g)
+        print("functions")
+        for fn in self.functions:
+            print(fn)
+        print("classes")
+        for c in self.classes:
+            print(c)

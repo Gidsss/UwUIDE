@@ -65,8 +65,9 @@ class Parser:
         self.infix_parse_fns: dict = {}
         self.register_init()
 
-        program = self.parse_program()
-        program.print()
+        self.program: Program = Program()
+        self.parse_program()
+        self.program.print()
 
     def advance(self):
         if self.curr_tok.token == TokenType.EOF:
@@ -94,34 +95,22 @@ class Parser:
 
         # infixes
 
-    def parse_program(self) -> Program:
+    def parse_program(self):
         '''
         parse the entire program
-        '''
-        p = Program()
-        while self.curr_tok.token != TokenType.EOF:
-            statement = self.parse_global_statement()
-            if statement:
-                p.statements.append(statement)
-            self.advance()
-        return p
-
-    def parse_global_statement(self):
-        '''
-        parse global function/class/variable/constant declarations
         '''
         while not self.curr_tok_is(TokenType.EOF):
             match self.curr_tok.token:
                 case TokenType.FWUNC:
-                    return self.parse_function()
+                    self.program.functions.append(self.parse_function())
                 case TokenType.CWASS:
-                    return self.parse_class()
+                    self.program.classes.append(self.parse_class())
                 case TokenType.GWOBAW:
-                    return self.parse_declaration()
+                    self.program.globals.append(self.parse_declaration())
                 case _:
                     self.errors.append(f"Expected global function/class/variable/constant declaration, got {self.curr_tok.lexeme}")
                     self.advance()
-    
+
     def parse_declaration(self):
         '''
         parse declarations of variables/constants, whether global or local.
@@ -161,7 +150,10 @@ class Parser:
             # constant variable
             if self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
                 self.advance()
-                d.value = self.parse_expression_statement()
+                d.value = self.parse_expression(Precedence.LOWEST)
+                if not self.expect_peek(TokenType.TERMINATOR):
+                    return None
+                self.advance()
                 return d
 
             # constant array declaration
@@ -175,10 +167,11 @@ class Parser:
                 if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
                     return None
                 self.advance()
-                ad.value = self.parse_expression_statement()
-                ad.length = len(ad.value.expression.elements)
+                ad.value = self.parse_expression(Precedence.LOWEST)
+                ad.length = len(ad.value.elements)
                 if not self.expect_peek(TokenType.TERMINATOR):
                     return None
+                self.advance()
                 return ad
             else:
                 return None
@@ -198,42 +191,36 @@ class Parser:
             if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
                 return None
             self.advance()
-            ad.value = self.parse_expression_statement()
-            ad.length = len(ad.value.expression.elements)
+            ad.value = self.parse_expression(Precedence.LOWEST)
+            ad.length = len(ad.value.elements)
             if not self.expect_peek(TokenType.TERMINATOR):
                 return None
+            self.advance()
             return ad
 
         # variable declaration with value
         elif not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
             return None
         self.advance()
-        d.value = self.parse_expression_statement()
+        d.value = self.parse_expression(Precedence.LOWEST)
         if not self.expect_peek(TokenType.TERMINATOR):
             return None
-
+        self.advance()
         return d
-
-    def parse_expression_statement(self):
-        '''
-        This is a common interface for handling all types of expression statements
-        Expressions can be:
-        - literal int, string, float, bool
-        - prefix expression (int, string, float, bool)
-        - infix expression (int, string, float, bool)
-        '''
-        es = ExpressionStatement()
-        tmp = self.parse_expression(Precedence.LOWEST)
-        es.expression = tmp
-        return es
 
     def parse_expression(self, precedence: Precedence):
         '''
         parse expressions.
         Expressions can be:
-        - literal int, string, float, bool
-        - prefix expression (int, string, float, bool)
-        - infix expression (int, string, float, bool)
+            - literal int, string, float, bool
+            - function call
+            - return statements
+            - prefix expression (int, string, float, bool)
+                - negative idents
+            - infix expression (int, string, float, bool)
+                - math operations
+                - comparisons
+                - equality checks
         '''
         if isinstance(self.curr_tok.token, UniqueTokenType):
             prefix = self.prefix_parse_fns["IDENTIFIER"]
