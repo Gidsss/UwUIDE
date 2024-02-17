@@ -31,24 +31,37 @@ from enum import Enum
 from src.lexer.token import Token, TokenType, UniqueTokenType
 from src.parser.productions import *
 
-class Precedence(Enum):
-    '''
-    To keep track of the precedence of each token.
+'''
+To keep track of the precedence of each token.
 
-    idents:                 LOWEST
-    ==, !=, <, >, <=, >=:   EQUALS
-    +, -:                   SUM
-    *, /, %:                PRODUCT
-    - (as in negative):     PREFIX
-    ident():                FN_CALL
-    '''
-    LOWEST = 0
-    EQUALS = 1
-    LESS_GREATER = 2
-    SUM = 3
-    PRODUCT = 4
-    PREFIX = 5
-    FN_CALL = 6
+idents:                 LOWEST
+==, !=, <, >, <=, >=:   EQUALS
++, -:                   SUM
+*, /, %:                PRODUCT
+- (as in negative):     PREFIX
+ident():                FN_CALL
+'''
+LOWEST = 0
+EQUALS = 1
+LESS_GREATER = 2
+SUM = 3
+PRODUCT = 4
+PREFIX = 5
+FN_CALL = 6
+
+precedence_map = {
+    TokenType.EQUALITY_OPERATOR: EQUALS,
+    TokenType.INEQUALITY_OPERATOR: EQUALS,
+    TokenType.LESS_THAN_SIGN: LESS_GREATER,
+    TokenType.LESS_THAN_OR_EQUAL_SIGN: LESS_GREATER,
+    TokenType.GREATER_THAN_SIGN: LESS_GREATER,
+    TokenType.GREATER_THAN_OR_EQUAL_SIGN: LESS_GREATER,
+    TokenType.ADDITION_SIGN: SUM,
+    TokenType.DASH: SUM,
+    TokenType.MULTIPLICATION_SIGN: PRODUCT,
+    TokenType.DIVISION_SIGN: PRODUCT,
+    TokenType.MODULO_SIGN: PRODUCT,
+}
 
 class Parser:
     def __init__(self, tokens: list[Token]):
@@ -89,12 +102,12 @@ class Parser:
         certain token types
         '''
         # prefixes
-        self.register_prefix("IDENTIFIER", self.parse_identifier)
         self.register_prefix(TokenType.DASH, self.parse_prefix_expression)
         self.register_prefix(TokenType.OPEN_BRACE, self.parse_array)
         self.register_prefix(TokenType.STRING_PART_START, self.parse_string_parts)
 
         # literals (just returns curr_tok)
+        self.register_prefix("IDENTIFIER", self.parse_literal)
         self.register_prefix(TokenType.INT_LITERAL, self.parse_literal)
         self.register_prefix(TokenType.STRING_LITERAL, self.parse_literal)
         self.register_prefix(TokenType.FLOAT_LITERAL, self.parse_literal)
@@ -102,6 +115,17 @@ class Parser:
         self.register_prefix(TokenType.CAP, self.parse_literal)
 
         # infixes
+        self.register_infix(TokenType.EQUALITY_OPERATOR, self.parse_infix_expression)
+        self.register_infix(TokenType.INEQUALITY_OPERATOR, self.parse_infix_expression)
+        self.register_infix(TokenType.LESS_THAN_SIGN, self.parse_infix_expression)
+        self.register_infix(TokenType.LESS_THAN_OR_EQUAL_SIGN, self.parse_infix_expression)
+        self.register_infix(TokenType.GREATER_THAN_SIGN, self.parse_infix_expression)
+        self.register_infix(TokenType.GREATER_THAN_OR_EQUAL_SIGN, self.parse_infix_expression)
+        self.register_infix(TokenType.ADDITION_SIGN, self.parse_infix_expression)
+        self.register_infix(TokenType.DASH, self.parse_infix_expression)
+        self.register_infix(TokenType.MULTIPLICATION_SIGN, self.parse_infix_expression)
+        self.register_infix(TokenType.DIVISION_SIGN, self.parse_infix_expression)
+        self.register_infix(TokenType.MODULO_SIGN, self.parse_infix_expression)
 
     def parse_program(self) -> Program:
         '''
@@ -160,7 +184,7 @@ class Parser:
             # constant variable
             if self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
                 self.advance()
-                d.value = self.parse_expression(Precedence.LOWEST)
+                d.value = self.parse_expression(LOWEST)
                 if not self.expect_peek(TokenType.TERMINATOR):
                     return None
                 self.advance()
@@ -177,7 +201,7 @@ class Parser:
                 if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
                     return None
                 self.advance()
-                ad.value = self.parse_expression(Precedence.LOWEST)
+                ad.value = self.parse_expression(LOWEST)
                 ad.length = len(ad.value.elements)
                 if not self.expect_peek(TokenType.TERMINATOR):
                     return None
@@ -201,7 +225,7 @@ class Parser:
             if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
                 return None
             self.advance()
-            ad.value = self.parse_expression(Precedence.LOWEST)
+            ad.value = self.parse_expression(LOWEST)
             if ad.value:
                 ad.length = len(ad.value.elements)
             if not self.expect_peek(TokenType.TERMINATOR):
@@ -213,13 +237,13 @@ class Parser:
         elif not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
             return None
         self.advance()
-        d.value = self.parse_expression(Precedence.LOWEST)
+        d.value = self.parse_expression(LOWEST)
         if not self.expect_peek(TokenType.TERMINATOR):
             return None
         self.advance()
         return d
 
-    def parse_expression(self, precedence: Precedence):
+    def parse_expression(self, precedence):
         '''
         parse expressions.
         Expressions can be:
@@ -242,6 +266,14 @@ class Parser:
             self.no_prefix_parse_fn_error(self.curr_tok.token)
             return None
         left_exp = prefix()
+
+        while not self.peek_tok_is(TokenType.TERMINATOR) and precedence < self.peek_precedence():
+            infix = self.infix_parse_fns[self.peek_tok.token]
+            if infix is None:
+                return left_exp
+            self.advance()
+            left_exp = infix(left_exp)
+
         return left_exp
 
     ### block statement parsers
@@ -268,13 +300,24 @@ class Parser:
         pe.prefix_tok = self.curr_tok
         pe.op = self.curr_tok.token
         self.advance()
-        pe.right = self.parse_expression(Precedence.PREFIX)
+        pe.right = self.parse_expression(PREFIX)
         return pe
+    def parse_infix_expression(self, left):
+        ie = InfixExpression()
+        ie.left = left
+        ie.infix_tok = self.curr_tok
+        ie.op = self.curr_tok.token
+
+        precedence = self.curr_precedence()
+        self.advance()
+        ie.right = self.parse_expression(precedence)
+        return ie
+
     def parse_array(self):
         al = ArrayLiteral()
         self.advance() # consume the opening brace
         while not self.curr_tok_is_in([TokenType.CLOSE_BRACE, TokenType.TERMINATOR, TokenType.EOF]):
-            al.elements.append(self.parse_expression(Precedence.LOWEST))
+            al.elements.append(self.parse_expression(LOWEST))
             if not self.expect_peek(TokenType.COMMA):
                 break
             self.advance()
@@ -295,7 +338,7 @@ class Parser:
             # expressions
             else:
                 self.advance()
-                sf.exprs.append(self.parse_expression(Precedence.LOWEST))
+                sf.exprs.append(self.parse_expression(LOWEST))
 
             if self.expect_peek(TokenType.STRING_PART_MID):
                 sf.mid.append(self.curr_tok)
@@ -342,6 +385,17 @@ class Parser:
             return True
         else:
             return False
+
+    def curr_precedence(self):
+        if self.curr_tok.token in precedence_map:
+            return precedence_map[self.curr_tok.token]
+        else:
+            return LOWEST
+    def peek_precedence(self):
+        if self.peek_tok.token in precedence_map:
+            return precedence_map[self.peek_tok.token]
+        else:
+            return LOWEST
 
     ### error methods
     def no_prefix_parse_fn_error(self, token_type):
