@@ -1,8 +1,8 @@
 '''
-OVERVIEW: 
-
+PLEASE READ!
 Headers are prepended by '###' so just search for that
 
+Overview:
 1. Statements: can be declarations, expressions, or block statements
 
 2. Declarations are simply global/local function/class/variable/constant declarations
@@ -24,9 +24,7 @@ Headers are prepended by '###' so just search for that
     - while and do while statements
     - for statements
 '''
-
 from typing import Callable
-from enum import Enum
 
 from src.lexer.token import Token, TokenType, UniqueTokenType
 from src.parser.productions import *
@@ -257,6 +255,7 @@ class Parser:
     def parse_for_statement(self):
         pass
 
+    ### expression parsers
     def parse_expression(self, precedence):
         '''
         parse expressions.
@@ -289,9 +288,8 @@ class Parser:
             left_exp = infix(left_exp)
 
         return left_exp
-
-    ### expression parsers
-    # PLEASE USE self.parse_expression(precedence) to use these methods in other parsers
+    # PLEASE USE self.parse_expression(precedence)
+    # to use the 3 methods below in other parsers.
     # DO NOT USE THESE 3 METHODS DIRECTLY
     def parse_prefix_expression(self):
         '''
@@ -337,6 +335,8 @@ class Parser:
         return expr
 
     ### atomic parsers
+    # unlike the above 3 expressions parsers,
+    # these are made to be used in other parsers
     def parse_array(self):
         al = ArrayLiteral()
         self.advance() # consume the opening brace
@@ -369,7 +369,6 @@ class Parser:
 
         sf.end = self.curr_tok
         return sf
-
     def parse_literal(self):
         'returns the current token'
         return self.curr_tok
@@ -378,9 +377,8 @@ class Parser:
     # registering prefix and infix functions to parse certain token types
     def register_prefix(self, token_type: str | TokenType, fn: Callable):
         self.prefix_parse_fns[token_type] = fn
-    def register_infix(self, token_type: str, fn: Callable):
+    def register_infix(self, token_type: str | TokenType, fn: Callable):
         self.infix_parse_fns[token_type] = fn
-
     # keeping track of tokens
     def curr_tok_is(self, token_type: TokenType) -> bool:
         return self.curr_tok.token == token_type
@@ -408,7 +406,7 @@ class Parser:
             return True
         else:
             return False
-
+    # to keep track of precedence of tokens
     def curr_precedence(self):
         if self.curr_tok.token in precedence_map:
             return precedence_map[self.curr_tok.token]
