@@ -1,3 +1,28 @@
+'''
+OVERVIEW: 
+
+1. Statements: can be declarations, expressions, or block statements
+
+2. Declarations are simply global/local function/class/variable/constant declarations
+    - on a global scope, only declarations are allowed
+
+3. Expressions can be:
+    - literal int, string, float, bool
+    - function call
+    - return statements
+    - prefix expression (int, string, float, bool)
+        - negative idents
+    - infix expression (int, string, float, bool)
+        - math operations
+        - comparisons
+        - equality checks
+
+4. block statements are statements with bodies:
+    - if statements
+    - while and do while statements
+    - for statements
+'''
+
 from typing import Callable
 from enum import Enum
 
