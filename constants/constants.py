@@ -29,7 +29,7 @@ DELIMS = {
     'mainuwu': {'-', ' '},
     'int_float': {',', ' ', *ATOMS['general_operator'], ')', '}', ']', '~', '!', r'&', '|', '>', '<', '='},
     'string': {' ', ')', ',', '&', '}', '[', ']', '~', '!', '='},
-    'assign_delim': {*ATOMS['alpha'], *ATOMS['number'], '{', ' ', '-' '('},
+    'assign_delim': {*ATOMS['alpha'], *ATOMS['number'], '{', ' ', '-', '('},
     'operator_delim': {*ATOMS['alpha'], *ATOMS['number'], ' ', '-', '('},
     'logical_delim': {'"', *ATOMS['alpha'], *ATOMS['number'], ' ', '-', '('},
     'string_parts': {'"', *ATOMS['alpha'], *ATOMS['number'], ' ', '-', '(', '|'},
