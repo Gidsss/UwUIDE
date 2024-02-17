@@ -32,8 +32,8 @@ class Lexer():
     def errors(self):
         return self._logs
 
-    def advance(self):
-       self._at_EOF, self._current_char = advance_cursor(self.context)
+    def advance(self, increment: int = 1):
+       self._at_EOF, self._current_char = advance_cursor(self.context, increment = increment)
 
     # methods that interact with outside modules
     @property
@@ -48,8 +48,8 @@ class Lexer():
         return cursor_advanced
     def peek_ident(self, cwass: bool = False) -> bool:
         self._at_EOF, self._current_char  = peek.identifier(self.context, cwass=cwass)
-    def peek_int_float(self):
-        self._at_EOF, self._current_char = peek.int_float(self.context)
+    def peek_int_float(self, negative: bool = False, start_pos: tuple[int, int] = None):
+        self._at_EOF, self._current_char = peek.int_float(self.context, negative=negative, start_pos=start_pos)
     def peek_string(self):
         self._at_EOF, self._current_char = peek.string(self.context)
 
@@ -248,15 +248,31 @@ class Lexer():
                              TokenType.ADDITION_SIGN, TokenType.DASH, TokenType.MULTIPLICATION_SIGN, TokenType.DIVISION_SIGN, TokenType.MODULO_SIGN,
                              TokenType.GREATER_THAN_SIGN, TokenType.LESS_THAN_SIGN ,TokenType.GREATER_THAN_OR_EQUAL_SIGN ,TokenType.LESS_THAN_OR_EQUAL_SIGN,
                              TokenType.EQUALITY_OPERATOR, TokenType.INEQUALITY_OPERATOR, 
-                             TokenType.AND_OPERATOR, TokenType.OR_OPERATOR,]
+                             TokenType.AND_OPERATOR, TokenType.OR_OPERATOR,
+                             TokenType.STRING_PART_START, TokenType.STRING_PART_MID]
                 operator_before = self._check_prev_token(valid_ops)
                 line_copy = self._lines[line]
                 if line_copy.lstrip()[0] == '-' or operator_before:
-                    if after_slice[0] in ATOMS["number"]:
-                        self.advance()
-                        self.peek_int_float()
-                        if self._at_EOF:
+                    inc = 0
+                    break_outer = False
+                    continue_outer = False
+                    for char in after_slice:
+                        inc += 1
+                        if char in [' ', '\t', '\n']:
+                            continue
+                        elif char not in ATOMS['number']:
+                            # to prevent reading numbers in a string, identifier or function name
                             break
+                        if char in ATOMS['number']:
+                            self.advance(inc)
+                            self.peek_int_float(negative=True, start_pos=(self._position[0], self._position[1]-inc))
+                            if self._at_EOF:
+                                break_outer = True
+                            continue_outer = True
+                            break
+                    if break_outer:
+                        break
+                    if continue_outer:
                         continue
 
                 # Differentiate between arithmetic and unary
@@ -268,7 +284,7 @@ class Lexer():
                                 starting_position = tuple(self._position)
                                 ending_position = tuple([self._position[0], self._position[1]+1])
                                 self._tokens.append(Token('--', TokenType.DECREMENT_OPERATOR, starting_position, ending_position))
-                                self.advance()
+                                self.advance(2)
                                 continue
                     starting_position = ending_position = tuple(self._position)
                     self._tokens.append(Token('-', TokenType.DASH, starting_position, ending_position))
@@ -419,22 +435,33 @@ class Lexer():
             prev_count += 1
 
         to_check_index = 0
-        for i in range(start, prev_count):
+        i = start
+        while i < prev_count:
             if len(self.tokens) >= i:
                 prev_token = self.tokens[-i]
+                if prev_token.token == TokenType.WHITESPACE:
+                    prev_count += 1
+                    i += 1
+                    continue
+
                 in_same_line = prev_token.position[0] == self._position[0]
                 if in_same_line:
                     if to_check[to_check_index] == TokenType.GEN_CWASS_NAME and prev_token.token.token.startswith('CWASS'):
                         present_flag = True
+                        i += 1
                     elif to_check[to_check_index] == TokenType.GEN_IDENTIFIER and prev_token.token.token.startswith('IDENTIFIER'):
                         present_flag = True
+                        i += 1
                     else:
                         if prev_token.token in to_check and prev_token.position[0] == self._position[0]:
                             present_flag = True
+                            i += 1
                         else:
                             present_flag = False
+                            i += 1
                             break
             to_check_index += 1
+            i += 1
 
         return present_flag
 

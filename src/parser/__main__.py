@@ -5,8 +5,8 @@ if __name__ == "__main__":
     sc = """
     gwobaw aqua-chan[] = {1==1, 2-2!=fax, aqua>=shion+-ojou, 4/4%4}~
     gwobaw shion-chan = 1+-aqua~
-    gwobaw ojou-chan =-5--1~
-    gwobaw sora-senpai = "tokino '| -nickname |' sora"~
+    gwobaw ojou-chan = -5- -1~
+    gwobaw sora-senpai = "tokino '| -1 |' sora"~
     """
 
     source: list[str] = [line if line else '\n' for line in sc.split("\n")]
@@ -20,6 +20,8 @@ if __name__ == "__main__":
     print("-" * (max_width) )
 
     l = print_lex(source)
+    if l.errors:
+        exit(1)
 
     p = Parser(l.tokens)
     for err in p.errors:
