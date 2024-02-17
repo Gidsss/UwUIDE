@@ -298,7 +298,7 @@ class Parser:
         This is because negative int/float literals are tokenized
         '''
         pe = PrefixExpression()
-        pe.op = self.curr_tok.token
+        pe.op = self.curr_tok
 
         self.advance()
         pe.right = self.parse_expression(PREFIX)
