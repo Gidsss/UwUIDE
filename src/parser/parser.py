@@ -95,6 +95,7 @@ class Parser:
         self.register_prefix(TokenType.DASH, self.parse_prefix_expression)
         self.register_prefix(TokenType.OPEN_BRACE, self.parse_array)
         self.register_prefix(TokenType.STRING_LITERAL, self.parse_string_lit)
+        self.register_prefix(TokenType.STRING_PART_START, self.parse_string_parts)
 
         # infixes
 
@@ -195,7 +196,8 @@ class Parser:
                 return None
             self.advance()
             ad.value = self.parse_expression(Precedence.LOWEST)
-            ad.length = len(ad.value.elements)
+            if ad.value:
+                ad.length = len(ad.value.elements)
             if not self.expect_peek(TokenType.TERMINATOR):
                 return None
             self.advance()
@@ -275,7 +277,26 @@ class Parser:
             return None
         return al
     def parse_string_parts(self):
-        pass
+        sf = StringFmt()
+        sf.start = self.curr_tok
+
+        # append middle parts if any
+        while not self.expect_peek(TokenType.STRING_PART_END):
+            # no expression after string_mid
+            if self.peek_tok_is(TokenType.STRING_PART_MID):
+                sf.exprs.append(Token("", TokenType.STRING_LITERAL, (0, 0), (0, 0)))
+                self.advance()
+            # expressions
+            else:
+                self.advance()
+                sf.exprs.append(self.parse_expression(Precedence.LOWEST))
+
+            if self.expect_peek(TokenType.STRING_PART_MID):
+                sf.mid.append(self.curr_tok)
+
+        sf.end = self.curr_tok
+        return sf
+
 
     def parse_string_lit(self):
         'returns the current token'

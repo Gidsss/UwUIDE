@@ -426,7 +426,7 @@ class Lexer():
         for error in self.errors:
             print(error)
 
-def print_lex(source_code: list[str]):
+def print_lex(source_code: list[str]) -> Lexer:
     print('\nsample text file')
     print("_"*20)
     for i, line in enumerate(source_code):
@@ -446,3 +446,4 @@ def print_lex(source_code: list[str]):
         print(f"{f'{token.position} - {token.end_position}':^23}", end=border)
         print()
     print("","_"*63)
+    return x

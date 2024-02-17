@@ -9,6 +9,30 @@ class PrefixExpression:
     def __str__(self):
         return f"{self.op} {self.right}"
 
+class InfixExpression:
+    left = None
+    op = None
+    right = None
+    def __str__(self):
+        return f"({self.left} {self.op} {self.right})"
+
+class StringFmt:
+    def __init__(self):
+        self.start = None
+        self.mid = []
+        self.exprs = []
+        self.end = None
+
+    def __str__(self):
+        result = f"\"{self.start.lexeme[1:-1]}"
+        for m,e in zip(self.mid, self.exprs):
+            result += f"| {e} |"
+            result += f"{m.lexeme[1:-1]}"
+        if self.exprs:
+            result += f"| {self.exprs[-1]} |"
+        result += f"{self.end.lexeme[1:-1]}\""
+        return result
+
 class ArrayLiteral:
     elements = []
     def __str__(self):
