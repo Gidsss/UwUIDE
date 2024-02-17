@@ -4,7 +4,8 @@ from .lexer import *
 if __name__ == "__main__":
     # temporary test source code
     source_code = [
-        '-5, -4, 5--1 ',
+        '-5, "start| -4, 5--1~',
+        '"tokino \'|-5, -4, 5--1|\' sora"~',
         # 'aqua shion ojou1',
         # 'fwunc manji-Manji() ',
         # 'manji+manji() ',

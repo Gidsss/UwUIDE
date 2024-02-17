@@ -90,11 +90,16 @@ class Parser:
         '''
         # prefixes
         self.register_prefix("IDENTIFIER", self.parse_identifier)
-        self.register_prefix(TokenType.INT_LITERAL, self.parse_int_lit)
         self.register_prefix(TokenType.DASH, self.parse_prefix_expression)
         self.register_prefix(TokenType.OPEN_BRACE, self.parse_array)
-        self.register_prefix(TokenType.STRING_LITERAL, self.parse_string_lit)
         self.register_prefix(TokenType.STRING_PART_START, self.parse_string_parts)
+
+        # literals (just returns curr_tok)
+        self.register_prefix(TokenType.INT_LITERAL, self.parse_literal)
+        self.register_prefix(TokenType.STRING_LITERAL, self.parse_literal)
+        self.register_prefix(TokenType.FLOAT_LITERAL, self.parse_literal)
+        self.register_prefix(TokenType.FAX, self.parse_literal)
+        self.register_prefix(TokenType.CAP, self.parse_literal)
 
         # infixes
 
@@ -299,16 +304,7 @@ class Parser:
         return sf
 
 
-    def parse_string_lit(self):
-        'returns the current token'
-        return self.curr_tok
-    def parse_float_lit(self):
-        'returns the current token'
-        return self.curr_tok
-    def parse_identifier(self):
-        'returns the current token'
-        return self.curr_tok
-    def parse_int_lit(self):
+    def parse_literal(self):
         'returns the current token'
         return self.curr_tok
 
