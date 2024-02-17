@@ -3,16 +3,19 @@ All productions must have an __str__() method
 '''
 
 class PrefixExpression:
-    prefix_tok = None
-    op = None
-    right = None
+    def __init__(self):
+        self.prefix_tok = None
+        self.op = None
+        self.right = None
+
     def __str__(self):
         return f"{self.op} {self.right}"
 
 class InfixExpression:
-    left = None
-    op = None
-    right = None
+    def __init__(self):
+        self.left = None
+        self.op = None
+        self.right = None
     def __str__(self):
         return f"({self.left} {self.op} {self.right})"
 
@@ -34,7 +37,8 @@ class StringFmt:
         return result
 
 class ArrayLiteral:
-    elements = []
+    def __init__(self):
+        self.elements = []
     def __str__(self):
         result = "{"
         for e in self.elements:
@@ -42,12 +46,13 @@ class ArrayLiteral:
         return result[:-2] + "}"
 
 class ArrayDeclaration:
-    id = None
-    dtype = None
-    value = None
-    size = None
-    length = None
-    is_const: bool = False
+    def __init__(self):
+        self.id = None
+        self.dtype = None
+        self.value = None
+        self.size = None
+        self.length = None
+        self.is_const: bool = False
 
     def __str__(self, indent = 0):
         result =  f"declare: {self.id}\n"
@@ -63,10 +68,11 @@ class ArrayDeclaration:
         return result
 
 class Declaration:
-    id = None
-    dtype = None
-    value = None
-    is_const: bool = False
+    def __init__(self):
+        self.id = None
+        self.dtype = None
+        self.value = None
+        self.is_const: bool = False
 
     def __str__(self, indent = 0):
         result =  f"declare: {self.id}\n"
@@ -78,31 +84,36 @@ class Declaration:
         return result
 
 class Function:
-    id = None
-    rtype = None
-    params: list = []
-    body: list = []
+    def __init__(self):
+        self.id = None
+        self.rtype = None
+        self.params: list = []
+        self.body: list = []
 
 class Class:
-    id = None
-    params: list = []
-    body: list = []
-    properties: list = []
-    methods: list = []
+    def __init__(self):
+        self.id = None
+        self.params: list = []
+        self.body: list = []
+        self.properties: list = []
+        self.methods: list = []
 
 class Program:
     'the root node of the syntax tree'
-    globals: list = []
-    functions: list = []
-    classes: list = []
+    def __init__(self):
+        self.globals: list = []
+        self.functions: list = []
+        self.classes: list = []
 
-    def print(self):
-        print("globals")
+    def __str__(self):
+        result = "globals:\n"
         for g in self.globals:
-            print(g)
-        print("functions")
+            result += f"{g}\n"
+        result += "functions:\n"
         for fn in self.functions:
-            print(fn)
-        print("classes")
+            result += f"{fn}\n"
+        result += "classes:\n"
         for c in self.classes:
-            print(c)
+            result += f"{c}\n"
+        return result
+

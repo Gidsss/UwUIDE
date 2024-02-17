@@ -67,9 +67,8 @@ class Parser:
         self.infix_parse_fns: dict = {}
         self.register_init()
 
-        self.program: Program = Program()
-        self.parse_program()
-        self.program.print()
+        self.program = self.parse_program()
+        print(self.program)
 
     def advance(self):
         if self.curr_tok.token == TokenType.EOF:
@@ -99,21 +98,23 @@ class Parser:
 
         # infixes
 
-    def parse_program(self):
+    def parse_program(self) -> Program:
         '''
         parse the entire program
         '''
+        p = Program()
         while not self.curr_tok_is(TokenType.EOF):
             match self.curr_tok.token:
                 case TokenType.FWUNC:
-                    self.program.functions.append(self.parse_function())
+                    p.functions.append(self.parse_function())
                 case TokenType.CWASS:
-                    self.program.classes.append(self.parse_class())
+                    p.classes.append(self.parse_class())
                 case TokenType.GWOBAW:
-                    self.program.globals.append(self.parse_declaration())
+                    p.globals.append(self.parse_declaration())
                 case _:
                     self.errors.append(f"Expected global function/class/variable/constant declaration, got {self.curr_tok.lexeme}")
                     self.advance()
+        return p
 
     def parse_declaration(self):
         '''
