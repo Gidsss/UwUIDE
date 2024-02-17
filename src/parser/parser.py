@@ -1,6 +1,8 @@
 '''
 OVERVIEW: 
 
+Headers are prepended by '###' so just search for that
+
 1. Statements: can be declarations, expressions, or block statements
 
 2. Declarations are simply global/local function/class/variable/constant declarations
@@ -322,6 +324,6 @@ class Parser:
         else:
             return False
 
-    # error functions
+    ### error methods
     def no_prefix_parse_fn_error(self, token_type):
         self.errors.append(f"no prefix parsing function found for {token_type}")
