@@ -105,6 +105,7 @@ class Parser:
         self.register_prefix(TokenType.DASH, self.parse_prefix_expression)
         self.register_prefix(TokenType.OPEN_BRACE, self.parse_array)
         self.register_prefix(TokenType.STRING_PART_START, self.parse_string_parts)
+        self.register_prefix(TokenType.OPEN_PAREN, self.parse_grouped_expressions)
 
         # literals (just returns curr_tok)
         self.register_prefix("IDENTIFIER", self.parse_literal)
@@ -299,10 +300,18 @@ class Parser:
         pe = PrefixExpression()
         pe.prefix_tok = self.curr_tok
         pe.op = self.curr_tok.token
+
         self.advance()
         pe.right = self.parse_expression(PREFIX)
         return pe
     def parse_infix_expression(self, left):
+        '''
+        parse infix expressions.
+        eg.
+        1 + 2
+        1 != 2
+        shion + aqua == fax
+        '''
         ie = InfixExpression()
         ie.left = left
         ie.infix_tok = self.curr_tok
@@ -312,7 +321,18 @@ class Parser:
         self.advance()
         ie.right = self.parse_expression(precedence)
         return ie
-
+    def parse_grouped_expressions(self):
+        '''
+        parse grouped expressions
+        eg.
+        (1 + 2)
+        (shion + aqua) + ojou
+        '''
+        self.advance()
+        expr = self.parse_expression(LOWEST)
+        if not self.expect_peek(TokenType.CLOSE_PAREN):
+            return None
+        return expr
     def parse_array(self):
         al = ArrayLiteral()
         self.advance() # consume the opening brace
