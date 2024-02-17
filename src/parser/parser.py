@@ -94,6 +94,7 @@ class Parser:
         self.register_prefix(TokenType.INT_LITERAL, self.parse_int_lit)
         self.register_prefix(TokenType.DASH, self.parse_prefix_expression)
         self.register_prefix(TokenType.OPEN_BRACE, self.parse_array)
+        self.register_prefix(TokenType.STRING_LITERAL, self.parse_string_lit)
 
         # infixes
 
