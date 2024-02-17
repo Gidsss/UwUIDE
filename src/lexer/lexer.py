@@ -470,11 +470,15 @@ class Lexer():
             print(error)
 
 def print_lex(source_code: list[str]) -> Lexer:
+    max_digit_length = len(str(len(source_code)))
+    max_width = max(len(line) for line in source_code) + max_digit_length + 3
+
     print('\nsample text file')
-    print("_"*20)
+    print("-"*max_width)
     for i, line in enumerate(source_code):
+        line = line if line != '\n' else ''
         print(f"{i+1} | {line}")
-    print("_"*20)
+    print("-"*max_width)
     print('end of file\n')
     x = Lexer(source_code)
     x.print_error_logs()
