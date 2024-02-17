@@ -244,6 +244,19 @@ class Parser:
         self.advance()
         return d
 
+    ### block statement parsers
+    def parse_function(self):
+        pass
+    def parse_class(self):
+        pass
+    def parse_if_statement(self):
+        pass
+    def parse_while_statement(self):
+        'this includes do while block statements'
+        pass
+    def parse_for_statement(self):
+        pass
+
     def parse_expression(self, precedence):
         '''
         parse expressions.
@@ -277,20 +290,9 @@ class Parser:
 
         return left_exp
 
-    ### block statement parsers
-    def parse_function(self):
-        pass
-    def parse_class(self):
-        pass
-    def parse_if_statement(self):
-        pass
-    def parse_while_statement(self):
-        'this includes do while block statements'
-        pass
-    def parse_for_statement(self):
-        pass
-
-    ### atomic parsers
+    ### expression parsers
+    # PLEASE USE self.parse_expression(precedence) to use these methods in other parsers
+    # DO NOT USE THESE 3 METHODS DIRECTLY
     def parse_prefix_expression(self):
         '''
         parse prefix expressions.
@@ -333,6 +335,8 @@ class Parser:
         if not self.expect_peek(TokenType.CLOSE_PAREN):
             return None
         return expr
+
+    ### atomic parsers
     def parse_array(self):
         al = ArrayLiteral()
         self.advance() # consume the opening brace
@@ -365,7 +369,6 @@ class Parser:
 
         sf.end = self.curr_tok
         return sf
-
 
     def parse_literal(self):
         'returns the current token'
