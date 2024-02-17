@@ -233,25 +233,20 @@ class Parser:
         left_exp = prefix()
         return left_exp
 
-    def parse_identifier(self):
-        'returns the current token'
-        return self.curr_tok
-    def parse_int_lit(self):
-        'returns the current token'
-        return self.curr_tok
-    def parse_array(self):
-        al = ArrayLiteral()
-        self.advance() # consume the opening brace
-        while not self.curr_tok_is_in([TokenType.CLOSE_BRACE, TokenType.TERMINATOR, TokenType.EOF]):
-            al.elements.append(self.parse_expression(Precedence.LOWEST))
-            if not self.expect_peek(TokenType.COMMA):
-                break
-            self.advance()
+    ### block statement parsers
+    def parse_function(self):
+        pass
+    def parse_class(self):
+        pass
+    def parse_if_statement(self):
+        pass
+    def parse_while_statement(self):
+        'this includes do while block statements'
+        pass
+    def parse_for_statement(self):
+        pass
 
-        if not self.expect_peek(TokenType.CLOSE_BRACE):
-            return None
-        return al
-
+    ### atomic parsers
     def parse_prefix_expression(self):
         '''
         parse prefix expressions.
@@ -264,12 +259,33 @@ class Parser:
         self.advance()
         pe.right = self.parse_expression(Precedence.PREFIX)
         return pe
-        
+    def parse_array(self):
+        al = ArrayLiteral()
+        self.advance() # consume the opening brace
+        while not self.curr_tok_is_in([TokenType.CLOSE_BRACE, TokenType.TERMINATOR, TokenType.EOF]):
+            al.elements.append(self.parse_expression(Precedence.LOWEST))
+            if not self.expect_peek(TokenType.COMMA):
+                break
+            self.advance()
 
-    def parse_function(self):
+        if not self.expect_peek(TokenType.CLOSE_BRACE):
+            return None
+        return al
+    def parse_string_parts(self):
         pass
-    def parse_class(self):
-        pass
+
+    def parse_string_lit(self):
+        'returns the current token'
+        return self.curr_tok
+    def parse_float_lit(self):
+        'returns the current token'
+        return self.curr_tok
+    def parse_identifier(self):
+        'returns the current token'
+        return self.curr_tok
+    def parse_int_lit(self):
+        'returns the current token'
+        return self.curr_tok
 
     ### helper methods
     # registering prefix and infix functions to parse certain token types
