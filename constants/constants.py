@@ -34,7 +34,7 @@ DELIMS = {
     'logical_delim': {'"', *ATOMS['alpha'], *ATOMS['number'], ' ', '-', '('},
     'string_parts': {'"', *ATOMS['alpha'], *ATOMS['number'], ' ', '-', '(', '|'},
     'open_brace': {'{', '(', *ATOMS['number'], ' ', '"', *ATOMS['alpha'], '\n', '>'},
-    'close_brace': {'}', '~', ' ', ',', ')', '>'},
+    'close_brace': {'}', '~', ' ', ',', ')', '\n', '>'},
     'open_parenthesis': {*ATOMS['number'], *ATOMS['alpha'], ' ', '-', '\n', '>', '(', ')', '"'},
     'id': {' ', '~', ',', '(', ')', '[', ']', '}', *ATOMS['general_operator'], '!', r'&', '|', '.'},
     'close_parenthesis': {' ', *ATOMS['general_operator'], '!', '&', '|', '\n', '~', '>', '.', ',', ')', '(', '[', ']', '}'},
