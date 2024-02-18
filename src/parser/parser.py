@@ -103,6 +103,21 @@ class Parser:
         '''
         Put here the functions for parsing prefix and infix expressions for
         certain token types
+
+        Notes:
+        - prefix parsing functions are used to parse expressions that come after a
+            certain token. The certain token does not necessarily need to be a prefix
+            operator like '-'. It can be an opening parenthesis for grouped expressions,
+            or even literals which in that case would just return the literal. All that
+            matters is that the prefix parsing function returns a possible left hand
+            side expression, be it a literal, array, grouped expression, etc.
+
+        - infix parsing functions on the other hand need to be used to parse
+            expressions that come after the left hand side expression using infix
+            operators.
+
+        - postfix parsing functions are used to parse tokens that can be followed by a
+            postfix operator.
         '''
         # prefixes
         self.register_prefix(TokenType.DASH, self.parse_prefix_expression)
@@ -205,7 +220,6 @@ class Parser:
             while not self.peek_tok_is_in(stop_conditions):
                 if not self.expect_peek(TokenType.OPEN_BRACKET):
                     break
-                # TODO: add support for expressions
                 if not self.peek_tok_is(TokenType.CLOSE_BRACKET):
                     self.advance()
                     d.size.append(self.parse_expression(LOWEST))
@@ -225,7 +239,7 @@ class Parser:
 
         # uninitialized
         if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
-            # disallow uninitialized for constats
+            # disallow uninitialized for constants
             if d.is_const:
                 self.uninitialized_constant_error(self.peek_tok)
                 self.advance(2)
@@ -288,7 +302,7 @@ class Parser:
 
         left_exp = prefix()
 
-        while not self.peek_tok_is_in([TokenType.TERMINATOR, TokenType.EOF, TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]) and precedence < self.peek_precedence():
+        while not self.peek_tok_is_in([TokenType.TERMINATOR, TokenType.EOF]) and precedence < self.peek_precedence():
             infix = self.get_infix_parse_fn(self.peek_tok.token)
             if infix is None:
                 return left_exp
