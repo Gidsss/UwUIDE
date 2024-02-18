@@ -488,7 +488,8 @@ def print_lex(source_code: list[str]) -> Lexer:
     border = "|"
     for token in x.tokens:
         print(border, end='')
-        print(f"{token.lexeme:^18}", end=border)
+        lexeme = token.lexeme if token.lexeme not in ['\n', '\t'] else ' '
+        print(f"{lexeme:^18}", end=border)
         print(f"{token.token:^20}", end=border)
         print(f"{f'{token.position} - {token.end_position}':^23}", end=border)
         print()
