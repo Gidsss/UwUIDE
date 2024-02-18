@@ -264,7 +264,7 @@ def comments(context: tuple[list[str], list[int], str, list[Token], list[DelimEr
 
 
 def int_float(context: tuple[list[str], list[int], str, list[Token], list[DelimError]],
-                             negative=False) -> tuple[bool, str]:
+              negative=False, start_pos: tuple[int, int] = None) -> tuple[bool, str]:
     lines, position, current_char, tokens, logs = context
 
     temp_num = "-"+current_char if negative else current_char
@@ -291,7 +291,7 @@ def int_float(context: tuple[list[str], list[int], str, list[Token], list[DelimE
             context = lines, position, current_char, tokens, logs
 
             corrected_value = temp_num
-            starting_position = (position[0], position[1] - len(temp_num) + 1)
+            starting_position = (position[0], position[1] - len(temp_num) + 1) if start_pos is None else start_pos
             ending_position = (position[0], position[1])
 
             tokens.append(Token(corrected_value, TokenType.INT_LITERAL, starting_position, ending_position))
@@ -321,13 +321,13 @@ def int_float(context: tuple[list[str], list[int], str, list[Token], list[DelimE
                     context = lines, position, current_char, tokens, logs
 
                     corrected_value = temp_num
-                    starting_position = tuple([position[0], position[1] - len(temp_num) + 1])
+                    starting_position = tuple([position[0], position[1] - len(temp_num) + 1]) if start_pos is None else start_pos
                     ending_position = tuple(position)
 
                     # has no numbers after decimal point
                     if temp_num[-1:] == '.':
                         corrected_value = temp_num + '0'
-                        starting_position = tuple([position[0], position[1] - len(temp_num) + 1])
+                        starting_position = tuple([position[0], position[1] - len(temp_num) + 1]) if start_pos is None else start_pos
                         ending_position = tuple(position)
                         logs.append(
                             GenericError(Error.MISSING_TRAILING_ZERO_FLOAT, starting_position, ending_position,

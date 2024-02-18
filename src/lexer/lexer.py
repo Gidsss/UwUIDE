@@ -14,6 +14,7 @@ class Lexer():
         UniqueTokenType.clear()
 
         self._position = [0,0]
+        self._at_EOF = False
         self._current_char = self._lines[self._position[0]][self._position[1]]
 
         self._nest_level = 0
@@ -30,189 +31,204 @@ class Lexer():
     @property
     def errors(self):
         return self._logs
-    
+
+    def advance(self, increment: int = 1):
+       self._at_EOF, self._current_char = advance_cursor(self.context, increment = increment)
+
+    # methods that interact with outside modules
     @property
     def context(self):
         'to be passed to outside modules'
         return self._lines, self._position, self._current_char, self._tokens, self._logs
+    def peek_reserved(self, reserved: str, token_type: TokenType) -> bool:
+        cursor_advanced, self._at_EOF, self._current_char = peek.reserved(reserved, token_type, self.context)
+        return cursor_advanced
+    def peek_comments(self, multiline: bool = False) -> bool:
+        cursor_advanced, self._at_EOF, self._current_char = peek.comments(self.context, multiline=multiline)
+        return cursor_advanced
+    def peek_ident(self, cwass: bool = False) -> bool:
+        self._at_EOF, self._current_char  = peek.identifier(self.context, cwass=cwass)
+    def peek_int_float(self, negative: bool = False, start_pos: tuple[int, int] = None):
+        self._at_EOF, self._current_char = peek.int_float(self.context, negative=negative, start_pos=start_pos)
+    def peek_string(self):
+        self._at_EOF, self._current_char = peek.string(self.context)
 
     def _get_tokens(self):
-        is_end_of_file = False
         cursor_advanced = False
         valid_starting_chars = {*ATOMS['alphanum'], *ATOMS['general_operator'],
                                 '|', '!', '&', '{', '}', '[', ']', '(', ')', ',', '.', '~', '"'}
         
-        while not is_end_of_file:
+        while not self._at_EOF:
             if self._current_char in ['\n', ' ', '\t']:
                 self._tokens.append(Token(self._current_char, TokenType.WHITESPACE, tuple(self._position), tuple(self._position)))
-                is_end_of_file, self._current_char = advance_cursor(self.context)
-                if is_end_of_file:
+                self.advance()
+                if self._at_EOF:
                     break
                 continue
 
             if self._current_char not in valid_starting_chars:
                 self._logs.append(GenericError(Error.UNEXPECTED_SYMBOL, tuple(self._position)))
-                is_end_of_file, self._current_char = advance_cursor(self.context)
-                if is_end_of_file:
+                self.advance()
+                if self._at_EOF:
                     break
                 continue
 
             if self._current_char == 'b':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('bweak', TokenType.BWEAK, self.context)
+                cursor_advanced = self.peek_reserved('bweak', TokenType.BWEAK)
                 if cursor_advanced:
                     continue
 
             if self._current_char == 'c':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('chan', TokenType.CHAN, self.context)
+                cursor_advanced = self.peek_reserved('chan', TokenType.CHAN)
                 if cursor_advanced:
                     continue
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('cap', TokenType.CAP, self.context)
+                cursor_advanced = self.peek_reserved('cap', TokenType.CAP)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('cwass', TokenType.CWASS, self.context)
+                cursor_advanced = self.peek_reserved('cwass', TokenType.CWASS)
                 if cursor_advanced:
                     continue
             
             if self._current_char == 'd':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('dono', TokenType.DONO, self.context)
+                cursor_advanced = self.peek_reserved('dono', TokenType.DONO)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('do whiwe', TokenType.DO_WHIWE, self.context)
+                cursor_advanced = self.peek_reserved('do whiwe', TokenType.DO_WHIWE)
                 if cursor_advanced:
                     continue
                 
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('donee~', TokenType.DONE, self.context)
+                cursor_advanced = self.peek_reserved('donee~', TokenType.DONE)
                 if cursor_advanced:
                     continue
             
             if self._current_char == 'e':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('ewse iwf', TokenType.EWSE_IWF, self.context)
+                cursor_advanced = self.peek_reserved('ewse iwf', TokenType.EWSE_IWF)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('ewse', TokenType.EWSE, self.context)
+                cursor_advanced = self.peek_reserved('ewse', TokenType.EWSE)
                 if cursor_advanced:
                     continue
                 
             if self._current_char == 'f':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved("fwunc", TokenType.FWUNC, self.context)
+                cursor_advanced = self.peek_reserved("fwunc", TokenType.FWUNC)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('fax', TokenType.FAX, self.context)
+                cursor_advanced = self.peek_reserved('fax', TokenType.FAX)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('fow', TokenType.FOW, self.context)
+                cursor_advanced = self.peek_reserved('fow', TokenType.FOW)
                 if cursor_advanced:
                     continue
         
             if self._current_char == 'g':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('gwobaw', TokenType.GWOBAW, self.context)
+                cursor_advanced = self.peek_reserved('gwobaw', TokenType.GWOBAW)
                 if cursor_advanced:
                     continue
             
             if self._current_char == 'i':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('iwf', TokenType.IWF, self.context)
+                cursor_advanced = self.peek_reserved('iwf', TokenType.IWF)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('inpwt', TokenType.INPWT, self.context)
+                cursor_advanced = self.peek_reserved('inpwt', TokenType.INPWT)
                 if cursor_advanced:
                     continue
             
             if self._current_char == 'k':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('kun', TokenType.KUN, self.context)
+                cursor_advanced = self.peek_reserved('kun', TokenType.KUN)
                 if cursor_advanced:
                     continue
             
             if self._current_char == 'm':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('mainuwu', TokenType.MAINUWU, self.context)
+                cursor_advanced = self.peek_reserved('mainuwu', TokenType.MAINUWU)
                 if cursor_advanced:
                     continue
 
             if self._current_char == 'n':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('nuww', TokenType.NUWW, self.context)
+                cursor_advanced = self.peek_reserved('nuww', TokenType.NUWW)
                 if cursor_advanced:
                     continue
             
             if self._current_char == 'p':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('pwint', TokenType.PWINT, self.context)
+                cursor_advanced = self.peek_reserved('pwint', TokenType.PWINT)
                 if cursor_advanced:
                     continue
 
             if self._current_char == 's':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('san', TokenType.SAN, self.context)
+                cursor_advanced = self.peek_reserved('san', TokenType.SAN)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('sama', TokenType.SAMA, self.context)
+                cursor_advanced = self.peek_reserved('sama', TokenType.SAMA)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('senpai', TokenType.SENPAI, self.context)
+                cursor_advanced = self.peek_reserved('senpai', TokenType.SENPAI)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('staart!', TokenType.START, self.context)
+                cursor_advanced = self.peek_reserved('staart!', TokenType.START)
                 if cursor_advanced:
                     continue
 
             if self._current_char == 'w':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('whiwe', TokenType.WHIWE, self.context)
+                cursor_advanced = self.peek_reserved('whiwe', TokenType.WHIWE)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('wetuwn', TokenType.WETUWN, self.context)
+                cursor_advanced = self.peek_reserved('wetuwn', TokenType.WETUWN)
                 if cursor_advanced:
                     continue
             
             # Literals check
             # can be identifiers or function names
             if self._current_char in ATOMS['alpha_small']:
-                is_end_of_file, self._current_char = peek.identifier(self.context)
-                if is_end_of_file:
+                self.peek_ident()
+                if self._at_EOF:
                     break
                 continue
 
             # class names
             if self._current_char in ATOMS['alpha_big']:
-                is_end_of_file, self._current_char  = peek.identifier(self.context, cwass=True)
-                if is_end_of_file:
+                self.peek_ident(cwass=True)
+                if self._at_EOF:
                     break
                 continue
             
             if self._current_char in ATOMS['number']:
-                is_end_of_file, self._current_char = peek.int_float(self.context)
-                if is_end_of_file:
+                self.peek_int_float()
+                if self._at_EOF:
                     break
                 continue
             
             # string literals
             if self._current_char in ['|', '"']:
-                is_end_of_file, self._current_char = peek.string(self.context)
-                if is_end_of_file:
+                self.peek_string()
+                if self._at_EOF:
                     break
                 continue
 
             # Symbol Checks
             if self._current_char == '=':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('==', TokenType.EQUALITY_OPERATOR, self.context)
+                cursor_advanced = self.peek_reserved('==', TokenType.EQUALITY_OPERATOR)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('=', TokenType.ASSIGNMENT_OPERATOR, self.context)
+                cursor_advanced = self.peek_reserved('=', TokenType.ASSIGNMENT_OPERATOR)
                 if cursor_advanced:
                     continue
 
             if self._current_char == '+':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('++', TokenType.INCREMENT_OPERATOR, self.context)
+                cursor_advanced = self.peek_reserved('++', TokenType.INCREMENT_OPERATOR)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('+', TokenType.ADDITION_SIGN, self.context)
+                cursor_advanced = self.peek_reserved('+', TokenType.ADDITION_SIGN)
                 if cursor_advanced:
                     continue
 
@@ -224,7 +240,7 @@ class Lexer():
                 if len(after_slice) < 1:
                     line, col = self._position
                     self._logs.append(DelimError(TokenType.DASH, (line, col + 1), '-', '\n'))
-                    is_end_of_file, self._current_char = advance_cursor(self.context)
+                    self.advance()
                     continue
 
                 # Check if - is negative
@@ -232,15 +248,31 @@ class Lexer():
                              TokenType.ADDITION_SIGN, TokenType.DASH, TokenType.MULTIPLICATION_SIGN, TokenType.DIVISION_SIGN, TokenType.MODULO_SIGN,
                              TokenType.GREATER_THAN_SIGN, TokenType.LESS_THAN_SIGN ,TokenType.GREATER_THAN_OR_EQUAL_SIGN ,TokenType.LESS_THAN_OR_EQUAL_SIGN,
                              TokenType.EQUALITY_OPERATOR, TokenType.INEQUALITY_OPERATOR, 
-                             TokenType.AND_OPERATOR, TokenType.OR_OPERATOR,]
+                             TokenType.AND_OPERATOR, TokenType.OR_OPERATOR,
+                             TokenType.STRING_PART_START, TokenType.STRING_PART_MID]
                 operator_before = self._check_prev_token(valid_ops)
                 line_copy = self._lines[line]
                 if line_copy.lstrip()[0] == '-' or operator_before:
-                    if after_slice[0] in ATOMS["number"]:
-                        is_end_of_file, self._current_char = advance_cursor(self.context)
-                        is_end_of_file, self._current_char = peek.int_float(self.context, negative=True)
-                        if is_end_of_file:
+                    inc = 0
+                    break_outer = False
+                    continue_outer = False
+                    for char in after_slice:
+                        inc += 1
+                        if char in [' ', '\t', '\n']:
+                            continue
+                        elif char not in ATOMS['number']:
+                            # to prevent reading numbers in a string, identifier or function name
                             break
+                        if char in ATOMS['number']:
+                            self.advance(inc)
+                            self.peek_int_float(negative=True, start_pos=(self._position[0], self._position[1]-inc))
+                            if self._at_EOF:
+                                break_outer = True
+                            continue_outer = True
+                            break
+                    if break_outer:
+                        break
+                    if continue_outer:
                         continue
 
                 # Differentiate between arithmetic and unary
@@ -252,128 +284,128 @@ class Lexer():
                                 starting_position = tuple(self._position)
                                 ending_position = tuple([self._position[0], self._position[1]+1])
                                 self._tokens.append(Token('--', TokenType.DECREMENT_OPERATOR, starting_position, ending_position))
-                                is_end_of_file, self._current_char = advance_cursor(self.context, 2)
+                                self.advance(2)
                                 continue
                     starting_position = ending_position = tuple(self._position)
                     self._tokens.append(Token('-', TokenType.DASH, starting_position, ending_position))
-                    is_end_of_file, self._current_char = advance_cursor(self.context)
+                    self.advance()
                     continue
 
             if self._current_char == '!':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('!=', TokenType.INEQUALITY_OPERATOR, self.context)
+                cursor_advanced = self.peek_reserved('!=', TokenType.INEQUALITY_OPERATOR)
                 if cursor_advanced:
                     continue
 
                 self._logs.append(GenericError(Error.UNEXPECTED_SYMBOL, tuple(self._position),
                                                context=f"Symbol {self._current_char} is invalid. Did you mean '!='?"))
-                is_end_of_file, self._current_char = advance_cursor(self.context)
+                self.advance()
                 continue
 
             if self._current_char == '>':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('>=', TokenType.GREATER_THAN_OR_EQUAL_SIGN, self.context)
+                cursor_advanced = self.peek_reserved('>=', TokenType.GREATER_THAN_OR_EQUAL_SIGN)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file, self._current_char = peek.comments(self.context)
+                cursor_advanced = self.peek_comments()
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file, self._current_char = peek.comments(self.context, multiline=True)
+                cursor_advanced = self.peek_comments(multiline=True)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('>', TokenType.GREATER_THAN_SIGN, self.context)
+                cursor_advanced = self.peek_reserved('>', TokenType.GREATER_THAN_SIGN)
                 if cursor_advanced:
                     continue
 
             if self._current_char == '<':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('<=', TokenType.LESS_THAN_OR_EQUAL_SIGN, self.context)
+                cursor_advanced = self.peek_reserved('<=', TokenType.LESS_THAN_OR_EQUAL_SIGN)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('<', TokenType.LESS_THAN_SIGN, self.context)
+                cursor_advanced = self.peek_reserved('<', TokenType.LESS_THAN_SIGN)
                 if cursor_advanced:
                     continue
 
             if self._current_char == '*':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('*', TokenType.MULTIPLICATION_SIGN, self.context)
+                cursor_advanced = self.peek_reserved('*', TokenType.MULTIPLICATION_SIGN)
                 if cursor_advanced:
                     continue
 
             if self._current_char == '/':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('/', TokenType.DIVISION_SIGN, self.context)
+                cursor_advanced = self.peek_reserved('/', TokenType.DIVISION_SIGN)
                 if cursor_advanced:
                     continue
 
             if self._current_char == '%':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('%', TokenType.MODULO_SIGN, self.context)
+                cursor_advanced = self.peek_reserved('%', TokenType.MODULO_SIGN)
                 if cursor_advanced:
                     continue
 
             if self._current_char == "|":
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('||', TokenType.OR_OPERATOR, self.context)
+                cursor_advanced = self.peek_reserved('||', TokenType.OR_OPERATOR)
                 if cursor_advanced:
                     continue
 
             if self._current_char == "&":
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('&&', TokenType.AND_OPERATOR, self.context)
+                cursor_advanced = self.peek_reserved('&&', TokenType.AND_OPERATOR)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('&', TokenType.CONCATENATION_OPERATOR, self.context)
+                cursor_advanced = self.peek_reserved('&', TokenType.CONCATENATION_OPERATOR)
                 if cursor_advanced:
                     continue
 
             if self._current_char == "{":
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('{', TokenType.OPEN_BRACE, self.context)
+                cursor_advanced = self.peek_reserved('{', TokenType.OPEN_BRACE)
                 if cursor_advanced:
                     continue
 
             if self._current_char == "}":
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('}', TokenType.CLOSE_BRACE, self.context)
+                cursor_advanced = self.peek_reserved('}', TokenType.CLOSE_BRACE)
                 if cursor_advanced:
                     continue
 
             if self._current_char == "(":
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('(', TokenType.OPEN_PAREN, self.context)
+                cursor_advanced = self.peek_reserved('(', TokenType.OPEN_PAREN)
                 if cursor_advanced:
                     continue
 
             if self._current_char == ")":
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved(')', TokenType.CLOSE_PAREN, self.context)
+                cursor_advanced = self.peek_reserved(')', TokenType.CLOSE_PAREN)
                 if cursor_advanced:
                     continue
 
             if self._current_char == "[":
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('[[', TokenType.DOUBLE_OPEN_BRACKET, self.context)
+                cursor_advanced = self.peek_reserved('[[', TokenType.DOUBLE_OPEN_BRACKET)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('[', TokenType.OPEN_BRACKET, self.context)
+                cursor_advanced = self.peek_reserved('[', TokenType.OPEN_BRACKET)
                 if cursor_advanced:
                     continue
 
             if self._current_char == "]":
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved(']]', TokenType.DOUBLE_CLOSE_BRACKET, self.context)
+                cursor_advanced = self.peek_reserved(']]', TokenType.DOUBLE_CLOSE_BRACKET)
                 if cursor_advanced:
                     continue
 
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved(']', TokenType.CLOSE_BRACKET, self.context)
+                cursor_advanced = self.peek_reserved(']', TokenType.CLOSE_BRACKET)
                 if cursor_advanced:
                     continue
 
             if self._current_char == ",":
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved(',', TokenType.COMMA, self.context)
+                cursor_advanced = self.peek_reserved(',', TokenType.COMMA)
                 if cursor_advanced:
                     continue
 
             if self._current_char == ".":
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('.', TokenType.DOT_OP, self.context)
+                cursor_advanced = self.peek_reserved('.', TokenType.DOT_OP)
                 if cursor_advanced:
                     continue
 
             if self._current_char == '~':
-                cursor_advanced, is_end_of_file, self._current_char = peek.reserved('~', TokenType.TERMINATOR, self.context)
+                cursor_advanced = self.peek_reserved('~', TokenType.TERMINATOR)
                 if cursor_advanced:
                     continue
 
@@ -403,22 +435,33 @@ class Lexer():
             prev_count += 1
 
         to_check_index = 0
-        for i in range(start, prev_count):
+        i = start
+        while i < prev_count:
             if len(self.tokens) >= i:
                 prev_token = self.tokens[-i]
+                if prev_token.token == TokenType.WHITESPACE:
+                    prev_count += 1
+                    i += 1
+                    continue
+
                 in_same_line = prev_token.position[0] == self._position[0]
                 if in_same_line:
                     if to_check[to_check_index] == TokenType.GEN_CWASS_NAME and prev_token.token.token.startswith('CWASS'):
                         present_flag = True
+                        i += 1
                     elif to_check[to_check_index] == TokenType.GEN_IDENTIFIER and prev_token.token.token.startswith('IDENTIFIER'):
                         present_flag = True
+                        i += 1
                     else:
                         if prev_token.token in to_check and prev_token.position[0] == self._position[0]:
                             present_flag = True
+                            i += 1
                         else:
                             present_flag = False
+                            i += 1
                             break
             to_check_index += 1
+            i += 1
 
         return present_flag
 
@@ -426,12 +469,16 @@ class Lexer():
         for error in self.errors:
             print(error)
 
-def print_lex(source_code: list[str]):
+def print_lex(source_code: list[str]) -> Lexer:
+    max_digit_length = len(str(len(source_code)))
+    max_width = max(len(line) for line in source_code) + max_digit_length + 3
+
     print('\nsample text file')
-    print("_"*20)
+    print("-"*max_width)
     for i, line in enumerate(source_code):
+        line = line if line != '\n' else ''
         print(f"{i+1} | {line}")
-    print("_"*20)
+    print("-"*max_width)
     print('end of file\n')
     x = Lexer(source_code)
     x.print_error_logs()
@@ -441,8 +488,10 @@ def print_lex(source_code: list[str]):
     border = "|"
     for token in x.tokens:
         print(border, end='')
-        print(f"{token.lexeme:^18}", end=border)
+        lexeme = token.lexeme if token.lexeme not in ['\n', '\t'] else ' '
+        print(f"{lexeme:^18}", end=border)
         print(f"{token.token:^20}", end=border)
         print(f"{f'{token.position} - {token.end_position}':^23}", end=border)
         print()
     print("","_"*63)
+    return x

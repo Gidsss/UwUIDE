@@ -164,7 +164,10 @@ class Token:
         self._end_position = end_position
 
     def __repr__(self):
-        return f"Token(lexeme='{self.lexeme}', token='{self.token}', position={self.position}, end_position={self.end_position})"
+        return self._lexeme
+
+    def __str__(self):
+        return self._lexeme
 
     @property
     def lexeme(self) -> str:
