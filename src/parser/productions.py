@@ -9,6 +9,8 @@ class PrefixExpression:
 
     def __str__(self):
         return f"{self.op} {self.right}"
+    def __len__(self):
+        return 1
 
 class InfixExpression:
     def __init__(self):
@@ -17,6 +19,8 @@ class InfixExpression:
         self.right = None
     def __str__(self):
         return f"({self.left} {self.op} {self.right})"
+    def __len__(self):
+        return 1
 
 class StringFmt:
     def __init__(self):
@@ -34,6 +38,8 @@ class StringFmt:
             result += f"| {self.exprs[-1]} |"
         result += f"{self.end.lexeme[1:-1]}\""
         return result
+    def __len__(self):
+        return 1
 
 class ArrayLiteral:
     def __init__(self):
@@ -43,6 +49,10 @@ class ArrayLiteral:
         for e in self.elements:
             result += f"{e}, "
         return result[:-2] + "}"
+    def __len__(self):
+        return len(self.elements)
+    def __iter__(self):
+        return iter(self.elements)
 
 class ArrayDeclaration:
     def __init__(self):
@@ -73,6 +83,20 @@ class ArrayDeclaration:
         if self.is_const:
             result += f"{' ' * (indent+4)}constant\n"
         return result
+
+    def compute_len(self):
+        def compute_lengths(array, depth):
+            if isinstance(array, ArrayLiteral):
+                # initialize with zero value so self.length[depth]
+                # is not an out of bounds error
+                if depth >= len(self.length):
+                    self.length.append(0)
+                self.length[depth] = max(self.length[depth], len(array.elements))
+                for elem in array.elements:
+                    compute_lengths(elem, depth + 1)
+
+        tmp = self.value
+        compute_lengths(tmp, 0)
 
 class Declaration:
     def __init__(self):
