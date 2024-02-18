@@ -19,7 +19,7 @@ if __name__ == "__main__":
         },
         1,
     }~
-    gwobaw ojou-chan = -(1+1)--~
+    gwobaw ojou-chan = ~
     gwobaw shion-chan = 1+- (1-2) --*3-- --5 == 5~
     """
     # gwobaw sora-senpai = "tokino '| -nickname |' sora"~

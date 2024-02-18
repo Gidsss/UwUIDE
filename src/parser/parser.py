@@ -253,6 +253,10 @@ class Parser:
 
         # initialized
         self.advance()
+        if self.curr_tok_is(TokenType.TERMINATOR):
+            self.uninitialized_assignment_error(self.peek_tok)
+            return None
+
         d.value = self.parse_expression(LOWEST)
         if isinstance(d, ArrayDeclaration):
             d.compute_len()
@@ -342,7 +346,6 @@ class Parser:
         '''
         ie = InfixExpression()
         ie.left = left
-        ie.infix_tok = self.curr_tok
         ie.op = self.curr_tok.token
 
         precedence = self.curr_precedence()
@@ -399,7 +402,6 @@ class Parser:
     def parse_string_parts(self):
         sf = StringFmt()
         sf.start = self.curr_tok
-
         # append middle parts if any
         while not self.peek_tok_is_in([TokenType.STRING_PART_END, TokenType.TERMINATOR, TokenType.EOF]):
             # no expression after string_mid
@@ -513,8 +515,6 @@ class Parser:
         self.errors.append(f"expected next token to be '{token}', got '{self.peek_tok}' instead")
     def no_prefix_parse_fn_error(self, token_type):
         self.errors.append(f"no prefix parsing function found for {token_type}")
-    def no_infix_parse_fn_error(self, token_type):
-        self.errors.append(f"no infix parsing function found for {token_type}")
     def invalid_global_declaration_error(self, token: Token):
         self.errors.append(f"Expected global function/class/variable/constant declaration, got {token.lexeme}")
     def no_ident_in_declaration_error(self, token: Token):
