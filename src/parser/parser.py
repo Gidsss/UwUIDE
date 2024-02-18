@@ -63,7 +63,7 @@ precedence_map = {
 
 class Parser:
     def __init__(self, tokens: list[Token]):
-        self.tokens = [token for token in tokens if token.token != TokenType.WHITESPACE]
+        self.tokens = [token for token in tokens if token.token not in [TokenType.WHITESPACE, TokenType.SINGLE_LINE_COMMENT, TokenType.MULTI_LINE_COMMENT]]
         self.tokens.append(Token("EOF", TokenType.EOF, (0, 0), (0, 0)))
         self.errors: list = []
 
@@ -234,7 +234,7 @@ class Parser:
         self.advance()
         d.value = self.parse_expression(LOWEST)
         if isinstance(d, ArrayDeclaration):
-            d.length = len(d.value.elements)
+            d.compute_len()
 
         if not self.expect_peek(TokenType.TERMINATOR):
             self.unterminated_error(self.peek_tok)
