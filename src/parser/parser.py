@@ -189,7 +189,20 @@ class Parser:
             return None
         d.dtype = self.curr_tok
 
-        # -dono if constant
+        print(self.curr_tok, self.peek_tok)
+        # array declaration
+        if self.expect_peek(TokenType.OPEN_BRACKET):
+            ad = ArrayDeclaration()
+            ad.id, ad.dtype = d.id, d.dtype
+            d = ad
+            if self.expect_peek(TokenType.INT_LITERAL) or self.expect_peek_is_identifier():
+                d.size = self.curr_tok
+            if not self.expect_peek(TokenType.CLOSE_BRACKET):
+                self.unclosed_bracket_error(self.peek_tok)
+                self.advance(2)
+                return None
+
+        # -dono to indicate constant
         if self.expect_peek(TokenType.DASH):
             if not self.expect_peek(TokenType.DONO):
                 self.no_dono_error(self.peek_tok)
@@ -197,85 +210,26 @@ class Parser:
                 return None
             d.is_const = True
 
-            # constant variable
-            if self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
-                self.advance()
-                d.value = self.parse_expression(LOWEST)
-                if not self.expect_peek(TokenType.TERMINATOR):
-                    self.unterminated_error(self.peek_tok)
-                    self.advance(2)
-                    return None
-                return d
-
-            # constant array declaration
-            elif self.expect_peek(TokenType.OPEN_BRACKET):
-                ad = ArrayDeclaration()
-                ad.id, ad.dtype, ad.value, ad.is_const = d.id, d.dtype, d.value, d.is_const
-                if self.expect_peek(TokenType.INT_LITERAL) or self.expect_peek_is_identifier():
-                    ad.size = self.curr_tok
-                if not self.expect_peek(TokenType.CLOSE_BRACKET):
-                    self.unclosed_bracket_error(self.peek_tok)
-                    self.advance(2)
-                    return None
-                if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
-                    self.uninitialized_constant_error(self.peek_tok)
-                    self.advance(2)
-                    return None
-                self.advance()
-                ad.value = self.parse_expression(LOWEST)
-                ad.length = len(ad.value.elements)
-                if not self.expect_peek(TokenType.TERMINATOR):
-                    self.unterminated_error(self.peek_tok)
-                    self.advance(2)
-                    return None
-                return ad
-            else:
-                self.uninitialized_constant_error(self.peek_tok)
+        # uninitialized
+        if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
+            # disallow uninitialized for constats
+            if d.is_const:
+                self.no_assignment_error(self.peek_tok)
                 self.advance(2)
                 return None
-
-        # variable declaration without value
-        elif self.expect_peek(TokenType.TERMINATOR):
-            self.advance()
-            return d
-
-        # variable array declaration
-        elif self.expect_peek(TokenType.OPEN_BRACKET):
-            ad = ArrayDeclaration()
-            ad.id, ad.dtype, ad.value, ad.is_const = d.id, d.dtype, d.value, d.is_const
-            if self.expect_peek(TokenType.INT_LITERAL) or self.expect_peek_is_identifier():
-                ad.size = self.curr_tok
-            if not self.expect_peek(TokenType.CLOSE_BRACKET):
-                self.unclosed_bracket_error(self.peek_tok)
-                self.advance(2)
-                return None
-            # uninitialized array
-            if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
-                ad.length = 0
-                if not self.expect_peek(TokenType.TERMINATOR):
-                    self.advance()
-                    self.unterminated_error(self.curr_tok)
-                self.advance()
-                return ad
-
-            self.advance()
-            ad.value = self.parse_expression(LOWEST)
-            if ad.value:
-                ad.length = len(ad.value.elements)
+            # allow uninitialized for variables
             if not self.expect_peek(TokenType.TERMINATOR):
                 self.unterminated_error(self.peek_tok)
                 self.advance(2)
                 return None
-            return ad
+            return d
 
-        # variable declaration with value
-        elif not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
-            self.uninitialized_assignment_error(self.peek_tok)
-            self.advance(2)
-            return None
-
+        # initialized
         self.advance()
         d.value = self.parse_expression(LOWEST)
+        if isinstance(d, ArrayDeclaration):
+            d.length = len(d.value.elements)
+
         if not self.expect_peek(TokenType.TERMINATOR):
             self.unterminated_error(self.peek_tok)
             self.advance(2)
@@ -383,13 +337,15 @@ class Parser:
     def parse_array(self):
         al = ArrayLiteral()
         self.advance() # consume the opening brace
-        while not self.peek_tok_is_in([TokenType.CLOSE_BRACE, TokenType.TERMINATOR, TokenType.EOF]):
+
+        stop_conditions = [TokenType.CLOSE_BRACE, TokenType.TERMINATOR, TokenType.EOF]
+        while not self.curr_tok_is_in(stop_conditions):
             al.elements.append(self.parse_expression(LOWEST))
-            if not self.expect_peek(TokenType.COMMA):
+            if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
                 break
             self.advance()
 
-        if not self.expect_peek(TokenType.CLOSE_BRACE):
+        if not self.curr_tok_is(TokenType.CLOSE_BRACE):
             self.unclosed_brace_error(self.peek_tok)
             return None
         return al
