@@ -4,9 +4,9 @@ from ..lexer import print_lex
 if __name__ == "__main__":
     sc = """
     >.< shape of this should be [3, 2, 1]
-    >.< 2 elements on aqua
+    >.< 3 elements on aqua
     >.< 2 elements in aqua[1]
-    >.< 2 elements in aqua[0][0]
+    >.< 1 elements in aqua[0][0]
     gwobaw aqua-chan[2][-shion] = {
         {
             {
