@@ -64,7 +64,7 @@ precedence_map = {
 class Parser:
     def __init__(self, tokens: list[Token]):
         self.tokens = [token for token in tokens if token.token != TokenType.WHITESPACE]
-        self.tokens.append(Token("", TokenType.EOF, (0, 0), (0, 0)))
+        self.tokens.append(Token("EOF", TokenType.EOF, (0, 0), (0, 0)))
         self.errors: list = []
 
         # to keep track of tokens
@@ -81,18 +81,22 @@ class Parser:
         self.program = self.parse_program()
         print(self.program)
 
-    def advance(self):
-        if self.curr_tok.token == TokenType.EOF:
+    def advance(self, inc: int = 1):
+        'advance the current and peek tokens based on the increment. default is 1'
+        if inc <= 0 :
             return
+        for _ in range(inc):
+            if self.curr_tok.token == TokenType.EOF:
+                return
 
-        if self.peek_tok.token == TokenType.EOF:
-            self.curr_tok = self.peek_tok
+            if self.peek_tok.token == TokenType.EOF:
+                self.curr_tok = self.peek_tok
+                self.pos += 1
+                return
+
             self.pos += 1
-            return
-
-        self.pos += 1
-        self.curr_tok = self.peek_tok
-        self.peek_tok = self.tokens[self.pos + 1]
+            self.curr_tok = self.peek_tok
+            self.peek_tok = self.tokens[self.pos + 1]
 
     def register_init(self):
         '''
@@ -139,8 +143,10 @@ class Parser:
                     p.classes.append(self.parse_class())
                 case TokenType.GWOBAW:
                     p.globals.append(self.parse_declaration())
+                case TokenType.TERMINATOR:
+                    self.advance()
                 case _:
-                    self.errors.append(f"Expected global function/class/variable/constant declaration, got {self.curr_tok.lexeme}")
+                    self.invalid_global_declaration_error(self.curr_tok)
                     self.advance()
         return p
 
@@ -154,15 +160,22 @@ class Parser:
         `shion-chan~`
         `ojou-chan-dono = 5~`
         `lap-chan = another_ident~`
+
+        NOTE: peek_tok should be the ident, not the curr_tok, when calling this
         '''
         d = Declaration()
 
-        if not self.expect_peek_as_identifier():
+        if not self.expect_peek_is_identifier():
+            self.no_ident_in_declaration_error(self.peek_tok)
+            self.advance(2)
             return None
         d.id = self.curr_tok
 
         if not self.expect_peek(TokenType.DASH):
+            self.no_data_type_indicator_error(self.peek_tok)
+            self.advance(2)
             return None
+
         data_types = [
             TokenType.CHAN,
             TokenType.KUN,
@@ -171,12 +184,16 @@ class Parser:
             TokenType.SAN
         ]
         if not self.expect_peek_in(data_types):
+            self.no_data_type_error(self.peek_tok)
+            self.advance(2)
             return None
         d.dtype = self.curr_tok
 
         # -dono if constant
         if self.expect_peek(TokenType.DASH):
             if not self.expect_peek(TokenType.DONO):
+                self.no_dono_error(self.peek_tok)
+                self.advance(2)
                 return None
             d.is_const = True
 
@@ -185,61 +202,84 @@ class Parser:
                 self.advance()
                 d.value = self.parse_expression(LOWEST)
                 if not self.expect_peek(TokenType.TERMINATOR):
+                    self.unterminated_error(self.peek_tok)
+                    self.advance(2)
                     return None
-                self.advance()
                 return d
 
             # constant array declaration
             elif self.expect_peek(TokenType.OPEN_BRACKET):
                 ad = ArrayDeclaration()
                 ad.id, ad.dtype, ad.value, ad.is_const = d.id, d.dtype, d.value, d.is_const
-                if self.expect_peek(TokenType.INT_LITERAL) or self.expect_peek_as_identifier():
+                if self.expect_peek(TokenType.INT_LITERAL) or self.expect_peek_is_identifier():
                     ad.size = self.curr_tok
                 if not self.expect_peek(TokenType.CLOSE_BRACKET):
+                    self.unclosed_bracket_error(self.peek_tok)
+                    self.advance(2)
                     return None
                 if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
+                    self.uninitialized_constant_error(self.peek_tok)
+                    self.advance(2)
                     return None
                 self.advance()
                 ad.value = self.parse_expression(LOWEST)
                 ad.length = len(ad.value.elements)
                 if not self.expect_peek(TokenType.TERMINATOR):
+                    self.unterminated_error(self.peek_tok)
+                    self.advance(2)
                     return None
-                self.advance()
                 return ad
             else:
+                self.uninitialized_constant_error(self.peek_tok)
+                self.advance(2)
                 return None
 
         # variable declaration without value
-        if self.expect_peek(TokenType.TERMINATOR):
+        elif self.expect_peek(TokenType.TERMINATOR):
+            self.advance()
             return d
 
         # variable array declaration
-        if self.expect_peek(TokenType.OPEN_BRACKET):
+        elif self.expect_peek(TokenType.OPEN_BRACKET):
             ad = ArrayDeclaration()
             ad.id, ad.dtype, ad.value, ad.is_const = d.id, d.dtype, d.value, d.is_const
-            if self.expect_peek(TokenType.INT_LITERAL) or self.expect_peek_as_identifier():
+            if self.expect_peek(TokenType.INT_LITERAL) or self.expect_peek_is_identifier():
                 ad.size = self.curr_tok
             if not self.expect_peek(TokenType.CLOSE_BRACKET):
+                self.unclosed_bracket_error(self.peek_tok)
+                self.advance(2)
                 return None
+            # uninitialized array
             if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
-                return None
+                ad.length = 0
+                if not self.expect_peek(TokenType.TERMINATOR):
+                    self.advance()
+                    self.unterminated_error(self.curr_tok)
+                self.advance()
+                return ad
+
             self.advance()
             ad.value = self.parse_expression(LOWEST)
             if ad.value:
                 ad.length = len(ad.value.elements)
             if not self.expect_peek(TokenType.TERMINATOR):
+                self.unterminated_error(self.peek_tok)
+                self.advance(2)
                 return None
-            self.advance()
             return ad
 
         # variable declaration with value
         elif not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
+            self.uninitialized_assignment_error(self.peek_tok)
+            self.advance(2)
             return None
+
         self.advance()
         d.value = self.parse_expression(LOWEST)
         if not self.expect_peek(TokenType.TERMINATOR):
+            self.unterminated_error(self.peek_tok)
+            self.advance(2)
             return None
-        self.advance()
         return d
 
     ### block statement parsers
@@ -271,19 +311,21 @@ class Parser:
                 - equality checks
         '''
         if isinstance(self.curr_tok.token, UniqueTokenType):
-            prefix = self.prefix_parse_fns["IDENTIFIER"]
+            prefix = self.get_prefix_parse_fn("IDENTIFIER")
         else:
-            prefix = self.prefix_parse_fns[self.curr_tok.token]
+            prefix = self.get_prefix_parse_fn(self.curr_tok.token)
 
         if prefix is None:
             self.no_prefix_parse_fn_error(self.curr_tok.token)
             return None
+
         left_exp = prefix()
 
         while not self.peek_tok_is(TokenType.TERMINATOR) and precedence < self.peek_precedence():
-            infix = self.infix_parse_fns[self.peek_tok.token]
+            infix = self.get_infix_parse_fn(self.peek_tok.token)
             if infix is None:
                 return left_exp
+
             self.advance()
             left_exp = infix(left_exp)
 
@@ -330,6 +372,8 @@ class Parser:
         self.advance()
         expr = self.parse_expression(LOWEST)
         if not self.expect_peek(TokenType.CLOSE_PAREN):
+            self.advance()
+            self.unclosed_paren_error(self.curr_tok)
             return None
         return expr
 
@@ -339,13 +383,14 @@ class Parser:
     def parse_array(self):
         al = ArrayLiteral()
         self.advance() # consume the opening brace
-        while not self.curr_tok_is_in([TokenType.CLOSE_BRACE, TokenType.TERMINATOR, TokenType.EOF]):
+        while not self.peek_tok_is_in([TokenType.CLOSE_BRACE, TokenType.TERMINATOR, TokenType.EOF]):
             al.elements.append(self.parse_expression(LOWEST))
             if not self.expect_peek(TokenType.COMMA):
                 break
             self.advance()
 
         if not self.expect_peek(TokenType.CLOSE_BRACE):
+            self.unclosed_brace_error(self.peek_tok)
             return None
         return al
     def parse_string_parts(self):
@@ -353,7 +398,7 @@ class Parser:
         sf.start = self.curr_tok
 
         # append middle parts if any
-        while not self.expect_peek(TokenType.STRING_PART_END):
+        while not self.peek_tok_is_in([TokenType.STRING_PART_END, TokenType.TERMINATOR, TokenType.EOF]):
             # no expression after string_mid
             if self.peek_tok_is(TokenType.STRING_PART_MID):
                 sf.exprs.append(Token("", TokenType.STRING_LITERAL, (0, 0), (0, 0)))
@@ -366,6 +411,9 @@ class Parser:
             if self.expect_peek(TokenType.STRING_PART_MID):
                 sf.mid.append(self.curr_tok)
 
+        if not self.expect_peek(TokenType.STRING_PART_END):
+            self.unclosed_string_part_error(sf.start, self.peek_tok)
+            return None
         sf.end = self.curr_tok
         return sf
     def parse_literal(self):
@@ -378,45 +426,105 @@ class Parser:
         self.prefix_parse_fns[token_type] = fn
     def register_infix(self, token_type: str | TokenType, fn: Callable):
         self.infix_parse_fns[token_type] = fn
+    # getting prefix and infix functions
+    def get_prefix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+        try:
+            tmp = self.prefix_parse_fns[token_type]
+            return tmp
+        except KeyError:
+            return None
+    def get_infix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+        try:
+            tmp = self.infix_parse_fns[token_type]
+            return tmp
+        except KeyError:
+            return None
     # keeping track of tokens
     def curr_tok_is(self, token_type: TokenType) -> bool:
         return self.curr_tok.token == token_type
     def peek_tok_is(self, token_type: TokenType) -> bool:
         return self.peek_tok.token == token_type
     def expect_peek(self, token_type: TokenType) -> bool:
+        '''
+        checks if the next token is the given token type.
+        advances the cursor if it is.
+        cursor won't advance if not.
+        '''
         if self.peek_tok_is(token_type):
             self.advance()
             return True
         else:
             return False
-    def curr_tok_is_in(self, token_types: list[TokenType]) -> bool:
-        return self.curr_tok.token in token_types
-    def peek_tok_is_in(self, token_types: list[TokenType]) -> bool:
-        return self.peek_tok.token in token_types
-    def expect_peek_in(self, token_types: list[TokenType]) -> bool:
-        if self.peek_tok_is_in(token_types):
+    def expect_peek_is_identifier(self) -> bool:
+        '''
+        checks if the next token is an identifier.
+        advances the cursor if it is.
+        cursor won't advance if not.
+        '''
+        if self.peek_tok.token.token.startswith("IDENTIFIER"):
             self.advance()
             return True
         else:
             return False
-    def expect_peek_as_identifier(self) -> bool:
-        if self.peek_tok.token.token.startswith("IDENTIFIER"):
+    def curr_tok_is_in(self, token_types: list[TokenType]) -> bool:
+        'checks if the current token is in the list of token types.'
+        return self.curr_tok.token in token_types
+    def peek_tok_is_in(self, token_types: list[TokenType]) -> bool:
+        'checks if the next token is in the list of token types.'
+        return self.peek_tok.token in token_types
+    def expect_peek_in(self, token_types: list[TokenType]) -> bool:
+        '''
+        checks if the next token is in the list of token types.
+        advances the cursor if it is.
+        cursor won't advance if not.
+        '''
+        if self.peek_tok_is_in(token_types):
             self.advance()
             return True
         else:
             return False
     # to keep track of precedence of tokens
     def curr_precedence(self):
+        'returns the precedence of the current token'
         if self.curr_tok.token in precedence_map:
             return precedence_map[self.curr_tok.token]
         else:
             return LOWEST
     def peek_precedence(self):
+        'returns the precedence of the next token'
         if self.peek_tok.token in precedence_map:
             return precedence_map[self.peek_tok.token]
         else:
             return LOWEST
 
     ### error methods
+    def peek_error(self, token: TokenType):
+        self.errors.append(f"expected next token to be '{token}', got '{self.peek_tok}' instead")
     def no_prefix_parse_fn_error(self, token_type):
         self.errors.append(f"no prefix parsing function found for {token_type}")
+    def no_infix_parse_fn_error(self, token_type):
+        self.errors.append(f"no infix parsing function found for {token_type}")
+    def invalid_global_declaration_error(self, token: Token):
+        self.errors.append(f"Expected global function/class/variable/constant declaration, got {token.lexeme}")
+    def no_ident_in_declaration_error(self, token: Token):
+        self.errors.append(f"Expected identifier in declaration, got {token.lexeme}")
+    def no_data_type_indicator_error(self, token: Token):
+        self.errors.append(f"Expected dash before data type, got {token.lexeme}")
+    def no_data_type_error(self, token: Token):
+        self.errors.append(f"Expected data type, got {token.lexeme}")
+    def no_dono_error(self, token: Token):
+        self.errors.append(f"Expected 'dono' to denote variable as constant instead, got {token.lexeme}")
+    def unterminated_error(self, token: Token):
+        self.errors.append(f"Expected '~' to terminate the statement, got {token.lexeme}")
+    def unclosed_paren_error(self, token: Token):
+        self.errors.append(f"Expected ')' to close the parenthesis, got {token.lexeme}")
+    def unclosed_bracket_error(self, token: Token):
+        self.errors.append(f"Expected ']' to close the bracket, got {token.lexeme}")
+    def unclosed_brace_error(self, token: Token):
+        self.errors.append(f"Expected '}}' to close the brace, got {token.lexeme}")
+    def uninitialized_constant_error(self, token: Token):
+        self.errors.append(f"Constants must be initialized. got '{token.lexeme}'")
+    def uninitialized_assignment_error(self, token: Token):
+        self.errors.append(f"Assignments must have a value after '='. got '{token.lexeme}'")
+    def unclosed_string_part_error(self, string_start, token: Token):
+        self.errors.append(f"Unclosed string part. Expected '{string_start.lexeme[:-1]}|' to be closed by something like '|string part end\"'. got '{token.lexeme}'")

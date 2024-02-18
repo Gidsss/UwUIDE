@@ -58,9 +58,9 @@ class ArrayDeclaration:
         result += f"{' ' * (indent+4)}type: {self.dtype}\n"
         if self.value:
             result += f"{' ' * (indent+4)}value: {self.value}\n"
-        if self.size:
+        if self.size is not None:
             result += f"{' ' * (indent+4)}size: {self.size}\n"
-        if self.length:
+        if self.length is not None:
             result += f"{' ' * (indent+4)}length: {self.length}\n"
         if self.is_const:
             result += f"{' ' * (indent+4)}constant\n"

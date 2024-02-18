@@ -3,11 +3,12 @@ from ..lexer import print_lex
 
 if __name__ == "__main__":
     sc = """
-    gwobaw aqua-chan[3] = {1+1*1, (2+2)*2}~
-    gwobaw shion-chan = 1+-aqua~
-        gwobaw ojou-chan = -5- -1~
-        gwobaw sora-senpai = "tokino '| nickname |' sora"~
+    gwobaw aqua-chan-dono = ~
     """
+    # gwobaw aqua-chan[] = {1+1*1, (2+2)*2}~
+    # gwobaw shion-chan = 1+-aqua~
+    # gwobaw ojou-chan = -5- -1~
+    # gwobaw sora-senpai = "tokino '| nickname |' sora"~
 
     source: list[str] = [line if line else '\n' for line in sc.split("\n")]
     l = print_lex(source)
