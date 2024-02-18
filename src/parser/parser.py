@@ -189,18 +189,24 @@ class Parser:
             return None
         d.dtype = self.curr_tok
 
-        print(self.curr_tok, self.peek_tok)
         # array declaration
-        if self.expect_peek(TokenType.OPEN_BRACKET):
+        if self.peek_tok_is(TokenType.OPEN_BRACKET):
             ad = ArrayDeclaration()
             ad.id, ad.dtype = d.id, d.dtype
             d = ad
-            if self.expect_peek(TokenType.INT_LITERAL) or self.expect_peek_is_identifier():
-                d.size = self.curr_tok
-            if not self.expect_peek(TokenType.CLOSE_BRACKET):
-                self.unclosed_bracket_error(self.peek_tok)
-                self.advance(2)
-                return None
+            stop_conditions = [TokenType.DASH, TokenType.TERMINATOR, TokenType.EOF]
+            while not self.peek_tok_is_in(stop_conditions):
+                if not self.expect_peek(TokenType.OPEN_BRACKET):
+                    break
+                # TODO: add support for expressions
+                if not self.peek_tok_is(TokenType.CLOSE_BRACKET):
+                    self.advance()
+                    d.size.append(self.parse_expression(LOWEST))
+                if not self.expect_peek(TokenType.CLOSE_BRACKET):
+                    self.unclosed_bracket_error(self.peek_tok)
+                    self.advance(2)
+                    return None
+                d.dimension += 1
 
         # -dono to indicate constant
         if self.expect_peek(TokenType.DASH):
@@ -214,7 +220,7 @@ class Parser:
         if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
             # disallow uninitialized for constats
             if d.is_const:
-                self.no_assignment_error(self.peek_tok)
+                self.uninitialized_constant_error(self.peek_tok)
                 self.advance(2)
                 return None
             # allow uninitialized for variables

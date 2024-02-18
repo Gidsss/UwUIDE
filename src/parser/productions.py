@@ -49,8 +49,9 @@ class ArrayDeclaration:
         self.id = None
         self.dtype = None
         self.value = None
-        self.size = None
-        self.length = None
+        self.size = []
+        self.length = []
+        self.dimension = 0
         self.is_const: bool = False
 
     def __str__(self, indent = 0):
@@ -58,10 +59,17 @@ class ArrayDeclaration:
         result += f"{' ' * (indent+4)}type: {self.dtype}\n"
         if self.value:
             result += f"{' ' * (indent+4)}value: {self.value}\n"
-        if self.size is not None:
-            result += f"{' ' * (indent+4)}size: {self.size}\n"
-        if self.length is not None:
+        if self.size:
+            result += f"{' ' * (indent+4)}size: {{"
+            for i,s in enumerate(self.size):
+                if i == len(self.size) - 1:
+                    result += f"{s}"
+                else:
+                    result += f"{s}, "
+            result += "}\n"
+        if self.length:
             result += f"{' ' * (indent+4)}length: {self.length}\n"
+        result += f"{' ' * (indent+4)}dimension: {self.dimension}\n"
         if self.is_const:
             result += f"{' ' * (indent+4)}constant\n"
         return result
