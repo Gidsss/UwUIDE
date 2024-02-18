@@ -76,6 +76,7 @@ class Parser:
         # key : val == TokenType : ParsingFunction
         self.prefix_parse_fns: dict = {}
         self.infix_parse_fns: dict = {}
+        self.postfix_parse_fns: dict = {}
         self.register_init()
 
         self.program = self.parse_program()
@@ -129,6 +130,12 @@ class Parser:
         self.register_infix(TokenType.MULTIPLICATION_SIGN, self.parse_infix_expression)
         self.register_infix(TokenType.DIVISION_SIGN, self.parse_infix_expression)
         self.register_infix(TokenType.MODULO_SIGN, self.parse_infix_expression)
+
+        # postfixes
+        self.register_postfix("IDENTIFIER", self.parse_postfix_expression)
+        self.register_postfix(TokenType.INT_LITERAL, self.parse_postfix_expression)
+        self.register_postfix(TokenType.FLOAT_LITERAL, self.parse_postfix_expression)
+        self.register_postfix(TokenType.CLOSE_PAREN, self.parse_postfix_expression)
 
     def parse_program(self) -> Program:
         '''
@@ -281,13 +288,19 @@ class Parser:
 
         left_exp = prefix()
 
-        while not self.peek_tok_is(TokenType.TERMINATOR) and precedence < self.peek_precedence():
+        while not self.peek_tok_is_in([TokenType.TERMINATOR, TokenType.EOF, TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]) and precedence < self.peek_precedence():
             infix = self.get_infix_parse_fn(self.peek_tok.token)
             if infix is None:
                 return left_exp
-
             self.advance()
             left_exp = infix(left_exp)
+
+        if isinstance(self.curr_tok.token, UniqueTokenType):
+            postfix = self.get_postfix_parse_fn("IDENTIFIER")
+        else:
+            postfix = self.get_postfix_parse_fn(self.curr_tok.token)
+        if postfix is not None:
+            left_exp = postfix(left_exp)
 
         return left_exp
     # PLEASE USE self.parse_expression(precedence)
@@ -322,6 +335,20 @@ class Parser:
         self.advance()
         ie.right = self.parse_expression(precedence)
         return ie
+    def parse_postfix_expression(self, left):
+        '''
+        parse postfix expressions
+        eg.
+        1
+        1++
+        1--
+        '''
+        pe = PostfixExpression()
+        pe.left = left
+        if not self.expect_peek_in([TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]):
+            return left
+        pe.op = self.curr_tok
+        return pe
     def parse_grouped_expressions(self):
         '''
         parse grouped expressions
@@ -388,6 +415,8 @@ class Parser:
         self.prefix_parse_fns[token_type] = fn
     def register_infix(self, token_type: str | TokenType, fn: Callable):
         self.infix_parse_fns[token_type] = fn
+    def register_postfix(self, token_type: str | TokenType, fn: Callable):
+        self.postfix_parse_fns[token_type] = fn
     # getting prefix and infix functions
     def get_prefix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
         try:
@@ -398,6 +427,12 @@ class Parser:
     def get_infix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
         try:
             tmp = self.infix_parse_fns[token_type]
+            return tmp
+        except KeyError:
+            return None
+    def get_postfix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+        try:
+            tmp = self.postfix_parse_fns[token_type]
             return tmp
         except KeyError:
             return None
