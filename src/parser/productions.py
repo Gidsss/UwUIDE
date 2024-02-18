@@ -22,6 +22,15 @@ class InfixExpression:
     def __len__(self):
         return 1
 
+class PostfixExpression:
+    def __init__(self):
+        self.left = None
+        self.op = None
+    def __str__(self):
+        return f"{self.left} {self.op}"
+    def __len__(self):
+        return 1
+
 class StringFmt:
     def __init__(self):
         self.start = None
