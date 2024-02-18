@@ -91,7 +91,12 @@ class ArrayDeclaration:
                 # is not an out of bounds error
                 if depth >= len(self.length):
                     self.length.append(0)
+
+                # get length of largest element in current dimension
                 self.length[depth] = max(self.length[depth], len(array.elements))
+
+                # go through each element since elements
+                # might not have the same depth
                 for elem in array.elements:
                     compute_lengths(elem, depth + 1)
 

@@ -3,20 +3,21 @@ from ..lexer import print_lex
 
 if __name__ == "__main__":
     sc = """
-    >.< shape of this should be [2, 2, 2]
+    >.< shape of this should be [3, 2, 1]
     >.< 2 elements on aqua
     >.< 2 elements in aqua[1]
     >.< 2 elements in aqua[0][0]
     gwobaw aqua-chan[2][-shion] = {
         {
             {
-                (2+2)*2, 2,
+                (2+2)*2,
             }
         }, 
         {
             3+3*3,
             (4+4)*4,
-        }
+        },
+        1,
     }~
     """
     # gwobaw shion-chan = 1+-aqua~
