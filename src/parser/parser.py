@@ -81,9 +81,6 @@ class Parser:
         self.register_init()
 
         self.program = self.parse_program()
-        # print(self.program)
-        self.program.print()
-
 
     def advance(self, inc: int = 1):
         'advance the current and peek tokens based on the increment. default is 1'
@@ -176,7 +173,7 @@ class Parser:
                     p.classes.append(self.parse_class())
                 case TokenType.GWOBAW:
                     p.globals.append(self.parse_declaration())
-                case TokenType.TERMINATOR:
+                case TokenType.TERMINATOR | TokenType.DOUBLE_CLOSE_BRACKET:
                     self.advance()
                 case TokenType.IWF:
                     tmp = self.parse_if_statement()
@@ -290,18 +287,17 @@ class Parser:
     def parse_return_statement(self):
         'parse return statements'
         rs = ReturnStatement()
-        self.advance() # consume the return token
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
             self.advance()
             return None
         self.advance() # consume the open paren
         rs.expr = self.parse_expression(LOWEST)
+
         if not self.expect_peek(TokenType.CLOSE_PAREN):
             self.advance()
             self.unclosed_paren_error(self.curr_tok)
             return None
-        self.advance() # consume the close paren
         if not self.expect_peek(TokenType.TERMINATOR):
             self.advance()
             self.unterminated_error(self.curr_tok)
@@ -399,7 +395,7 @@ class Parser:
         # is an assignment
         a = Assignment()
         a.id = ident
-        if not self.expect_peek(TokenType.EQUAL):
+        if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
             self.peek_error(self.peek_tok)
             self.advance()
             return None
