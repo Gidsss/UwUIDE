@@ -231,23 +231,15 @@ class Parser:
         d.dtype = self.curr_tok
 
         # array declaration
-        if self.peek_tok_is(TokenType.OPEN_BRACKET):
+        if self.expect_peek(TokenType.OPEN_BRACKET):
             ad = ArrayDeclaration()
             ad.id, ad.dtype = d.id, d.dtype
             d = ad
-            stop_conditions = [TokenType.DASH, TokenType.TERMINATOR, TokenType.EOF]
-            while not self.peek_tok_is_in(stop_conditions):
-                if not self.expect_peek(TokenType.OPEN_BRACKET):
-                    break
-                if not self.peek_tok_is(TokenType.CLOSE_BRACKET):
-                    self.advance()
-                    d.size.append(self.parse_expression(LOWEST))
-                if not self.expect_peek(TokenType.CLOSE_BRACKET):
-                    self.unclosed_bracket_error(self.peek_tok)
-                    self.advance(2)
-                    return None
-                d.dimension += 1
-            d.dtype.lexeme += "[]"*ad.dimension
+            d.dtype.lexeme += "[]"
+            if not self.expect_peek(TokenType.CLOSE_BRACKET):
+                self.unclosed_bracket_error(self.peek_tok)
+                self.advance(2)
+                return None
 
         # -dono to indicate constant
         if self.expect_peek(TokenType.DASH):
@@ -276,11 +268,7 @@ class Parser:
         if self.curr_tok_is(TokenType.TERMINATOR):
             self.uninitialized_assignment_error(self.peek_tok)
             return None
-
         d.value = self.parse_expression(LOWEST)
-        if isinstance(d, ArrayDeclaration):
-            d.compute_len()
-
         if not self.expect_peek(TokenType.TERMINATOR):
             self.unterminated_error(self.peek_tok)
             self.advance(2)
@@ -769,3 +757,5 @@ class Parser:
         self.errors.append(f"Assignments must have a value after '='. got '{token.lexeme}'")
     def unclosed_string_part_error(self, string_start, token: Token):
         self.errors.append(f"Unclosed string part. Expected '{string_start.lexeme[:-1]}|' to be closed by something like '|string part end\"'. got '{token.lexeme}'")
+    def unclosed_bracket_error(self, token: Token):
+        self.errors.append(f"Expected ']' to close the bracket, got {token.lexeme}")
