@@ -9,7 +9,7 @@ class ReturnStatement:
     def __init__(self):
         self.expr = None
     def print(self, indent = 1):
-        print(f"return {self.__str__()}")
+        print(f"{INDENT(indent)} return {self.__str__()}")
     def __str__(self):
         return f"{self.expr}"
     def __len__(self):
@@ -130,7 +130,10 @@ class Assignment:
         self.id = None
         self.value = None
     def print(self, indent = 1):
-        print(f"assign: {self.__str__()}")
+        print(f"{INDENT(indent)} assign: ", end='')
+        self.id.print(indent)
+        print(f"{INDENT(indent+1)} value: ", end='')
+        self.value.print(indent)
     def __str__(self):
         return f"{self.id} = {self.value}"
     def __len__(self):
