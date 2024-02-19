@@ -175,8 +175,9 @@ class Parser:
                     p.globals.append(self.parse_declaration())
                 case TokenType.TERMINATOR | TokenType.DOUBLE_CLOSE_BRACKET:
                     self.advance()
-                case TokenType.IWF:
-                    tmp = self.parse_if_statement()
+                # remove later
+                case TokenType.WHIWE | TokenType.DO_WHIWE:
+                    tmp = self.parse_while_statement()
                     p.globals.append(tmp)
                 case _:
                     self.invalid_global_declaration_error(self.curr_tok)
@@ -409,7 +410,30 @@ class Parser:
 
     def parse_while_statement(self):
         'this includes do while block statements'
-        pass
+        ws = WhileLoop()
+        if self.curr_tok_is(TokenType.DO_WHIWE):
+            ws.is_do = True
+        if not self.expect_peek(TokenType.OPEN_PAREN):
+            self.peek_error(TokenType.OPEN_PAREN)
+            self.advance()
+            return None
+        self.advance()
+        ws.condition = self.parse_expression(LOWEST)
+        if not self.expect_peek(TokenType.CLOSE_PAREN):
+            self.advance()
+            self.unclosed_paren_error(self.curr_tok)
+            return None
+        if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
+            self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
+            self.advance()
+            return None
+        ws.body = self.parse_block_statement()
+        if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
+            self.advance()
+            self.unclosed_bracket_error(self.curr_tok)
+            return None
+        return ws
+
     def parse_for_statement(self):
         pass
 

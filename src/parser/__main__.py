@@ -6,10 +6,10 @@ if __name__ == "__main__":
     whiwe (1 == 2) [[
         aqua-sama = 3~
     ]]
-    >//<
     do whiwe (1 == 2) [[
         aqua-sama = 3~
     ]]
+    >//<
     fow (aqua~ aqua<10~ aqua++~) [[
         shion-chan = 4~
     ]]
