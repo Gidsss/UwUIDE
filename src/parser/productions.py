@@ -12,7 +12,7 @@ class ReturnStatement:
     def __init__(self):
         self.expr = None
     def print(self, indent = 1):
-        return f"return {self.__str__()}"
+        print(f"return {self.__str__()}")
     def __str__(self):
         return f"{self.expr}"
     def __len__(self):
@@ -23,7 +23,7 @@ class PrefixExpression:
         self.op = None
         self.right = None
     def print(self, indent = 1):
-        return f"prefix: {self.__str__()}"
+        print(f"prefix: {self.__str__()}")
     def __str__(self):
         return f"({self.op} {self.right})"
     def __len__(self):
@@ -46,7 +46,7 @@ class PostfixExpression:
         self.left = None
         self.op = None
     def print(self, indent = 1):
-        return f"postfix: {self.__str__()}"
+        print(f"postfix: {self.__str__()}")
     def __str__(self):
         return f"{self.left} {self.op}"
     def __len__(self):
@@ -59,7 +59,7 @@ class StringFmt:
         self.exprs = []
         self.end = None
     def print(self, indent = 1):
-        return f"string fmt: {self.__str__()}"
+        print(f"string fmt: {self.__str__()}")
     def __str__(self):
         return f"{self.start}{''.join([f'{m}{e}' for m,e in zip(self.mid, self.exprs)])}{self.end}"
     def __len__(self):
@@ -69,7 +69,7 @@ class ArrayLiteral:
     def __init__(self):
         self.elements = []
     def print(self, indent = 1):
-        return f"{INDENT(indent)} array: {self.__str__()}"
+        print(f"{INDENT(indent)} array: {self.__str__()}")
     def __str__(self):
         return f"[{', '.join([str(e) for e in self.elements])}]"
     def __len__(self):
@@ -88,8 +88,10 @@ class ArrayDeclaration:
         self.is_const: bool = False
 
     def print(self, indent = 1):
-        print(f"{INDENT(0)} declare: {self.id.print(indent)}")
-        print(f"{INDENT(indent)} type: {self.dtype.print(indent)}")
+        print(f"{INDENT(indent)} declare array: ", end='')
+        self.id.print(indent)
+        print(f"{INDENT(indent)} type: ", end='')
+        self.dtype.print(indent)
         if self.is_const:
             print(f"{INDENT(indent)} constant")
         if self.dimension:
@@ -97,15 +99,15 @@ class ArrayDeclaration:
         if self.size:
             print(f"{INDENT(indent)} size:")
             for s in self.size:
-                print(f"{INDENT(indent+1)} {s.print(indent+1)}")
+                print(f"{INDENT(indent+1)} ", end='')
+                s.print(indent+1)
         if self.value:
             print(f"{INDENT(indent)} value:")
-            print(f"{self.value.print(indent+1)}")
+            self.value.print(indent+1)
         if self.length:
             print(f"{INDENT(indent)} length:")
             for l in self.length:
                 print(f"{INDENT(indent+1)} {l}")
-        return "|"
 
     def compute_len(self):
         def compute_lengths(array, depth):
@@ -131,7 +133,7 @@ class Assignment:
         self.id = None
         self.value = None
     def print(self, indent = 1):
-        return f"assign: {self.__str__()}"
+        print(f"assign: {self.__str__()}")
     def __str__(self):
         return f"{self.id} = {self.value}"
     def __len__(self):
@@ -161,7 +163,7 @@ class FnCall:
         self.args = []
 
     def print(self, _ = 1):
-        return f"call: {self.__str__()}"
+        print(f"call: {self.__str__()}")
     def __str__(self):
         return f"{self.id}({', '.join([str(a) for a in self.args])})"
     def __len__(self):
