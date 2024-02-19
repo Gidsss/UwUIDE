@@ -267,7 +267,28 @@ class Parser:
             return None
         return d
 
-    ### block statement parsers
+    ### statement parsers
+    def parse_return_statement(self):
+        'parse return statements'
+        rs = ReturnStatement()
+        self.advance() # consume the return token
+        if not self.expect_peek(TokenType.OPEN_PAREN):
+            self.peek_error(TokenType.OPEN_PAREN)
+            self.advance()
+            return None
+        self.advance() # consume the open paren
+        rs.expr = self.parse_expression(LOWEST)
+        if not self.expect_peek(TokenType.CLOSE_PAREN):
+            self.advance()
+            self.unclosed_paren_error(self.curr_tok)
+            return None
+        self.advance() # consume the close paren
+        if not self.expect_peek(TokenType.TERMINATOR):
+            self.advance()
+            self.unterminated_error(self.curr_tok)
+            return None
+        return rs
+    # block statements
     def parse_function(self):
         pass
     def parse_class(self):
@@ -322,8 +343,8 @@ class Parser:
 
         return left_exp
     # PLEASE USE self.parse_expression(precedence)
-    # to use the 3 methods below in other parsers.
-    # DO NOT USE THESE 3 METHODS DIRECTLY
+    # to use the 4 methods below in other parsers.
+    # DO NOT USE THESE 4 METHODS DIRECTLY
     def parse_prefix_expression(self):
         '''
         parse prefix expressions.
@@ -380,16 +401,11 @@ class Parser:
             self.unclosed_paren_error(self.curr_tok)
             return None
         return expr
-    def parse_return_statement(self):
-        'parse return statements'
-        rs = ReturnStatement()
-        self.advance() # consume the return token
-        rs.expr = self.parse_expression(LOWEST)
-        if not self.expect_peek(TokenType.TERMINATOR):
-            self.advance()
-            self.unclosed_paren_error(self.curr_tok)
-            return None
-        return rs
+
+
+    ### atomic parsers
+    # unlike the above 4 expressions parsers,
+    # these are made to be used in other parsers
     def parse_ident(self):
         'parse identifiers which can also be function calls'
         if not self.peek_tok_is(TokenType.OPEN_PAREN):
@@ -408,11 +424,6 @@ class Parser:
             self.unclosed_paren_error(self.curr_tok)
             return None
         return fc
-
-
-    ### atomic parsers
-    # unlike the above 3 expressions parsers,
-    # these are made to be used in other parsers
     def parse_array(self):
         al = ArrayLiteral()
         self.advance() # consume the opening brace
