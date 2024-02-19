@@ -380,6 +380,16 @@ class Parser:
             self.unclosed_paren_error(self.curr_tok)
             return None
         return expr
+    def parse_return_statement(self):
+        'parse return statements'
+        rs = ReturnStatement()
+        self.advance() # consume the return token
+        rs.expr = self.parse_expression(LOWEST)
+        if not self.expect_peek(TokenType.TERMINATOR):
+            self.advance()
+            self.unclosed_paren_error(self.curr_tok)
+            return None
+        return rs
 
     ### atomic parsers
     # unlike the above 3 expressions parsers,
