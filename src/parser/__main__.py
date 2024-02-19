@@ -3,12 +3,20 @@ from ..lexer import print_lex
 
 if __name__ == "__main__":
     sc = """
-    gwobaw shion-chan = 5+6*7~
-    iwf (1 == 2) [[
+    whiwe (1 == 2) [[
         aqua-sama = 3~
-        shion = 3~
-        wetuwn (ojou)~
     ]]
+    >//<
+    do whiwe (1 == 2) [[
+        aqua-sama = 3~
+    ]]
+    fow (aqua~ aqua<10~ aqua++~) [[
+        shion-chan = 4~
+    ]]
+    fow (aqua-chan = 1~ aqua<10~ aqua++~) [[
+        shion-chan = 4~
+    ]]
+    >//<
     """
 #     ewse iwf (4 == 5) [[
 #         aqua-sama = 6~
