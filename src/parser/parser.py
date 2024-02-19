@@ -176,11 +176,11 @@ class Parser:
                 case TokenType.TERMINATOR | TokenType.DOUBLE_CLOSE_BRACKET:
                     self.advance()
                 # remove later
-                case TokenType.WHIWE | TokenType.DO_WHIWE:
-                    tmp = self.parse_while_statement()
+                case TokenType.PWINT:
+                    tmp = self.parse_print()
                     p.globals.append(tmp)
-                case TokenType.FOW:
-                    tmp = self.parse_for_statement()
+                case TokenType.INPWT:
+                    tmp = self.parse_input()
                     p.globals.append(tmp)
                 case _:
                     self.invalid_global_declaration_error(self.curr_tok)
@@ -480,6 +480,29 @@ class Parser:
             self.unclosed_bracket_error(self.curr_tok)
             return None
         return fl
+
+    def parse_print(self):
+        p = Print()
+        if not self.expect_peek(TokenType.OPEN_PAREN):
+            self.peek_error(TokenType.OPEN_PAREN)
+            self.advance()
+            return None
+        self.advance()
+        stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
+        while not self.curr_tok_is_in(stop_conditions):
+            p.values.append(self.parse_expression(LOWEST))
+            if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
+                break
+            self.advance()
+        if not self.curr_tok_is(TokenType.CLOSE_PAREN):
+            self.unclosed_paren_error(self.curr_tok)
+            return None
+        if not self.expect_peek(TokenType.TERMINATOR):
+            self.advance()
+            self.unterminated_error(self.curr_tok)
+            return None
+        return p
+
 
     ### expression parsers
     def parse_expression(self, precedence):
