@@ -503,6 +503,23 @@ class Parser:
             return None
         return p
 
+    def parse_input(self):
+        i = Input()
+        if not self.expect_peek(TokenType.OPEN_PAREN):
+            self.peek_error(TokenType.OPEN_PAREN)
+            self.advance()
+            return None
+        self.advance()
+        i.value = self.parse_expression(LOWEST)
+        if not self.expect_peek(TokenType.CLOSE_PAREN):
+            self.advance()
+            self.unclosed_paren_error(self.curr_tok)
+            return None
+        if not self.expect_peek(TokenType.TERMINATOR):
+            self.advance()
+            self.unterminated_error(self.curr_tok)
+            return None
+        return i
 
     ### expression parsers
     def parse_expression(self, precedence):
