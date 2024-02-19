@@ -79,32 +79,18 @@ class ArrayDeclaration:
         self.id = None
         self.dtype = None
         self.value = None
-        self.size = []
-        self.length = []
-        self.dimension = 0
         self.is_const: bool = False
 
     def print(self, indent = 1):
         print(f"{INDENT(indent)} declare array: ", end='')
         self.id.print(indent)
-        print(f"{INDENT(indent)} type: ", end='')
-        self.dtype.print(indent)
+        print(f"{INDENT(indent+1)} type: ", end='')
+        self.dtype.print(indent+1)
         if self.is_const:
-            print(f"{INDENT(indent)} constant")
-        if self.dimension:
-            print(f"{INDENT(indent)} dimension: {self.dimension}")
-        if self.size:
-            print(f"{INDENT(indent)} size:")
-            for s in self.size:
-                print(f"{INDENT(indent+1)} ", end='')
-                s.print(indent+1)
+            print(f"{INDENT(indent+1)} constant")
         if self.value:
-            print(f"{INDENT(indent)} value:")
-            self.value.print(indent+1)
-        if self.length:
-            print(f"{INDENT(indent)} length:")
-            for l in self.length:
-                print(f"{INDENT(indent+1)} {l}")
+            print(f"{INDENT(indent+1)} value:")
+            self.value.print(indent+2)
 
     def compute_len(self):
         def compute_lengths(array, depth):
