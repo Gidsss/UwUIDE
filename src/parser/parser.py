@@ -391,7 +391,7 @@ class Parser:
             return None
         return rs
     def parse_ident(self):
-        'parse function calls'
+        'parse identifiers which can also be function calls'
         if not self.peek_tok_is(TokenType.OPEN_PAREN):
             return self.curr_tok
 
