@@ -154,6 +154,42 @@ class FnCall:
     def __len__(self):
         return 1
 
+class IfExpression:
+    def __init__(self):
+        self.condition = None
+        self.then = None
+        self.else_if: list[ElseIfExpression] = []
+        self.else_ = None
+
+    def print(self, indent = 1):
+        print(f"{INDENT(indent)} if {self.condition.print(indent)}")
+        print(f"{INDENT(indent)} then:")
+        print(f"{self.then.print(indent+1)}")
+        for e in self.else_if:
+            print(f"{INDENT(indent)} else if {e.condition.print(indent)}")
+            print(f"{INDENT(indent)} then:")
+            print(f"{e.then.print(indent+1)}")
+        if self.else_:
+            print(f"{INDENT(indent)} else:")
+            print(f"{self.else_.print(indent+1)}")
+
+class ElseIfExpression:
+    def __init__(self):
+        self.condition = None
+        self.then = None
+
+class BlockStatement:
+    def __init__(self):
+        self.statements = []
+    def print(self, indent = 1):
+        print(f"{INDENT(indent)} block:")
+        for i,s in enumerate(self.statements):
+            if i != len(self.statements) - 1:
+                print(f"{s.print(indent+1)}")
+            else:
+                return f"{s.print(indent+1)}"
+
+
 class Function:
     def __init__(self):
         self.id = None
