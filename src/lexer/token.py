@@ -165,9 +165,11 @@ class Token:
 
     def __repr__(self):
         return self._lexeme
-
     def __str__(self):
         return self._lexeme
+    def print(self, indent = 1):
+        return self._lexeme
+
 
     @property
     def lexeme(self) -> str:
