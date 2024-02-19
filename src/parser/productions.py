@@ -3,10 +3,7 @@ All productions must have an __str__() method
 '''
 
 def INDENT(n=0) -> str:
-    result = "|"
-    for _ in range(n):
-        result += "  " + "|"
-    return result + "__"
+    return "    " * n
 
 class ReturnStatement:
     def __init__(self):
@@ -149,13 +146,13 @@ class Declaration:
     def print(self, indent = 1):
         print(f"{INDENT(indent)} declare: ", end='')
         self.id.print(indent)
-        print(f"{INDENT(indent)} type: ", end='')
-        self.dtype.print(indent)
+        print(f"{INDENT(indent+1)} type: ", end='')
+        self.dtype.print(indent+1)
         if self.value:
-            print(f"{INDENT(indent)} value: ", end='')
-            self.value.print(indent)
+            print(f"{INDENT(indent+1)} value: ", end='')
+            self.value.print(indent+1)
         if self.is_const:
-            print(f"{INDENT(indent)} constant")
+            print(f"{INDENT(indent+1)} constant")
 
 class FnCall:
     def __init__(self):
@@ -182,6 +179,7 @@ class IfExpression:
         self.condition.print(indent)
         print(f"{INDENT(indent+1)} then:")
         self.then.print(indent+2)
+        print(f"{INDENT(indent+1)}")
         for e in self.else_if:
             print(f"{INDENT(indent+1)} else if statement:")
             print(f"{INDENT(indent+2)} condition: ", end='')
@@ -228,12 +226,15 @@ class Program:
         self.classes: list = []
 
     def print(self, indent = 1):
-        print("globals:")
+        print("GLOBALS:")
         for g in self.globals:
-            g.print(0)
-        print("functions:")
+            g.print(1)
+            print()
+        print("\nFUNCTIONS:")
         for fn in self.functions:
             print(f"{' ' * (indent*4)}{fn}")
-        print("classes:")
+            print()
+        print("\nCLASSES:")
         for c in self.classes:
             print(f"{' ' * (indent*4)}{c}")
+            print()
