@@ -179,6 +179,9 @@ class Parser:
                 case TokenType.WHIWE | TokenType.DO_WHIWE:
                     tmp = self.parse_while_statement()
                     p.globals.append(tmp)
+                case TokenType.FOW:
+                    tmp = self.parse_for_statement()
+                    p.globals.append(tmp)
                 case _:
                     self.invalid_global_declaration_error(self.curr_tok)
                     self.advance()
@@ -367,6 +370,7 @@ class Parser:
         return ie
 
     def parse_block_statement(self):
+        'take note that this starts with the open bracket as the current token'
         bs = BlockStatement()
         self.advance() # consume the open bracket
         stop_condition = [TokenType.DOUBLE_CLOSE_BRACKET, TokenType.EOF]
@@ -410,15 +414,15 @@ class Parser:
 
     def parse_while_statement(self):
         'this includes do while block statements'
-        ws = WhileLoop()
+        wl = WhileLoop()
         if self.curr_tok_is(TokenType.DO_WHIWE):
-            ws.is_do = True
+            wl.is_do = True
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
             self.advance()
             return None
         self.advance()
-        ws.condition = self.parse_expression(LOWEST)
+        wl.condition = self.parse_expression(LOWEST)
         if not self.expect_peek(TokenType.CLOSE_PAREN):
             self.advance()
             self.unclosed_paren_error(self.curr_tok)
@@ -427,15 +431,56 @@ class Parser:
             self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
             self.advance()
             return None
-        ws.body = self.parse_block_statement()
+        wl.body = self.parse_block_statement()
         if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
             self.advance()
             self.unclosed_bracket_error(self.curr_tok)
             return None
-        return ws
+        return wl
 
     def parse_for_statement(self):
-        pass
+        fl = ForLoop()
+        if not self.expect_peek(TokenType.OPEN_PAREN):
+            self.peek_error(TokenType.OPEN_PAREN)
+            self.advance()
+            return None
+        self.advance()
+        print(self.curr_tok, self.peek_tok)
+
+        # just an identifier without initialization or assignment
+        if self.peek_tok_is(TokenType.TERMINATOR):
+            fl.init = self.parse_literal()
+            self.advance()
+        # is either a declaration or an assignment
+        else:
+            fl.init = self.parse_ident_statement()
+
+        if not self.curr_tok_is(TokenType.TERMINATOR):
+            self.peek_error(TokenType.TERMINATOR)
+            self.advance()
+            return None
+        self.advance()
+        fl.condition = self.parse_expression(LOWEST)
+        if not self.expect_peek(TokenType.TERMINATOR):
+            self.peek_error(TokenType.TERMINATOR)
+            self.advance()
+            return None
+        self.advance()
+        fl.update = self.parse_expression(LOWEST)
+        if not self.expect_peek(TokenType.CLOSE_PAREN):
+            self.advance()
+            self.unclosed_paren_error(self.curr_tok)
+            return None
+        if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
+            self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
+            self.advance()
+            return None
+        fl.body = self.parse_block_statement()
+        if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
+            self.advance()
+            self.unclosed_bracket_error(self.curr_tok)
+            return None
+        return fl
 
     ### expression parsers
     def parse_expression(self, precedence):
