@@ -6,10 +6,26 @@ if __name__ == "__main__":
     gwobaw shion-chan = 5+6*7~
     iwf (1 == 2) [[
         aqua-sama = 3~
+        shion-sama = 3~
+        ojou-sama = 3~
     ]] ewse iwf (4 == 5) [[
-        aqua-senpai = 6~
+        aqua-sama = 6~
+        shion-sama = 6~
+        ojou-sama = 6~
+    ]] ewse iwf (7 == 8) [[
+        aqua-sama = 9~
+        shion-sama = 9~
+        ojou-sama = 9~
+    ]] ewse iwf (10 == 11) [[
+        aqua-sama = 12~
+        shion-sama = 12~
+        ojou-sama = 12~
     ]] ewse [[
-        aqua-chan = 7~
+        iwf (1 == 2) [[
+            sora-senpai = "nested!"~
+        ]] ewse [[
+            sora-senpai = "if statements!"~
+        ]]
     ]]
     """
     # >//<
