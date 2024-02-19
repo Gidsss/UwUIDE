@@ -4,9 +4,9 @@ from ..lexer import print_lex
 if __name__ == "__main__":
     sc = """
     iwf (1 == 2) [[
-        aqua-chan = 3~
+        aqua-sama = 3~
     ]] ewse iwf (4 == 5) [[
-        aqua-chan = 6~
+        aqua-senpai = 6~
     ]] ewse [[
         aqua-chan = 7~
     ]]
