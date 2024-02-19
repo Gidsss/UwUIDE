@@ -74,6 +74,4 @@ if __name__ == "__main__":
         print(err)
     if p.errors:
         exit(1)
-    # p.program.print()
-    for g in p.program.globals:
-        g.print(0)
+    p.program.print()
