@@ -219,7 +219,12 @@ class ForLoop:
     def print(self, indent = 1):
         print(f"{INDENT(indent)} for statement:")
         print(f"{INDENT(indent+1)} init: ", end='')
-        self.init.print(indent)
+        if isinstance(self.init, Declaration) or isinstance(self.init, Assignment):
+            print()
+            self.init.print(indent+2)
+        else:
+            self.init.print(indent)
+
         print(f"{INDENT(indent+1)} condition: ", end='')
         self.condition.print(indent)
         print(f"{INDENT(indent+1)} update: ", end='')
