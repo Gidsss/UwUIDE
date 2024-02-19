@@ -198,13 +198,34 @@ class ElseIfExpression:
         self.condition = None
         self.then = None
 
-class BlockStatement:
+class WhileLoop:
     def __init__(self):
-        self.statements = []
+        self.condition = None
+        self.body = None
+        self.is_do = False
     def print(self, indent = 1):
-        print(f"{INDENT(indent)} block:")
-        for s in self.statements:
-            s.print(indent+1)
+        print(f"{INDENT(indent)}{f'do' if self.is_do else ''} while statement:")
+        print(f"{INDENT(indent+1)} condition: ", end='')
+        self.condition.print(indent)
+        print(f"{INDENT(indent+1)} body:")
+        self.body.print(indent+2)
+
+class ForLoop:
+    def __init__(self):
+        self.init = None # can be declaration or just an ident
+        self.condition = None
+        self.update = None
+        self.body = None
+    def print(self, indent = 1):
+        print(f"{INDENT(indent)} for statement:")
+        print(f"{INDENT(indent+1)} init: ", end='')
+        self.init.print(indent)
+        print(f"{INDENT(indent+1)} condition: ", end='')
+        self.condition.print(indent)
+        print(f"{INDENT(indent+1)} update: ", end='')
+        self.update.print(indent)
+        print(f"{INDENT(indent+1)} body:")
+        self.body.print(indent+2)
 
 class Function:
     def __init__(self):
@@ -220,6 +241,14 @@ class Class:
         self.body: list = []
         self.properties: list = []
         self.methods: list = []
+
+class BlockStatement:
+    def __init__(self):
+        self.statements = []
+    def print(self, indent = 1):
+        print(f"{INDENT(indent)} block:")
+        for s in self.statements:
+            s.print(indent+1)
 
 class Program:
     'the root node of the syntax tree'
