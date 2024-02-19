@@ -19,7 +19,7 @@ if __name__ == "__main__":
         },
         1,
     }~
-    gwobaw ojou-chan = shion(1, 2, aqua(3+4*5), lap("hello |-name++| world"))~
+    gwobaw ojou-chan = shion(1, 2, aqua(3+4*5), lap("hello |-name--| world"))~
     gwobaw shion-chan = 1+- (1-2) --*3-- --5 == 5~
     """
     # gwobaw sora-senpai = "tokino '| -nickname |' sora"~
