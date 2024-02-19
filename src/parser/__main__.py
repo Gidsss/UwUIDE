@@ -3,22 +3,8 @@ from ..lexer import print_lex
 
 if __name__ == "__main__":
     sc = """
-    gwobaw aqua-chan[] = {
-        {
-            {
-                (2+2)*2,
-            }
-        }, 
-        {
-            3+3*3,
-            (4+4)*4,
-        },
-        1,
-    }~
-    >//<
-    pwint(aqua, 1, "test", fax, 1+1*1)~
-    inpwt("test")~
-    >//<
+    pwint(1, 1.5, -2----3, 4+4*4, "test", "test| 0 |ing", fax, cap != 3>5)~
+    inpwt({})~
     """
 #     ewse iwf (4 == 5) [[
 #         aqua-sama = 6~
