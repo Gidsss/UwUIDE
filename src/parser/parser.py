@@ -298,6 +298,65 @@ class Parser:
     def parse_class(self):
         pass
     def parse_if_statement(self):
+        ie = IfExpression()
+        if not self.expect_peek(TokenType.OPEN_PAREN):
+            self.peek_error(TokenType.OPEN_PAREN)
+            self.advance()
+            return None
+        self.advance()
+        ie.condition = self.parse_expression(LOWEST)
+        if not self.expect_peek(TokenType.CLOSE_PAREN):
+            self.advance()
+            self.unclosed_paren_error(self.curr_tok)
+            return None
+        if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
+            self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
+            self.advance()
+            return None
+        ie.then = self.parse_block_statement()
+        if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
+            self.advance()
+            self.unclosed_bracket_error(self.curr_tok)
+            return None
+
+        while self.expect_peek(TokenType.EWSE_IWF):
+            eie = ElseIfExpression()
+            self.advance()
+            if not self.expect_peek(TokenType.OPEN_PAREN):
+                self.peek_error(TokenType.OPEN_PAREN)
+                self.advance()
+                return None
+            self.advance()
+            eie.condition = self.parse_expression(LOWEST)
+            if not self.expect_peek(TokenType.CLOSE_PAREN):
+                self.advance()
+                self.unclosed_paren_error(self.curr_tok)
+                return None
+            if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
+                self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
+                self.advance()
+                return None
+            eie.then = self.parse_block_statement()
+            if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
+                self.advance()
+                self.unclosed_bracket_error(self.curr_tok)
+                return None
+            ie.else_ifs.append(eie)
+
+        if self.expect_peek(TokenType.EWSE):
+            self.advance() # consume the ewse token
+            if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
+                self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
+                self.advance()
+                return None
+            ie.else_block = self.parse_block_statement()
+            if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
+                self.advance()
+                self.unclosed_bracket_error(self.curr_tok)
+                return None
+        return ie
+
+    def parse_block_statement(self):
         pass
     def parse_while_statement(self):
         'this includes do while block statements'
