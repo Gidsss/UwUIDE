@@ -126,6 +126,7 @@ class Parser:
         self.register_prefix(TokenType.OPEN_BRACE, self.parse_array)
         self.register_prefix(TokenType.STRING_PART_START, self.parse_string_parts)
         self.register_prefix(TokenType.OPEN_PAREN, self.parse_grouped_expressions)
+        self.register_prefix(TokenType.IWF, self.parse_if_statement)
 
         # literals (just returns curr_tok)
         self.register_prefix("IDENTIFIER", self.parse_ident)
