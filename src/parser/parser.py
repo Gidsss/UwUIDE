@@ -132,6 +132,7 @@ class Parser:
         self.register_prefix(TokenType.FLOAT_LITERAL, self.parse_literal)
         self.register_prefix(TokenType.FAX, self.parse_literal)
         self.register_prefix(TokenType.CAP, self.parse_literal)
+        self.register_prefix(TokenType.NUWW, self.parse_literal)
 
         # infixes
         self.register_infix(TokenType.EQUALITY_OPERATOR, self.parse_infix_expression)
