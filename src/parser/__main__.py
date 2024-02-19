@@ -3,23 +3,21 @@ from ..lexer import print_lex
 
 if __name__ == "__main__":
     sc = """
-    >.< do whiwe (1 == 2) [[
-    >.<     aqua-sama = 3~
-    >.<     whiwe (1 == 2) [[
-    >.<         aqua-sama = 3~
-    >.<     ]]
-    >.<     wetuwn (aqua)~
-    >.< ]]
-    fow (aqua-chan = 1~ aqua<10~ aqua++) [[
-        shion-chan = 4~
-    ]]
-    fow (aqua~ aqua<10~ aqua++) [[
-        shion-chan = 4~
-    ]]
-    fow (aqua=1~ aqua<10~ aqua++) [[
-        shion-chan = 4~
-    ]]
+    gwobaw aqua-chan[] = {
+        {
+            {
+                (2+2)*2,
+            }
+        }, 
+        {
+            3+3*3,
+            (4+4)*4,
+        },
+        1,
+    }~
     >//<
+    pwint(aqua, 1, "test", fax, 1+1*1)~
+    inpwt("test")~
     >//<
     """
 #     ewse iwf (4 == 5) [[
@@ -47,18 +45,6 @@ if __name__ == "__main__":
     # 2 elements in aqua[1]
     # 1 elements in aqua[0][0]
     # >//<
-    # gwobaw aqua-chan[2][-shion] = {
-    #     {
-    #         {
-    #             (2+2)*2,
-    #         }
-    #     }, 
-    #     {
-    #         3+3*3,
-    #         (4+4)*4,
-    #     },
-    #     1,
-    # }~
     #     gwobaw ojou-chan = shion(1, 2, aqua(3+4*5), lap("hello |-name--| world"))~
     #     gwobaw shion-chan = 1+- (1-2) -- == 5 -3-- *-5 ~
     # gwobaw sora-senpai = "tokino '| -nickname |' sora"~
