@@ -31,18 +31,6 @@ if __name__ == "__main__":
     # 2 elements in aqua[1]
     # 1 elements in aqua[0][0]
     # >//<
-    # gwobaw aqua-chan[2][-shion] = {
-    #     {
-    #         {
-    #             (2+2)*2,
-    #         }
-    #     }, 
-    #     {
-    #         3+3*3,
-    #         (4+4)*4,
-    #     },
-    #     1,
-    # }~
     #     gwobaw ojou-chan = shion(1, 2, aqua(3+4*5), lap("hello |-name--| world"))~
     #     gwobaw shion-chan = 1+- (1-2) -- == 5 -3-- *-5 ~
     # gwobaw sora-senpai = "tokino '| -nickname |' sora"~
