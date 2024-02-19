@@ -2,6 +2,14 @@
 All productions must have an __str__() method
 '''
 
+class ReturnStatement:
+    def __init__(self):
+        self.expr = None
+    def __str__(self):
+        return f"return {self.expr}"
+    def __len__(self):
+        return 1
+
 class PrefixExpression:
     def __init__(self):
         self.op = None
