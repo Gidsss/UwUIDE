@@ -35,7 +35,7 @@ class InfixExpression:
         self.op = None
         self.right = None
     def print(self, indent = 1):
-        return f"infix: {self.__str__()}"
+        print(f"infix: {self.__str__()}")
     def __str__(self):
         return f"({self.left} {self.op} {self.right})"
     def __len__(self):
@@ -126,6 +126,17 @@ class ArrayDeclaration:
         tmp = self.value
         compute_lengths(tmp, 0)
 
+class Assignment:
+    def __init__(self):
+        self.id = None
+        self.value = None
+    def print(self, indent = 1):
+        return f"assign: {self.__str__()}"
+    def __str__(self):
+        return f"{self.id} = {self.value}"
+    def __len__(self):
+        return 1
+
 class Declaration:
     def __init__(self):
         self.id = None
@@ -134,13 +145,15 @@ class Declaration:
         self.is_const: bool = False
 
     def print(self, indent = 1):
-        print(f"{INDENT(0)} declare: {self.id.print(indent)}")
-        print(f"{INDENT(indent)} type: {self.dtype.print(indent)}")
+        print(f"{INDENT(indent)} declare: ", end='')
+        self.id.print(indent)
+        print(f"{INDENT(indent)} type: ", end='')
+        self.dtype.print(indent)
         if self.value:
-            print(f"{INDENT(indent)} value: {self.value.print(indent)}")
+            print(f"{INDENT(indent)} value: ", end='')
+            self.value.print(indent)
         if self.is_const:
             print(f"{INDENT(indent)} constant")
-        return "|"
 
 class FnCall:
     def __init__(self):
@@ -162,16 +175,20 @@ class IfExpression:
         self.else_block = None
 
     def print(self, indent = 1):
-        print(f"{INDENT(indent)} if {self.condition.print(indent)}")
-        print(f"{INDENT(indent)} then:")
-        print(f"{self.then.print(indent+1)}")
+        print(f"{INDENT(indent)} if statement:")
+        print(f"{INDENT(indent+1)} condition: ", end='')
+        self.condition.print(indent)
+        print(f"{INDENT(indent+1)} then:")
+        self.then.print(indent+2)
         for e in self.else_if:
-            print(f"{INDENT(indent)} else if {e.condition.print(indent)}")
-            print(f"{INDENT(indent)} then:")
-            print(f"{e.then.print(indent+1)}")
+            print(f"{INDENT(indent+1)} else if statement:")
+            print(f"{INDENT(indent+2)} condition: ", end='')
+            e.condition.print(indent+2)
+            print(f"{INDENT(indent+2)} then:")
+            e.then.print(indent+2)
         if self.else_block:
-            print(f"{INDENT(indent)} else:")
-            print(f"{self.else_block.print(indent+1)}")
+            print(f"{INDENT(indent+1)} else:")
+            self.else_block.print(indent+2)
 
 class ElseIfExpression:
     def __init__(self):
@@ -183,12 +200,8 @@ class BlockStatement:
         self.statements = []
     def print(self, indent = 1):
         print(f"{INDENT(indent)} block:")
-        for i,s in enumerate(self.statements):
-            if i != len(self.statements) - 1:
-                print(f"{s.print(indent+1)}")
-            else:
-                return f"{s.print(indent+1)}"
-
+        for s in self.statements:
+            s.print(indent+1)
 
 class Function:
     def __init__(self):
@@ -215,7 +228,7 @@ class Program:
     def print(self, indent = 1):
         print("globals:")
         for g in self.globals:
-            print(g.print(1))
+            g.print(0)
         print("functions:")
         for fn in self.functions:
             print(f"{' ' * (indent*4)}{fn}")

@@ -77,6 +77,7 @@ class Parser:
         self.prefix_parse_fns: dict = {}
         self.infix_parse_fns: dict = {}
         self.postfix_parse_fns: dict = {}
+        self.in_block_parse_fns: dict = {}
         self.register_init()
 
         self.program = self.parse_program()
@@ -103,10 +104,7 @@ class Parser:
 
     def register_init(self):
         '''
-        Put here the functions for parsing prefix and infix expressions for
-        certain token types
-
-        Notes:
+        Register token types to parsing functions here
         - prefix parsing functions are used to parse expressions that come after a
             certain token. The certain token does not necessarily need to be a prefix
             operator like '-'. It can be an opening parenthesis for grouped expressions,
@@ -120,6 +118,8 @@ class Parser:
 
         - postfix parsing functions are used to parse tokens that can be followed by a
             postfix operator.
+
+        - in block parsing functions are used to parse tokens inside a block statement
         '''
         # prefixes
         self.register_prefix(TokenType.DASH, self.parse_prefix_expression)
@@ -155,6 +155,14 @@ class Parser:
         self.register_postfix(TokenType.FLOAT_LITERAL, self.parse_postfix_expression)
         self.register_postfix(TokenType.CLOSE_PAREN, self.parse_postfix_expression)
 
+        # in blocks
+        self.register_in_block("IDENTIFIER", self.parse_ident_statement)
+        self.register_in_block(TokenType.IWF, self.parse_if_statement)
+        self.register_in_block(TokenType.WETUWN, self.parse_return_statement)
+        self.register_in_block(TokenType.WHIWE, self.parse_while_statement)
+        self.register_in_block(TokenType.DO_WHIWE, self.parse_while_statement)
+        self.register_in_block(TokenType.FOW, self.parse_for_statement)
+
     def parse_program(self) -> Program:
         '''
         parse the entire program
@@ -170,12 +178,15 @@ class Parser:
                     p.globals.append(self.parse_declaration())
                 case TokenType.TERMINATOR:
                     self.advance()
+                case TokenType.IWF:
+                    tmp = self.parse_if_statement()
+                    p.globals.append(tmp)
                 case _:
                     self.invalid_global_declaration_error(self.curr_tok)
                     self.advance()
         return p
 
-    def parse_declaration(self):
+    def parse_declaration(self, ident = None):
         '''
         parse declarations of variables/constants, whether global or local.
         if encountered brackets, the parsed declaration is an array declaration.
@@ -190,11 +201,15 @@ class Parser:
         '''
         d = Declaration()
 
-        if not self.expect_peek_is_identifier():
-            self.no_ident_in_declaration_error(self.peek_tok)
-            self.advance(2)
-            return None
-        d.id = self.curr_tok
+        # if coming from other parsers, the ident is already set
+        if ident:
+            d.id = ident
+        else:
+            if not self.expect_peek_is_identifier():
+                self.no_ident_in_declaration_error(self.peek_tok)
+                self.advance(2)
+                return None
+            d.id = self.curr_tok
 
         if not self.expect_peek(TokenType.DASH):
             self.no_data_type_indicator_error(self.peek_tok)
@@ -321,7 +336,6 @@ class Parser:
 
         while self.expect_peek(TokenType.EWSE_IWF):
             eie = ElseIfExpression()
-            self.advance()
             if not self.expect_peek(TokenType.OPEN_PAREN):
                 self.peek_error(TokenType.OPEN_PAREN)
                 self.advance()
@@ -341,10 +355,9 @@ class Parser:
                 self.advance()
                 self.unclosed_bracket_error(self.curr_tok)
                 return None
-            ie.else_ifs.append(eie)
+            ie.else_if.append(eie)
 
         if self.expect_peek(TokenType.EWSE):
-            self.advance() # consume the ewse token
             if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
                 self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
                 self.advance()
@@ -357,7 +370,47 @@ class Parser:
         return ie
 
     def parse_block_statement(self):
-        pass
+        bs = BlockStatement()
+        self.advance() # consume the open bracket
+        stop_condition = [TokenType.DOUBLE_CLOSE_BRACKET, TokenType.EOF]
+        while not self.peek_tok_is_in(stop_condition):
+            if isinstance(self.curr_tok.token, UniqueTokenType):
+                parser = self.get_in_block_parse_fn("IDENTIFIER")
+            else:
+                parser = self.get_in_block_parse_fn(self.curr_tok.token)
+            if parser is None:
+                self.no_in_block_parse_fn_error(self.curr_tok.token)
+                self.advance()
+                continue
+            statement = parser()
+            bs.statements.append(statement)
+            if self.peek_tok_is_in(stop_condition):
+                break
+            self.advance()
+
+        return bs
+
+    def parse_ident_statement(self):
+        'identifier statements are declarations and assignments'
+        ident = self.curr_tok
+        # is a declaration
+        if self.peek_tok_is(TokenType.DASH):
+            return self.parse_declaration(ident)
+        # is an assignment
+        a = Assignment()
+        a.id = ident
+        if not self.expect_peek(TokenType.EQUAL):
+            self.peek_error(self.peek_tok)
+            self.advance()
+            return None
+        self.advance()
+        a.value = self.parse_expression(LOWEST)
+        if not self.expect_peek(TokenType.TERMINATOR):
+            self.advance()
+            self.unterminated_error(self.curr_tok)
+            return None
+        return a
+
     def parse_while_statement(self):
         'this includes do while block statements'
         pass
@@ -536,6 +589,8 @@ class Parser:
         self.infix_parse_fns[token_type] = fn
     def register_postfix(self, token_type: str | TokenType, fn: Callable):
         self.postfix_parse_fns[token_type] = fn
+    def register_in_block(self, token_type: str | TokenType, fn: Callable):
+        self.in_block_parse_fns[token_type] = fn
     # getting prefix and infix functions
     def get_prefix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
         try:
@@ -552,6 +607,12 @@ class Parser:
     def get_postfix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
         try:
             tmp = self.postfix_parse_fns[token_type]
+            return tmp
+        except KeyError:
+            return None
+    def get_in_block_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+        try:
+            tmp = self.in_block_parse_fns[token_type]
             return tmp
         except KeyError:
             return None
@@ -618,6 +679,8 @@ class Parser:
         self.errors.append(f"expected next token to be '{token}', got '{self.peek_tok}' instead")
     def no_prefix_parse_fn_error(self, token_type):
         self.errors.append(f"no prefix parsing function found for {token_type}")
+    def no_in_block_parse_fn_error(self, token_type):
+        self.errors.append(f"no parsing function found for {token_type} inside block statements")
     def invalid_global_declaration_error(self, token: Token):
         self.errors.append(f"Expected global function/class/variable/constant declaration, got {token.lexeme}")
     def no_ident_in_declaration_error(self, token: Token):
