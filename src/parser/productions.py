@@ -2,11 +2,19 @@
 All productions must have an __str__() method
 '''
 
+def INDENT(n=0) -> str:
+    result = "|"
+    for _ in range(n):
+        result += "  " + "|"
+    return result + "__"
+
 class ReturnStatement:
     def __init__(self):
         self.expr = None
+    def print(self, indent = 1):
+        return f"return {self.__str__()}"
     def __str__(self):
-        return f"return {self.expr}"
+        return f"{self.expr}"
     def __len__(self):
         return 1
 
@@ -14,9 +22,10 @@ class PrefixExpression:
     def __init__(self):
         self.op = None
         self.right = None
-
+    def print(self, indent = 1):
+        return f"prefix: {self.__str__()}"
     def __str__(self):
-        return f"{self.op} {self.right}"
+        return f"({self.op} {self.right})"
     def __len__(self):
         return 1
 
@@ -25,6 +34,8 @@ class InfixExpression:
         self.left = None
         self.op = None
         self.right = None
+    def print(self, indent = 1):
+        return f"infix: {self.__str__()}"
     def __str__(self):
         return f"({self.left} {self.op} {self.right})"
     def __len__(self):
@@ -34,6 +45,8 @@ class PostfixExpression:
     def __init__(self):
         self.left = None
         self.op = None
+    def print(self, indent = 1):
+        return f"postfix: {self.__str__()}"
     def __str__(self):
         return f"{self.left} {self.op}"
     def __len__(self):
@@ -45,27 +58,20 @@ class StringFmt:
         self.mid = []
         self.exprs = []
         self.end = None
-
+    def print(self, indent = 1):
+        return f"string fmt: {self.__str__()}"
     def __str__(self):
-        result = f"\"{self.start.lexeme[1:-1]}"
-        for m,e in zip(self.mid, self.exprs):
-            result += f"| {e} |"
-            result += f"{m.lexeme[1:-1]}"
-        if self.exprs:
-            result += f"| {self.exprs[-1]} |"
-        result += f"{self.end.lexeme[1:-1]}\""
-        return result
+        return f"{self.start}{''.join([f'{m}{e}' for m,e in zip(self.mid, self.exprs)])}{self.end}"
     def __len__(self):
         return 1
 
 class ArrayLiteral:
     def __init__(self):
         self.elements = []
+    def print(self, indent = 1):
+        return f"{INDENT(indent)} array: {self.__str__()}"
     def __str__(self):
-        result = "{"
-        for e in self.elements:
-            result += f"{e}, "
-        return result[:-2] + "}"
+        return f"[{', '.join([str(e) for e in self.elements])}]"
     def __len__(self):
         return len(self.elements)
     def __iter__(self):
@@ -81,25 +87,25 @@ class ArrayDeclaration:
         self.dimension = 0
         self.is_const: bool = False
 
-    def __str__(self, indent = 0):
-        result =  f"declare: {self.id}\n"
-        result += f"{' ' * (indent+4)}type: {self.dtype}\n"
-        if self.value:
-            result += f"{' ' * (indent+4)}value: {self.value}\n"
-        if self.size:
-            result += f"{' ' * (indent+4)}size: {{"
-            for i,s in enumerate(self.size):
-                if i == len(self.size) - 1:
-                    result += f"{s}"
-                else:
-                    result += f"{s}, "
-            result += "}\n"
-        if self.length:
-            result += f"{' ' * (indent+4)}length: {self.length}\n"
-        result += f"{' ' * (indent+4)}dimension: {self.dimension}\n"
+    def print(self, indent = 1):
+        print(f"{INDENT(0)} declare: {self.id.print(indent)}")
+        print(f"{INDENT(indent)} type: {self.dtype.print(indent)}")
         if self.is_const:
-            result += f"{' ' * (indent+4)}constant\n"
-        return result
+            print(f"{INDENT(indent)} constant")
+        if self.dimension:
+            print(f"{INDENT(indent)} dimension: {self.dimension}")
+        if self.size:
+            print(f"{INDENT(indent)} size:")
+            for s in self.size:
+                print(f"{INDENT(indent+1)} {s.print(indent+1)}")
+        if self.value:
+            print(f"{INDENT(indent)} value:")
+            print(f"{self.value.print(indent+1)}")
+        if self.length:
+            print(f"{INDENT(indent)} length:")
+            for l in self.length:
+                print(f"{INDENT(indent+1)} {l}")
+        return "|"
 
     def compute_len(self):
         def compute_lengths(array, depth):
@@ -127,29 +133,26 @@ class Declaration:
         self.value = None
         self.is_const: bool = False
 
-    def __str__(self, indent = 0):
-        result =  f"declare: {self.id}\n"
-        result += f"{' ' * (indent+4)}type: {self.dtype}\n"
-        if self.value and self.value:
-            result += f"{' ' * (indent+4)}value: {self.value}\n"
+    def print(self, indent = 1):
+        print(f"{INDENT(0)} declare: {self.id.print(indent)}")
+        print(f"{INDENT(indent)} type: {self.dtype.print(indent)}")
+        if self.value:
+            print(f"{INDENT(indent)} value: {self.value.print(indent)}")
         if self.is_const:
-            result += f"{' ' * (indent+4)}constant\n"
-        return result
+            print(f"{INDENT(indent)} constant")
+        return "|"
 
 class FnCall:
     def __init__(self):
         self.id = None
         self.args = []
 
+    def print(self, _ = 1):
+        return f"call: {self.__str__()}"
     def __str__(self):
-        result = f"{self.id}("
-        for a in self.args:
-            result += f"{a}, "
-        if self.args:
-            result = result[:-2] + ")"
-        else:
-            result += ")"
-        return result
+        return f"{self.id}({', '.join([str(a) for a in self.args])})"
+    def __len__(self):
+        return 1
 
 class Function:
     def __init__(self):
@@ -173,15 +176,13 @@ class Program:
         self.functions: list = []
         self.classes: list = []
 
-    def __str__(self):
-        result = "globals:\n"
+    def print(self, indent = 1):
+        print("globals:")
         for g in self.globals:
-            result += f"{g}\n"
-        result += "functions:\n"
+            print(g.print(1))
+        print("functions:")
         for fn in self.functions:
-            result += f"{fn}\n"
-        result += "classes:\n"
+            print(f"{' ' * (indent*4)}{fn}")
+        print("classes:")
         for c in self.classes:
-            result += f"{c}\n"
-        return result
-
+            print(f"{' ' * (indent*4)}{c}")
