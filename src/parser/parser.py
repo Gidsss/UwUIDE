@@ -80,7 +80,9 @@ class Parser:
         self.register_init()
 
         self.program = self.parse_program()
-        print(self.program)
+        # print(self.program)
+        self.program.print()
+
 
     def advance(self, inc: int = 1):
         'advance the current and peek tokens based on the increment. default is 1'
@@ -228,6 +230,7 @@ class Parser:
                     self.advance(2)
                     return None
                 d.dimension += 1
+            d.dtype.lexeme += "[]"*ad.dimension
 
         # -dono to indicate constant
         if self.expect_peek(TokenType.DASH):
