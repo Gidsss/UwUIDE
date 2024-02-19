@@ -3,6 +3,7 @@ from ..lexer import print_lex
 
 if __name__ == "__main__":
     sc = """
+    gwobaw shion-chan = 5+6*7~
     iwf (1 == 2) [[
         aqua-sama = 3~
     ]] ewse iwf (4 == 5) [[
