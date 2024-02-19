@@ -136,6 +136,21 @@ class Declaration:
             result += f"{' ' * (indent+4)}constant\n"
         return result
 
+class FnCall:
+    def __init__(self):
+        self.id = None
+        self.args = []
+
+    def __str__(self):
+        result = f"{self.id}("
+        for a in self.args:
+            result += f"{a}, "
+        if self.args:
+            result = result[:-2] + ")"
+        else:
+            result += ")"
+        return result
+
 class Function:
     def __init__(self):
         self.id = None

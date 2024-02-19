@@ -42,7 +42,7 @@ DELIMS = {
     'double_open_bracket': {' ', '\n', *ATOMS['alpha'], '>'},
     'close_bracket': {'[', ' ', '~', ',', ')', '[', ']', '}', *ATOMS['general_operator'], '!', r'&', '|', '.',},
     'double_close_bracket': {' ', '\n', *ATOMS['alpha'], '>'},
-    'unary': {'~', ')', *ATOMS['general_operator'], '!', ' '},
+    'unary': {'|', '~', ')', *ATOMS['general_operator'], '!', ' '},
     'concat': {' ', '"', *ATOMS['alpha']},
     'line': {'\n', ' ', *ATOMS['alpha'], ']'},
     'comma': {*ATOMS['alpha'], ' ', *ATOMS['number'], '"', '-', '\n', '>'},

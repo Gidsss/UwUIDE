@@ -126,7 +126,7 @@ class Parser:
         self.register_prefix(TokenType.OPEN_PAREN, self.parse_grouped_expressions)
 
         # literals (just returns curr_tok)
-        self.register_prefix("IDENTIFIER", self.parse_literal)
+        self.register_prefix("IDENTIFIER", self.parse_ident)
         self.register_prefix(TokenType.INT_LITERAL, self.parse_literal)
         self.register_prefix(TokenType.STRING_LITERAL, self.parse_literal)
         self.register_prefix(TokenType.FLOAT_LITERAL, self.parse_literal)
@@ -390,6 +390,25 @@ class Parser:
             self.unclosed_paren_error(self.curr_tok)
             return None
         return rs
+    def parse_ident(self):
+        'parse function calls'
+        if not self.peek_tok_is(TokenType.OPEN_PAREN):
+            return self.curr_tok
+
+        fc = FnCall()
+        fc.id = self.curr_tok
+        self.advance(2)
+        stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
+        while not self.curr_tok_is_in(stop_conditions):
+            fc.args.append(self.parse_expression(LOWEST))
+            if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
+                break
+            self.advance()
+        if not self.curr_tok_is(TokenType.CLOSE_PAREN):
+            self.unclosed_paren_error(self.curr_tok)
+            return None
+        return fc
+
 
     ### atomic parsers
     # unlike the above 3 expressions parsers,
