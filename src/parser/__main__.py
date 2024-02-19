@@ -3,19 +3,23 @@ from ..lexer import print_lex
 
 if __name__ == "__main__":
     sc = """
-    whiwe (1 == 2) [[
-        aqua-sama = 3~
+    >.< do whiwe (1 == 2) [[
+    >.<     aqua-sama = 3~
+    >.<     whiwe (1 == 2) [[
+    >.<         aqua-sama = 3~
+    >.<     ]]
+    >.<     wetuwn (aqua)~
+    >.< ]]
+    fow (aqua-chan = 1~ aqua<10~ aqua++) [[
+        shion-chan = 4~
     ]]
-    do whiwe (1 == 2) [[
-        aqua-sama = 3~
+    fow (aqua~ aqua<10~ aqua++) [[
+        shion-chan = 4~
+    ]]
+    fow (aqua=1~ aqua<10~ aqua++) [[
+        shion-chan = 4~
     ]]
     >//<
-    fow (aqua~ aqua<10~ aqua++~) [[
-        shion-chan = 4~
-    ]]
-    fow (aqua-chan = 1~ aqua<10~ aqua++~) [[
-        shion-chan = 4~
-    ]]
     >//<
     """
 #     ewse iwf (4 == 5) [[
@@ -70,4 +74,6 @@ if __name__ == "__main__":
         print(err)
     if p.errors:
         exit(1)
-    p.program.print()
+    # p.program.print()
+    for g in p.program.globals:
+        g.print(0)
