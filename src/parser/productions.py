@@ -159,7 +159,7 @@ class IfExpression:
         self.condition = None
         self.then = None
         self.else_if: list[ElseIfExpression] = []
-        self.else_ = None
+        self.else_block = None
 
     def print(self, indent = 1):
         print(f"{INDENT(indent)} if {self.condition.print(indent)}")
@@ -169,9 +169,9 @@ class IfExpression:
             print(f"{INDENT(indent)} else if {e.condition.print(indent)}")
             print(f"{INDENT(indent)} then:")
             print(f"{e.then.print(indent+1)}")
-        if self.else_:
+        if self.else_block:
             print(f"{INDENT(indent)} else:")
-            print(f"{self.else_.print(indent+1)}")
+            print(f"{self.else_block.print(indent+1)}")
 
 class ElseIfExpression:
     def __init__(self):
