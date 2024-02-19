@@ -445,7 +445,6 @@ class Parser:
             self.advance()
             return None
         self.advance()
-        print(self.curr_tok, self.peek_tok)
 
         # just an identifier without initialization or assignment
         if self.peek_tok_is(TokenType.TERMINATOR):
