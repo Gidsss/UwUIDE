@@ -56,7 +56,22 @@ class StringFmt:
         self.exprs = []
         self.end = None
     def print(self, indent = 1):
-        print(f"string fmt: {self.__str__()}")
+        print(f"string fmt: ")
+        print(f"{INDENT(indent+1)}", end='')
+        self.start.print(indent)
+        if self.exprs:
+            print(f"{INDENT(indent+1)}", end='')
+            self.exprs[0].print(indent)
+        for m,e in zip(self.mid, self.exprs[1:]):
+            print(f"{INDENT(indent+1)}", end='')
+            m.print(indent)
+            print(f"{INDENT(indent+1)}", end='')
+            e.print(indent)
+
+        print(f"{INDENT(indent+1)}", end='')
+        self.end.print(indent)
+
+
     def __str__(self):
         return f"{self.start}{''.join([f'{m}{e}' for m,e in zip(self.mid, self.exprs)])}{self.end}"
     def __len__(self):
@@ -238,6 +253,7 @@ class Print:
     def print(self, indent = 1):
         print(f"{INDENT(indent)} print:")
         for v in self.values:
+            print(f"{INDENT(indent+1)} ", end='')
             v.print(indent+1)
         print()
 

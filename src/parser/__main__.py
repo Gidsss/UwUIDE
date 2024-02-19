@@ -3,8 +3,8 @@ from ..lexer import print_lex
 
 if __name__ == "__main__":
     sc = """
-    pwint(1, 1.5, -2----3, 4+4*4, "test", "test | i | ng", fax, cap != 3>5)~
-    inpwt("test")~
+    pwint(1, 1.5, -2----3, 4+4*4, "test", "test| 0 |ing", fax, cap != 3>5)~
+    >.< inpwt("test")~
     """
 #     ewse iwf (4 == 5) [[
 #         aqua-sama = 6~
