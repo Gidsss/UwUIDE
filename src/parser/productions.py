@@ -232,6 +232,22 @@ class ForLoop:
         print(f"{INDENT(indent+1)} body:")
         self.body.print(indent+2)
 
+class Print:
+    def __init__(self):
+        self.values = []
+    def print(self, indent = 1):
+        print(f"{INDENT(indent)} print:")
+        for v in self.values:
+            v.print(indent+1)
+        print()
+
+class Input:
+    def __init__(self):
+        self.value = None
+    def print(self, indent = 1):
+        print(f"{INDENT(indent)} input: ", end='')
+        self.value.print(indent)
+
 class Function:
     def __init__(self):
         self.id = None

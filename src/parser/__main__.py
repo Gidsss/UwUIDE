@@ -3,24 +3,8 @@ from ..lexer import print_lex
 
 if __name__ == "__main__":
     sc = """
-    >.< do whiwe (1 == 2) [[
-    >.<     aqua-sama = 3~
-    >.<     whiwe (1 == 2) [[
-    >.<         aqua-sama = 3~
-    >.<     ]]
-    >.<     wetuwn (aqua)~
-    >.< ]]
-    fow (aqua-chan = 1~ aqua<10~ aqua++) [[
-        shion-chan = 4~
-    ]]
-    fow (aqua~ aqua<10~ aqua++) [[
-        shion-chan = 4~
-    ]]
-    fow (aqua=1~ aqua<10~ aqua++) [[
-        shion-chan = 4~
-    ]]
-    >//<
-    >//<
+    pwint(1, 1.5, -2----3, 4+4*4, "test", "test | i | ng", fax, cap != 3>5)~
+    inpwt("test")~
     """
 #     ewse iwf (4 == 5) [[
 #         aqua-sama = 6~
