@@ -292,6 +292,24 @@ class Class:
         self.body: list = []
         self.properties: list = []
         self.methods: list = []
+    def print(self, indent = 1):
+        print(f"{INDENT(indent)} class: ", end='')
+        self.id.print(indent)
+        if self.params:
+            print(f"{INDENT(indent+1)} parameters:")
+            for param in self.params:
+                param.print(indent+2)
+        if self.properties:
+            print(f"{INDENT(indent+1)} properties:")
+            for prop in self.properties:
+                prop.print(indent+2)
+        if self.methods:
+            print(f"{INDENT(indent+1)} methods:")
+            for method in self.methods:
+                method.print(indent+2)
+        if self.body:
+            print(f"{INDENT(indent+1)} body:")
+            self.body.print(indent+2)
 
 class BlockStatement:
     def __init__(self):
@@ -322,5 +340,5 @@ class Program:
             print()
         print("\nCLASSES:")
         for c in self.classes:
-            print(f"{' ' * (indent*4)}{c}")
+            c.print(1)
             print()

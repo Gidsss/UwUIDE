@@ -8,11 +8,40 @@ if __name__ == "__main__":
             a-chan = 2~
         ]]
     ]]
-    
-    fwunc sum-chan(number1-chan[], number2-chan)
+    cwass Hololive()
     [[
-        sum-chan = number1 + number2~
-        wetuwn(sum)~
+        aqua-chan = 3~
+        shion-chan = 3~
+        fwunc sum-chan(number1-chan[], number2-chan)
+        [[
+            sum-chan = number1 + number2~
+            wetuwn(sum)~
+        ]]
+        ojou-chan = 3~
+        fwunc sum-chan(number1-chan[], number2-chan)
+        [[
+            sum-chan = number1 + number2~
+            wetuwn(sum)~
+        ]]
+        aqua = 4~
+        shion = 4~
+        ojou = 4~
+        iwf (1 == 2) [[
+            aqua = 5~
+        ]] ewse iwf (3 == 4) [[
+            shion = 5~
+        ]] ewse [[
+            ojou = 5~
+        ]]
+        whiwe (aqua != shion) [[
+            aqua = aqua++~
+        ]]
+        do whiwe (aqua != ojou) [[
+            ojou = ojou--~
+        ]]
+        fow (aqua~ shion>aqua~ shion--) [[
+            pwint(ojou)~
+        ]]
     ]]
     """
 #     ewse iwf (4 == 5) [[

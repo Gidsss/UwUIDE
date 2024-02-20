@@ -338,7 +338,48 @@ class Parser:
         return func
 
     def parse_class(self):
-        pass
+        'parse classes'
+        c = Class()
+        if not self.expect_peek_is_class_name():
+            self.no_ident_in_class_declaration_error(self.peek_tok)
+            self.advance(2)
+            return None
+        c.id = self.curr_tok
+        c.params = self.parse_params()
+        if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
+            self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
+            self.advance()
+            return None
+        self.advance()
+        c.body = BlockStatement()
+        stop_conditions = [TokenType.DOUBLE_CLOSE_BRACKET, TokenType.EOF]
+        while not self.curr_tok_is_in(stop_conditions):
+            match self.curr_tok.token:
+                case TokenType.FWUNC:
+                    c.methods.append(self.parse_function())
+                    self.advance() # consume the double close bracket
+                case _:
+                    inner_stop_conditions = stop_conditions + [TokenType.FWUNC]
+                    while not self.curr_tok_is_in(inner_stop_conditions):
+                        if self.curr_tok_is(TokenType.WETUWN):
+                            self.return_in_class_error()
+                            self.advance()
+                            continue
+                        elif isinstance(self.curr_tok.token, UniqueTokenType):
+                            parser = self.get_in_block_parse_fn("IDENTIFIER")
+                        else:
+                            parser = self.get_in_block_parse_fn(self.curr_tok.token)
+                        if parser is None:
+                            self.no_in_block_parse_fn_error(self.curr_tok.token)
+                            self.advance()
+                            continue
+                        statement = parser()
+                        c.body.statements.append(statement)
+                        self.advance()
+        if not self.curr_tok_is(TokenType.DOUBLE_CLOSE_BRACKET):
+            self.unclosed_bracket_error(self.curr_tok)
+            return None
+        return c
 
     def parse_params(self):
         'note that this must start with ( in peek_tok'
@@ -832,6 +873,17 @@ class Parser:
             return True
         else:
             return False
+    def expect_peek_is_class_name(self) -> bool:
+        '''
+        checks if the next token is a class name.
+        advances the cursor if it is.
+        cursor won't advance if not.
+        '''
+        if self.peek_tok.token.token.startswith("CWASS"):
+            self.advance()
+            return True
+        else:
+            return False
     def curr_tok_is_in(self, token_types: list[TokenType]) -> bool:
         'checks if the current token is in the list of token types.'
         return self.curr_tok.token in token_types
@@ -864,6 +916,7 @@ class Parser:
             return LOWEST
 
     ### error methods
+    # general error
     def peek_error(self, token: TokenType):
         self.errors.append(f"expected next token to be '{token}', got '{self.peek_tok}' instead")
     def no_prefix_parse_fn_error(self, token_type):
@@ -874,6 +927,8 @@ class Parser:
         self.errors.append(f"Expected global function/class/variable/constant declaration, got {token.lexeme}")
     def no_ident_in_declaration_error(self, token: Token):
         self.errors.append(f"Expected identifier in declaration, got {token.lexeme}")
+    def no_ident_in_class_declaration_error(self, token: Token):
+        self.errors.append(f"Expected identifier in class declaration, got {token.lexeme}")
     def no_ident_in_func_declaration_error(self, token: Token):
         self.errors.append(f"Expected identifier in function declaration, got {token.lexeme}")
     def no_ident_in_param_error(self, token: Token):
@@ -902,3 +957,7 @@ class Parser:
         self.errors.append(f"Unclosed string part. Expected '{string_start.lexeme[:-1]}|' to be closed by something like '|string part end\"'. got '{token.lexeme}'")
     def multiple_mainuwu_error(self):
         self.errors.append("Multiple mainuwu function declaration")
+    def return_in_class_error(self):
+        self.errors.append("Return statement in class declaration")
+    def return_in_func_error(self):
+        self.errors.append("Found return statement in class declaration")
