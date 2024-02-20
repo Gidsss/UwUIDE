@@ -169,24 +169,20 @@ class Parser:
         while not self.curr_tok_is(TokenType.EOF):
             match self.curr_tok.token:
                 case TokenType.FWUNC:
-                    p.functions.append(self.parse_function())
+                    if self.peek_tok_is(TokenType.MAINUWU):
+                        if p.mainuwu is not None:
+                            self.multiple_mainuwu_error()
+                            self.advance(2)
+                            continue
+                        p.mainuwu = self.parse_function()
+                    else:
+                        p.functions.append(self.parse_function())
                 case TokenType.CWASS:
                     p.classes.append(self.parse_class())
                 case TokenType.GWOBAW:
                     p.globals.append(self.parse_declaration())
                 case TokenType.TERMINATOR | TokenType.DOUBLE_CLOSE_BRACKET:
                     self.advance()
-                # remove later
-                case TokenType.IWF:
-                    p.globals.append(self.parse_if_statement())
-                case TokenType.WHIWE | TokenType.DO_WHIWE:
-                    tmp = self.parse_while_statement()
-                case TokenType.PWINT:
-                    tmp = self.parse_print()
-                    p.globals.append(tmp)
-                case TokenType.INPWT:
-                    tmp = self.parse_input()
-                    p.globals.append(tmp)
                 case _:
                     self.invalid_global_declaration_error(self.curr_tok)
                     self.advance()
@@ -901,5 +897,5 @@ class Parser:
         self.errors.append(f"Assignments must have a value after '='. got '{token.lexeme}'")
     def unclosed_string_part_error(self, string_start, token: Token):
         self.errors.append(f"Unclosed string part. Expected '{string_start.lexeme[:-1]}|' to be closed by something like '|string part end\"'. got '{token.lexeme}'")
-    def unclosed_bracket_error(self, token: Token):
-        self.errors.append(f"Expected ']' to close the bracket, got {token.lexeme}")
+    def multiple_mainuwu_error(self):
+        self.errors.append("Multiple mainuwu function declaration")
