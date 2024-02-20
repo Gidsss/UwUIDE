@@ -3,7 +3,7 @@ from ..lexer import print_lex
 
 if __name__ == "__main__":
     sc = """
-    fwunc mainuw-san() [[
+    fwunc mainuwu-san() [[
         iwf (fax) [[
             a-chan = 2~
         ]]

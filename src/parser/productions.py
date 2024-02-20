@@ -315,7 +315,7 @@ class Program:
             print()
         print("\nFUNCTIONS:")
         for fn in self.functions:
-            print(f"{' ' * (indent*4)}{fn.print()}")
+            fn.print(1)
             print()
         print("\nCLASSES:")
         for c in self.classes:
