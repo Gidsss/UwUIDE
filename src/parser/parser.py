@@ -25,7 +25,7 @@ Overview:
     - for statements
 '''
 from typing import Callable
-
+from .error_handler import Error, BasicError, ErrorSrc
 from src.lexer.token import Token, TokenType, UniqueTokenType
 from src.parser.productions import *
 
@@ -456,8 +456,9 @@ class Parser:
             return None
 
         # Check if condition is empty
-        if self.expect_peek(TokenType.CLOSE_PAREN):
+        if self.peek_tok_is(TokenType.CLOSE_PAREN):
             self.empty_condition()
+            self.advance()
             ie.condition = None
         else:
             self.advance()
@@ -573,8 +574,9 @@ class Parser:
             return None
 
         # Check if condition is empty
-        if self.expect_peek(TokenType.CLOSE_PAREN):
+        if self.peek_tok_is(TokenType.CLOSE_PAREN):
             self.empty_condition()
+            self.advance()
             wl.condition = None
         else:
             self.advance()
@@ -953,56 +955,194 @@ class Parser:
             return LOWEST
 
     ### error methods
+
     # general error
     def peek_error(self, token: TokenType):
-        self.errors.append(f"expected next token to be '{token}', got '{self.peek_tok}' instead")
+        self.errors.append(Error(
+            "UNEXPECTED TOKEN",
+            f"Expected next token to be {token}, got '{self.peek_tok}' instead",
+            self.peek_tok.position,
+            self.peek_tok.end_position
+        ))
+        # self.errors.append(f"expected next token to be '{token}', got '{self.peek_tok}' instead")
     def no_prefix_parse_fn_error(self, token_type):
-        self.errors.append(f"no prefix parsing function found for {token_type}")
+        self.errors.append(Error(
+            "MISSING PREFIX PARSING FUNCTION",
+            f"No prefix parsing function found for '{token_type}'",
+            self.curr_tok.position,
+            self.curr_tok.end_position
+        ))
+        # self.errors.append(f"no prefix parsing function found for {token_type}")
     def no_in_block_parse_fn_error(self, token_type):
-        self.errors.append(f"no parsing function found for {token_type} inside block statements")
+        self.errors.append(Error(
+            "MISSING IN-BLOCK PARSING FUNCTION",
+            f"No in-block parsing function found for {token_type}",
+            self.curr_tok.position,
+            self.curr_tok.end_position
+        ))
+        # self.errors.append(f"no parsing function found for {token_type} inside block statements")
     def invalid_global_declaration_error(self, token: Token):
-        self.errors.append(f"Expected global function/class/variable/constant declaration, got {token.lexeme}")
+        self.errors.append(Error(
+            "INVALID GLOBAL DECLARATION",
+            f"Only functions, classes, and global variable declarations are allowed in the global scope.\n\t'{token.lexeme}' is invalid.",
+            token.position,
+            token.end_position
+        ))
+        # self.errors.append(f"Expected global function/class/variable/constant declaration, got {token.lexeme}")
     def no_ident_in_declaration_error(self, token: Token):
-        self.errors.append(f"Expected identifier in declaration, got {token.lexeme}")
+        self.errors.append(Error(
+            "MISSING IDENTIFIER",
+            f"Expected identifier in declaration, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
+        # self.errors.append(f"Expected identifier in declaration, got {token.lexeme}")
     def no_ident_in_class_declaration_error(self, token: Token):
-        self.errors.append(f"Expected identifier in class declaration, got {token.lexeme}")
+        self.errors.append(Error(
+            "MISSING IDENTIFIER",
+            f"Expected identifier in class declaration, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
+        # self.errors.append(f"Expected identifier in class declaration, got {token.lexeme}")
     def no_ident_in_func_declaration_error(self, token: Token):
-        self.errors.append(f"Expected identifier in function declaration, got {token.lexeme}")
+        self.errors.append(Error(
+            "MISSING IDENTIFIER",
+            f"Expected identifier in function declaration, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
+        # self.errors.append(f"Expected identifier in function declaration, got {token.lexeme}")
     def no_ident_in_param_error(self, token: Token):
-        self.errors.append(f"Expected identifier in parameter, got {token.lexeme}")
+        self.errors.append(Error(
+            "MISSING IDENTIFIER",
+            f"Expected identifier in parameter, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
+        # self.errors.append(f"Expected identifier in parameter, got {token.lexeme}")
     def no_data_type_indicator_error(self, token: Token):
-        self.errors.append(f"Expected dash before data type, got {token.lexeme}")
+        self.errors.append(Error(
+            "MISSING DASH DATA TYPE",
+            f"Expected dash before data type, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
+        # self.errors.append(f"Expected dash before data type, got {token.lexeme}")
     def no_data_type_error(self, token: Token):
+        self.errors.append(Error(
+            "MISSING DATA TYPE",
+            f"Expected data type, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
         self.errors.append(f"Expected data type, got {token.lexeme}")
     def san_as_standard_data_type_error(self):
-        self.errors.append(f"'san' data type can only be used as a return type for functions")
+        self.errors.append(Error(
+            "INVALID SAN DATA TYPE",
+            f"'san' data type can only be used as a return type for functions.",
+            self.peek_tok.position,
+            self.peek_tok.end_position
+        ))
+        # self.errors.append(f"'san' data type can only be used as a return type for functions")
     def no_dono_error(self, token: Token):
-        self.errors.append(f"Expected 'dono' to denote variable as constant instead, got {token.lexeme}")
+        self.errors.append(Error(
+            "MISSING DONO",
+            f"Expected 'dono' to denote variable as constant, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
+        # self.errors.append(f"Expected 'dono' to denote variable as constant instead, got {token.lexeme}")
     def invalid_parameter(self, token: Token):
-        self.errors.append(f"Invalid parameter. Expected ',' or ')', got {token.lexeme}")
+        self.errors.append(Error(
+            "INVALID PARAMETER",
+            f"Invalid parameter. Expected ',' or ')', got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
+        # self.errors.append(f"Invalid parameter. Expected ',' or ')', got {token.lexeme}")
     def unterminated_error(self, token: Token):
-        self.errors.append(f"Expected '~' to terminate the statement, got {token.lexeme}")
+        self.errors.append(Error(
+            "UNTERMINATED STATEMENT",
+            f"Expected '~' to terminate the statement, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
+        # self.errors.append(f"Expected '~' to terminate the statement, got {token.lexeme}")
     def unclosed_paren_error(self, token: Token):
-        self.errors.append(f"Expected ')' to close the parenthesis, got {token.lexeme}")
+        self.errors.append(Error(
+            "UNCLOSED PARENTHESIS",
+            f"Expected ')' to close the parenthesis, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
+        # self.errors.append(f"Expected ')' to close the parenthesis, got {token.lexeme}")
     def unclosed_bracket_error(self, token: Token):
-        self.errors.append(f"Expected ']' to close the bracket, got {token.lexeme}")
+        self.errors.append(Error(
+            "UNCLOSED BRACKET",
+            f"Expected ']' to close the bracket, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
+        # self.errors.append(f"Expected ']' to close the bracket, got {token.lexeme}")
     def unclosed_brace_error(self, token: Token):
-        self.errors.append(f"Expected '}}' to close the brace, got {token.lexeme}")
+        self.errors.append(Error(
+            "UNCLOSED BRACE",
+            f"Expected '}}' to close the brace, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
+        # self.errors.append(f"Expected '}}' to close the brace, got {token.lexeme}")
     def empty_condition(self):
-        self.errors.append(f"Conditions cannot be empty")
+        self.errors.append(Error(
+            "EMPTY CONDITION",
+            f"Conditions cannot be empty.",
+            self.curr_tok.position,
+            self.curr_tok.end_position
+        ))
+        # self.errors.append(f"Conditions cannot be empty")
     def empty_code_body(self):
-        self.errors.append(f"Code bodies must have at least one or more statement")
+        self.errors.append(Error(
+            "EMPTY CODE BODY",
+            f"Code bodies must contain at least one or more statement.",
+            self.curr_tok.position,
+            self.curr_tok.end_position
+        ))
+        # self.errors.append(f"Code bodies must have at least one or more statement")
     def uninitialized_constant_error(self, token: Token):
-        self.errors.append(f"Constants must be initialized. got '{token.lexeme}'")
+        self.errors.append(Error(
+            "CONSTANTS MUST BE INITIALIZED",
+            f"Constants must be initialized, got '{token.lexeme}'.",
+            token.position,
+            token.end_position
+        ))
+        # self.errors.append(f"Constants must be initialized. got '{token.lexeme}'")
     def uninitialized_assignment_error(self, token: Token):
-        self.errors.append(f"Assignments must have a value after '='. got '{token.lexeme}'")
+        self.errors.append(Error(
+            "MISSING VALUE ASSIGNMENT",
+            f"Assignments must have a value after '='. got '{token.lexeme}'.",
+            token.position,
+            token.end_position
+        ))
+        # self.errors.append(f"Assignments must have a value after '='. got '{token.lexeme}'")
     def unclosed_string_part_error(self, string_start, token: Token):
-        self.errors.append(f"Unclosed string part. Expected '{string_start.lexeme[:-1]}|' to be closed by something like '|string part end\"'. got '{token.lexeme}'")
+        self.errors.append(Error(
+            "UNCLOSED FORMAT STRING",
+            f"Unclosed string part. . Expected '{string_start.lexeme[:-1]}|' to be enclosed, got '{token.lexeme}'.",
+            token.position,
+            token.end_position
+        ))
+        # self.errors.append(f"Unclosed string part. Expected '{string_start.lexeme[:-1]}|' to be closed by something like '|string part end\"'. got '{token.lexeme}'")
+    def return_in_class_error(self):
+        self.errors.append(Error(
+            "RETURN STATEMENT IN CLASS",
+            f"Class declarations cannot have return statements",
+            self.curr_tok.position,
+            self.curr_tok.end_position
+        ))
+        # self.errors.append("Return statement in class declaration")
+
     def missing_mainuwu_error(self):
         self.errors.append("Missing mainuwu function declaration")
     def multiple_mainuwu_error(self):
         self.errors.append("Multiple mainuwu function declaration")
-    def return_in_class_error(self):
-        self.errors.append("Return statement in class declaration")
-    def return_in_func_error(self):
-        self.errors.append("Found return statement in class declaration")
