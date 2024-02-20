@@ -160,6 +160,8 @@ class Parser:
         self.register_in_block(TokenType.WHIWE, self.parse_while_statement)
         self.register_in_block(TokenType.DO_WHIWE, self.parse_while_statement)
         self.register_in_block(TokenType.FOW, self.parse_for_statement)
+        self.register_in_block(TokenType.PWINT, self.parse_print)
+        self.register_in_block(TokenType.INPWT, self.parse_input)
 
     def parse_program(self) -> Program:
         '''

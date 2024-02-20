@@ -40,7 +40,7 @@ if __name__ == "__main__":
             ojou = ojou--~
         ]]
         fow (aqua~ shion>aqua~ shion--) [[
-            pwint(ojou)~
+            pwint(ojou, aqua, shion)~
         ]]
     ]]
     """
