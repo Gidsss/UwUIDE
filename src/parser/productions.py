@@ -304,12 +304,15 @@ class BlockStatement:
 class Program:
     'the root node of the syntax tree'
     def __init__(self):
+        self.mainuwu = None
         self.globals: list = []
         self.functions: list = []
         self.classes: list = []
 
     def print(self, indent = 1):
-        print("GLOBALS:")
+        print("MAINUWU:")
+        self.mainuwu.print(indent)
+        print("\nGLOBALS:")
         for g in self.globals:
             g.print(1)
             print()
