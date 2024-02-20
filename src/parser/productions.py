@@ -236,8 +236,36 @@ class Function:
     def __init__(self):
         self.id = None
         self.rtype = None
-        self.params: list = []
-        self.body: list = []
+        self.params: list[Parameter] = []
+        self.body = None
+
+    def print(self, indent = 1):
+        print(f"{INDENT(indent)} function: ", end='')
+        self.id.print(indent)
+        print(f"{INDENT(indent + 1)} rtype: ", end='')
+        self.rtype.print(indent)
+
+        if self.params:
+            print(f"{INDENT(indent + 1)} parameters:")
+            for param in self.params:
+                param.print(indent+2)
+        else:
+            print(f"{INDENT(indent + 1)} parameters: None")
+
+
+        print(f"{INDENT(indent + 1)} body:")
+        self.body.print(indent + 2)
+
+class Parameter:
+    def __init__(self):
+        self.id = None
+        self.dtype = None
+
+    def print(self, indent = 1):
+        print(f"{INDENT(indent)} param: ", end="")
+        self.id.print(indent)
+        print(f"{INDENT(indent+1)} dtype: ", end='')
+        self.dtype.print(indent)
 
 class Class:
     def __init__(self):
@@ -269,7 +297,7 @@ class Program:
             print()
         print("\nFUNCTIONS:")
         for fn in self.functions:
-            print(f"{' ' * (indent*4)}{fn}")
+            print(f"{' ' * (indent*4)}{fn.print()}")
             print()
         print("\nCLASSES:")
         for c in self.classes:

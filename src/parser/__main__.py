@@ -3,24 +3,19 @@ from ..lexer import print_lex
 
 if __name__ == "__main__":
     sc = """
-    >.< do whiwe (1 == 2) [[
-    >.<     aqua-sama = 3~
-    >.<     whiwe (1 == 2) [[
-    >.<         aqua-sama = 3~
-    >.<     ]]
-    >.<     wetuwn (aqua)~
-    >.< ]]
-    fow (aqua-chan = 1~ aqua<10~ aqua++) [[
-        shion-chan = 4~
+    
+    fwunc mainuw-san() [[
+        iwf (fax) [[
+            a-chan = 2~
+        ]]
     ]]
-    fow (aqua~ aqua<10~ aqua++) [[
-        shion-chan = 4~
+    
+    fwunc sum-chan(number1-chan[], number2-chan)
+    [[
+        sum-chan = number1 + number2~
+        wetuwn(sum)~
     ]]
-    fow (aqua=1~ aqua<10~ aqua++) [[
-        shion-chan = 4~
-    ]]
-    >//<
-    >//<
+    
     """
 #     ewse iwf (4 == 5) [[
 #         aqua-sama = 6~
@@ -52,7 +47,7 @@ if __name__ == "__main__":
     #         {
     #             (2+2)*2,
     #         }
-    #     }, 
+    #     },
     #     {
     #         3+3*3,
     #         (4+4)*4,
