@@ -229,7 +229,10 @@ class Parser:
             TokenType.SENPAI,
         ]
         if not self.expect_peek_in(data_types):
-            self.no_data_type_error(self.peek_tok)
+            if self.peek_tok_is(TokenType.SAN):
+                self.san_as_standard_data_type_error()
+            else:
+                self.no_data_type_error(self.peek_tok)
             self.advance(2)
             return None
         d.dtype = self.curr_tok
@@ -415,7 +418,10 @@ class Parser:
                 ]
 
                 if not self.expect_peek_in(data_types):
-                    self.no_data_type_error(self.peek_tok)
+                    if self.peek_tok_is(TokenType.SAN):
+                        self.san_as_standard_data_type_error()
+                    else:
+                        self.no_data_type_error(self.peek_tok)
                     self.advance(2)
                     return None
                 param.dtype = self.curr_tok
@@ -448,12 +454,19 @@ class Parser:
             self.peek_error(TokenType.OPEN_PAREN)
             self.advance()
             return None
-        self.advance()
-        ie.condition = self.parse_expression(LOWEST)
-        if not self.expect_peek(TokenType.CLOSE_PAREN):
+
+        # Check if condition is empty
+        if self.expect_peek(TokenType.CLOSE_PAREN):
+            self.empty_condition()
+            ie.condition = None
+        else:
             self.advance()
-            self.unclosed_paren_error(self.curr_tok)
-            return None
+            ie.condition = self.parse_expression(LOWEST)
+            if not self.expect_peek(TokenType.CLOSE_PAREN):
+                self.advance()
+                self.unclosed_paren_error(self.curr_tok)
+                return None
+
         if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
             self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
             self.advance()
@@ -502,7 +515,14 @@ class Parser:
     def parse_block_statement(self):
         'take note that this starts with the open bracket as the current token'
         bs = BlockStatement()
-        self.advance() # consume the open bracket
+
+        # Check if block is empty
+        if self.peek_tok_is(TokenType.DOUBLE_CLOSE_BRACKET):
+            self.empty_code_body()
+            return None
+
+        self.advance()  # consume the open bracket
+
         stop_condition = [TokenType.DOUBLE_CLOSE_BRACKET, TokenType.EOF]
         while not self.peek_tok_is_in(stop_condition):
             if isinstance(self.curr_tok.token, UniqueTokenType):
@@ -551,12 +571,19 @@ class Parser:
             self.peek_error(TokenType.OPEN_PAREN)
             self.advance()
             return None
-        self.advance()
-        wl.condition = self.parse_expression(LOWEST)
-        if not self.expect_peek(TokenType.CLOSE_PAREN):
+
+        # Check if condition is empty
+        if self.expect_peek(TokenType.CLOSE_PAREN):
+            self.empty_condition()
+            wl.condition = None
+        else:
             self.advance()
-            self.unclosed_paren_error(self.curr_tok)
-            return None
+            wl.condition = self.parse_expression(LOWEST)
+            if not self.expect_peek(TokenType.CLOSE_PAREN):
+                self.advance()
+                self.unclosed_paren_error(self.curr_tok)
+                return None
+
         if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
             self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
             self.advance()
@@ -941,6 +968,8 @@ class Parser:
         self.errors.append(f"Expected dash before data type, got {token.lexeme}")
     def no_data_type_error(self, token: Token):
         self.errors.append(f"Expected data type, got {token.lexeme}")
+    def san_as_standard_data_type_error(self):
+        self.errors.append(f"'san' data type can only be used as a return type for functions")
     def no_dono_error(self, token: Token):
         self.errors.append(f"Expected 'dono' to denote variable as constant instead, got {token.lexeme}")
     def invalid_parameter(self, token: Token):
@@ -953,6 +982,10 @@ class Parser:
         self.errors.append(f"Expected ']' to close the bracket, got {token.lexeme}")
     def unclosed_brace_error(self, token: Token):
         self.errors.append(f"Expected '}}' to close the brace, got {token.lexeme}")
+    def empty_condition(self):
+        self.errors.append(f"Conditions cannot be empty")
+    def empty_code_body(self):
+        self.errors.append(f"Code bodies must have at least one or more statement")
     def uninitialized_constant_error(self, token: Token):
         self.errors.append(f"Constants must be initialized. got '{token.lexeme}'")
     def uninitialized_assignment_error(self, token: Token):
