@@ -56,7 +56,22 @@ class StringFmt:
         self.exprs = []
         self.end = None
     def print(self, indent = 1):
-        print(f"string fmt: {self.__str__()}")
+        print(f"string fmt: ")
+        print(f"{INDENT(indent+1)}", end='')
+        self.start.print(indent)
+        if self.exprs:
+            print(f"{INDENT(indent+1)}", end='')
+            self.exprs[0].print(indent)
+        for m,e in zip(self.mid, self.exprs[1:]):
+            print(f"{INDENT(indent+1)}", end='')
+            m.print(indent)
+            print(f"{INDENT(indent+1)}", end='')
+            e.print(indent)
+
+        print(f"{INDENT(indent+1)}", end='')
+        self.end.print(indent)
+
+
     def __str__(self):
         return f"{self.start}{''.join([f'{m}{e}' for m,e in zip(self.mid, self.exprs)])}{self.end}"
     def __len__(self):
@@ -79,32 +94,18 @@ class ArrayDeclaration:
         self.id = None
         self.dtype = None
         self.value = None
-        self.size = []
-        self.length = []
-        self.dimension = 0
         self.is_const: bool = False
 
     def print(self, indent = 1):
         print(f"{INDENT(indent)} declare array: ", end='')
         self.id.print(indent)
-        print(f"{INDENT(indent)} type: ", end='')
-        self.dtype.print(indent)
+        print(f"{INDENT(indent+1)} type: ", end='')
+        self.dtype.print(indent+1)
         if self.is_const:
-            print(f"{INDENT(indent)} constant")
-        if self.dimension:
-            print(f"{INDENT(indent)} dimension: {self.dimension}")
-        if self.size:
-            print(f"{INDENT(indent)} size:")
-            for s in self.size:
-                print(f"{INDENT(indent+1)} ", end='')
-                s.print(indent+1)
+            print(f"{INDENT(indent+1)} constant")
         if self.value:
-            print(f"{INDENT(indent)} value:")
-            self.value.print(indent+1)
-        if self.length:
-            print(f"{INDENT(indent)} length:")
-            for l in self.length:
-                print(f"{INDENT(indent+1)} {l}")
+            print(f"{INDENT(indent+1)} value:")
+            self.value.print(indent+2)
 
     def compute_len(self):
         def compute_lengths(array, depth):
@@ -231,6 +232,23 @@ class ForLoop:
         self.update.print(indent)
         print(f"{INDENT(indent+1)} body:")
         self.body.print(indent+2)
+
+class Print:
+    def __init__(self):
+        self.values = []
+    def print(self, indent = 1):
+        print(f"{INDENT(indent)} print:")
+        for v in self.values:
+            print(f"{INDENT(indent+1)} ", end='')
+            v.print(indent+1)
+        print()
+
+class Input:
+    def __init__(self):
+        self.value = None
+    def print(self, indent = 1):
+        print(f"{INDENT(indent)} input: ", end='')
+        self.value.print(indent)
 
 class Function:
     def __init__(self):

@@ -3,7 +3,6 @@ from ..lexer import print_lex
 
 if __name__ == "__main__":
     sc = """
-    
     fwunc mainuw-san() [[
         iwf (fax) [[
             a-chan = 2~
@@ -15,7 +14,6 @@ if __name__ == "__main__":
         sum-chan = number1 + number2~
         wetuwn(sum)~
     ]]
-    
     """
 #     ewse iwf (4 == 5) [[
 #         aqua-sama = 6~

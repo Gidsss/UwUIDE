@@ -132,6 +132,7 @@ class Parser:
         self.register_prefix(TokenType.FLOAT_LITERAL, self.parse_literal)
         self.register_prefix(TokenType.FAX, self.parse_literal)
         self.register_prefix(TokenType.CAP, self.parse_literal)
+        self.register_prefix(TokenType.NUWW, self.parse_literal)
 
         # infixes
         self.register_infix(TokenType.EQUALITY_OPERATOR, self.parse_infix_expression)
@@ -180,9 +181,11 @@ class Parser:
                     p.globals.append(self.parse_if_statement())
                 case TokenType.WHIWE | TokenType.DO_WHIWE:
                     tmp = self.parse_while_statement()
+                case TokenType.PWINT:
+                    tmp = self.parse_print()
                     p.globals.append(tmp)
-                case TokenType.FOW:
-                    tmp = self.parse_for_statement()
+                case TokenType.INPWT:
+                    tmp = self.parse_input()
                     p.globals.append(tmp)
                 case _:
                     self.invalid_global_declaration_error(self.curr_tok)
@@ -232,23 +235,15 @@ class Parser:
         d.dtype = self.curr_tok
 
         # array declaration
-        if self.peek_tok_is(TokenType.OPEN_BRACKET):
+        if self.expect_peek(TokenType.OPEN_BRACKET):
             ad = ArrayDeclaration()
             ad.id, ad.dtype = d.id, d.dtype
             d = ad
-            stop_conditions = [TokenType.DASH, TokenType.TERMINATOR, TokenType.EOF]
-            while not self.peek_tok_is_in(stop_conditions):
-                if not self.expect_peek(TokenType.OPEN_BRACKET):
-                    break
-                if not self.peek_tok_is(TokenType.CLOSE_BRACKET):
-                    self.advance()
-                    d.size.append(self.parse_expression(LOWEST))
-                if not self.expect_peek(TokenType.CLOSE_BRACKET):
-                    self.unclosed_bracket_error(self.peek_tok)
-                    self.advance(2)
-                    return None
-                d.dimension += 1
-            d.dtype.lexeme += "[]"*ad.dimension
+            d.dtype.lexeme += "[]"
+            if not self.expect_peek(TokenType.CLOSE_BRACKET):
+                self.unclosed_bracket_error(self.peek_tok)
+                self.advance(2)
+                return None
 
         # -dono to indicate constant
         if self.expect_peek(TokenType.DASH):
@@ -277,11 +272,7 @@ class Parser:
         if self.curr_tok_is(TokenType.TERMINATOR):
             self.uninitialized_assignment_error(self.peek_tok)
             return None
-
         d.value = self.parse_expression(LOWEST)
-        if isinstance(d, ArrayDeclaration):
-            d.compute_len()
-
         if not self.expect_peek(TokenType.TERMINATOR):
             self.unterminated_error(self.peek_tok)
             self.advance(2)
@@ -575,6 +566,46 @@ class Parser:
             self.unclosed_bracket_error(self.curr_tok)
             return None
         return fl
+
+    def parse_print(self):
+        p = Print()
+        if not self.expect_peek(TokenType.OPEN_PAREN):
+            self.peek_error(TokenType.OPEN_PAREN)
+            self.advance()
+            return None
+        self.advance()
+        stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
+        while not self.curr_tok_is_in(stop_conditions):
+            p.values.append(self.parse_expression(LOWEST))
+            if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
+                break
+            self.advance()
+        if not self.curr_tok_is(TokenType.CLOSE_PAREN):
+            self.unclosed_paren_error(self.curr_tok)
+            return None
+        if not self.expect_peek(TokenType.TERMINATOR):
+            self.advance()
+            self.unterminated_error(self.curr_tok)
+            return None
+        return p
+
+    def parse_input(self):
+        i = Input()
+        if not self.expect_peek(TokenType.OPEN_PAREN):
+            self.peek_error(TokenType.OPEN_PAREN)
+            self.advance()
+            return None
+        self.advance()
+        i.value = self.parse_expression(LOWEST)
+        if not self.expect_peek(TokenType.CLOSE_PAREN):
+            self.advance()
+            self.unclosed_paren_error(self.curr_tok)
+            return None
+        if not self.expect_peek(TokenType.TERMINATOR):
+            self.advance()
+            self.unterminated_error(self.curr_tok)
+            return None
+        return i
 
     ### expression parsers
     def parse_expression(self, precedence):
@@ -870,3 +901,5 @@ class Parser:
         self.errors.append(f"Assignments must have a value after '='. got '{token.lexeme}'")
     def unclosed_string_part_error(self, string_start, token: Token):
         self.errors.append(f"Unclosed string part. Expected '{string_start.lexeme[:-1]}|' to be closed by something like '|string part end\"'. got '{token.lexeme}'")
+    def unclosed_bracket_error(self, token: Token):
+        self.errors.append(f"Expected ']' to close the bracket, got {token.lexeme}")
