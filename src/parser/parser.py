@@ -324,7 +324,24 @@ class Parser:
             self.advance(2)
             return None
         func.rtype = self.curr_tok
+        func.params = self.parse_params()
+        if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
+            self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
+            self.advance()
+            return None
+        func.body = self.parse_block_statement()
+        if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
+            self.advance()
+            self.unclosed_bracket_error(self.curr_tok)
+            return None
 
+        return func
+
+    def parse_class(self):
+        pass
+
+    def parse_params(self):
+        'note that this must start with ( in peek_tok'
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
             self.advance()
@@ -378,22 +395,8 @@ class Parser:
                     self.advance(2)
                     return None
 
-            func.params = parameters
+            return parameters
 
-        if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
-            self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
-            self.advance()
-            return None
-        func.body = self.parse_block_statement()
-        if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
-            self.advance()
-            self.unclosed_bracket_error(self.curr_tok)
-            return None
-
-        return func
-
-    def parse_class(self):
-        pass
     def  parse_if_statement(self):
         ie = IfExpression()
         if not self.expect_peek(TokenType.OPEN_PAREN):
