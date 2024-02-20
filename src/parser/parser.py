@@ -304,7 +304,7 @@ class Parser:
     def parse_function(self):
         func = Function()
 
-        if not self.expect_peek_is_identifier():
+        if not self.expect_peek_is_identifier() and not self.expect_peek(TokenType.MAINUWU):
             self.no_ident_in_func_declaration_error(self.peek_tok)
             self.advance(2)
             return None
