@@ -81,6 +81,8 @@ class Parser:
         self.register_init()
 
         self.program = self.parse_program()
+        if self.program.mainuwu is None:
+            self.missing_mainuwu_error()
 
     def advance(self, inc: int = 1):
         'advance the current and peek tokens based on the increment. default is 1'
@@ -957,6 +959,8 @@ class Parser:
         self.errors.append(f"Assignments must have a value after '='. got '{token.lexeme}'")
     def unclosed_string_part_error(self, string_start, token: Token):
         self.errors.append(f"Unclosed string part. Expected '{string_start.lexeme[:-1]}|' to be closed by something like '|string part end\"'. got '{token.lexeme}'")
+    def missing_mainuwu_error(self):
+        self.errors.append("Missing mainuwu function declaration")
     def multiple_mainuwu_error(self):
         self.errors.append("Multiple mainuwu function declaration")
     def return_in_class_error(self):
