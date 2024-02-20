@@ -3,8 +3,17 @@ from ..lexer import print_lex
 
 if __name__ == "__main__":
     sc = """
-    pwint(nuww, 1.5, -2----3, nuww +4*4, "test", "test| nuww |ing", fax, nuww != 3>5)~
-    inpwt(nuww)~
+    fwunc mainuw-san() [[
+        iwf (fax) [[
+            a-chan = 2~
+        ]]
+    ]]
+    
+    fwunc sum-chan(number1-chan[], number2-chan)
+    [[
+        sum-chan = number1 + number2~
+        wetuwn(sum)~
+    ]]
     """
 #     ewse iwf (4 == 5) [[
 #         aqua-sama = 6~
@@ -31,6 +40,18 @@ if __name__ == "__main__":
     # 2 elements in aqua[1]
     # 1 elements in aqua[0][0]
     # >//<
+    # gwobaw aqua-chan[2][-shion] = {
+    #     {
+    #         {
+    #             (2+2)*2,
+    #         }
+    #     },
+    #     {
+    #         3+3*3,
+    #         (4+4)*4,
+    #     },
+    #     1,
+    # }~
     #     gwobaw ojou-chan = shion(1, 2, aqua(3+4*5), lap("hello |-name--| world"))~
     #     gwobaw shion-chan = 1+- (1-2) -- == 5 -3-- *-5 ~
     # gwobaw sora-senpai = "tokino '| -nickname |' sora"~

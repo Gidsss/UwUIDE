@@ -177,6 +177,10 @@ class Parser:
                 case TokenType.TERMINATOR | TokenType.DOUBLE_CLOSE_BRACKET:
                     self.advance()
                 # remove later
+                case TokenType.IWF:
+                    p.globals.append(self.parse_if_statement())
+                case TokenType.WHIWE | TokenType.DO_WHIWE:
+                    tmp = self.parse_while_statement()
                 case TokenType.PWINT:
                     tmp = self.parse_print()
                     p.globals.append(tmp)
@@ -223,7 +227,6 @@ class Parser:
             TokenType.KUN,
             TokenType.SAMA,
             TokenType.SENPAI,
-            TokenType.SAN
         ]
         if not self.expect_peek_in(data_types):
             self.no_data_type_error(self.peek_tok)
@@ -296,12 +299,106 @@ class Parser:
             self.unterminated_error(self.curr_tok)
             return None
         return rs
+
     # block statements
     def parse_function(self):
-        pass
+        func = Function()
+
+        if not self.expect_peek_is_identifier():
+            self.no_ident_in_func_declaration_error(self.peek_tok)
+            self.advance(2)
+            return None
+        func.id = self.curr_tok
+
+        if not self.expect_peek(TokenType.DASH):
+            self.no_data_type_indicator_error(self.peek_tok)
+            self.advance(2)
+            return None
+
+        data_types = [
+            TokenType.CHAN,
+            TokenType.KUN,
+            TokenType.SAMA,
+            TokenType.SENPAI,
+            TokenType.SAN
+        ]
+
+        if not self.expect_peek_in(data_types):
+            self.no_data_type_error(self.peek_tok)
+            self.advance(2)
+            return None
+        func.rtype = self.curr_tok
+
+        if not self.expect_peek(TokenType.OPEN_PAREN):
+            self.peek_error(TokenType.OPEN_PAREN)
+            self.advance()
+            return None
+
+        if not self.expect_peek(TokenType.CLOSE_PAREN):
+            parameters: list[Parameter] = []
+            while True:
+                param = Parameter()
+                if not self.expect_peek_is_identifier():
+                    self.no_ident_in_param_error(self.peek_tok)
+                    self.advance(2)
+                    return None
+                param.id = self.curr_tok
+
+                if not self.expect_peek(TokenType.DASH):
+                    self.no_data_type_indicator_error(self.peek_tok)
+                    self.advance(2)
+                    return None
+
+                data_types = [
+                    TokenType.CHAN,
+                    TokenType.KUN,
+                    TokenType.SAMA,
+                    TokenType.SENPAI,
+                ]
+
+                if not self.expect_peek_in(data_types):
+                    self.no_data_type_error(self.peek_tok)
+                    self.advance(2)
+                    return None
+                param.dtype = self.curr_tok
+                parameters.append(param)
+
+                if self.expect_peek(TokenType.OPEN_BRACKET):
+                    ad = ArrayDeclaration()
+                    ad.id, ad.dtype = param.id, param.dtype
+                    param = ad
+                    param.dtype.lexeme += "[]"
+                    if not self.expect_peek(TokenType.CLOSE_BRACKET):
+                        self.unclosed_bracket_error(self.peek_tok)
+                        self.advance(2)
+                        return None
+
+                if self.expect_peek(TokenType.COMMA):
+                    continue
+                elif self.expect_peek(TokenType.CLOSE_PAREN):
+                    break
+                else:
+                    self.invalid_parameter(self.peek_tok)
+                    self.advance(2)
+                    return None
+
+            func.params = parameters
+
+        if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
+            self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
+            self.advance()
+            return None
+        func.body = self.parse_block_statement()
+        if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
+            self.advance()
+            self.unclosed_bracket_error(self.curr_tok)
+            return None
+
+        return func
+
     def parse_class(self):
         pass
-    def parse_if_statement(self):
+    def  parse_if_statement(self):
         ie = IfExpression()
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
@@ -778,12 +875,18 @@ class Parser:
         self.errors.append(f"Expected global function/class/variable/constant declaration, got {token.lexeme}")
     def no_ident_in_declaration_error(self, token: Token):
         self.errors.append(f"Expected identifier in declaration, got {token.lexeme}")
+    def no_ident_in_func_declaration_error(self, token: Token):
+        self.errors.append(f"Expected identifier in function declaration, got {token.lexeme}")
+    def no_ident_in_param_error(self, token: Token):
+        self.errors.append(f"Expected identifier in parameter, got {token.lexeme}")
     def no_data_type_indicator_error(self, token: Token):
         self.errors.append(f"Expected dash before data type, got {token.lexeme}")
     def no_data_type_error(self, token: Token):
         self.errors.append(f"Expected data type, got {token.lexeme}")
     def no_dono_error(self, token: Token):
         self.errors.append(f"Expected 'dono' to denote variable as constant instead, got {token.lexeme}")
+    def invalid_parameter(self, token: Token):
+        self.errors.append(f"Invalid parameter. Expected ',' or ')', got {token.lexeme}")
     def unterminated_error(self, token: Token):
         self.errors.append(f"Expected '~' to terminate the statement, got {token.lexeme}")
     def unclosed_paren_error(self, token: Token):
