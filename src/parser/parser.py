@@ -676,6 +676,12 @@ class Parser:
             return None
 
         left_exp = prefix()
+        if isinstance(self.curr_tok.token, UniqueTokenType):
+            postfix = self.get_postfix_parse_fn("IDENTIFIER")
+        else:
+            postfix = self.get_postfix_parse_fn(self.curr_tok.token)
+        if postfix is not None:
+            left_exp = postfix(left_exp)
 
         while not self.peek_tok_is_in([TokenType.TERMINATOR, TokenType.EOF]) and precedence < self.peek_precedence():
             infix = self.get_infix_parse_fn(self.peek_tok.token)
