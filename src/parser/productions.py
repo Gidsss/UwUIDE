@@ -71,7 +71,7 @@ class ArrayLiteral:
     def string(self, indent = 0):
         res = sprintln("array literal:", indent=0)
         for e in self.elements:
-            res += sprintln(e.string(), indent=indent+1)
+            res += sprintln(e.string(indent+1), indent=indent+1)
         return res
     def __len__(self):
         return len(self.elements)
@@ -113,7 +113,7 @@ class ArrayDeclaration:
         if self.is_const:
             res += sprintln("constant", indent=indent+1)
         if self.value:
-            res += sprintln("value:", self.value.string(), indent=indent+1)
+            res += sprintln("value:", self.value.string(indent+1), indent=indent+1)
         return res
 
     def compute_len(self):
