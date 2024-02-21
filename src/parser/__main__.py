@@ -1,6 +1,7 @@
 from .parser import *
 from ..lexer import Lexer
 from ..lexer import print_lex
+from .error_handler import ErrorSrc
 
 if __name__ == "__main__":
     sc = """
@@ -62,7 +63,9 @@ if __name__ == "__main__":
     l = Lexer(source)
     if l.errors:
         exit(1)
+    ErrorSrc.src = source
     p = Parser(l.tokens)
+    print()
     for err in p.errors:
         print(err)
 
