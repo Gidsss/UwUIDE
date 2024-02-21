@@ -449,7 +449,7 @@ class Parser:
             return parameters
 
     def  parse_if_statement(self):
-        ie = IfExpression()
+        ie = IfStatement()
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
             self.advance()
@@ -479,7 +479,7 @@ class Parser:
             return None
 
         while self.expect_peek(TokenType.EWSE_IWF):
-            eie = ElseIfExpression()
+            eie = ElseIfStatement()
             if not self.expect_peek(TokenType.OPEN_PAREN):
                 self.peek_error(TokenType.OPEN_PAREN)
                 self.advance()

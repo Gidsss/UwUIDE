@@ -1,4 +1,5 @@
 from .parser import *
+from ..lexer import Lexer
 from ..lexer import print_lex
 from .error_handler import ErrorSrc
 
@@ -30,32 +31,36 @@ if __name__ == "__main__":
 #             sora-senpai = "if statements!"~
 #         ]]
 # ]]
-    # >//<
-    # shape of this should be [3, 2, 1]
-    # 3 elements on aqua
-    # 2 elements in aqua[1]
-    # 1 elements in aqua[0][0]
-    # >//<
-    # gwobaw aqua-chan[2][-shion] = {
-    #     {
-    #         {
-    #             (2+2)*2,
-    #         }
-    #     },
-    #     {
-    #         3+3*3,
-    #         (4+4)*4,
-    #     },
-    #     1,
-    # }~
-    #     gwobaw ojou-chan = shion(1, 2, aqua(3+4*5), lap("hello |-name--| world"))~
-    #     gwobaw shion-chan = 1+- (1-2) -- == 5 -3-- *-5 ~
-    # gwobaw sora-senpai = "tokino '| -nickname |' sora"~
-    # gwobaw lap-chan[5]-dono = {1,2,3,4,5,6,7,8,9,10}~
-    # gwobaw suba-chan[5] = {2+2, (3+3)*3}~
+    sc = """
+    gwobaw aqua-chan[] = { {
+            {
+                (2+2)*2,
+            }
+        },
+        {
+            3+3*3,
+            (4+4)*4,
+        },
+        1,
+    }~
+    gwobaw ojou-chan = shion(1, 2, aqua(3+4*5), lap("hello |-name--| world"))~
+    gwobaw shion-chan = 1+- (1-2) -- == 5 -3-- *-5 ~
+    gwobaw lap-chan[]-dono = {1,2,3,4,5,6,7,8,9,10}~
+    gwobaw suba-chan[] = {2+2, (3+3)*3}~
+    """
 
     source: list[str] = [line if line else '\n' for line in sc.split("\n")]
-    l = print_lex(source)
+    max_digit_length = len(str(len(source)))
+    max_width = max(len(line) for line in source) + max_digit_length + 3
+    print('\nsample text file')
+    print("-"*max_width)
+    for i, line in enumerate(source):
+        line = line if line != '\n' else ''
+        print(f"{i+1} | {line}")
+    print("-"*max_width)
+    print('end of file\n')
+
+    l = Lexer(source)
     if l.errors:
         exit(1)
     ErrorSrc.src = source
@@ -63,6 +68,14 @@ if __name__ == "__main__":
     print()
     for err in p.errors:
         print(err)
-    if p.errors:
-        exit(1)
-    p.program.print()
+
+    print("--- Printing Whole Program ---")
+    print(p.program)
+    print("\n--- Printing only Main Function ---")
+    print(p.program.main())
+    print("\n--- Printing only Global Declarations ---")
+    print(p.program.globs())
+    print("\n--- Printing only Functions ---")
+    print(p.program.funcs())
+    print("\n--- Printing only Classes ---")
+    print(p.program._classes())
