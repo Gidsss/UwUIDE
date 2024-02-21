@@ -169,6 +169,8 @@ class Token:
         return self._lexeme
     def print(self, indent = 1):
         print(self._lexeme)
+    def string(self, _ = 1):
+        return self._lexeme
 
 
     @property
