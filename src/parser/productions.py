@@ -317,14 +317,12 @@ class Program:
     @property # rename in __init__(): self._mainuwu
               # rename this: self.mainuwu
     def main(self):
-        res = "MAINUWU:\n"
         res += self.mainuwu.string(1)
         return res + "\n"
 
     @property # rename in __init__(): self._globals
               # rename this: self.globals
     def globs(self):
-        res = "GLOBALS:\n"
         for g in self.globals:
             res += g.string(1)
         return res + "\n"
@@ -332,7 +330,6 @@ class Program:
     @property # rename in __init__(): self._functions
               # rename this: self.functions
     def funcs(self):
-        res = "FUNCTIONS:\n"
         for fn in self.functions:
             res += fn.string(1)
         return res + "\n"
@@ -340,10 +337,17 @@ class Program:
     @property # rename in __init__(): self._classes
               # rename this: self.classes
     def _classes(self):
-        res = "CLASSES:\n"
         for c in self.classes:
             res += c.string(1)
         return res + "\n"
 
     def __str__(self):
-        return self.main + self.globs + self.funcs + self._classes
+        res = "MAINUWU:\n"
+        res += self.mainuwu
+        res += "GLOBALS:\n"
+        res += self.globs
+        res += "FUNCTIONS:\n"
+        res += self.funcs
+        res += "CLASSES:\n"
+        res += self._classes
+        return res
