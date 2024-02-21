@@ -63,13 +63,7 @@ if __name__ == "__main__":
 #             sora-senpai = "if statements!"~
 #         ]]
 # ]]
-    # >//<
-    # shape of this should be [3, 2, 1]
-    # 3 elements on aqua
-    # 2 elements in aqua[1]
-    # 1 elements in aqua[0][0]
-    # >//<
-    # gwobaw aqua-chan[2][-shion] = {
+    # gwobaw aqua-chan[] = {
     #     {
     #         {
     #             (2+2)*2,
@@ -96,4 +90,5 @@ if __name__ == "__main__":
         print(err)
     if p.errors:
         exit(1)
-    p.program.print()
+    # p.program.print()
+    print(p.program)
