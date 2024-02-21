@@ -14,10 +14,6 @@ class ReturnStatement:
 
     def string(self, indent = 1):
         return IndentFmt(indent, f"return {self.expr.string()}")
-    def print(self, indent = 1):
-        print(f"{INDENT(indent)} return {self.__str__()}")
-    def __str__(self):
-        return f"{self.expr}"
     def __len__(self):
         return 1
 
@@ -28,10 +24,6 @@ class PrefixExpression:
 
     def string(self, _ = 1):
         return IndentFmt(0, f"prefix: {self.op.string()} {self.right.string()}")[:-1]
-    def print(self, indent = 1):
-        print(f"prefix: {self.__str__()}")
-    def __str__(self):
-        return f"({self.op} {self.right})"
     def __len__(self):
         return 1
 
@@ -43,10 +35,6 @@ class InfixExpression:
 
     def string(self, _ = 1):
         return IndentFmt(0, f"infix: {self.left.string()} {self.op.string()} {self.right.string()}")[:-1]
-    def print(self, indent = 1):
-        print(f"infix: {self.__str__()}")
-    def __str__(self):
-        return f"({self.left} {self.op} {self.right})"
     def __len__(self):
         return 1
 
@@ -57,10 +45,6 @@ class PostfixExpression:
 
     def string(self, _ = 1):
         return IndentFmt(0, f"postfix: {self.left.string()} {self.op.string()}")[:-1]
-    def print(self, indent = 1):
-        print(f"postfix: {self.__str__()}")
-    def __str__(self):
-        return f"{self.left} {self.op}"
     def __len__(self):
         return 1
 
@@ -84,33 +68,12 @@ class StringFmt:
         for m,e in zip(self.mid, self.exprs[1:]):
             yield m
             yield e
-    def print(self, indent = 1):
-        print(f"string fmt: ")
-        print(f"{INDENT(indent+1)}", end='')
-        self.start.print(indent)
-        if self.exprs:
-            print(f"{INDENT(indent+1)}", end='')
-            self.exprs[0].print(indent)
-        for m,e in zip(self.mid, self.exprs[1:]):
-            print(f"{INDENT(indent+1)}", end='')
-            m.print(indent)
-            print(f"{INDENT(indent+1)}", end='')
-            e.print(indent)
-
-        print(f"{INDENT(indent+1)}", end='')
-        self.end.print(indent)
-    def __str__(self):
-        return f"{self.start}{''.join([f'{m}{e}' for m,e in zip(self.mid, self.exprs)])}{self.end}"
     def __len__(self):
         return 1
 
 class ArrayLiteral:
     def __init__(self):
         self.elements = []
-    def print(self, indent = 1):
-        print(f"{INDENT(indent)} array: {self.__str__()}")
-    def __str__(self):
-        return f"[{', '.join([str(e) for e in self.elements])}]"
     def __len__(self):
         return len(self.elements)
     def __iter__(self):
@@ -133,17 +96,6 @@ class ArrayDeclaration:
             res += IndentFmt(indent+2, self.value.string())
         return res
 
-    def print(self, indent = 1):
-        print(f"{INDENT(indent)} declare array: ", end='')
-        self.id.print(indent)
-        print(f"{INDENT(indent+1)} type: ", end='')
-        self.dtype.print(indent+1)
-        if self.is_const:
-            print(f"{INDENT(indent+1)} constant")
-        if self.value:
-            print(f"{INDENT(indent+1)} value:")
-            self.value.print(indent+2)
-
     def compute_len(self):
         def compute_lengths(array, depth):
             if isinstance(array, ArrayLiteral):
@@ -160,8 +112,7 @@ class ArrayDeclaration:
                 for elem in array.elements:
                     compute_lengths(elem, depth + 1)
 
-        tmp = self.value
-        compute_lengths(tmp, 0)
+        compute_lengths(self.value, 0)
 
 class Assignment:
     def __init__(self):
@@ -171,13 +122,6 @@ class Assignment:
         res = IndentFmt(indent, "assign:", self.id.string())
         res += IndentFmt(indent+1, "value:", self.value.string())
         return res
-    def print(self, indent = 1):
-        print(f"{INDENT(indent)} assign: ", end='')
-        self.id.print(indent)
-        print(f"{INDENT(indent+1)} value: ", end='')
-        self.value.print(indent)
-    def __str__(self):
-        return f"{self.id} = {self.value}"
     def __len__(self):
         return 1
 
@@ -197,17 +141,6 @@ class Declaration:
             res += IndentFmt(indent+1, "value:", self.value.string(indent+1))
         return res
 
-    def print(self, indent = 1):
-        print(f"{INDENT(indent)} declare: ", end='')
-        self.id.print(indent)
-        print(f"{INDENT(indent+1)} type: ", end='')
-        self.dtype.print(indent+1)
-        if self.value:
-            print(f"{INDENT(indent+1)} value: ", end='')
-            self.value.print(indent+1)
-        if self.is_const:
-            print(f"{INDENT(indent+1)} constant")
-
 class FnCall:
     def __init__(self):
         self.id = None
@@ -215,10 +148,6 @@ class FnCall:
 
     def string(self, _ = 1):
         return IndentFmt(0, f"call: {self.id.string()}({', '.join([a.string() for a in self.args])})")
-    def print(self, _ = 1):
-        print(f"call: {self.__str__()}")
-    def __str__(self):
-        return f"{self.id}({', '.join([str(a) for a in self.args])})"
     def __len__(self):
         return 1
 
@@ -244,23 +173,6 @@ class IfExpression:
             res += self.else_block.string(indent+2)
         return res
 
-    def print(self, indent = 1):
-        print(f"{INDENT(indent)} if statement:")
-        print(f"{INDENT(indent+1)} condition: ", end='')
-        self.condition.print(indent)
-        print(f"{INDENT(indent+1)} then:")
-        self.then.print(indent+2)
-        print(f"{INDENT(indent+1)}")
-        for e in self.else_if:
-            print(f"{INDENT(indent+1)} else if statement:")
-            print(f"{INDENT(indent+2)} condition: ", end='')
-            e.condition.print(indent+2)
-            print(f"{INDENT(indent+2)} then:")
-            e.then.print(indent+2)
-        if self.else_block:
-            print(f"{INDENT(indent+1)} else:")
-            self.else_block.print(indent+2)
-
 class ElseIfExpression:
     def __init__(self):
         self.condition = None
@@ -277,12 +189,6 @@ class WhileLoop:
         res += IndentFmt(indent+1, "body:")
         res += self.body.string(indent+2)
         return res
-    def print(self, indent = 1):
-        print(f"{INDENT(indent)}{f'do' if self.is_do else ''} while statement:")
-        print(f"{INDENT(indent+1)} condition: ", end='')
-        self.condition.print(indent)
-        print(f"{INDENT(indent+1)} body:")
-        self.body.print(indent+2)
 
 class ForLoop:
     def __init__(self):
@@ -298,21 +204,6 @@ class ForLoop:
         res += IndentFmt(indent+1, "body:")
         res += self.body.string(indent+2)
         return res
-    def print(self, indent = 1):
-        print(f"{INDENT(indent)} for statement:")
-        print(f"{INDENT(indent+1)} init: ", end='')
-        if isinstance(self.init, Declaration) or isinstance(self.init, Assignment):
-            print()
-            self.init.print(indent+2)
-        else:
-            self.init.print(indent)
-
-        print(f"{INDENT(indent+1)} condition: ", end='')
-        self.condition.print(indent)
-        print(f"{INDENT(indent+1)} update: ", end='')
-        self.update.print(indent)
-        print(f"{INDENT(indent+1)} body:")
-        self.body.print(indent+2)
 
 class Print:
     def __init__(self):
@@ -322,12 +213,6 @@ class Print:
         for v in self.values:
             res += IndentFmt(indent+1, v.string())
         return res
-    def print(self, indent = 1):
-        print(f"{INDENT(indent)} print:")
-        for v in self.values:
-            print(f"{INDENT(indent+1)} ", end='')
-            v.print(indent+1)
-        print()
 
 class Input:
     def __init__(self):
@@ -359,21 +244,6 @@ class Function:
         res += self.body.string(indent+2)
         return res
 
-    def print(self, indent = 1):
-        print(f"{INDENT(indent)} function: ", end='')
-        self.id.print(indent)
-        print(f"{INDENT(indent + 1)} rtype: ", end='')
-        self.rtype.print(indent)
-
-        if self.params:
-            print(f"{INDENT(indent + 1)} parameters:")
-            for param in self.params:
-                param.print(indent+2)
-        else:
-            print(f"{INDENT(indent + 1)} parameters: None")
-        print(f"{INDENT(indent + 1)} body:")
-        self.body.print(indent + 2)
-
 class Parameter:
     def __init__(self):
         self.id = None
@@ -383,11 +253,6 @@ class Parameter:
         res = IndentFmt(0, "param:", self.id.string())
         res += IndentFmt(indent+1, "dtype:", self.dtype.string())
         return res
-    def print(self, indent = 1):
-        print(f"{INDENT(indent)} param: ", end="")
-        self.id.print(indent)
-        print(f"{INDENT(indent+1)} dtype: ", end='')
-        self.dtype.print(indent)
 
 class Class:
     def __init__(self):
@@ -415,25 +280,6 @@ class Class:
             res += self.body.string(indent+2)
         return res
 
-    def print(self, indent = 1):
-        print(f"{INDENT(indent)} class: ", end='')
-        self.id.print(indent)
-        if self.params:
-            print(f"{INDENT(indent+1)} parameters:")
-            for param in self.params:
-                param.print(indent+2)
-        if self.properties:
-            print(f"{INDENT(indent+1)} properties:")
-            for prop in self.properties:
-                prop.print(indent+2)
-        if self.methods:
-            print(f"{INDENT(indent+1)} methods:")
-            for method in self.methods:
-                method.print(indent+2)
-        if self.body:
-            print(f"{INDENT(indent+1)} body:")
-            self.body.print(indent+2)
-
 class BlockStatement:
     def __init__(self):
         self.statements = []
@@ -442,10 +288,6 @@ class BlockStatement:
         for s in self.statements:
             res += s.string(indent+1)
         return res
-    def print(self, indent = 1):
-        print(f"{INDENT(indent)} block:")
-        for s in self.statements:
-            s.print(indent+1)
 
 class Program:
     'the root node of the syntax tree'
@@ -482,19 +324,3 @@ class Program:
         for c in self.classes:
             res += c.string(indent)
         return res
-
-    def print(self, indent = 1):
-        print("MAINUWU:")
-        self.mainuwu.print(indent)
-        print("\nGLOBALS:")
-        for g in self.globals:
-            g.print(1)
-            print()
-        print("\nFUNCTIONS:")
-        for fn in self.functions:
-            fn.print(1)
-            print()
-        print("\nCLASSES:")
-        for c in self.classes:
-            c.print(1)
-            print()
