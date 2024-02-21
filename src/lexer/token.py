@@ -22,6 +22,8 @@ class TokenType(Enum):
 
     def __str__(self):
         return self.token
+    def string(self, _ = 1):
+        return self.__str__()
 
     def __format__(self, format_spec):
         return str.__format__(str(self), format_spec)
