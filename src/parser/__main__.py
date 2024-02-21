@@ -1,40 +1,33 @@
 from .parser import *
 from ..lexer import Lexer
+from ..lexer import print_lex
 
 if __name__ == "__main__":
-#     fwunc mainuwu-san() [[
-#     iwf (fax) [[
-#     sora-senpai = "tokino '| nickname |' sora"~
-#         a-chan = 2~
-# ]]
-#     wetuwn(a)~
-# ]]
-#     fwunc sum-san() [[
-#     iwf (fax) [[
-#         sora-senpai = "tokino '| nickname |' sora"~
-#             a-chan = 2~
-#     ]]
-#     wetuwn(a)~
-# ]]
-# cwass Hololive(name-senpai, age-chan)
-# [[
-#     aqua-chan = 3~
-#         shion-chan = 3~
-#         fwunc sum-chan(number1-chan[], number2-chan)
-#             [[
-#                 sum-chan = number1 + number2~
-#                     wetuwn(sum)~
-#             ]]
-#         ojou-chan = 3~
-#         aqua = 4~
-#         shion = 4~
-#         ojou = 4~
-#         iwf (1 == 2) [[
-#             aqua = 5~
-#         ]] ewse iwf (3 == 4) [[
-#             shion = 5~
-#         ]] ewse [[
-#             ojou = 5~
+    sc = """
+    gwobaw wetuwn 10~
+    fwunc mainuwu-san() [[
+        iwf () [[
+            a-san = 20~
+        ]]
+    ]]
+    """
+#     ewse iwf (4 == 5) [[
+#         aqua-sama = 6~
+#             shion-sama = 6~
+#             ojou-sama = 6~
+#     ]] ewse iwf (7 == 8) [[
+#             aqua-sama = 9~
+#                 shion-sama = 9~
+#                 ojou-sama = 9~
+#         ]] ewse iwf (10 == 11) [[
+#         aqua-sama = 12~
+#             shion-sama = 12~
+#             ojou-sama = 12~
+#     ]] ewse [[
+#     iwf (1 == 2) [[
+#         sora-senpai = "nested!"~
+#     ]] ewse [[
+#             sora-senpai = "if statements!"~
 #         ]]
 # ]]
     sc = """
