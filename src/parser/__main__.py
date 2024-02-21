@@ -10,6 +10,13 @@ if __name__ == "__main__":
         ]]
         wetuwn(a)~
     ]]
+    fwunc sum-san() [[
+        iwf (fax) [[
+            sora-senpai = "tokino '| nickname |' sora"~
+            a-chan = 2~
+        ]]
+        wetuwn(a)~
+    ]]
     cwass Hololive(name-senpai, age-chan)
     [[
         aqua-chan = 3~

@@ -9,12 +9,6 @@ def sprintln(*val, indent = 0):
     'return newline terminated string with optional identation'
     return sprint(*val, indent=indent) + "\n"
 
-def IndentFmt(indent, *val):
-    return f"    " * indent + " ".join(val) + "\n"
-
-def INDENT(n=0) -> str:
-    return "    " * n
-
 ### EXPRESSION PRODUCTIONS
 class PrefixExpression:
     def __init__(self):
@@ -55,7 +49,7 @@ class StringFmt:
         self.exprs = []
         self.end = None
 
-    def string(self, indent = 1):
+    def string(self, indent = 0):
         res = sprintln("string fmt:", indent=0)
         res += sprintln(self.start.string(), indent=indent+1)
         for val in self.mid_expr_iter():
@@ -74,7 +68,7 @@ class StringFmt:
 class ArrayLiteral:
     def __init__(self):
         self.elements = []
-    def string(self, indent = 1):
+    def string(self, indent = 0):
         res = sprintln("array literal:", indent=0)
         for e in self.elements:
             res += sprintln(e.string(), indent=indent+1)
@@ -102,7 +96,7 @@ class ReturnStatement:
         self.expr = None
 
     def string(self, indent = 0):
-        return sprintln("return", self.expr.string(), indent=indent)
+        return sprintln("return", self.expr.string(indent), indent=indent)
     def __len__(self):
         return 1
 
@@ -113,7 +107,7 @@ class ArrayDeclaration:
         self.value = None
         self.is_const: bool = False
 
-    def string(self, indent = 1):
+    def string(self, indent = 0):
         res = sprintln("declare array:", self.id.string(), indent=indent)
         res += sprintln("type:", self.dtype.string(), indent=indent+1)
         if self.is_const:
@@ -144,7 +138,7 @@ class Assignment:
     def __init__(self):
         self.id = None
         self.value = None
-    def string(self, indent = 1):
+    def string(self, indent = 0):
         res = sprintln("assign:", self.id.string(), indent=indent)
         res += sprintln("value:", self.value.string(), indent=indent+1)
         return res
@@ -158,19 +152,19 @@ class Declaration:
         self.value = None
         self.is_const: bool = False
 
-    def string(self, indent = 1):
+    def string(self, indent = 0):
         res = sprintln("declare:", self.id.string(), indent=indent)
         res += sprintln("type:", self.dtype.string(), indent=indent+1)
         if self.is_const:
             res += sprintln("constant", indent=indent+1)
         if self.value:
-            res += sprintln("value:", self.value.string(), indent=indent+1)
+            res += sprintln("value:", self.value.string(indent+1), indent=indent+1)
         return res
 
 class Print:
     def __init__(self):
         self.values = []
-    def string(self, indent = 1):
+    def string(self, indent = 0):
         res = sprintln("print:", indent=indent)
         for v in self.values:
             res += sprintln(v.string(), indent=indent+1)
@@ -179,9 +173,9 @@ class Print:
 class Input:
     def __init__(self):
         self.value = None
-    def string(self, indent = 1):
+    def string(self, indent = 0):
         return sprintln("input:", self.value.string(), indent=indent)
-    def print(self, indent = 1):
+    def print(self, indent = 0):
         print(f"{INDENT(indent)} input: ", end='')
         self.value.print(indent)
 
@@ -190,7 +184,7 @@ class Parameter:
         self.id = None
         self.dtype = None
 
-    def string(self, indent = 1):
+    def string(self, indent = 0):
         res = sprintln("param:", self.id.string(), indent=0)
         res += sprintln("dtype:", self.dtype.string(), indent=indent+1)
         return res
@@ -203,7 +197,7 @@ class IfStatement:
         self.else_if: list[ElseIfStatement] = []
         self.else_block = None
 
-    def string(self, indent = 1):
+    def string(self, indent = 0):
         res = sprintln("if statement:", indent=indent)
         res += sprintln("condition:", self.condition.string(), indent=indent+1)
         res += sprintln("then:", indent=indent+1)
@@ -231,7 +225,7 @@ class WhileLoop:
         self.condition = None
         self.body = None
         self.is_do = False
-    def string(self, indent = 1):
+    def string(self, indent = 0):
         res = sprintln(f"{f'do' if self.is_do else ''} while statement:", indent=indent)
         res += sprintln("condition:", self.condition.string(), indent=indent+1)
         res += sprintln("body:", indent=indent+1)
@@ -244,7 +238,7 @@ class ForLoop:
         self.condition = None
         self.update = None
         self.body = None
-    def string(self, indent = 1):
+    def string(self, indent = 0):
         res = sprintln("for statement:", indent=indent)
         res += sprintln("init:", self.init.string(), indent=indent+1)
         res += sprintln("condition:", self.condition.string(), indent=indent+1)
@@ -260,7 +254,7 @@ class Function:
         self.params: list[Parameter] = []
         self.body = None
 
-    def string(self, indent = 1):
+    def string(self, indent = 0):
         res = sprintln("function:", self.id.string(), indent=indent)
         res += sprintln("rtype:", self.rtype.string(), indent=indent+1)
         if self.params:
@@ -270,6 +264,7 @@ class Function:
         else:
             res += sprintln("parameters: None", indent=indent+1)
         res += sprintln("body:", indent=indent+1)
+        print(indent)
         res += self.body.string(indent+2)
         return res
 
@@ -280,7 +275,7 @@ class Class:
         self.body: list = []
         self.properties: list = []
         self.methods: list = []
-    def string(self, indent = 1):
+    def string(self, indent = 0):
         res = sprintln("class:", self.id.string(), indent=indent)
         if self.params:
             res += sprintln("parameters:", indent=indent+1)
@@ -302,7 +297,7 @@ class Class:
 class BlockStatement:
     def __init__(self):
         self.statements = []
-    def string(self, indent = 1):
+    def string(self, indent = 0):
         res = sprintln("block:", indent=indent)
         for s in self.statements:
             res += s.string(indent+1)
@@ -318,14 +313,14 @@ class Program:
 
     def __str__(self):
         res = "MAINUWU:\n"
-        res += self.mainuwu.string()
+        res += self.mainuwu.string(1)
         res += "\nGLOBALS:\n"
         for g in self.globals:
-            res += g.string()
+            res += g.string(1)
         res += "\nFUNCTIONS:\n"
         for fn in self.functions:
-            res += fn.string()
+            res += fn.string(1)
         res += "\nCLASSES:\n"
         for c in self.classes:
-            res += c.string()
+            res += c.string(1)
         return res
