@@ -26,8 +26,8 @@ class PrefixExpression:
         self.op = None
         self.right = None
 
-    def string(self, indent = 1):
-        return IndentFmt(indent, f"{self.op.string()} {self.right.string()}")
+    def string(self, _ = 1):
+        return IndentFmt(0, f"prefix: {self.op.string()} {self.right.string()}")[:-1]
     def print(self, indent = 1):
         print(f"prefix: {self.__str__()}")
     def __str__(self):
@@ -41,8 +41,8 @@ class InfixExpression:
         self.op = None
         self.right = None
 
-    def string(self, indent = 1):
-        return IndentFmt(indent, f"{self.left.string()} {self.op.string()} {self.right.string()}")
+    def string(self, _ = 1):
+        return IndentFmt(0, f"infix: {self.left.string()} {self.op.string()} {self.right.string()}")[:-1]
     def print(self, indent = 1):
         print(f"infix: {self.__str__()}")
     def __str__(self):
@@ -55,8 +55,8 @@ class PostfixExpression:
         self.left = None
         self.op = None
 
-    def string(self, indent = 1):
-        return IndentFmt(indent, f"{self.left.string()} {self.op.string()}")
+    def string(self, _ = 1):
+        return IndentFmt(0, f"postfix: {self.left.string()} {self.op.string()}")[:-1]
     def print(self, indent = 1):
         print(f"postfix: {self.__str__()}")
     def __str__(self):
@@ -72,15 +72,18 @@ class StringFmt:
         self.end = None
 
     def string(self, indent = 1):
-        res = IndentFmt(indent, "string fmt:")
+        res = IndentFmt(0, "string fmt:")
         res += IndentFmt(indent+1, f"{self.start.string()}")
+        for val in self.mid_expr_iter():
+            res += IndentFmt(indent+1, val.string())
+        res += IndentFmt(indent+1, self.end.string())
+        return res[:-1]
+    def mid_expr_iter(self):
         if self.exprs:
-            res += IndentFmt(indent+1, f"{self.exprs[0].string()}")
+            yield self.exprs[0]
         for m,e in zip(self.mid, self.exprs[1:]):
-            res += IndentFmt(indent+1, f"{m.string()}")
-            res += IndentFmt(indent+1, f"{e.string()}")
-        res += IndentFmt(indent+1, f"{self.end.string()}")
-        return res
+            yield m
+            yield e
     def print(self, indent = 1):
         print(f"string fmt: ")
         print(f"{INDENT(indent+1)}", end='')
@@ -191,7 +194,7 @@ class Declaration:
         if self.is_const:
             res += IndentFmt(indent+1, "constant")
         if self.value:
-            res += IndentFmt(indent+1, "value:", self.value.string())
+            res += IndentFmt(indent+1, "value:", self.value.string(indent+1))
         return res
 
     def print(self, indent = 1):
@@ -349,12 +352,13 @@ class Function:
         if self.params:
             res += IndentFmt(indent+1, "parameters:")
             for param in self.params:
-                res += IndentFmt(indent+2, param.string())
+                res += IndentFmt(indent+2, param.string(indent+2))[:-1]
         else:
             res += IndentFmt(indent+1, "parameters: None")
         res += IndentFmt(indent+1, "body:")
         res += self.body.string(indent+2)
         return res
+
     def print(self, indent = 1):
         print(f"{INDENT(indent)} function: ", end='')
         self.id.print(indent)
@@ -376,7 +380,7 @@ class Parameter:
         self.dtype = None
 
     def string(self, indent = 1):
-        res = IndentFmt(indent, "param:", self.id.string())
+        res = IndentFmt(0, "param:", self.id.string())
         res += IndentFmt(indent+1, "dtype:", self.dtype.string())
         return res
     def print(self, indent = 1):
@@ -397,7 +401,7 @@ class Class:
         if self.params:
             res += IndentFmt(indent+1, "parameters:")
             for param in self.params:
-                res += IndentFmt(indent+2, param.string())
+                res += IndentFmt(indent+2, param.string(indent+2))[:-1]
         if self.properties:
             res += IndentFmt(indent+1, "properties:")
             for prop in self.properties:

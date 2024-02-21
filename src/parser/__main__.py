@@ -5,10 +5,11 @@ if __name__ == "__main__":
     sc = """
     fwunc mainuwu-san() [[
         iwf (fax) [[
+            sora-senpai = "tokino '| nickname |' sora"~
             a-chan = 2~
         ]]
     ]]
-    cwass Hololive()
+    cwass Hololive(name-senpai, age-chan)
     [[
         aqua-chan = 3~
         shion-chan = 3~
@@ -77,7 +78,6 @@ if __name__ == "__main__":
     # }~
     #     gwobaw ojou-chan = shion(1, 2, aqua(3+4*5), lap("hello |-name--| world"))~
     #     gwobaw shion-chan = 1+- (1-2) -- == 5 -3-- *-5 ~
-    # gwobaw sora-senpai = "tokino '| -nickname |' sora"~
     # gwobaw lap-chan[5]-dono = {1,2,3,4,5,6,7,8,9,10}~
     # gwobaw suba-chan[5] = {2+2, (3+3)*3}~
 
