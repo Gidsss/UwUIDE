@@ -310,17 +310,3 @@ class Program:
         for c in self.classes:
             res += c.string()
         return res
-
-    def string(self, indent = 1):
-        res = "MAINUWU:\n"
-        res += self.mainuwu.string(indent)
-        res += "\nGLOBALS:\n"
-        for g in self.globals:
-            res += g.string(indent)
-        res += "\nFUNCTIONS:\n"
-        for fn in self.functions:
-            res += fn.string(indent)
-        res += "\nCLASSES:\n"
-        for c in self.classes:
-            res += c.string(indent)
-        return res
