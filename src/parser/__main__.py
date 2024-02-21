@@ -8,6 +8,7 @@ if __name__ == "__main__":
             sora-senpai = "tokino '| nickname |' sora"~
             a-chan = 2~
         ]]
+        wetuwn(a)~
     ]]
     cwass Hololive(name-senpai, age-chan)
     [[
