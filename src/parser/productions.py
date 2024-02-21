@@ -16,7 +16,7 @@ class PrefixExpression:
         self.right = None
 
     def string(self, _ = 1):
-        return sprint("prefix:", self.op.string(), self.right.string(), indent=0)
+        return sprint(self.op.string(), self.right.string(), indent=0)
     def __len__(self):
         return 1
 
@@ -27,7 +27,7 @@ class InfixExpression:
         self.right = None
 
     def string(self, _ = 1):
-        return sprint("infix:", self.left.string(), self.op.string(), self.right.string(), indent=0)
+        return sprint(f'({self.left.string()} {self.op.string()} {self.right.string()})', indent=0)
     def __len__(self):
         return 1
 
@@ -37,7 +37,7 @@ class PostfixExpression:
         self.op = None
 
     def string(self, _ = 1):
-        return sprint("postfix:", self.left.string(), self.op.string(), indent=0)
+        return sprint(self.left.string(), self.op.string(), indent=0)
     def __len__(self):
         return 1
 
@@ -314,43 +314,37 @@ class Program:
     #   not changing them now to avoid conflicts
     #   in another branch
 
-    @property # rename in __init__(): self._mainuwu
-              # rename this: self.mainuwu
-    def main(self):
-        res = self.mainuwu.string(1)
+    def main(self, indent = 0):
+        if not self.mainuwu:
+            return ''
+        res = self.mainuwu.string(indent)
         return res + "\n"
 
-    @property # rename in __init__(): self._globals
-              # rename this: self.globals
-    def globs(self):
+    def globs(self, indent = 0):
         res = ''
         for g in self.globals:
-            res += g.string(1)
+            res += g.string(indent)
         return res + "\n"
 
-    @property # rename in __init__(): self._functions
-              # rename this: self.functions
-    def funcs(self):
+    def funcs(self, indent = 0):
         res = ''
         for fn in self.functions:
-            res += fn.string(1)
+            res += fn.string(indent)
         return res + "\n"
 
-    @property # rename in __init__(): self._classes
-              # rename this: self.classes
-    def _classes(self):
+    def _classes(self, indent = 0):
         res = ''
         for c in self.classes:
-            res += c.string(1)
+            res += c.string(indent)
         return res + "\n"
 
     def __str__(self):
         res = "MAINUWU:\n"
-        res += self.main
+        res += self.main(1)
         res += "GLOBALS:\n"
-        res += self.globs
+        res += self.globs(1)
         res += "FUNCTIONS:\n"
-        res += self.funcs
+        res += self.funcs(1)
         res += "CLASSES:\n"
-        res += self._classes
+        res += self._classes(1)
         return res
