@@ -221,12 +221,10 @@ class Parser:
             TokenType.KUN,
             TokenType.SAMA,
             TokenType.SENPAI,
+            TokenType.SAN
         ]
         if not self.expect_peek_in(data_types):
-            if self.peek_tok_is(TokenType.SAN):
-                self.san_as_standard_data_type_error()
-            else:
-                self.no_data_type_error(self.peek_tok)
+            self.no_data_type_error(self.peek_tok)
             self.advance(2)
             return None
         d.dtype = self.curr_tok
@@ -409,13 +407,11 @@ class Parser:
                     TokenType.KUN,
                     TokenType.SAMA,
                     TokenType.SENPAI,
+                    TokenType.SAN
                 ]
 
                 if not self.expect_peek_in(data_types):
-                    if self.peek_tok_is(TokenType.SAN):
-                        self.san_as_standard_data_type_error()
-                    else:
-                        self.no_data_type_error(self.peek_tok)
+                    self.no_data_type_error(self.peek_tok)
                     self.advance(2)
                     return None
                 param.dtype = self.curr_tok
@@ -1031,14 +1027,6 @@ class Parser:
             token.end_position
         ))
         self.errors.append(f"Expected data type, got {token.lexeme}")
-    def san_as_standard_data_type_error(self):
-        self.errors.append(Error(
-            "INVALID SAN DATA TYPE",
-            f"'san' data type can only be used as a return type for functions.",
-            self.peek_tok.position,
-            self.peek_tok.end_position
-        ))
-        # self.errors.append(f"'san' data type can only be used as a return type for functions")
     def no_dono_error(self, token: Token):
         self.errors.append(Error(
             "MISSING DONO",
