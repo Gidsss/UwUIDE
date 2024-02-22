@@ -81,8 +81,6 @@ class Parser:
         self.register_init()
 
         self.program = self.parse_program()
-        if self.program.mainuwu is None:
-            self.missing_mainuwu_error()
 
     def advance(self, inc: int = 1):
         'advance the current and peek tokens based on the increment. default is 1'
@@ -174,10 +172,6 @@ class Parser:
             match self.curr_tok.token:
                 case TokenType.FWUNC:
                     if self.peek_tok_is(TokenType.MAINUWU):
-                        if p.mainuwu is not None:
-                            self.multiple_mainuwu_error()
-                            self.advance(2)
-                            continue
                         p.mainuwu = self.parse_function()
                     else:
                         p.functions.append(self.parse_function())
@@ -1141,8 +1135,3 @@ class Parser:
             self.curr_tok.end_position
         ))
         # self.errors.append("Return statement in class declaration")
-
-    def missing_mainuwu_error(self):
-        self.errors.append("Missing mainuwu function declaration")
-    def multiple_mainuwu_error(self):
-        self.errors.append("Multiple mainuwu function declaration")
