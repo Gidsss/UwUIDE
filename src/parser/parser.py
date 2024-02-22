@@ -250,11 +250,6 @@ class Parser:
 
         # uninitialized
         if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
-            # disallow uninitialized for constants
-            if d.is_const:
-                self.uninitialized_constant_error(self.peek_tok)
-                self.advance(2)
-                return None
             # allow uninitialized for variables
             if not self.expect_peek(TokenType.TERMINATOR):
                 self.unterminated_error(self.peek_tok)
@@ -1095,14 +1090,6 @@ class Parser:
             self.curr_tok.end_position
         ))
         # self.errors.append(f"Code bodies must have at least one or more statement")
-    def uninitialized_constant_error(self, token: Token):
-        self.errors.append(Error(
-            "CONSTANTS MUST BE INITIALIZED",
-            f"Expected '=', got '{token.lexeme}'.",
-            token.position,
-            token.end_position
-        ))
-        # self.errors.append(f"Constants must be initialized. got '{token.lexeme}'")
     def uninitialized_assignment_error(self, token: Token):
         self.errors.append(Error(
             "MISSING VALUE ASSIGNMENT",
