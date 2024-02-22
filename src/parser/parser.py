@@ -360,11 +360,7 @@ class Parser:
                 case _:
                     inner_stop_conditions = stop_conditions + [TokenType.FWUNC]
                     while not self.curr_tok_is_in(inner_stop_conditions):
-                        if self.curr_tok_is(TokenType.WETUWN):
-                            self.return_in_class_error()
-                            self.advance()
-                            continue
-                        elif isinstance(self.curr_tok.token, UniqueTokenType):
+                        if isinstance(self.curr_tok.token, UniqueTokenType):
                             parser = self.get_in_block_parse_fn("IDENTIFIER")
                         else:
                             parser = self.get_in_block_parse_fn(self.curr_tok.token)
@@ -1123,11 +1119,3 @@ class Parser:
             token.end_position
         ))
         # self.errors.append(f"Unclosed string part. Expected '{string_start.lexeme[:-1]}|' to be closed by something like '|string part end\"'. got '{token.lexeme}'")
-    def return_in_class_error(self):
-        self.errors.append(Error(
-            "RETURN STATEMENT IN CLASS",
-            f"Class declarations cannot have return statements",
-            self.curr_tok.position,
-            self.curr_tok.end_position
-        ))
-        # self.errors.append("Return statement in class declaration")
