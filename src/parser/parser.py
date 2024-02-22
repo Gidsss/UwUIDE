@@ -333,7 +333,7 @@ class Parser:
         func.body = self.parse_block_statement()
         if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
             self.advance()
-            self.unclosed_bracket_error(self.curr_tok)
+            self.unclosed_double_bracket_error(self.curr_tok)
             return None
 
         return func
@@ -378,7 +378,7 @@ class Parser:
                         c.body.statements.append(statement)
                         self.advance()
         if not self.curr_tok_is(TokenType.DOUBLE_CLOSE_BRACKET):
-            self.unclosed_bracket_error(self.curr_tok)
+            self.unclosed_double_bracket_error(self.curr_tok)
             return None
         return c
 
@@ -469,7 +469,7 @@ class Parser:
         ie.then = self.parse_block_statement()
         if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
             self.advance()
-            self.unclosed_bracket_error(self.curr_tok)
+            self.unclosed_double_bracket_error(self.curr_tok)
             return None
 
         while self.expect_peek(TokenType.EWSE_IWF):
@@ -491,7 +491,7 @@ class Parser:
             eie.then = self.parse_block_statement()
             if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
                 self.advance()
-                self.unclosed_bracket_error(self.curr_tok)
+                self.unclosed_double_bracket_error(self.curr_tok)
                 return None
             ie.else_if.append(eie)
 
@@ -503,7 +503,7 @@ class Parser:
             ie.else_block = self.parse_block_statement()
             if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
                 self.advance()
-                self.unclosed_bracket_error(self.curr_tok)
+                self.unclosed_double_bracket_error(self.curr_tok)
                 return None
         return ie
 
@@ -587,7 +587,7 @@ class Parser:
         wl.body = self.parse_block_statement()
         if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
             self.advance()
-            self.unclosed_bracket_error(self.curr_tok)
+            self.unclosed_double_bracket_error(self.curr_tok)
             return None
         return wl
 
@@ -630,7 +630,7 @@ class Parser:
         fl.body = self.parse_block_statement()
         if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
             self.advance()
-            self.unclosed_bracket_error(self.curr_tok)
+            self.unclosed_double_bracket_error(self.curr_tok)
             return None
         return fl
 
@@ -1071,6 +1071,14 @@ class Parser:
             token.end_position
         ))
         # self.errors.append(f"Expected ')' to close the parenthesis, got {token.lexeme}")
+    def unclosed_double_bracket_error(self, token: Token):
+        self.errors.append(Error(
+            "UNCLOSED DOUBLE BRACKET",
+            f"Expected ']]' to close the double bracket, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
+        # self.errors.append(f"Expected '}}' to close the double bracket, got {token.lexeme}")
     def unclosed_bracket_error(self, token: Token):
         self.errors.append(Error(
             "UNCLOSED BRACKET",
@@ -1106,7 +1114,7 @@ class Parser:
     def uninitialized_constant_error(self, token: Token):
         self.errors.append(Error(
             "CONSTANTS MUST BE INITIALIZED",
-            f"Constants must be initialized, got '{token.lexeme}'.",
+            f"Expected '=', got '{token.lexeme}'.",
             token.position,
             token.end_position
         ))
