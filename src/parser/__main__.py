@@ -63,6 +63,7 @@ if __name__ == "__main__":
     l = Lexer(source)
     if l.errors:
         exit(1)
+
     ErrorSrc.src = source
     p = Parser(l.tokens)
     print()
@@ -79,3 +80,6 @@ if __name__ == "__main__":
     print(p.program.funcs())
     print("\n--- Printing only Classes ---")
     print(p.program._classes())
+
+    if p.errors:
+        exit(1)
