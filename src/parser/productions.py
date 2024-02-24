@@ -85,7 +85,7 @@ class FnCall:
         self.in_expr = False    # For determining indent in printing
 
     def string(self, indent = 1):
-        i = indent if self.in_expr else 0
+        i = 0 if self.in_expr else indent
         return sprintln("call:", self.id.string(), 
                         f'({", ".join([a.string() for a in self.args])})', 
                         indent=i)
