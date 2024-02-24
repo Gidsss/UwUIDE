@@ -196,8 +196,7 @@ class Parser:
                     self.advance()
 
         if p.mainuwu is None:
-            self.missing_mainuwu(self.curr_tok)
-            return None
+            self.missing_mainuwu()
 
         return p
 
