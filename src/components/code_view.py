@@ -3,6 +3,7 @@ from tkinter import *
 from constants.path import *
 
 from src.lexer import Lexer, Token, Error
+from src.parser import Parser
 
 from enum import Enum
 from PIL import Image
@@ -69,10 +70,11 @@ class Tags(Enum):
 
 
 class CodeEditor(CTkFrame):
-    def __init__(self, master, lexer: Lexer, **kwargs):
+    def __init__(self, master, lexer: Lexer, parser: Parser, **kwargs):
         super().__init__(master, **kwargs)
 
         self.lexer = lexer
+        self.parser = parser
         self.tokens: list[Token] = []
         self.errors: list[Error] = []
 
@@ -118,6 +120,13 @@ class CodeEditor(CTkFrame):
         self.errors = lx.errors
 
         Remote.code_editor_instance = self
+
+    def run_parser(self):
+        if self.tokens == 0:
+            return
+        
+        p: Parser = self.parser(self.tokens)
+        print(p.program.print())
 
     def format(self, tag: str, start_pos: tuple[int, int], end_pos: tuple[int, int] = None):
         """
@@ -201,7 +210,7 @@ class CodeView(CTkTabview):
         tab.grid_columnconfigure((0, 1), weight=1)
         tab.grid_rowconfigure((0, 1), weight=1)
 
-        code_editor = CodeEditor(master=tab, fg_color='transparent', lexer=Lexer)
+        code_editor = CodeEditor(master=tab, fg_color='transparent', lexer=Lexer, parser=Parser)
         code_editor.grid(row=0, column=0, rowspan=2, columnspan=2, sticky='nsew')
 
         self.code_editors[file_name] = code_editor
