@@ -172,7 +172,11 @@ class Parser:
             match self.curr_tok.token:
                 case TokenType.FWUNC:
                     if self.peek_tok_is(TokenType.MAINUWU):
-                        p.mainuwu = self.parse_function()
+                        if p.mainuwu is not None:
+                            self.multiple_mainuwu(self.peek_tok)
+                            self.advance(2)
+                        else:
+                            p.mainuwu = self.parse_function(main=True)
                     else:
                         p.functions.append(self.parse_function())
                 case TokenType.CWASS:
@@ -184,6 +188,11 @@ class Parser:
                 case _:
                     self.invalid_global_declaration_error(self.curr_tok)
                     self.advance()
+
+        if p.mainuwu is None:
+            self.missing_mainuwu()
+            return None
+
         return p
 
     def parse_declaration(self, ident = None):
@@ -291,7 +300,7 @@ class Parser:
         return rs
 
     # block statements
-    def parse_function(self):
+    def parse_function(self, main=False):
         func = Function()
 
         if not self.expect_peek_is_identifier() and not self.expect_peek(TokenType.MAINUWU):
@@ -305,27 +314,33 @@ class Parser:
             self.advance(2)
             return None
 
-        data_types = [
-            TokenType.CHAN,
-            TokenType.KUN,
-            TokenType.SAMA,
-            TokenType.SENPAI,
-            TokenType.SAN
-        ]
+        if main:
+            if not self.expect_peek(TokenType.SAN):
+                self.invalid_mainuwu_rtype(self.peek_tok)
+                self.advance(2)
+                return None
+        else:
+            data_types = [
+                TokenType.CHAN,
+                TokenType.KUN,
+                TokenType.SAMA,
+                TokenType.SENPAI,
+                TokenType.SAN
+            ]
 
-        if not self.expect_peek_in(data_types):
-            self.no_data_type_error(self.peek_tok)
-            self.advance(2)
-            return None
+            if not self.expect_peek_in(data_types):
+                self.no_data_type_error(self.peek_tok)
+                self.advance(2)
+                return None
         func.rtype = self.curr_tok
-        func.params = self.parse_params()
+        func.params = self.parse_params(main=main)
         if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
             self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
-            self.advance()
+            self.advance(2)
             return None
         func.body = self.parse_block_statement()
         if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
-            self.advance()
+            self.advance(2)
             self.unclosed_double_bracket_error(self.curr_tok)
             return None
 
@@ -371,7 +386,7 @@ class Parser:
             return None
         return c
 
-    def parse_params(self):
+    def parse_params(self, main=False):
         'note that this must start with ( in peek_tok'
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
@@ -379,6 +394,12 @@ class Parser:
             return None
 
         if not self.expect_peek(TokenType.CLOSE_PAREN):
+            # If parameters are for main function, raise error immediately cuz it can't have params
+            if main:
+                self.invalid_mainuwu_params(self.peek_tok)
+                self.advance()
+                return None
+
             parameters: list[Parameter] = []
             while True:
                 param = Parameter()
@@ -533,7 +554,7 @@ class Parser:
         a = Assignment()
         a.id = ident
         if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
-            self.peek_error(self.peek_tok)
+            self.peek_error(TokenType.ASSIGNMENT_OPERATOR)
             self.advance()
             return None
         self.advance()
@@ -1106,3 +1127,29 @@ class Parser:
             token.end_position
         ))
         # self.errors.append(f"Unclosed string part. Expected '{string_start.lexeme[:-1]}|' to be closed by something like '|string part end\"'. got '{token.lexeme}'")
+    def invalid_mainuwu_rtype(self, token: Token):
+        self.errors.append(Error(
+            "INVALID MAINUWU FUNCTION",
+            f"The mainuwu function's return type must only be 'san', got '{token}'.",
+            token.position,
+            token.end_position
+        ))
+    def invalid_mainuwu_params(self, token: Token):
+        self.errors.append(Error(
+            "INVALID MAINUWU FUNCTION",
+            f"Expected ')', got '{token}'.\n\tThe mainuwu function cannot accept any parameters.",
+            token.position,
+            token.end_position
+        ))
+    def multiple_mainuwu(self, token: Token):
+        self.errors.append(Error(
+            "MULTIPLE MAINUWU FUNCTION",
+            f"The program must only have one mainuwu function.",
+            token.position,
+            token.end_position
+        ))
+    def missing_mainuwu(self):
+        self.errors.append(BasicError(
+            "MISSING MAINUWU FUNCTION",
+            f"The program must have at least one mainuwu function.",
+        ))
