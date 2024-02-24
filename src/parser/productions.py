@@ -1,3 +1,4 @@
+from src.lexer import Token
 '''
 All productions must have these properties:
 1. folded: bool
@@ -5,9 +6,17 @@ All productions must have these properties:
 All productions must have these methods:
 1. string(self, indent = 0)
 2. toggle_fold(self)
-3. child_nodes(self) -> str | list[production classes]
-    - returns string if atomic (aka leaf)
-    - returns other production classes if not
+
+3. header(self) -> str
+    - returns the string representation of the production
+    - it can be a title or the value of the production itself
+    - titles are for class productions
+    - values are for atomic productions
+
+4. child_nodes(self) -> None | list[production classes]
+    - returns None if atomic (aka leaf)
+        - the value of the atomic production is in the header() method
+    - returns a list of other production classes if not
 '''
 
 def sprint(*val, indent = 0):
@@ -26,11 +35,13 @@ class PrefixExpression:
 
     def toggle_fold(self):
         self.folded = not self.folded
-    def child_nodes(self) -> str | list:
+    def header(self):
         return self.string()
+    def child_nodes(self) -> None | list:
+        return None
 
     def string(self, _ = 1):
-        return sprint(self.op.string(), self.right.string(), indent=0)
+        return sprint(self.op.string(), self.right.string())
     def __len__(self):
         return 1
 
@@ -43,11 +54,13 @@ class InfixExpression:
 
     def toggle_fold(self):
         self.folded = not self.folded
-    def child_nodes(self) -> str | list:
+    def header(self):
         return self.string()
+    def child_nodes(self) -> None | list:
+        return None
 
     def string(self, _ = 1):
-        return sprint(f'({self.left.string()} {self.op.string()} {self.right.string()})', indent=0)
+        return f'({self.left.string()} {self.op.string()} {self.right.string()})'
     def __len__(self):
         return 1
 
@@ -57,10 +70,12 @@ class PostfixExpression:
         self.op = None
         self.folded = False
 
-    def toggle_fold(self) -> str | list:
+    def toggle_fold(self):
         self.folded = not self.folded
-    def child_nodes(self):
+    def header(self):
         return self.string()
+    def child_nodes(self) -> None | list:
+        return None
 
     def string(self, _ = 1):
         return sprint(self.left.string(), self.op.string(), indent=0)
@@ -78,8 +93,10 @@ class StringFmt:
 
     def toggle_fold(self):
         self.folded = not self.folded
-    def child_nodes(self) -> str | list:
-        return self.string()
+    def header(self):
+        return "string fmt:"
+    def child_nodes(self) -> None | list:
+        return [self.start, self.mid_expr(), self.end]
 
     def string(self, indent = 0):
         res = sprintln("string fmt:", indent=0)
@@ -94,6 +111,15 @@ class StringFmt:
         for m,e in zip(self.mid, self.exprs[1:]):
             yield m
             yield e
+    def mid_expr(self):
+        all = []
+        if self.exprs:
+            all.append(self.exprs[0])
+        for m,e in zip(self.mid, self.exprs[1:]):
+            all.append(m)
+            all.append(e)
+        return all
+
     def __len__(self):
         return 1
 
@@ -104,9 +130,13 @@ class ArrayLiteral:
 
     def toggle_fold(self):
         self.folded = not self.folded
-    def child_nodes(self) -> str | list:
+    def header(self):
         if self.folded:
-            return "..."
+            return "array literal ..."
+        return "array literal:"
+    def child_nodes(self) -> None | list:
+        if self.folded:
+            return None
         return self.elements
 
     def string(self, indent = 0):
@@ -128,10 +158,16 @@ class FnCall:
 
     def toggle_fold(self):
         self.folded = not self.folded
-    def child_nodes(self) -> str | list:
-        if self.folded:
-            return "..."
-        return self.args
+    def header(self):
+        if self.in_expr:
+            return sprint(self.id.string(),
+                            f'({", ".join([a.string() for a in self.args])})',
+                            indent=0)
+        return sprint("call:", self.id.string(),
+                        f'({", ".join([a.string() for a in self.args])})',
+                        indent=0)
+    def child_nodes(self) -> None | list:
+        return None
 
     def string(self, indent = 1):
         if self.in_expr:
@@ -153,8 +189,10 @@ class ReturnStatement:
 
     def toggle_fold(self):
         self.folded = not self.folded
-    def child_nodes(self) -> str | list:
+    def header(self):
         return self.string()
+    def child_nodes(self) -> None | list:
+        return None
 
     def string(self, indent = 0):
         return sprintln("return", self.expr.string(indent), indent=indent)
@@ -163,7 +201,7 @@ class ReturnStatement:
 
 class ArrayDeclaration:
     def __init__(self):
-        self.id = None
+        self.id: Token = None
         self.dtype = None
         self.value = None
         self.is_const: bool = False
@@ -171,9 +209,13 @@ class ArrayDeclaration:
 
     def toggle_fold(self):
         self.folded = not self.folded
-    def child_nodes(self) -> str | list:
+    def header(self):
         if self.folded:
-            return "..."
+            return f"declare array: {self.id.string()} ..."
+        return f"declare array: {self.id.string()}"
+    def child_nodes(self) -> None | list:
+        if self.folded:
+            return None
         return [self.dtype, self.value, self.is_const]
 
     def string(self, indent = 0):
@@ -205,28 +247,32 @@ class ArrayDeclaration:
 
 class UselessIdStatement:
     def __init__(self):
-        self.id = None
+        self.id: Token = None
         self.folded = False
 
     def toggle_fold(self):
         self.folded = not self.folded
-    def child_nodes(self) -> str | list:
+    def header(self):
         return self.string()
+    def child_nodes(self) -> None | list:
+        return None
 
     def string(self, indent = 0):
         return sprintln("id:", self.id.string(), indent=indent)
 
 class Assignment:
     def __init__(self):
-        self.id = None
+        self.id: Token = None
         self.value = None
         self.folded = False
 
     def toggle_fold(self):
         self.folded = not self.folded
-    def child_nodes(self) -> str | list:
+    def header(self):
+        return f"assign: {self.id.string()}"
+    def child_nodes(self) -> None | list:
         if self.folded:
-            return "..."
+            return None
         return [self.value]
 
     def string(self, indent = 0):
@@ -246,9 +292,13 @@ class Declaration:
 
     def toggle_fold(self):
         self.folded = not self.folded
-    def child_nodes(self) -> str | list:
+    def header(self):
         if self.folded:
-            return "..."
+            return f"declare: {self.id.string()} ..."
+        return f"declare: {self.id.string()}"
+    def child_nodes(self) -> None | list:
+        if self.folded:
+            return None
         return [self.dtype, self.value, self.is_const]
 
     def string(self, indent = 0):
@@ -267,8 +317,12 @@ class Print:
 
     def toggle_fold(self):
         self.folded = not self.folded
-    def child_nodes(self) -> str | list:
-        return self.string()
+    def header(self):
+        if self.folded:
+            return "print: ..."
+        return "print"
+    def child_nodes(self) -> None | list:
+        return self.values
 
     def string(self, indent = 0):
         res = sprintln("print:", indent=indent)
@@ -283,8 +337,12 @@ class Input:
 
     def toggle_fold(self):
         self.folded = not self.folded
-    def child_nodes(self) -> str | list:
-        return self.string()
+    def header(self):
+        if self.folded:
+            return "input: ..."
+        return "input"
+    def child_nodes(self) -> None | list:
+        return [self.value]
 
     def string(self, indent = 0):
         return sprintln("input:", self.value.string(), indent=indent)
@@ -300,8 +358,10 @@ class Parameter:
 
     def toggle_fold(self):
         self.folded = not self.folded
-    def child_nodes(self) -> str | list:
-        return f"id: {self.id}, dtype: {self.dtype}"
+    def header(self):
+        return f"param: id: {self.id.string()} dtype: {self.dtype.string()}"
+    def child_nodes(self) -> None | list:
+        return None
 
     def string(self, indent = 0):
         res = sprintln("param:", self.id.string(), indent=0)
@@ -319,9 +379,13 @@ class IfStatement:
 
     def toggle_fold(self):
         self.folded = not self.folded
-    def child_nodes(self) -> str | list:
+    def header(self):
         if self.folded:
-            return "..."
+            return "if statement: ..."
+        return "if statement:"
+    def child_nodes(self) -> None | list:
+        if self.folded:
+            return None
         return [self.condition, self.then, self.else_if, self.else_block]
 
     def string(self, indent = 0):
@@ -344,9 +408,13 @@ class ElseIfStatement:
 
     def toggle_fold(self):
         self.folded = not self.folded
-    def child_nodes(self) -> str | list:
+    def header(self):
         if self.folded:
-            return "..."
+            return "else if statement: ..."
+        return "else if statement:"
+    def child_nodes(self) -> None | list:
+        if self.folded:
+            return None
         return [self.condition, self.then]
 
     def string(self, indent = 0):
@@ -365,9 +433,13 @@ class WhileLoop:
 
     def toggle_fold(self):
         self.folded = not self.folded
-    def child_nodes(self) -> str | list:
+    def header(self):
         if self.folded:
-            return "..."
+            return f"{'do' if self.is_do else ''} while statement: ..."
+        return "while statement:"
+    def child_nodes(self) -> None | list:
+        if self.folded:
+            return None
         if self.is_do:
             return ["do while", self.condition, self.body]
         return [self.condition, self.body]
@@ -389,9 +461,13 @@ class ForLoop:
 
     def toggle_fold(self):
         self.folded = not self.folded
-    def child_nodes(self) -> str | list:
+    def header(self):
         if self.folded:
-            return "..."
+            return "for loop: ..."
+        return "for loop:"
+    def child_nodes(self) -> None | list:
+        if self.folded:
+            return None
         return [self.init, self.condition, self.update, self.body]
 
     def string(self, indent = 0):
@@ -413,9 +489,13 @@ class Function:
 
     def toggle_fold(self):
         self.folded = not self.folded
-    def child_nodes(self) -> str | list:
+    def header(self):
         if self.folded:
-            return "..."
+            return f"function: {self.id.string()} ..."
+        return f"function: {self.id.string()}"
+    def child_nodes(self) -> None | list:
+        if self.folded:
+            return None
         return [self.rtype, self.params, self.body]
 
     def string(self, indent = 0):
@@ -442,9 +522,13 @@ class Class:
 
     def toggle_fold(self):
         self.folded = not self.folded
-    def child_nodes(self) -> str | list:
+    def header(self):
         if self.folded:
-            return "..."
+            return f"class: {self.id.string()} ..."
+        return f"class: {self.id.string()}"
+    def child_nodes(self) -> None | list:
+        if self.folded:
+            return None
         return [self.params, self.body, self.properties, self.methods]
 
     def string(self, indent = 0):
@@ -473,9 +557,13 @@ class BlockStatement:
 
     def toggle_fold(self):
         self.folded = not self.folded
-    def child_nodes(self) -> str | list:
+    def header(self):
         if self.folded:
-            return "..."
+            return "block: ..."
+        return "block"
+    def child_nodes(self) -> None | list:
+        if self.folded:
+            return None
         return self.statements
 
     def string(self, indent = 0):
