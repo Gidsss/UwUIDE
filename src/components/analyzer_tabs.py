@@ -36,6 +36,8 @@ class UwUParserTab(CTkScrollableFrame):
         tree.insert('subfn1', 'end', 'subfn1-paramters',text="parameters")
         tree.insert('subfn1', 'end', 'subfn1-body',text="body")
 
+        tree.insert('','end', text="")
+
         tree.insert('5', 'end', 'subfn2',text="testfn2")
         tree.insert('subfn2', 'end', 'subfn2-rtype',text="rtype")
         tree.insert('subfn2', 'end', 'subfn2-paramters',text="parameters")

@@ -110,6 +110,7 @@ class UwU(CTk):
 
     def on_compiler_run(self, code_editor: CodeEditor):
         code_editor.run_lexer()
+        code_editor.run_parser()
         self.analyzer_panel.update_lexer(tokens=code_editor.tokens)
         self.code_panel.update_console_logs(errors=code_editor.errors)
         
