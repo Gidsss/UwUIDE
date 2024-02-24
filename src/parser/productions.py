@@ -322,29 +322,25 @@ class Program:
         self.functions: list = []
         self.classes: list = []
 
-    # TODO: change property names later (add underscores in __init__())
-    #   not changing them now to avoid conflicts
-    #   in another branch
-
-    def main(self, indent = 0):
+    def mainuwu_string(self, indent = 0):
         if not self.mainuwu:
             return ''
         res = self.mainuwu.string(indent)
         return res + "\n"
 
-    def globs(self, indent = 0):
+    def globals_string(self, indent = 0):
         res = ''
         for g in self.globals:
             res += g.string(indent)
         return res + "\n"
 
-    def funcs(self, indent = 0):
+    def functions_string(self, indent = 0):
         res = ''
         for fn in self.functions:
             res += fn.string(indent)
         return res + "\n"
 
-    def _classes(self, indent = 0):
+    def classes_string(self, indent = 0):
         res = ''
         for c in self.classes:
             res += c.string(indent)
@@ -352,11 +348,11 @@ class Program:
 
     def __str__(self):
         res = "MAINUWU:\n"
-        res += self.main(1)
+        res += self.mainuwu_string(1)
         res += "GLOBALS:\n"
-        res += self.globs(1)
+        res += self.globals_string(1)
         res += "FUNCTIONS:\n"
-        res += self.funcs(1)
+        res += self.functions_string(1)
         res += "CLASSES:\n"
-        res += self._classes(1)
+        res += self.classes_string(1)
         return res
