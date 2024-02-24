@@ -24,6 +24,8 @@ class TokenType(Enum):
         return self.token
     def string(self, _ = 1):
         return self.__str__()
+    def header(self):
+        return self.token
 
     def __format__(self, format_spec):
         return str.__format__(str(self), format_spec)
@@ -170,6 +172,8 @@ class Token:
     def __str__(self):
         return self._lexeme
     def string(self, _ = 1):
+        return self._lexeme
+    def header(self):
         return self._lexeme
 
 
