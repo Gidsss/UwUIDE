@@ -14,6 +14,7 @@ class PrefixExpression:
     def __init__(self):
         self.op = None
         self.right = None
+        self.folded = False
 
     def string(self, _ = 1):
         return sprint(self.op.string(), self.right.string(), indent=0)
@@ -25,6 +26,7 @@ class InfixExpression:
         self.left = None
         self.op = None
         self.right = None
+        self.folded = False
 
     def string(self, _ = 1):
         return sprint(f'({self.left.string()} {self.op.string()} {self.right.string()})', indent=0)
@@ -35,6 +37,7 @@ class PostfixExpression:
     def __init__(self):
         self.left = None
         self.op = None
+        self.folded = False
 
     def string(self, _ = 1):
         return sprint(self.left.string(), self.op.string(), indent=0)
@@ -48,6 +51,7 @@ class StringFmt:
         self.mid = []
         self.exprs = []
         self.end = None
+        self.folded = False
 
     def string(self, indent = 0):
         res = sprintln("string fmt:", indent=0)
@@ -68,6 +72,8 @@ class StringFmt:
 class ArrayLiteral:
     def __init__(self):
         self.elements = []
+        self.folded = False
+
     def string(self, indent = 0):
         res = sprintln("array literal:", indent=0)
         for e in self.elements:
@@ -83,6 +89,7 @@ class FnCall:
         self.id = None
         self.args = []
         self.in_expr = False    # For determining indent in printing
+        self.folded = False
 
     def string(self, indent = 1):
         if self.in_expr:
@@ -100,6 +107,7 @@ class FnCall:
 class ReturnStatement:
     def __init__(self):
         self.expr = None
+        self.folded = False
 
     def string(self, indent = 0):
         return sprintln("return", self.expr.string(indent), indent=indent)
@@ -112,6 +120,7 @@ class ArrayDeclaration:
         self.dtype = None
         self.value = None
         self.is_const: bool = False
+        self.folded = False
 
     def string(self, indent = 0):
         res = sprintln("declare array:", self.id.string(), indent=indent)
@@ -143,6 +152,8 @@ class ArrayDeclaration:
 class UselessIdStatement:
     def __init__(self):
         self.id = None
+        self.folded = False
+
     def string(self, indent = 0):
         return sprintln("id:", self.id.string(), indent=indent)
 
@@ -150,6 +161,8 @@ class Assignment:
     def __init__(self):
         self.id = None
         self.value = None
+        self.folded = False
+
     def string(self, indent = 0):
         res = sprintln("assign:", self.id.string(), indent=indent)
         res += sprintln("value:", self.value.string(), indent=indent+1)
@@ -163,6 +176,7 @@ class Declaration:
         self.dtype = None
         self.value = None
         self.is_const: bool = False
+        self.folded = False
 
     def string(self, indent = 0):
         res = sprintln("declare:", self.id.string(), indent=indent)
@@ -176,6 +190,8 @@ class Declaration:
 class Print:
     def __init__(self):
         self.values = []
+        self.folded = False
+
     def string(self, indent = 0):
         res = sprintln("print:", indent=indent)
         for v in self.values:
@@ -185,6 +201,8 @@ class Print:
 class Input:
     def __init__(self):
         self.value = None
+        self.folded = False
+
     def string(self, indent = 0):
         return sprintln("input:", self.value.string(), indent=indent)
     def print(self, indent = 0):
@@ -195,6 +213,7 @@ class Parameter:
     def __init__(self):
         self.id = None
         self.dtype = None
+        self.folded = False
 
     def string(self, indent = 0):
         res = sprintln("param:", self.id.string(), indent=0)
@@ -208,6 +227,7 @@ class IfStatement:
         self.then = None
         self.else_if: list[ElseIfStatement] = []
         self.else_block = None
+        self.folded = False
 
     def string(self, indent = 0):
         res = sprintln("if statement:", indent=indent)
@@ -225,6 +245,8 @@ class ElseIfStatement:
     def __init__(self):
         self.condition = None
         self.then = None
+        self.folded = False
+
     def string(self, indent = 0):
         res = sprintln("else if statement:", indent=indent)
         res += sprintln("condition:", self.condition.string(), indent=indent+1)
@@ -237,6 +259,8 @@ class WhileLoop:
         self.condition = None
         self.body = None
         self.is_do = False
+        self.folded = False
+
     def string(self, indent = 0):
         res = sprintln(f"{f'do' if self.is_do else ''} while statement:", indent=indent)
         res += sprintln("condition:", self.condition.string(), indent=indent+1)
@@ -250,6 +274,8 @@ class ForLoop:
         self.condition = None
         self.update = None
         self.body = None
+        self.folded = False
+
     def string(self, indent = 0):
         res = sprintln("for statement:", indent=indent)
         res += sprintln("init:", self.init.string(), indent=indent+1)
@@ -265,6 +291,7 @@ class Function:
         self.rtype = None
         self.params: list[Parameter] = []
         self.body = None
+        self.folded = False
 
     def string(self, indent = 0):
         res = sprintln("function:", self.id.string(), indent=indent)
@@ -286,6 +313,8 @@ class Class:
         self.body: list = []
         self.properties: list = []
         self.methods: list = []
+        self.folded = False
+
     def string(self, indent = 0):
         res = sprintln("class:", self.id.string(), indent=indent)
         if self.params:
@@ -308,6 +337,8 @@ class Class:
 class BlockStatement:
     def __init__(self):
         self.statements = []
+        self.folded = False
+
     def string(self, indent = 0):
         res = sprintln("block:", indent=indent)
         for s in self.statements:
