@@ -82,11 +82,13 @@ class FnCall:
     def __init__(self):
         self.id = None
         self.args = []
+        self.in_expr = False    # For determining indent in printing
 
-    def string(self, _ = 1):
+    def string(self, indent = 1):
+        i = indent if self.in_expr else 0
         return sprintln("call:", self.id.string(), 
                         f'({", ".join([a.string() for a in self.args])})', 
-                        indent=0)
+                        indent=i)
     def __len__(self):
         return 1
 
@@ -133,6 +135,12 @@ class ArrayDeclaration:
                     compute_lengths(elem, depth + 1)
 
         compute_lengths(self.value, 0)
+
+class UselessIdStatement:
+    def __init__(self):
+        self.id = None
+    def string(self, indent = 0):
+        return sprintln("id:", self.id.string(), indent=indent)
 
 class Assignment:
     def __init__(self):
