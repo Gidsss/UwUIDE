@@ -19,9 +19,9 @@ class LogsTable(CTkFrame):
             # TODO: Change render on Integ
             start_pos = line, col = self.logs[row].position
             end_pos = None if isinstance(self.logs[row], DelimError) else self.logs[row].end_position
-            line_label = CTkLabel(master=self, text=line + 1, fg_color='transparent', font=('JetBrains Mono', 13), text_color='#FFFFFF', anchor='n')
+            line_label = CTkLabel(master=self, text=line + 1, fg_color='transparent', font=('JetBrains Mono', 10), text_color='#FFFFFF', anchor='n')
 
-            log_message_label = CTkLabel(master=self, text=self.logs[row], fg_color='transparent', font=('JetBrains Mono', 13), text_color='#ff5349',
+            log_message_label = CTkLabel(master=self, text=self.logs[row], fg_color='transparent', font=('JetBrains Mono', 10), text_color='#ff5349',
                                          anchor='nw', justify="left")
             
              # Bind callbacks
