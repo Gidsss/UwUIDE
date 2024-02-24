@@ -529,6 +529,36 @@ class Parser:
         # is a declaration
         if self.peek_tok_is(TokenType.DASH):
             return self.parse_declaration(ident)
+
+        # is a function call
+        if self.peek_tok_is(TokenType.OPEN_PAREN):
+            # Consume open paren
+            fc = FnCall()
+            fc.id = ident
+            fc.in_expr = True
+
+            self.advance(2)
+            stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
+            while not self.curr_tok_is_in(stop_conditions):
+                fc.args.append(self.parse_expression(LOWEST))
+                if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
+                    break
+                self.advance()
+            if not self.curr_tok_is(TokenType.CLOSE_PAREN):
+                self.unclosed_paren_error(self.curr_tok)
+                return None
+            if not self.expect_peek(TokenType.TERMINATOR):
+                self.unterminated_error(self.peek_tok)
+                return None
+            return fc
+
+        # is a useless id statement lmao
+        if self.peek_tok_is(TokenType.TERMINATOR):
+            self.advance()
+            useless_id = UselessIdStatement()
+            useless_id.id = ident
+            return useless_id
+
         # is an assignment
         a = Assignment()
         a.id = ident
