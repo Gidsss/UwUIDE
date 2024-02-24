@@ -73,13 +73,13 @@ if __name__ == "__main__":
     print("--- Printing Whole Program ---")
     print(p.program)
     print("\n--- Printing only Main Function ---")
-    print(p.program.main())
+    print(p.program.mainuwu_string())
     print("\n--- Printing only Global Declarations ---")
-    print(p.program.globs())
+    print(p.program.globals_string())
     print("\n--- Printing only Functions ---")
-    print(p.program.funcs())
+    print(p.program.functions_string())
     print("\n--- Printing only Classes ---")
-    print(p.program._classes())
+    print(p.program.classes_string())
 
     if p.errors:
         exit(1)
