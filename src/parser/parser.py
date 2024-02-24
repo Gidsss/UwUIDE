@@ -535,7 +535,7 @@ class Parser:
             # Consume open paren
             fc = FnCall()
             fc.id = ident
-            fc.in_expr = True
+            fc.in_expr = False
 
             self.advance(2)
             stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
@@ -809,6 +809,7 @@ class Parser:
 
         fc = FnCall()
         fc.id = self.curr_tok
+        fc.in_expr = True
         self.advance(2)
         stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
         while not self.curr_tok_is_in(stop_conditions):
