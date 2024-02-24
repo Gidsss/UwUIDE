@@ -85,10 +85,14 @@ class FnCall:
         self.in_expr = False    # For determining indent in printing
 
     def string(self, indent = 1):
-        i = 0 if self.in_expr else indent
-        return sprintln("call:", self.id.string(), 
-                        f'({", ".join([a.string() for a in self.args])})', 
-                        indent=i)
+        if self.in_expr:
+            return sprint("call:", self.id.string(),
+                            f'({", ".join([a.string() for a in self.args])})',
+                            indent=0)
+        else:
+            return sprintln("call:", self.id.string(),
+                          f'({", ".join([a.string() for a in self.args])})',
+                          indent=indent)
     def __len__(self):
         return 1
 
