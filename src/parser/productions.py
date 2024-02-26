@@ -1,4 +1,9 @@
 from src.lexer import Token
+
+### BASE CLASS
+# for type checking
+class Production:
+    pass
 '''
 All productions must have these methods:
 1. string(self, indent = 0)
@@ -23,7 +28,7 @@ def sprintln(*val, indent = 0):
     return sprint(*val, indent=indent) + "\n"
 
 ### EXPRESSION PRODUCTIONS
-class PrefixExpression:
+class PrefixExpression(Production):
     def __init__(self):
         self.op = None
         self.right = None
@@ -38,7 +43,7 @@ class PrefixExpression:
     def __len__(self):
         return 1
 
-class InfixExpression:
+class InfixExpression(Production):
     def __init__(self):
         self.left = None
         self.op = None
@@ -53,7 +58,7 @@ class InfixExpression:
     def __len__(self):
         return 1
 
-class PostfixExpression:
+class PostfixExpression(Production):
     def __init__(self):
         self.left = None
         self.op = None
@@ -68,7 +73,7 @@ class PostfixExpression:
         return 1
 
 ### LITERAL PRODUCTIONS
-class StringFmt:
+class StringFmt(Production):
     def __init__(self):
         self.start = None
         self.mid = []
@@ -105,7 +110,7 @@ class StringFmt:
     def __len__(self):
         return 1
 
-class ArrayLiteral:
+class ArrayLiteral(Production):
     def __init__(self):
         self.elements = []
 
@@ -124,7 +129,7 @@ class ArrayLiteral:
     def __iter__(self):
         return iter(self.elements)
 
-class FnCall:
+class FnCall(Production):
     def __init__(self):
         self.id = None
         self.args = []
@@ -155,7 +160,7 @@ class FnCall:
         return 1
 
 ### GENERAL STATEMENT PRODUCTIONS ###
-class ReturnStatement:
+class ReturnStatement(Production):
     def __init__(self):
         self.expr = None
 
@@ -169,7 +174,7 @@ class ReturnStatement:
     def __len__(self):
         return 1
 
-class ArrayDeclaration:
+class ArrayDeclaration(Production):
     def __init__(self):
         self.id: Token = None
         self.dtype = None
@@ -208,7 +213,7 @@ class ArrayDeclaration:
 
         compute_lengths(self.value, 0)
 
-class UselessIdStatement:
+class UselessIdStatement(Production):
     def __init__(self):
         self.id: Token = None
 
@@ -220,7 +225,7 @@ class UselessIdStatement:
     def string(self, indent = 0):
         return sprintln("id:", self.id.string(), indent=indent)
 
-class Assignment:
+class Assignment(Production):
     def __init__(self):
         self.id: Token = None
         self.value = None
@@ -237,7 +242,7 @@ class Assignment:
     def __len__(self):
         return 1
 
-class Declaration:
+class Declaration(Production):
     def __init__(self):
         self.id = None
         self.dtype = None
@@ -258,7 +263,7 @@ class Declaration:
             res += sprintln("value:", self.value.string(indent+1), indent=indent+1)
         return res
 
-class Print:
+class Print(Production):
     def __init__(self):
         self.values = []
 
@@ -273,7 +278,7 @@ class Print:
             res += sprintln(v.string(), indent=indent+1)
         return res
 
-class Input:
+class Input(Production):
     def __init__(self):
         self.value = None
 
@@ -288,7 +293,7 @@ class Input:
         print(f"{INDENT(indent)} input: ", end='')
         self.value.print(indent)
 
-class Parameter:
+class Parameter(Production):
     def __init__(self):
         self.id = None
         self.dtype = None
@@ -304,7 +309,7 @@ class Parameter:
         return res
 
 ### BLOCK STATEMENT PRODUCTIONS
-class IfStatement:
+class IfStatement(Production):
     def __init__(self):
         self.condition = None
         self.then = None
@@ -328,7 +333,7 @@ class IfStatement:
             res += self.else_block.string(indent+2)
         return res
 
-class ElseIfStatement:
+class ElseIfStatement(Production):
     def __init__(self):
         self.condition = None
         self.then = None
@@ -345,7 +350,7 @@ class ElseIfStatement:
         res += self.then.string(indent+2)
         return res
 
-class WhileLoop:
+class WhileLoop(Production):
     def __init__(self):
         self.condition = None
         self.body = None
@@ -365,7 +370,7 @@ class WhileLoop:
         res += self.body.string(indent+2)
         return res
 
-class ForLoop:
+class ForLoop(Production):
     def __init__(self):
         self.init = None # can be declaration or just an ident
         self.condition = None
@@ -386,7 +391,7 @@ class ForLoop:
         res += self.body.string(indent+2)
         return res
 
-class Function:
+class Function(Production):
     def __init__(self):
         self.id = None
         self.rtype = None
@@ -411,7 +416,7 @@ class Function:
         res += self.body.string(indent+2)
         return res
 
-class Class:
+class Class(Production):
     def __init__(self):
         self.id = None
         self.params: list = []
@@ -443,7 +448,7 @@ class Class:
             res += self.body.string(indent+2)
         return res
 
-class BlockStatement:
+class BlockStatement(Production):
     def __init__(self):
         self.statements = []
 
@@ -458,7 +463,7 @@ class BlockStatement:
             res += s.string(indent+1)
         return res
 
-class Program:
+class Program(Production):
     'the root node of the syntax tree'
     def __init__(self):
         self.mainuwu = None
