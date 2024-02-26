@@ -75,7 +75,7 @@ class Parser:
         self.register_init()
 
         if not self.tokens:
-            self.missing_mainuwu(Token("EOF", TokenType.EOF, (0, 0), (0, 0)))
+            self.missing_mainuwu_error(Token("EOF", TokenType.EOF, (0, 0), (0, 0)))
             self.program = None
             return
 
@@ -179,7 +179,7 @@ class Parser:
                 case TokenType.FWUNC:
                     if self.peek_tok_is(TokenType.MAINUWU):
                         if p.mainuwu is not None:
-                            self.multiple_mainuwu(self.peek_tok)
+                            self.multiple_mainuwu_error(self.peek_tok)
                             self.advance(2)
                         else:
                             p.mainuwu = self.parse_function(main=True)
@@ -196,7 +196,7 @@ class Parser:
                     self.advance()
 
         if p.mainuwu is None:
-            self.missing_mainuwu()
+            self.missing_mainuwu_error(self.curr_tok)
 
         return p
 
@@ -323,7 +323,7 @@ class Parser:
 
         if main:
             if not self.expect_peek(TokenType.SAN):
-                self.invalid_mainuwu_rtype(self.peek_tok)
+                self.invalid_mainuwu_rtype_error(self.peek_tok)
                 self.advance(2)
                 return None
         else:
@@ -405,7 +405,7 @@ class Parser:
         if not self.expect_peek(TokenType.CLOSE_PAREN):
             # If parameters are for main function, raise error immediately cuz it can't have params
             if main:
-                self.invalid_mainuwu_params(self.peek_tok)
+                self.invalid_mainuwu_params_error(self.peek_tok)
                 self.advance()
                 return None
 
@@ -455,7 +455,7 @@ class Parser:
                 elif self.expect_peek(TokenType.CLOSE_PAREN):
                     break
                 else:
-                    self.invalid_parameter(self.peek_tok)
+                    self.invalid_parameter_error(self.peek_tok)
                     self.advance(2)
                     return None
 
@@ -470,7 +470,7 @@ class Parser:
 
         # Check if condition is empty
         if self.peek_tok_is(TokenType.CLOSE_PAREN):
-            self.empty_condition()
+            self.empty_condition_error()
             self.advance()
             ie.condition = None
         else:
@@ -532,7 +532,7 @@ class Parser:
 
         # Check if block is empty
         if self.peek_tok_is(TokenType.DOUBLE_CLOSE_BRACKET):
-            self.empty_code_body()
+            self.empty_code_body_error()
             return None
 
         self.advance()  # consume the open bracket
@@ -618,7 +618,7 @@ class Parser:
 
         # Check if condition is empty
         if self.peek_tok_is(TokenType.CLOSE_PAREN):
-            self.empty_condition()
+            self.empty_condition_error()
             self.advance()
             wl.condition = None
         else:
@@ -1008,7 +1008,6 @@ class Parser:
             self.peek_tok.position,
             self.peek_tok.end_position
         ))
-        # self.errors.append(f"expected next token to be '{token}', got '{self.peek_tok}' instead")
     def no_prefix_parse_fn_error(self, token_type):
         self.errors.append(Error(
             "MISSING PREFIX PARSING FUNCTION",
@@ -1016,7 +1015,6 @@ class Parser:
             self.curr_tok.position,
             self.curr_tok.end_position
         ))
-        # self.errors.append(f"no prefix parsing function found for {token_type}")
     def no_in_block_parse_fn_error(self, token_type):
         self.errors.append(Error(
             "MISSING IN-BLOCK PARSING FUNCTION",
@@ -1024,7 +1022,6 @@ class Parser:
             self.curr_tok.position,
             self.curr_tok.end_position
         ))
-        # self.errors.append(f"no parsing function found for {token_type} inside block statements")
     def invalid_global_declaration_error(self, token: Token):
         self.errors.append(Error(
             "INVALID GLOBAL DECLARATION",
@@ -1032,7 +1029,6 @@ class Parser:
             token.position,
             token.end_position
         ))
-        # self.errors.append(f"Expected global function/class/variable/constant declaration, got {token.lexeme}")
     def no_ident_in_declaration_error(self, token: Token):
         self.errors.append(Error(
             "MISSING IDENTIFIER",
@@ -1040,7 +1036,6 @@ class Parser:
             token.position,
             token.end_position
         ))
-        # self.errors.append(f"Expected identifier in declaration, got {token.lexeme}")
     def no_ident_in_class_declaration_error(self, token: Token):
         self.errors.append(Error(
             "MISSING IDENTIFIER",
@@ -1048,7 +1043,6 @@ class Parser:
             token.position,
             token.end_position
         ))
-        # self.errors.append(f"Expected identifier in class declaration, got {token.lexeme}")
     def no_ident_in_func_declaration_error(self, token: Token):
         self.errors.append(Error(
             "MISSING IDENTIFIER",
@@ -1056,7 +1050,6 @@ class Parser:
             token.position,
             token.end_position
         ))
-        # self.errors.append(f"Expected identifier in function declaration, got {token.lexeme}")
     def no_ident_in_param_error(self, token: Token):
         self.errors.append(Error(
             "MISSING IDENTIFIER",
@@ -1064,7 +1057,6 @@ class Parser:
             token.position,
             token.end_position
         ))
-        # self.errors.append(f"Expected identifier in parameter, got {token.lexeme}")
     def no_data_type_indicator_error(self, token: Token):
         self.errors.append(Error(
             "MISSING DASH DATA TYPE",
@@ -1072,7 +1064,6 @@ class Parser:
             token.position,
             token.end_position
         ))
-        # self.errors.append(f"Expected dash before data type, got {token.lexeme}")
     def no_data_type_error(self, token: Token):
         self.errors.append(Error(
             "MISSING DATA TYPE",
@@ -1080,7 +1071,6 @@ class Parser:
             token.position,
             token.end_position
         ))
-        # self.errors.append(f"Expected data type, got {token.lexeme}")
     def no_dono_error(self, token: Token):
         self.errors.append(Error(
             "MISSING DONO",
@@ -1088,15 +1078,13 @@ class Parser:
             token.position,
             token.end_position
         ))
-        # self.errors.append(f"Expected 'dono' to denote variable as constant instead, got {token.lexeme}")
-    def invalid_parameter(self, token: Token):
+    def invalid_parameter_error(self, token: Token):
         self.errors.append(Error(
             "INVALID PARAMETER",
             f"Invalid parameter. Expected ',' or ')', got {token.lexeme}.",
             token.position,
             token.end_position
         ))
-        # self.errors.append(f"Invalid parameter. Expected ',' or ')', got {token.lexeme}")
     def unterminated_error(self, token: Token):
         self.errors.append(Error(
             "UNTERMINATED STATEMENT",
@@ -1104,7 +1092,6 @@ class Parser:
             token.position,
             token.end_position
         ))
-        # self.errors.append(f"Expected '~' to terminate the statement, got {token.lexeme}")
     def unclosed_paren_error(self, token: Token):
         self.errors.append(Error(
             "UNCLOSED PARENTHESIS",
@@ -1112,7 +1099,6 @@ class Parser:
             token.position,
             token.end_position
         ))
-        # self.errors.append(f"Expected ')' to close the parenthesis, got {token.lexeme}")
     def unclosed_double_bracket_error(self, token: Token):
         self.errors.append(Error(
             "UNCLOSED DOUBLE BRACKET",
@@ -1120,7 +1106,6 @@ class Parser:
             token.position,
             token.end_position
         ))
-        # self.errors.append(f"Expected '}}' to close the double bracket, got {token.lexeme}")
     def unclosed_bracket_error(self, token: Token):
         self.errors.append(Error(
             "UNCLOSED BRACKET",
@@ -1128,7 +1113,6 @@ class Parser:
             token.position,
             token.end_position
         ))
-        # self.errors.append(f"Expected ']' to close the bracket, got {token.lexeme}")
     def unclosed_brace_error(self, token: Token):
         self.errors.append(Error(
             "UNCLOSED BRACE",
@@ -1136,23 +1120,20 @@ class Parser:
             token.position,
             token.end_position
         ))
-        # self.errors.append(f"Expected '}}' to close the brace, got {token.lexeme}")
-    def empty_condition(self):
+    def empty_condition_error(self):
         self.errors.append(Error(
             "EMPTY CONDITION",
             f"Conditions cannot be empty.",
             self.curr_tok.position,
             self.curr_tok.end_position
         ))
-        # self.errors.append(f"Conditions cannot be empty")
-    def empty_code_body(self):
+    def empty_code_body_error(self):
         self.errors.append(Error(
             "EMPTY CODE BODY",
             f"Code bodies must contain at least one or more statement.",
             self.curr_tok.position,
             self.curr_tok.end_position
         ))
-        # self.errors.append(f"Code bodies must have at least one or more statement")
     def uninitialized_assignment_error(self, token: Token):
         self.errors.append(Error(
             "MISSING VALUE ASSIGNMENT",
@@ -1160,7 +1141,6 @@ class Parser:
             token.position,
             token.end_position
         ))
-        # self.errors.append(f"Assignments must have a value after '='. got '{token.lexeme}'")
     def unclosed_string_part_error(self, string_start, token: Token):
         self.errors.append(Error(
             "UNCLOSED FORMAT STRING",
@@ -1168,29 +1148,28 @@ class Parser:
             token.position,
             token.end_position
         ))
-        # self.errors.append(f"Unclosed string part. Expected '{string_start.lexeme[:-1]}|' to be closed by something like '|string part end\"'. got '{token.lexeme}'")
-    def invalid_mainuwu_rtype(self, token: Token):
+    def invalid_mainuwu_rtype_error(self, token: Token):
         self.errors.append(Error(
             "INVALID MAINUWU FUNCTION",
             f"The mainuwu function's return type must only be 'san', got '{token}'.",
             token.position,
             token.end_position
         ))
-    def invalid_mainuwu_params(self, token: Token):
+    def invalid_mainuwu_params_error(self, token: Token):
         self.errors.append(Error(
             "INVALID MAINUWU FUNCTION",
             f"Expected ')', got '{token}'.\n\tThe mainuwu function cannot accept any parameters.",
             token.position,
             token.end_position
         ))
-    def multiple_mainuwu(self, token: Token):
+    def multiple_mainuwu_error(self, token: Token):
         self.errors.append(Error(
             "MULTIPLE MAINUWU FUNCTION",
             f"The program must only have one mainuwu function.",
             token.position,
             token.end_position
         ))
-    def missing_mainuwu(self, token: Token):
+    def missing_mainuwu_error(self, token: Token):
         self.errors.append(Error(
             "MISSING MAINUWU FUNCTION",
             f"The program must have at least one mainuwu function.",
