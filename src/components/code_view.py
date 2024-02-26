@@ -3,7 +3,7 @@ from tkinter import *
 from constants.path import *
 
 from src.lexer import Lexer, Token, Error
-from src.parser import Parser
+from src.parser import Parser, ErrorSrc
 
 from enum import Enum
 from PIL import Image
@@ -112,9 +112,9 @@ class CodeEditor(CTkFrame):
         return 'break'
 
     def run_lexer(self):
-        source_code = [v if v else v + '\n' for v in self.text.get('1.0', 'end-1c').split('\n')]
-        print(source_code)
-        lx: Lexer = self.lexer(source_code)
+        self.source_code = [v if v else v + '\n' for v in self.text.get('1.0', 'end-1c').split('\n')]
+        print(self.source_code)
+        lx: Lexer = self.lexer(self.source_code)
 
         self.tokens = lx.tokens
         self.errors = lx.errors
@@ -125,8 +125,10 @@ class CodeEditor(CTkFrame):
         if self.tokens == 0:
             return
         
+        ErrorSrc.src = self.source_code
         p: Parser = self.parser(self.tokens)
-        print(p.program.print())
+        self.program = p.program
+        self.errors = p.errors
 
     def format(self, tag: str, start_pos: tuple[int, int], end_pos: tuple[int, int] = None):
         """

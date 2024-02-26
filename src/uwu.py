@@ -72,6 +72,7 @@ class UwuAnalyzerPanel(CTkTabview):
         self.parser_tab_content.grid(row=0, column=0, rowspan=2, columnspan=2, sticky='nsew')
 
         self.update_lexer = self.lexer_tab_content.update_lexer
+        self.update_parser_tree = self.parser_tab_content.update_parser_tree
 
 class UwU(CTk):
     def __init__(self):
@@ -112,6 +113,7 @@ class UwU(CTk):
         code_editor.run_lexer()
         code_editor.run_parser()
         self.analyzer_panel.update_lexer(tokens=code_editor.tokens)
+        self.analyzer_panel.update_parser_tree(program=code_editor.program)
         self.code_panel.update_console_logs(errors=code_editor.errors)
         
 if __name__ == "__main__":
