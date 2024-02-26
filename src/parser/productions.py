@@ -83,7 +83,7 @@ class StringFmt(Production):
     def header(self):
         return "string fmt:"
     def child_nodes(self) -> None | dict[Production, str]:
-        return {"start:":self.start, **{f"mid_{i+1}":m for i,m in enumerate(self.mid_expr_iter())}, "end":self.end}
+        return {"start:":self.start, **{f"mid_{i+1}:":m for i,m in enumerate(self.mid_expr_iter())}, "end:":self.end}
 
     def string(self, indent = 0):
         res = sprintln("string fmt:", indent=0)
@@ -117,7 +117,7 @@ class ArrayLiteral(Production):
     def header(self):
         return "array literal:"
     def child_nodes(self) -> None | dict[Production, str]:
-        return {f"item_{i+1}":e for i,e in enumerate(self.elements)}
+        return {f"item_{i+1}:":e for i,e in enumerate(self.elements)}
 
     def string(self, indent = 0):
         res = sprintln("array literal:", indent=0)
@@ -270,7 +270,7 @@ class Print(Production):
     def header(self):
         return "print:"
     def child_nodes(self) -> None | dict[Production, str]:
-        return {**{f"val_{i+1}":v for i,v in enumerate(self.values)}}
+        return {**{f"val_{i+1}:":v for i,v in enumerate(self.values)}}
 
     def string(self, indent = 0):
         res = sprintln("print:", indent=indent)
@@ -399,7 +399,7 @@ class Function(Production):
     def header(self):
         return f"function: {self.id.string()}"
     def child_nodes(self) -> None | dict[Production, str]:
-        return {"rtype:":self.rtype, **{f"param_{i+1}":p for i,p in enumerate(self.params)}, "body:":self.body}
+        return {"rtype:":self.rtype, **{f"param_{i+1}:":p for i,p in enumerate(self.params)}, "body:":self.body}
 
     def string(self, indent = 0):
         res = sprintln("function:", self.id.string(), indent=indent)
@@ -425,10 +425,10 @@ class Class(Production):
     def header(self):
         return f"class: {self.id.string()}"
     def child_nodes(self) -> None | dict[Production, str]:
-        return {**{f"param_{i+1}":p for i,p in enumerate(self.params)},
+        return {**{f"param_{i+1}:":p for i,p in enumerate(self.params)},
                 "body:":self.body,
-                **{f"property_{i+1}":p for i,p in enumerate(self.properties)},
-                **{f"method_{i+1}":m for i,m in enumerate(self.methods)}}
+                **{f"property_{i+1}:":p for i,p in enumerate(self.properties)},
+                **{f"method_{i+1}:":m for i,m in enumerate(self.methods)}}
 
     def string(self, indent = 0):
         res = sprintln("class:", self.id.string(), indent=indent)
