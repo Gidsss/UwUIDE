@@ -1,5 +1,23 @@
+from src.lexer import Token
+
+### BASE CLASS
+# for type checking
+class Production:
+    pass
 '''
-All productions must have an __str__() method
+All productions must have these methods:
+1. string(self, indent = 0)
+
+2. header(self) -> str
+    - returns the string representation of the production
+    - it can be a title or the value of the production itself
+    - titles are for class productions
+    - values are for atomic productions
+
+3. child_nodes(self) -> None | list[production classes]
+    - returns None if atomic (aka leaf)
+        - the value of the atomic production is in the header() method
+    - returns a list of other production classes if not
 '''
 
 def sprint(*val, indent = 0):
@@ -10,31 +28,44 @@ def sprintln(*val, indent = 0):
     return sprint(*val, indent=indent) + "\n"
 
 ### EXPRESSION PRODUCTIONS
-class PrefixExpression:
+class PrefixExpression(Production):
     def __init__(self):
         self.op = None
         self.right = None
 
+    def header(self):
+        return self.string()
+    def child_nodes(self) -> None | list:
+        return None
+
     def string(self, _ = 1):
-        return sprint(self.op.string(), self.right.string(), indent=0)
+        return sprint(self.op.string(), self.right.string())
     def __len__(self):
         return 1
 
-class InfixExpression:
+class InfixExpression(Production):
     def __init__(self):
         self.left = None
         self.op = None
         self.right = None
+    def header(self):
+        return self.string()
+    def child_nodes(self) -> None | list:
+        return None
 
     def string(self, _ = 1):
-        return sprint(f'({self.left.string()} {self.op.string()} {self.right.string()})', indent=0)
+        return f'({self.left.string()} {self.op.string()} {self.right.string()})'
     def __len__(self):
         return 1
 
-class PostfixExpression:
+class PostfixExpression(Production):
     def __init__(self):
         self.left = None
         self.op = None
+    def header(self):
+        return self.string()
+    def child_nodes(self) -> None | list:
+        return None
 
     def string(self, _ = 1):
         return sprint(self.left.string(), self.op.string(), indent=0)
@@ -42,12 +73,17 @@ class PostfixExpression:
         return 1
 
 ### LITERAL PRODUCTIONS
-class StringFmt:
+class StringFmt(Production):
     def __init__(self):
         self.start = None
         self.mid = []
         self.exprs = []
         self.end = None
+
+    def header(self):
+        return "string fmt:"
+    def child_nodes(self) -> None | list:
+        return [self.start, self.mid_expr(), self.end]
 
     def string(self, indent = 0):
         res = sprintln("string fmt:", indent=0)
@@ -62,12 +98,27 @@ class StringFmt:
         for m,e in zip(self.mid, self.exprs[1:]):
             yield m
             yield e
+    def mid_expr(self):
+        all = []
+        if self.exprs:
+            all.append(self.exprs[0])
+        for m,e in zip(self.mid, self.exprs[1:]):
+            all.append(m)
+            all.append(e)
+        return all
+
     def __len__(self):
         return 1
 
-class ArrayLiteral:
+class ArrayLiteral(Production):
     def __init__(self):
         self.elements = []
+
+    def header(self):
+        return "array literal:"
+    def child_nodes(self) -> None | list:
+        return self.elements
+
     def string(self, indent = 0):
         res = sprintln("array literal:", indent=0)
         for e in self.elements:
@@ -78,34 +129,62 @@ class ArrayLiteral:
     def __iter__(self):
         return iter(self.elements)
 
-class FnCall:
+class FnCall(Production):
     def __init__(self):
         self.id = None
         self.args = []
+        self.in_expr = False    # For determining indent in printing
 
-    def string(self, _ = 1):
-        return sprintln("call:", self.id.string(), 
-                        f'({", ".join([a.string() for a in self.args])})', 
+    def header(self):
+        if self.in_expr:
+            return sprint(self.id.string(),
+                            f'({", ".join([a.string() for a in self.args])})',
+                            indent=0)
+        return sprint("call:", self.id.string(),
+                        f'({", ".join([a.string() for a in self.args])})',
                         indent=0)
+
+    def child_nodes(self) -> None | list:
+        return None
+
+    def string(self, indent = 1):
+        if self.in_expr:
+            return sprint("call:", self.id.string(),
+                            f'({", ".join([a.string() for a in self.args])})',
+                            indent=0)
+        else:
+            return sprintln("call:", self.id.string(),
+                          f'({", ".join([a.string() for a in self.args])})',
+                          indent=indent)
     def __len__(self):
         return 1
 
 ### GENERAL STATEMENT PRODUCTIONS ###
-class ReturnStatement:
+class ReturnStatement(Production):
     def __init__(self):
         self.expr = None
+
+    def header(self):
+        return self.string()
+    def child_nodes(self) -> None | list:
+        return None
 
     def string(self, indent = 0):
         return sprintln("return", self.expr.string(indent), indent=indent)
     def __len__(self):
         return 1
 
-class ArrayDeclaration:
+class ArrayDeclaration(Production):
     def __init__(self):
-        self.id = None
+        self.id: Token = None
         self.dtype = None
         self.value = None
         self.is_const: bool = False
+
+    def header(self):
+        return f"declare array: {self.id.string()}"
+    def child_nodes(self) -> None | list:
+        return [self.dtype, self.value, self.is_const]
 
     def string(self, indent = 0):
         res = sprintln("declare array:", self.id.string(), indent=indent)
@@ -134,10 +213,28 @@ class ArrayDeclaration:
 
         compute_lengths(self.value, 0)
 
-class Assignment:
+class UselessIdStatement(Production):
     def __init__(self):
-        self.id = None
+        self.id: Token = None
+
+    def header(self):
+        return self.string()
+    def child_nodes(self) -> None | list:
+        return None
+
+    def string(self, indent = 0):
+        return sprintln("id:", self.id.string(), indent=indent)
+
+class Assignment(Production):
+    def __init__(self):
+        self.id: Token = None
         self.value = None
+
+    def header(self):
+        return f"assign: {self.id.string()}"
+    def child_nodes(self) -> None | list:
+        return [self.value]
+
     def string(self, indent = 0):
         res = sprintln("assign:", self.id.string(), indent=indent)
         res += sprintln("value:", self.value.string(), indent=indent+1)
@@ -145,12 +242,17 @@ class Assignment:
     def __len__(self):
         return 1
 
-class Declaration:
+class Declaration(Production):
     def __init__(self):
         self.id = None
         self.dtype = None
         self.value = None
         self.is_const: bool = False
+
+    def header(self):
+        return f"declare: {self.id.string()}"
+    def child_nodes(self) -> None | list:
+        return [self.dtype, self.value, self.is_const]
 
     def string(self, indent = 0):
         res = sprintln("declare:", self.id.string(), indent=indent)
@@ -161,28 +263,45 @@ class Declaration:
             res += sprintln("value:", self.value.string(indent+1), indent=indent+1)
         return res
 
-class Print:
+class Print(Production):
     def __init__(self):
         self.values = []
+
+    def header(self):
+        return "print"
+    def child_nodes(self) -> None | list:
+        return self.values
+
     def string(self, indent = 0):
         res = sprintln("print:", indent=indent)
         for v in self.values:
             res += sprintln(v.string(), indent=indent+1)
         return res
 
-class Input:
+class Input(Production):
     def __init__(self):
         self.value = None
+
+    def header(self):
+        return "input"
+    def child_nodes(self) -> None | list:
+        return [self.value]
+
     def string(self, indent = 0):
         return sprintln("input:", self.value.string(), indent=indent)
     def print(self, indent = 0):
         print(f"{INDENT(indent)} input: ", end='')
         self.value.print(indent)
 
-class Parameter:
+class Parameter(Production):
     def __init__(self):
         self.id = None
         self.dtype = None
+
+    def header(self):
+        return f"param: id: {self.id.string()} dtype: {self.dtype.string()}"
+    def child_nodes(self) -> None | list:
+        return None
 
     def string(self, indent = 0):
         res = sprintln("param:", self.id.string(), indent=0)
@@ -190,12 +309,17 @@ class Parameter:
         return res
 
 ### BLOCK STATEMENT PRODUCTIONS
-class IfStatement:
+class IfStatement(Production):
     def __init__(self):
         self.condition = None
         self.then = None
         self.else_if: list[ElseIfStatement] = []
         self.else_block = None
+
+    def header(self):
+        return "if statement:"
+    def child_nodes(self) -> None | list:
+        return [self.condition, self.then, self.else_if, self.else_block]
 
     def string(self, indent = 0):
         res = sprintln("if statement:", indent=indent)
@@ -209,10 +333,16 @@ class IfStatement:
             res += self.else_block.string(indent+2)
         return res
 
-class ElseIfStatement:
+class ElseIfStatement(Production):
     def __init__(self):
         self.condition = None
         self.then = None
+
+    def header(self):
+        return "else if statement:"
+    def child_nodes(self) -> None | list:
+        return [self.condition, self.then]
+
     def string(self, indent = 0):
         res = sprintln("else if statement:", indent=indent)
         res += sprintln("condition:", self.condition.string(), indent=indent+1)
@@ -220,11 +350,19 @@ class ElseIfStatement:
         res += self.then.string(indent+2)
         return res
 
-class WhileLoop:
+class WhileLoop(Production):
     def __init__(self):
         self.condition = None
         self.body = None
         self.is_do = False
+
+    def header(self):
+        return f"{'do' if self.is_do else ''} while statement:"
+    def child_nodes(self) -> None | list:
+        if self.is_do:
+            return ["do while", self.condition, self.body]
+        return [self.condition, self.body]
+
     def string(self, indent = 0):
         res = sprintln(f"{f'do' if self.is_do else ''} while statement:", indent=indent)
         res += sprintln("condition:", self.condition.string(), indent=indent+1)
@@ -232,12 +370,18 @@ class WhileLoop:
         res += self.body.string(indent+2)
         return res
 
-class ForLoop:
+class ForLoop(Production):
     def __init__(self):
         self.init = None # can be declaration or just an ident
         self.condition = None
         self.update = None
         self.body = None
+
+    def header(self):
+        return "for loop:"
+    def child_nodes(self) -> None | list:
+        return [self.init, self.condition, self.update, self.body]
+
     def string(self, indent = 0):
         res = sprintln("for statement:", indent=indent)
         res += sprintln("init:", self.init.string(), indent=indent+1)
@@ -247,12 +391,17 @@ class ForLoop:
         res += self.body.string(indent+2)
         return res
 
-class Function:
+class Function(Production):
     def __init__(self):
         self.id = None
         self.rtype = None
         self.params: list[Parameter] = []
         self.body = None
+
+    def header(self):
+        return f"function: {self.id.string()}"
+    def child_nodes(self) -> None | list:
+        return [self.rtype, self.params, self.body]
 
     def string(self, indent = 0):
         res = sprintln("function:", self.id.string(), indent=indent)
@@ -267,13 +416,19 @@ class Function:
         res += self.body.string(indent+2)
         return res
 
-class Class:
+class Class(Production):
     def __init__(self):
         self.id = None
         self.params: list = []
         self.body: list = []
         self.properties: list = []
         self.methods: list = []
+
+    def header(self):
+        return f"class: {self.id.string()}"
+    def child_nodes(self) -> None | list:
+        return [self.params, self.body, self.properties, self.methods]
+
     def string(self, indent = 0):
         res = sprintln("class:", self.id.string(), indent=indent)
         if self.params:
@@ -293,16 +448,22 @@ class Class:
             res += self.body.string(indent+2)
         return res
 
-class BlockStatement:
+class BlockStatement(Production):
     def __init__(self):
         self.statements = []
+
+    def header(self):
+        return "block"
+    def child_nodes(self) -> None | list:
+        return self.statements
+
     def string(self, indent = 0):
         res = sprintln("block:", indent=indent)
         for s in self.statements:
             res += s.string(indent+1)
         return res
 
-class Program:
+class Program(Production):
     'the root node of the syntax tree'
     def __init__(self):
         self.mainuwu = None
@@ -310,29 +471,25 @@ class Program:
         self.functions: list = []
         self.classes: list = []
 
-    # TODO: change property names later (add underscores in __init__())
-    #   not changing them now to avoid conflicts
-    #   in another branch
-
-    def main(self, indent = 0):
+    def mainuwu_string(self, indent = 0):
         if not self.mainuwu:
             return ''
         res = self.mainuwu.string(indent)
         return res + "\n"
 
-    def globs(self, indent = 0):
+    def globals_string(self, indent = 0):
         res = ''
         for g in self.globals:
             res += g.string(indent)
         return res + "\n"
 
-    def funcs(self, indent = 0):
+    def functions_string(self, indent = 0):
         res = ''
         for fn in self.functions:
             res += fn.string(indent)
         return res + "\n"
 
-    def _classes(self, indent = 0):
+    def classes_string(self, indent = 0):
         res = ''
         for c in self.classes:
             res += c.string(indent)
@@ -340,11 +497,11 @@ class Program:
 
     def __str__(self):
         res = "MAINUWU:\n"
-        res += self.main(1)
+        res += self.mainuwu_string(1)
         res += "GLOBALS:\n"
-        res += self.globs(1)
+        res += self.globals_string(1)
         res += "FUNCTIONS:\n"
-        res += self.funcs(1)
+        res += self.functions_string(1)
         res += "CLASSES:\n"
-        res += self._classes(1)
+        res += self.classes_string(1)
         return res
