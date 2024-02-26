@@ -64,13 +64,7 @@ precedence_map = {
 class Parser:
     def __init__(self, tokens: list[Token]):
         self.tokens = [token for token in tokens if token.token not in [TokenType.WHITESPACE, TokenType.SINGLE_LINE_COMMENT, TokenType.MULTI_LINE_COMMENT]]
-        self.tokens.append(Token("EOF", TokenType.EOF, (0, 0), (0, 0)))
         self.errors: list = []
-
-        # to keep track of tokens
-        self.pos = 0
-        self.curr_tok = self.tokens[self.pos]
-        self.peek_tok = self.tokens[self.pos + 1]
 
         # to associate prefix and infix parsing functions for certain token types
         # key : val == TokenType : ParsingFunction
@@ -80,6 +74,18 @@ class Parser:
         self.in_block_parse_fns: dict = {}
         self.register_init()
 
+        if not self.tokens:
+            self.missing_mainuwu(Token("EOF", TokenType.EOF, (0, 0), (0, 0)))
+            self.program = None
+            return
+
+        # to keep track of tokens
+        self.pos = 0
+        self.curr_tok = self.tokens[self.pos]
+        self.peek_tok = self.tokens[self.pos + 1]
+
+        eof_pos = (self.tokens[-1].end_position[0], self.tokens[-1].end_position[1] + 1)
+        self.tokens.append(Token("EOF", TokenType.EOF, eof_pos, eof_pos))
         self.program = self.parse_program()
 
     def advance(self, inc: int = 1):
@@ -190,7 +196,7 @@ class Parser:
                     self.advance()
 
         if p.mainuwu is None:
-            self.missing_mainuwu()
+            self.missing_mainuwu(self.curr_tok)
             return None
 
         return p
@@ -233,9 +239,13 @@ class Parser:
             TokenType.SAN
         ]
         if not self.expect_peek_in(data_types):
-            self.no_data_type_error(self.peek_tok)
-            self.advance(2)
-            return None
+            # Check for class id as data type (check Token's token str)
+            if self.peek_tok.token.token[:6] == "CWASS_":
+                self.advance()
+            else:
+                self.no_data_type_error(self.peek_tok)
+                self.advance(2)
+                return None
         d.dtype = self.curr_tok
 
         # array declaration
@@ -329,9 +339,13 @@ class Parser:
             ]
 
             if not self.expect_peek_in(data_types):
-                self.no_data_type_error(self.peek_tok)
-                self.advance(2)
-                return None
+                # Check for class id as data type (check Token's token str)
+                if self.peek_tok.token.token[:6] == "CWASS_":
+                    self.advance()
+                else:
+                    self.no_data_type_error(self.peek_tok)
+                    self.advance(2)
+                    return None
         func.rtype = self.curr_tok
         func.params = self.parse_params(main=main)
         if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
@@ -423,9 +437,13 @@ class Parser:
                 ]
 
                 if not self.expect_peek_in(data_types):
-                    self.no_data_type_error(self.peek_tok)
-                    self.advance(2)
-                    return None
+                    # Check for class id as data type (check Token's token str)
+                    if self.peek_tok.token.token[:6] == "CWASS_":
+                        self.advance()
+                    else:
+                        self.no_data_type_error(self.peek_tok)
+                        self.advance(2)
+                        return None
                 param.dtype = self.curr_tok
                 parameters.append(param)
 
@@ -1069,7 +1087,7 @@ class Parser:
             token.position,
             token.end_position
         ))
-        self.errors.append(f"Expected data type, got {token.lexeme}")
+        # self.errors.append(f"Expected data type, got {token.lexeme}")
     def no_dono_error(self, token: Token):
         self.errors.append(Error(
             "MISSING DONO",
@@ -1179,8 +1197,10 @@ class Parser:
             token.position,
             token.end_position
         ))
-    def missing_mainuwu(self):
-        self.errors.append(BasicError(
+    def missing_mainuwu(self, token: Token):
+        self.errors.append(Error(
             "MISSING MAINUWU FUNCTION",
             f"The program must have at least one mainuwu function.",
+            token.position,
+            token.end_position
         ))
