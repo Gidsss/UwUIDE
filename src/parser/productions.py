@@ -83,7 +83,7 @@ class StringFmt(Production):
     def header(self):
         return "string fmt:"
     def child_nodes(self) -> None | dict[str, Production]:
-        return {"start:":self.start, **{f"mid_{i+1}:":m for i,m in enumerate(self.mid_expr_iter())}, "end:":self.end}
+        return {"start":self.start, **{f"mid_{i+1}":m for i,m in enumerate(self.mid_expr_iter())}, "end":self.end}
 
     def string(self, indent = 0):
         res = sprintln("string fmt:", indent=0)
@@ -117,7 +117,7 @@ class ArrayLiteral(Production):
     def header(self):
         return "array literal:"
     def child_nodes(self) -> None | dict[str, Production]:
-        return {f"item_{i+1}:":e for i,e in enumerate(self.elements)}
+        return {f"item_{i+1}":e for i,e in enumerate(self.elements)}
 
     def string(self, indent = 0):
         res = sprintln("array literal:", indent=0)
@@ -184,7 +184,7 @@ class ArrayDeclaration(Production):
     def header(self):
         return f"declare{' constant' if self.is_const else ''} array: {self.id.string()}"
     def child_nodes(self) -> None | dict[str, Production]:
-        return {"dtype:":self.dtype, "value:":self.value}
+        return {"dtype":self.dtype, "value":self.value}
 
     def string(self, indent = 0):
         res = sprintln("declare array:", self.id.string(), indent=indent)
@@ -233,7 +233,7 @@ class Assignment(Production):
     def header(self):
         return f"assign: {self.id.string()}"
     def child_nodes(self) -> None | dict[str, Production]:
-        return {"value:": self.value}
+        return {"value": self.value}
 
     def string(self, indent = 0):
         res = sprintln("assign:", self.id.string(), indent=indent)
@@ -252,7 +252,7 @@ class Declaration(Production):
     def header(self):
         return f"declare {'constant' if self.is_const else 'variable'}: {self.id.string()}"
     def child_nodes(self) -> None | dict[str, Production]:
-        return {"dtype:":self.dtype, "value:":self.value}
+        return {"dtype":self.dtype, "value":self.value}
 
     def string(self, indent = 0):
         res = sprintln("declare:", self.id.string(), indent=indent)
@@ -271,7 +271,7 @@ class Print(Production):
         return "print:"
     def child_nodes(self) -> None | dict[str, Production]:
         if self.values:
-            return {**{f"val_{i+1}:":v for i,v in enumerate(self.values)}}
+            return {**{f"val_{i+1}":v for i,v in enumerate(self.values)}}
         return None
 
     def string(self, indent = 0):
@@ -288,7 +288,7 @@ class Input(Production):
         return "input"
     def child_nodes(self) -> None | dict[str, Production]:
         if self.value:
-            return {"value:":self.value}
+            return {"value":self.value}
         return None
 
     def string(self, indent = 0):
@@ -323,11 +323,11 @@ class IfStatement(Production):
     def header(self):
         return "if statement:"
     def child_nodes(self) -> None | dict[str, Production]:
-        ret = {"condition:": self.condition, "then:": self.then}
+        ret = {"condition": self.condition, "then": self.then}
         if self.else_if:
-            ret.update(**{f"else if {i+1}:":e for i,e in enumerate(self.else_if)})
+            ret.update(**{f"else if {i+1}":e for i,e in enumerate(self.else_if)})
         if self.else_block:
-            ret["else:"] = self.else_block
+            ret["else"] = self.else_block
         return ret
 
     def string(self, indent = 0):
@@ -350,7 +350,7 @@ class ElseIfStatement(Production):
     def header(self):
         return "else if statement:"
     def child_nodes(self) -> None | dict[str, Production]:
-        return {"condition:":self.condition, "then:":self.then}
+        return {"condition":self.condition, "then":self.then}
 
     def string(self, indent = 0):
         res = sprintln("else if statement:", indent=indent)
@@ -368,7 +368,7 @@ class WhileLoop(Production):
     def header(self):
         return f"{'do' if self.is_do else ''} while statement:"
     def child_nodes(self) -> None | dict[str, Production]:
-        return {"condition:":self.condition, "body:":self.body}
+        return {"condition":self.condition, "body":self.body}
 
     def string(self, indent = 0):
         res = sprintln(f"{f'do' if self.is_do else ''} while statement:", indent=indent)
@@ -387,7 +387,7 @@ class ForLoop(Production):
     def header(self):
         return "for loop:"
     def child_nodes(self) -> None | dict[str, Production]:
-        return {"init:":self.init, "condition:":self.condition, "update:":self.update, "body:":self.body}
+        return {"init":self.init, "condition":self.condition, "update":self.update, "body":self.body}
 
     def string(self, indent = 0):
         res = sprintln("for statement:", indent=indent)
@@ -408,10 +408,10 @@ class Function(Production):
     def header(self):
         return f"function: {self.id.string()}"
     def child_nodes(self) -> None | dict[str, Production]:
-        ret = {"rtype:":self.rtype}
+        ret = {"rtype":self.rtype}
         if self.params:
-            ret.update(**{f"param_{i+1}:":p for i,p in enumerate(self.params)})
-        ret["body:"] = self.body
+            ret.update(**{f"param_{i+1}":p for i,p in enumerate(self.params)})
+        ret["body"] = self.body
         return ret
 
     def string(self, indent = 0):
@@ -440,13 +440,13 @@ class Class(Production):
     def child_nodes(self) -> None | dict[str, Production]:
         ret = {}
         if self.params:
-            ret.update(**{f"param_{i+1}:":p for i,p in enumerate(self.params)})
+            ret.update(**{f"param_{i+1}":p for i,p in enumerate(self.params)})
         if self.body:
-            ret["body:"] = self.body
+            ret["body"] = self.body
         if self.properties:
-            ret.update(**{f"property_{i+1}:":p for i,p in enumerate(self.properties)})
+            ret.update(**{f"property_{i+1}":p for i,p in enumerate(self.properties)})
         if self.methods:
-            ret.update(**{f"method_{i+1}:":m for i,m in enumerate(self.methods)})
+            ret.update(**{f"method_{i+1}":m for i,m in enumerate(self.methods)})
         return ret
 
     def string(self, indent = 0):
