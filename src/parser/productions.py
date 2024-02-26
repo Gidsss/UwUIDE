@@ -1,19 +1,15 @@
 from src.lexer import Token
 '''
-All productions must have these properties:
-1. folded: bool
-
 All productions must have these methods:
 1. string(self, indent = 0)
-2. toggle_fold(self)
 
-3. header(self) -> str
+2. header(self) -> str
     - returns the string representation of the production
     - it can be a title or the value of the production itself
     - titles are for class productions
     - values are for atomic productions
 
-4. child_nodes(self) -> None | list[production classes]
+3. child_nodes(self) -> None | list[production classes]
     - returns None if atomic (aka leaf)
         - the value of the atomic production is in the header() method
     - returns a list of other production classes if not
@@ -31,10 +27,7 @@ class PrefixExpression:
     def __init__(self):
         self.op = None
         self.right = None
-        self.folded = False
 
-    def toggle_fold(self):
-        self.folded = not self.folded
     def header(self):
         return self.string()
     def child_nodes(self) -> None | list:
@@ -50,10 +43,6 @@ class InfixExpression:
         self.left = None
         self.op = None
         self.right = None
-        self.folded = False
-
-    def toggle_fold(self):
-        self.folded = not self.folded
     def header(self):
         return self.string()
     def child_nodes(self) -> None | list:
@@ -68,10 +57,6 @@ class PostfixExpression:
     def __init__(self):
         self.left = None
         self.op = None
-        self.folded = False
-
-    def toggle_fold(self):
-        self.folded = not self.folded
     def header(self):
         return self.string()
     def child_nodes(self) -> None | list:
@@ -89,10 +74,7 @@ class StringFmt:
         self.mid = []
         self.exprs = []
         self.end = None
-        self.folded = False
 
-    def toggle_fold(self):
-        self.folded = not self.folded
     def header(self):
         return "string fmt:"
     def child_nodes(self) -> None | list:
@@ -126,17 +108,10 @@ class StringFmt:
 class ArrayLiteral:
     def __init__(self):
         self.elements = []
-        self.folded = False
 
-    def toggle_fold(self):
-        self.folded = not self.folded
     def header(self):
-        if self.folded:
-            return "array literal ..."
         return "array literal:"
     def child_nodes(self) -> None | list:
-        if self.folded:
-            return None
         return self.elements
 
     def string(self, indent = 0):
@@ -154,10 +129,7 @@ class FnCall:
         self.id = None
         self.args = []
         self.in_expr = False    # For determining indent in printing
-        self.folded = False
 
-    def toggle_fold(self):
-        self.folded = not self.folded
     def header(self):
         if self.in_expr:
             return sprint(self.id.string(),
@@ -166,6 +138,7 @@ class FnCall:
         return sprint("call:", self.id.string(),
                         f'({", ".join([a.string() for a in self.args])})',
                         indent=0)
+
     def child_nodes(self) -> None | list:
         return None
 
@@ -185,10 +158,7 @@ class FnCall:
 class ReturnStatement:
     def __init__(self):
         self.expr = None
-        self.folded = False
 
-    def toggle_fold(self):
-        self.folded = not self.folded
     def header(self):
         return self.string()
     def child_nodes(self) -> None | list:
@@ -205,17 +175,10 @@ class ArrayDeclaration:
         self.dtype = None
         self.value = None
         self.is_const: bool = False
-        self.folded = False
 
-    def toggle_fold(self):
-        self.folded = not self.folded
     def header(self):
-        if self.folded:
-            return f"declare array: {self.id.string()} ..."
         return f"declare array: {self.id.string()}"
     def child_nodes(self) -> None | list:
-        if self.folded:
-            return None
         return [self.dtype, self.value, self.is_const]
 
     def string(self, indent = 0):
@@ -248,10 +211,7 @@ class ArrayDeclaration:
 class UselessIdStatement:
     def __init__(self):
         self.id: Token = None
-        self.folded = False
 
-    def toggle_fold(self):
-        self.folded = not self.folded
     def header(self):
         return self.string()
     def child_nodes(self) -> None | list:
@@ -264,15 +224,10 @@ class Assignment:
     def __init__(self):
         self.id: Token = None
         self.value = None
-        self.folded = False
 
-    def toggle_fold(self):
-        self.folded = not self.folded
     def header(self):
         return f"assign: {self.id.string()}"
     def child_nodes(self) -> None | list:
-        if self.folded:
-            return None
         return [self.value]
 
     def string(self, indent = 0):
@@ -288,17 +243,10 @@ class Declaration:
         self.dtype = None
         self.value = None
         self.is_const: bool = False
-        self.folded = False
 
-    def toggle_fold(self):
-        self.folded = not self.folded
     def header(self):
-        if self.folded:
-            return f"declare: {self.id.string()} ..."
         return f"declare: {self.id.string()}"
     def child_nodes(self) -> None | list:
-        if self.folded:
-            return None
         return [self.dtype, self.value, self.is_const]
 
     def string(self, indent = 0):
@@ -313,13 +261,8 @@ class Declaration:
 class Print:
     def __init__(self):
         self.values = []
-        self.folded = False
 
-    def toggle_fold(self):
-        self.folded = not self.folded
     def header(self):
-        if self.folded:
-            return "print: ..."
         return "print"
     def child_nodes(self) -> None | list:
         return self.values
@@ -333,13 +276,8 @@ class Print:
 class Input:
     def __init__(self):
         self.value = None
-        self.folded = False
 
-    def toggle_fold(self):
-        self.folded = not self.folded
     def header(self):
-        if self.folded:
-            return "input: ..."
         return "input"
     def child_nodes(self) -> None | list:
         return [self.value]
@@ -354,10 +292,7 @@ class Parameter:
     def __init__(self):
         self.id = None
         self.dtype = None
-        self.folded = False
 
-    def toggle_fold(self):
-        self.folded = not self.folded
     def header(self):
         return f"param: id: {self.id.string()} dtype: {self.dtype.string()}"
     def child_nodes(self) -> None | list:
@@ -375,17 +310,10 @@ class IfStatement:
         self.then = None
         self.else_if: list[ElseIfStatement] = []
         self.else_block = None
-        self.folded = False
 
-    def toggle_fold(self):
-        self.folded = not self.folded
     def header(self):
-        if self.folded:
-            return "if statement: ..."
         return "if statement:"
     def child_nodes(self) -> None | list:
-        if self.folded:
-            return None
         return [self.condition, self.then, self.else_if, self.else_block]
 
     def string(self, indent = 0):
@@ -404,17 +332,10 @@ class ElseIfStatement:
     def __init__(self):
         self.condition = None
         self.then = None
-        self.folded = False
 
-    def toggle_fold(self):
-        self.folded = not self.folded
     def header(self):
-        if self.folded:
-            return "else if statement: ..."
         return "else if statement:"
     def child_nodes(self) -> None | list:
-        if self.folded:
-            return None
         return [self.condition, self.then]
 
     def string(self, indent = 0):
@@ -429,17 +350,10 @@ class WhileLoop:
         self.condition = None
         self.body = None
         self.is_do = False
-        self.folded = False
 
-    def toggle_fold(self):
-        self.folded = not self.folded
     def header(self):
-        if self.folded:
-            return f"{'do' if self.is_do else ''} while statement: ..."
-        return "while statement:"
+        return f"{'do' if self.is_do else ''} while statement:"
     def child_nodes(self) -> None | list:
-        if self.folded:
-            return None
         if self.is_do:
             return ["do while", self.condition, self.body]
         return [self.condition, self.body]
@@ -457,17 +371,10 @@ class ForLoop:
         self.condition = None
         self.update = None
         self.body = None
-        self.folded = False
 
-    def toggle_fold(self):
-        self.folded = not self.folded
     def header(self):
-        if self.folded:
-            return "for loop: ..."
         return "for loop:"
     def child_nodes(self) -> None | list:
-        if self.folded:
-            return None
         return [self.init, self.condition, self.update, self.body]
 
     def string(self, indent = 0):
@@ -485,17 +392,10 @@ class Function:
         self.rtype = None
         self.params: list[Parameter] = []
         self.body = None
-        self.folded = False
 
-    def toggle_fold(self):
-        self.folded = not self.folded
     def header(self):
-        if self.folded:
-            return f"function: {self.id.string()} ..."
         return f"function: {self.id.string()}"
     def child_nodes(self) -> None | list:
-        if self.folded:
-            return None
         return [self.rtype, self.params, self.body]
 
     def string(self, indent = 0):
@@ -518,17 +418,10 @@ class Class:
         self.body: list = []
         self.properties: list = []
         self.methods: list = []
-        self.folded = False
 
-    def toggle_fold(self):
-        self.folded = not self.folded
     def header(self):
-        if self.folded:
-            return f"class: {self.id.string()} ..."
         return f"class: {self.id.string()}"
     def child_nodes(self) -> None | list:
-        if self.folded:
-            return None
         return [self.params, self.body, self.properties, self.methods]
 
     def string(self, indent = 0):
@@ -553,17 +446,10 @@ class Class:
 class BlockStatement:
     def __init__(self):
         self.statements = []
-        self.folded = False
 
-    def toggle_fold(self):
-        self.folded = not self.folded
     def header(self):
-        if self.folded:
-            return "block: ..."
         return "block"
     def child_nodes(self) -> None | list:
-        if self.folded:
-            return None
         return self.statements
 
     def string(self, indent = 0):
