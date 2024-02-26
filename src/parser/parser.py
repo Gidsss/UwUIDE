@@ -25,7 +25,7 @@ Overview:
     - for statements
 '''
 from typing import Callable
-
+from .error_handler import Error, BasicError, ErrorSrc
 from src.lexer.token import Token, TokenType, UniqueTokenType
 from src.parser.productions import *
 
@@ -64,13 +64,7 @@ precedence_map = {
 class Parser:
     def __init__(self, tokens: list[Token]):
         self.tokens = [token for token in tokens if token.token not in [TokenType.WHITESPACE, TokenType.SINGLE_LINE_COMMENT, TokenType.MULTI_LINE_COMMENT]]
-        self.tokens.append(Token("EOF", TokenType.EOF, (0, 0), (0, 0)))
         self.errors: list = []
-
-        # to keep track of tokens
-        self.pos = 0
-        self.curr_tok = self.tokens[self.pos]
-        self.peek_tok = self.tokens[self.pos + 1]
 
         # to associate prefix and infix parsing functions for certain token types
         # key : val == TokenType : ParsingFunction
@@ -80,9 +74,19 @@ class Parser:
         self.in_block_parse_fns: dict = {}
         self.register_init()
 
+        if not self.tokens:
+            self.missing_mainuwu_error(Token("EOF", TokenType.EOF, (0, 0), (0, 0)))
+            self.program = None
+            return
+
+        # to keep track of tokens
+        self.pos = 0
+        self.curr_tok = self.tokens[self.pos]
+        self.peek_tok = self.tokens[self.pos + 1]
+
+        eof_pos = (self.tokens[-1].end_position[0], self.tokens[-1].end_position[1] + 1)
+        self.tokens.append(Token("EOF", TokenType.EOF, eof_pos, eof_pos))
         self.program = self.parse_program()
-        if self.program.mainuwu is None:
-            self.missing_mainuwu_error()
 
     def advance(self, inc: int = 1):
         'advance the current and peek tokens based on the increment. default is 1'
@@ -175,10 +179,10 @@ class Parser:
                 case TokenType.FWUNC:
                     if self.peek_tok_is(TokenType.MAINUWU):
                         if p.mainuwu is not None:
-                            self.multiple_mainuwu_error()
+                            self.multiple_mainuwu_error(self.peek_tok)
                             self.advance(2)
-                            continue
-                        p.mainuwu = self.parse_function()
+                        else:
+                            p.mainuwu = self.parse_function(main=True)
                     else:
                         p.functions.append(self.parse_function())
                 case TokenType.CWASS:
@@ -190,6 +194,10 @@ class Parser:
                 case _:
                     self.invalid_global_declaration_error(self.curr_tok)
                     self.advance()
+
+        if p.mainuwu is None:
+            self.missing_mainuwu_error(self.curr_tok)
+
         return p
 
     def parse_declaration(self, ident = None):
@@ -214,24 +222,27 @@ class Parser:
             if not self.expect_peek_is_identifier():
                 self.no_ident_in_declaration_error(self.peek_tok)
                 self.advance(2)
-                return None
+                return d
             d.id = self.curr_tok
 
         if not self.expect_peek(TokenType.DASH):
             self.no_data_type_indicator_error(self.peek_tok)
             self.advance(2)
-            return None
+            return d
 
         data_types = [
             TokenType.CHAN,
             TokenType.KUN,
             TokenType.SAMA,
             TokenType.SENPAI,
+            TokenType.SAN
         ]
         if not self.expect_peek_in(data_types):
-            self.no_data_type_error(self.peek_tok)
-            self.advance(2)
-            return None
+            # Check for class id as data type
+            if not self.expect_peek_is_class_name():
+                self.no_data_type_error(self.peek_tok)
+                self.advance(2)
+                return d
         d.dtype = self.curr_tok
 
         # array declaration
@@ -243,40 +254,35 @@ class Parser:
             if not self.expect_peek(TokenType.CLOSE_BRACKET):
                 self.unclosed_bracket_error(self.peek_tok)
                 self.advance(2)
-                return None
+                return d
 
         # -dono to indicate constant
         if self.expect_peek(TokenType.DASH):
             if not self.expect_peek(TokenType.DONO):
                 self.no_dono_error(self.peek_tok)
                 self.advance(2)
-                return None
+                return d
             d.is_const = True
 
         # uninitialized
         if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
-            # disallow uninitialized for constants
-            if d.is_const:
-                self.uninitialized_constant_error(self.peek_tok)
-                self.advance(2)
-                return None
             # allow uninitialized for variables
             if not self.expect_peek(TokenType.TERMINATOR):
                 self.unterminated_error(self.peek_tok)
                 self.advance(2)
-                return None
+                return d
             return d
 
         # initialized
         self.advance()
         if self.curr_tok_is(TokenType.TERMINATOR):
             self.uninitialized_assignment_error(self.peek_tok)
-            return None
+            return d
         d.value = self.parse_expression(LOWEST)
         if not self.expect_peek(TokenType.TERMINATOR):
             self.unterminated_error(self.peek_tok)
             self.advance(2)
-            return None
+            return d
         return d
 
     ### statement parsers
@@ -286,58 +292,76 @@ class Parser:
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
             self.advance()
-            return None
+            return rs
         self.advance() # consume the open paren
         rs.expr = self.parse_expression(LOWEST)
 
         if not self.expect_peek(TokenType.CLOSE_PAREN):
             self.advance()
             self.unclosed_paren_error(self.curr_tok)
-            return None
+            return rs
         if not self.expect_peek(TokenType.TERMINATOR):
             self.advance()
             self.unterminated_error(self.curr_tok)
-            return None
+            return rs
         return rs
 
     # block statements
-    def parse_function(self):
+    def parse_function(self, main=False):
         func = Function()
 
         if not self.expect_peek_is_identifier() and not self.expect_peek(TokenType.MAINUWU):
             self.no_ident_in_func_declaration_error(self.peek_tok)
             self.advance(2)
-            return None
+            return func
         func.id = self.curr_tok
 
         if not self.expect_peek(TokenType.DASH):
             self.no_data_type_indicator_error(self.peek_tok)
             self.advance(2)
-            return None
+            return func
 
-        data_types = [
-            TokenType.CHAN,
-            TokenType.KUN,
-            TokenType.SAMA,
-            TokenType.SENPAI,
-            TokenType.SAN
-        ]
+        if main:
+            if not self.expect_peek(TokenType.SAN):
+                self.invalid_mainuwu_rtype_error(self.peek_tok)
+                self.advance(2)
+                return func
+        else:
+            data_types = [
+                TokenType.CHAN,
+                TokenType.KUN,
+                TokenType.SAMA,
+                TokenType.SENPAI,
+                TokenType.SAN
+            ]
 
-        if not self.expect_peek_in(data_types):
-            self.no_data_type_error(self.peek_tok)
-            self.advance(2)
-            return None
+            if not self.expect_peek_in(data_types):
+                # Check for class id as data type
+                if not self.expect_peek_is_class_name():
+                    self.no_data_type_error(self.peek_tok)
+                    self.advance(2)
+                    return func
+
         func.rtype = self.curr_tok
-        func.params = self.parse_params()
+
+        # is array return type
+        if self.expect_peek(TokenType.OPEN_BRACKET):
+            if not self.expect_peek(TokenType.CLOSE_BRACKET):
+                self.unclosed_bracket_error(self.peek_tok)
+                self.advance(2)
+                return func
+            func.rtype.lexeme += "[]"
+
+        func.params = self.parse_params(main=main)
         if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
             self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
-            self.advance()
-            return None
+            self.advance(2)
+            return func
         func.body = self.parse_block_statement()
         if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
-            self.advance()
-            self.unclosed_bracket_error(self.curr_tok)
-            return None
+            self.advance(2)
+            self.unclosed_double_bracket_error(self.curr_tok)
+            return func
 
         return func
 
@@ -347,13 +371,13 @@ class Parser:
         if not self.expect_peek_is_class_name():
             self.no_ident_in_class_declaration_error(self.peek_tok)
             self.advance(2)
-            return None
+            return c
         c.id = self.curr_tok
         c.params = self.parse_params()
         if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
             self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
             self.advance()
-            return None
+            return c
         self.advance()
         c.body = BlockStatement()
         stop_conditions = [TokenType.DOUBLE_CLOSE_BRACKET, TokenType.EOF]
@@ -365,11 +389,7 @@ class Parser:
                 case _:
                     inner_stop_conditions = stop_conditions + [TokenType.FWUNC]
                     while not self.curr_tok_is_in(inner_stop_conditions):
-                        if self.curr_tok_is(TokenType.WETUWN):
-                            self.return_in_class_error()
-                            self.advance()
-                            continue
-                        elif isinstance(self.curr_tok.token, UniqueTokenType):
+                        if isinstance(self.curr_tok.token, UniqueTokenType):
                             parser = self.get_in_block_parse_fn("IDENTIFIER")
                         else:
                             parser = self.get_in_block_parse_fn(self.curr_tok.token)
@@ -381,43 +401,53 @@ class Parser:
                         c.body.statements.append(statement)
                         self.advance()
         if not self.curr_tok_is(TokenType.DOUBLE_CLOSE_BRACKET):
-            self.unclosed_bracket_error(self.curr_tok)
-            return None
+            self.unclosed_double_bracket_error(self.curr_tok)
+            return c
         return c
 
-    def parse_params(self):
+    def parse_params(self, main=False):
         'note that this must start with ( in peek_tok'
+        parameters: list[Parameter] = []
+        param = Parameter()
+
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
             self.advance()
-            return None
+            return parameters
 
         if not self.expect_peek(TokenType.CLOSE_PAREN):
-            parameters: list[Parameter] = []
+            # If parameters are for main function, raise error immediately cuz it can't have params
+            if main:
+                self.invalid_mainuwu_params_error(self.peek_tok)
+                self.advance()
+                return parameters
+
             while True:
-                param = Parameter()
                 if not self.expect_peek_is_identifier():
                     self.no_ident_in_param_error(self.peek_tok)
                     self.advance(2)
-                    return None
+                    return parameters
                 param.id = self.curr_tok
 
                 if not self.expect_peek(TokenType.DASH):
                     self.no_data_type_indicator_error(self.peek_tok)
                     self.advance(2)
-                    return None
+                    return parameters
 
                 data_types = [
                     TokenType.CHAN,
                     TokenType.KUN,
                     TokenType.SAMA,
                     TokenType.SENPAI,
+                    TokenType.SAN
                 ]
 
                 if not self.expect_peek_in(data_types):
-                    self.no_data_type_error(self.peek_tok)
-                    self.advance(2)
-                    return None
+                    # Check for class id as data type
+                    if not self.expect_peek_is_class_name():
+                        self.no_data_type_error(self.peek_tok)
+                        self.advance(2)
+                        return parameters
                 param.dtype = self.curr_tok
                 parameters.append(param)
 
@@ -429,80 +459,95 @@ class Parser:
                     if not self.expect_peek(TokenType.CLOSE_BRACKET):
                         self.unclosed_bracket_error(self.peek_tok)
                         self.advance(2)
-                        return None
+                        return parameters
 
                 if self.expect_peek(TokenType.COMMA):
                     continue
                 elif self.expect_peek(TokenType.CLOSE_PAREN):
                     break
                 else:
-                    self.invalid_parameter(self.peek_tok)
+                    self.invalid_parameter_error(self.peek_tok)
                     self.advance(2)
-                    return None
+                    return parameters
 
             return parameters
 
     def  parse_if_statement(self):
-        ie = IfExpression()
+        ie = IfStatement()
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
             self.advance()
-            return None
-        self.advance()
-        ie.condition = self.parse_expression(LOWEST)
-        if not self.expect_peek(TokenType.CLOSE_PAREN):
+            return ie
+
+        # Check if condition is empty
+        if self.peek_tok_is(TokenType.CLOSE_PAREN):
+            self.empty_condition_error()
             self.advance()
-            self.unclosed_paren_error(self.curr_tok)
-            return None
+            ie.condition = None
+        else:
+            self.advance()
+            ie.condition = self.parse_expression(LOWEST)
+            if not self.expect_peek(TokenType.CLOSE_PAREN):
+                self.advance()
+                self.unclosed_paren_error(self.curr_tok)
+                return ie
+
         if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
             self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
             self.advance()
-            return None
+            return ie
         ie.then = self.parse_block_statement()
         if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
             self.advance()
-            self.unclosed_bracket_error(self.curr_tok)
-            return None
+            self.unclosed_double_bracket_error(self.curr_tok)
+            return ie
 
         while self.expect_peek(TokenType.EWSE_IWF):
-            eie = ElseIfExpression()
+            eie = ElseIfStatement()
             if not self.expect_peek(TokenType.OPEN_PAREN):
                 self.peek_error(TokenType.OPEN_PAREN)
                 self.advance()
-                return None
+                return ie
             self.advance()
             eie.condition = self.parse_expression(LOWEST)
             if not self.expect_peek(TokenType.CLOSE_PAREN):
                 self.advance()
                 self.unclosed_paren_error(self.curr_tok)
-                return None
+                return ie
             if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
                 self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
                 self.advance()
-                return None
+                return ie
             eie.then = self.parse_block_statement()
             if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
                 self.advance()
-                self.unclosed_bracket_error(self.curr_tok)
-                return None
+                self.unclosed_double_bracket_error(self.curr_tok)
+                return ie
             ie.else_if.append(eie)
 
         if self.expect_peek(TokenType.EWSE):
             if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
                 self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
                 self.advance()
-                return None
+                return ie
             ie.else_block = self.parse_block_statement()
             if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
                 self.advance()
-                self.unclosed_bracket_error(self.curr_tok)
-                return None
+                self.unclosed_double_bracket_error(self.curr_tok)
+                return ie
         return ie
 
     def parse_block_statement(self):
         'take note that this starts with the open bracket as the current token'
         bs = BlockStatement()
-        self.advance() # consume the open bracket
+
+        # Check if block is empty
+        if self.peek_tok_is(TokenType.DOUBLE_CLOSE_BRACKET):
+            self.empty_code_body_error()
+            return bs
+
+        self.advance()  # consume the open bracket
+
         stop_condition = [TokenType.DOUBLE_CLOSE_BRACKET, TokenType.EOF]
         while not self.peek_tok_is_in(stop_condition):
             if isinstance(self.curr_tok.token, UniqueTokenType):
@@ -527,19 +572,49 @@ class Parser:
         # is a declaration
         if self.peek_tok_is(TokenType.DASH):
             return self.parse_declaration(ident)
+
+        # is a function call
+        if self.peek_tok_is(TokenType.OPEN_PAREN):
+            # Consume open paren
+            fc = FnCall()
+            fc.id = ident
+            fc.in_expr = False
+
+            self.advance(2)
+            stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
+            while not self.curr_tok_is_in(stop_conditions):
+                fc.args.append(self.parse_expression(LOWEST))
+                if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
+                    break
+                self.advance()
+            if not self.curr_tok_is(TokenType.CLOSE_PAREN):
+                self.unclosed_paren_error(self.curr_tok)
+                return fc
+            if not self.expect_peek(TokenType.TERMINATOR):
+                self.unterminated_error(self.peek_tok)
+                return fc
+            return fc
+
+        # is a useless id statement lmao
+        if self.peek_tok_is(TokenType.TERMINATOR):
+            self.advance()
+            useless_id = UselessIdStatement()
+            useless_id.id = ident
+            return useless_id
+
         # is an assignment
         a = Assignment()
         a.id = ident
         if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
-            self.peek_error(self.peek_tok)
+            self.peek_error(TokenType.ASSIGNMENT_OPERATOR)
             self.advance()
-            return None
+            return a
         self.advance()
         a.value = self.parse_expression(LOWEST)
         if not self.expect_peek(TokenType.TERMINATOR):
             self.advance()
             self.unterminated_error(self.curr_tok)
-            return None
+            return a
         return a
 
     def parse_while_statement(self):
@@ -550,22 +625,30 @@ class Parser:
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
             self.advance()
-            return None
-        self.advance()
-        wl.condition = self.parse_expression(LOWEST)
-        if not self.expect_peek(TokenType.CLOSE_PAREN):
+            return wl
+
+        # Check if condition is empty
+        if self.peek_tok_is(TokenType.CLOSE_PAREN):
+            self.empty_condition_error()
             self.advance()
-            self.unclosed_paren_error(self.curr_tok)
-            return None
+            wl.condition = None
+        else:
+            self.advance()
+            wl.condition = self.parse_expression(LOWEST)
+            if not self.expect_peek(TokenType.CLOSE_PAREN):
+                self.advance()
+                self.unclosed_paren_error(self.curr_tok)
+                return wl
+
         if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
             self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
             self.advance()
-            return None
+            return wl
         wl.body = self.parse_block_statement()
         if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
             self.advance()
-            self.unclosed_bracket_error(self.curr_tok)
-            return None
+            self.unclosed_double_bracket_error(self.curr_tok)
+            return wl
         return wl
 
     def parse_for_statement(self):
@@ -573,7 +656,7 @@ class Parser:
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
             self.advance()
-            return None
+            return fl
         self.advance()
 
         # just an identifier without initialization or assignment
@@ -587,28 +670,28 @@ class Parser:
         if not self.curr_tok_is(TokenType.TERMINATOR):
             self.peek_error(TokenType.TERMINATOR)
             self.advance()
-            return None
+            return fl
         self.advance()
         fl.condition = self.parse_expression(LOWEST)
         if not self.expect_peek(TokenType.TERMINATOR):
             self.peek_error(TokenType.TERMINATOR)
             self.advance()
-            return None
+            return fl
         self.advance()
         fl.update = self.parse_expression(LOWEST)
         if not self.expect_peek(TokenType.CLOSE_PAREN):
             self.advance()
             self.unclosed_paren_error(self.curr_tok)
-            return None
+            return fl
         if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
             self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
             self.advance()
-            return None
+            return fl
         fl.body = self.parse_block_statement()
         if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
             self.advance()
-            self.unclosed_bracket_error(self.curr_tok)
-            return None
+            self.unclosed_double_bracket_error(self.curr_tok)
+            return fl
         return fl
 
     def parse_print(self):
@@ -616,7 +699,7 @@ class Parser:
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
             self.advance()
-            return None
+            return p
         self.advance()
         stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
         while not self.curr_tok_is_in(stop_conditions):
@@ -626,11 +709,11 @@ class Parser:
             self.advance()
         if not self.curr_tok_is(TokenType.CLOSE_PAREN):
             self.unclosed_paren_error(self.curr_tok)
-            return None
+            return p
         if not self.expect_peek(TokenType.TERMINATOR):
             self.advance()
             self.unterminated_error(self.curr_tok)
-            return None
+            return p
         return p
 
     def parse_input(self):
@@ -638,17 +721,17 @@ class Parser:
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
             self.advance()
-            return None
+            return i
         self.advance()
         i.value = self.parse_expression(LOWEST)
         if not self.expect_peek(TokenType.CLOSE_PAREN):
             self.advance()
             self.unclosed_paren_error(self.curr_tok)
-            return None
+            return i
         if not self.expect_peek(TokenType.TERMINATOR):
             self.advance()
             self.unterminated_error(self.curr_tok)
-            return None
+            return i
         return i
 
     ### expression parsers
@@ -676,6 +759,12 @@ class Parser:
             return None
 
         left_exp = prefix()
+        if isinstance(self.curr_tok.token, UniqueTokenType):
+            postfix = self.get_postfix_parse_fn("IDENTIFIER")
+        else:
+            postfix = self.get_postfix_parse_fn(self.curr_tok.token)
+        if postfix is not None:
+            left_exp = postfix(left_exp)
 
         while not self.peek_tok_is_in([TokenType.TERMINATOR, TokenType.EOF]) and precedence < self.peek_precedence():
             infix = self.get_infix_parse_fn(self.peek_tok.token)
@@ -749,7 +838,7 @@ class Parser:
         if not self.expect_peek(TokenType.CLOSE_PAREN):
             self.advance()
             self.unclosed_paren_error(self.curr_tok)
-            return None
+            return expr
         return expr
 
 
@@ -763,6 +852,7 @@ class Parser:
 
         fc = FnCall()
         fc.id = self.curr_tok
+        fc.in_expr = True
         self.advance(2)
         stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
         while not self.curr_tok_is_in(stop_conditions):
@@ -772,7 +862,7 @@ class Parser:
             self.advance()
         if not self.curr_tok_is(TokenType.CLOSE_PAREN):
             self.unclosed_paren_error(self.curr_tok)
-            return None
+            return fc
         return fc
     def parse_array(self):
         al = ArrayLiteral()
@@ -787,7 +877,7 @@ class Parser:
 
         if not self.curr_tok_is(TokenType.CLOSE_BRACE):
             self.unclosed_brace_error(self.peek_tok)
-            return None
+            return al
         return al
     def parse_string_parts(self):
         sf = StringFmt()
@@ -808,7 +898,7 @@ class Parser:
 
         if not self.expect_peek(TokenType.STRING_PART_END):
             self.unclosed_string_part_error(sf.start, self.peek_tok)
-            return None
+            return sf
         sf.end = self.curr_tok
         return sf
     def parse_literal(self):
@@ -872,7 +962,7 @@ class Parser:
         advances the cursor if it is.
         cursor won't advance if not.
         '''
-        if self.peek_tok.token.token.startswith("IDENTIFIER"):
+        if self.peek_tok.token.token.startswith("IDENTIFIER_"):
             self.advance()
             return True
         else:
@@ -883,7 +973,7 @@ class Parser:
         advances the cursor if it is.
         cursor won't advance if not.
         '''
-        if self.peek_tok.token.token.startswith("CWASS"):
+        if self.peek_tok.token.token.startswith("CWASS_"):
             self.advance()
             return True
         else:
@@ -920,50 +1010,180 @@ class Parser:
             return LOWEST
 
     ### error methods
+
     # general error
     def peek_error(self, token: TokenType):
-        self.errors.append(f"expected next token to be '{token}', got '{self.peek_tok}' instead")
+        self.errors.append(Error(
+            "UNEXPECTED TOKEN",
+            f"Expected next token to be {token}, got '{self.peek_tok}' instead",
+            self.peek_tok.position,
+            self.peek_tok.end_position
+        ))
     def no_prefix_parse_fn_error(self, token_type):
-        self.errors.append(f"no prefix parsing function found for {token_type}")
+        self.errors.append(Error(
+            "MISSING PREFIX PARSING FUNCTION",
+            f"No prefix parsing function found for '{token_type}'",
+            self.curr_tok.position,
+            self.curr_tok.end_position
+        ))
     def no_in_block_parse_fn_error(self, token_type):
-        self.errors.append(f"no parsing function found for {token_type} inside block statements")
+        self.errors.append(Error(
+            "MISSING IN-BLOCK PARSING FUNCTION",
+            f"No in-block parsing function found for {token_type}",
+            self.curr_tok.position,
+            self.curr_tok.end_position
+        ))
     def invalid_global_declaration_error(self, token: Token):
-        self.errors.append(f"Expected global function/class/variable/constant declaration, got {token.lexeme}")
+        self.errors.append(Error(
+            "INVALID GLOBAL DECLARATION",
+            f"Only functions, classes, and global variable declarations are allowed in the global scope.\n\t'{token.lexeme}' is invalid.",
+            token.position,
+            token.end_position
+        ))
     def no_ident_in_declaration_error(self, token: Token):
-        self.errors.append(f"Expected identifier in declaration, got {token.lexeme}")
+        self.errors.append(Error(
+            "MISSING IDENTIFIER",
+            f"Expected identifier in declaration, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
     def no_ident_in_class_declaration_error(self, token: Token):
-        self.errors.append(f"Expected identifier in class declaration, got {token.lexeme}")
+        self.errors.append(Error(
+            "MISSING IDENTIFIER",
+            f"Expected identifier in class declaration, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
     def no_ident_in_func_declaration_error(self, token: Token):
-        self.errors.append(f"Expected identifier in function declaration, got {token.lexeme}")
+        self.errors.append(Error(
+            "MISSING IDENTIFIER",
+            f"Expected identifier in function declaration, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
     def no_ident_in_param_error(self, token: Token):
-        self.errors.append(f"Expected identifier in parameter, got {token.lexeme}")
+        self.errors.append(Error(
+            "MISSING IDENTIFIER",
+            f"Expected identifier in parameter, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
     def no_data_type_indicator_error(self, token: Token):
-        self.errors.append(f"Expected dash before data type, got {token.lexeme}")
+        self.errors.append(Error(
+            "MISSING DASH DATA TYPE",
+            f"Expected dash before data type, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
     def no_data_type_error(self, token: Token):
-        self.errors.append(f"Expected data type, got {token.lexeme}")
+        self.errors.append(Error(
+            "MISSING DATA TYPE",
+            f"Expected data type, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
     def no_dono_error(self, token: Token):
-        self.errors.append(f"Expected 'dono' to denote variable as constant instead, got {token.lexeme}")
-    def invalid_parameter(self, token: Token):
-        self.errors.append(f"Invalid parameter. Expected ',' or ')', got {token.lexeme}")
+        self.errors.append(Error(
+            "MISSING DONO",
+            f"Expected 'dono' to denote variable as constant, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
+    def invalid_parameter_error(self, token: Token):
+        self.errors.append(Error(
+            "INVALID PARAMETER",
+            f"Invalid parameter. Expected ',' or ')', got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
     def unterminated_error(self, token: Token):
-        self.errors.append(f"Expected '~' to terminate the statement, got {token.lexeme}")
+        self.errors.append(Error(
+            "UNTERMINATED STATEMENT",
+            f"Expected '~' to terminate the statement, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
     def unclosed_paren_error(self, token: Token):
-        self.errors.append(f"Expected ')' to close the parenthesis, got {token.lexeme}")
+        self.errors.append(Error(
+            "UNCLOSED PARENTHESIS",
+            f"Expected ')' to close the parenthesis, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
+    def unclosed_double_bracket_error(self, token: Token):
+        self.errors.append(Error(
+            "UNCLOSED DOUBLE BRACKET",
+            f"Expected ']]' to close the double bracket, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
     def unclosed_bracket_error(self, token: Token):
-        self.errors.append(f"Expected ']' to close the bracket, got {token.lexeme}")
+        self.errors.append(Error(
+            "UNCLOSED BRACKET",
+            f"Expected ']' to close the bracket, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
     def unclosed_brace_error(self, token: Token):
-        self.errors.append(f"Expected '}}' to close the brace, got {token.lexeme}")
-    def uninitialized_constant_error(self, token: Token):
-        self.errors.append(f"Constants must be initialized. got '{token.lexeme}'")
+        self.errors.append(Error(
+            "UNCLOSED BRACE",
+            f"Expected '}}' to close the brace, got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
+    def empty_condition_error(self):
+        self.errors.append(Error(
+            "EMPTY CONDITION",
+            f"Conditions cannot be empty.",
+            self.curr_tok.position,
+            self.curr_tok.end_position
+        ))
+    def empty_code_body_error(self):
+        self.errors.append(Error(
+            "EMPTY CODE BODY",
+            f"Code bodies must contain at least one or more statement.",
+            self.curr_tok.position,
+            self.curr_tok.end_position
+        ))
     def uninitialized_assignment_error(self, token: Token):
-        self.errors.append(f"Assignments must have a value after '='. got '{token.lexeme}'")
+        self.errors.append(Error(
+            "MISSING VALUE ASSIGNMENT",
+            f"Assignments must have a value after '='. got '{token.lexeme}'.",
+            token.position,
+            token.end_position
+        ))
     def unclosed_string_part_error(self, string_start, token: Token):
-        self.errors.append(f"Unclosed string part. Expected '{string_start.lexeme[:-1]}|' to be closed by something like '|string part end\"'. got '{token.lexeme}'")
-    def missing_mainuwu_error(self):
-        self.errors.append("Missing mainuwu function declaration")
-    def multiple_mainuwu_error(self):
-        self.errors.append("Multiple mainuwu function declaration")
-    def return_in_class_error(self):
-        self.errors.append("Return statement in class declaration")
-    def return_in_func_error(self):
-        self.errors.append("Found return statement in class declaration")
+        self.errors.append(Error(
+            "UNCLOSED FORMAT STRING",
+            f"Unclosed string part. . Expected '{string_start.lexeme[:-1]}|' to be enclosed, got '{token.lexeme}'.",
+            token.position,
+            token.end_position
+        ))
+    def invalid_mainuwu_rtype_error(self, token: Token):
+        self.errors.append(Error(
+            "INVALID MAINUWU FUNCTION",
+            f"The mainuwu function's return type must only be 'san', got '{token}'.",
+            token.position,
+            token.end_position
+        ))
+    def invalid_mainuwu_params_error(self, token: Token):
+        self.errors.append(Error(
+            "INVALID MAINUWU FUNCTION",
+            f"Expected ')', got '{token}'.\n\tThe mainuwu function cannot accept any parameters.",
+            token.position,
+            token.end_position
+        ))
+    def multiple_mainuwu_error(self, token: Token):
+        self.errors.append(Error(
+            "MULTIPLE MAINUWU FUNCTION",
+            f"The program must only have one mainuwu function. Got 'mainuwu'",
+            token.position,
+            token.end_position
+        ))
+    def missing_mainuwu_error(self, token: Token):
+        self.errors.append(Error(
+            "MISSING MAINUWU FUNCTION",
+            f"The program must have at least one mainuwu function. Got 'EOF'",
+            token.position,
+            token.end_position
+        ))

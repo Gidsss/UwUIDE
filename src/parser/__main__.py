@@ -1,99 +1,66 @@
 from .parser import *
+from ..lexer import Lexer
 from ..lexer import print_lex
+from .error_handler import ErrorSrc
 
 if __name__ == "__main__":
     sc = """
     fwunc mainuwu-san() [[
         iwf (fax) [[
-            a-chan = 2~
-        ]]
-    ]]
-    cwass Hololive()
-    [[
-        aqua-chan = 3~
-        shion-chan = 3~
-        fwunc sum-chan(number1-chan[], number2-chan)
-        [[
-            sum-chan = number1 + number2~
-            wetuwn(sum)~
-        ]]
-        ojou-chan = 3~
-        fwunc sum-chan(number1-chan[], number2-chan)
-        [[
-            sum-chan = number1 + number2~
-            wetuwn(sum)~
-        ]]
-        aqua = 4~
-        shion = 4~
-        ojou = 4~
-        iwf (1 == 2) [[
-            aqua = 5~
-        ]] ewse iwf (3 == 4) [[
-            shion = 5~
+            a-san[] = 20~
+        ]] ewse iwf (4 == 5) [[
+            aqua-sama = 6~
+            shion-sama = 6~
+            ojou-sama = 6~
+        ]] ewse iwf (7 == 8) [[
+            aqua-sama = 9~
+            shion-sama = 9~
+            ojou-sama = 9~
+        ]] ewse iwf (10 == 11) [[
+            aqua-sama = 12~
+            shion-sama = 12~
+            ojou-sama = 12~
         ]] ewse [[
-            ojou = 5~
-        ]]
-        whiwe (aqua != shion) [[
-            aqua = aqua++~
-        ]]
-        do whiwe (aqua != ojou) [[
-            ojou = ojou--~
-        ]]
-        fow (aqua~ shion>aqua~ shion--) [[
-            pwint(ojou, aqua, shion)~
+            iwf (1 == 2) [[
+                sora-senpai = "nested!"~
+            ]] ewse [[
+                sora-senpai = "if statements!"~
+            ]]
         ]]
     ]]
     """
-#     ewse iwf (4 == 5) [[
-#         aqua-sama = 6~
-#             shion-sama = 6~
-#             ojou-sama = 6~
-#     ]] ewse iwf (7 == 8) [[
-#             aqua-sama = 9~
-#                 shion-sama = 9~
-#                 ojou-sama = 9~
-#         ]] ewse iwf (10 == 11) [[
-#         aqua-sama = 12~
-#             shion-sama = 12~
-#             ojou-sama = 12~
-#     ]] ewse [[
-#     iwf (1 == 2) [[
-#         sora-senpai = "nested!"~
-#     ]] ewse [[
-#             sora-senpai = "if statements!"~
-#         ]]
-# ]]
-    # >//<
-    # shape of this should be [3, 2, 1]
-    # 3 elements on aqua
-    # 2 elements in aqua[1]
-    # 1 elements in aqua[0][0]
-    # >//<
-    # gwobaw aqua-chan[2][-shion] = {
-    #     {
-    #         {
-    #             (2+2)*2,
-    #         }
-    #     },
-    #     {
-    #         3+3*3,
-    #         (4+4)*4,
-    #     },
-    #     1,
-    # }~
-    #     gwobaw ojou-chan = shion(1, 2, aqua(3+4*5), lap("hello |-name--| world"))~
-    #     gwobaw shion-chan = 1+- (1-2) -- == 5 -3-- *-5 ~
-    # gwobaw sora-senpai = "tokino '| -nickname |' sora"~
-    # gwobaw lap-chan[5]-dono = {1,2,3,4,5,6,7,8,9,10}~
-    # gwobaw suba-chan[5] = {2+2, (3+3)*3}~
 
     source: list[str] = [line if line else '\n' for line in sc.split("\n")]
-    l = print_lex(source)
+    max_digit_length = len(str(len(source)))
+    max_width = max(len(line) for line in source) + max_digit_length + 3
+    print('\nsample text file')
+    print("-"*max_width)
+    for i, line in enumerate(source):
+        line = line if line != '\n' else ''
+        print(f"{i+1} | {line}")
+    print("-"*max_width)
+    print('end of file\n')
+
+    l = Lexer(source)
     if l.errors:
         exit(1)
+
+    ErrorSrc.src = source
     p = Parser(l.tokens)
+    print()
     for err in p.errors:
         print(err)
+
+    print("--- Printing Whole Program ---")
+    print(p.program)
+    print("\n--- Printing only Main Function ---")
+    print(p.program.mainuwu_string())
+    print("\n--- Printing only Global Declarations ---")
+    print(p.program.globals_string())
+    print("\n--- Printing only Functions ---")
+    print(p.program.functions_string())
+    print("\n--- Printing only Classes ---")
+    print(p.program.classes_string())
+
     if p.errors:
         exit(1)
-    p.program.print()
