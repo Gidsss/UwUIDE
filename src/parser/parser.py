@@ -1175,14 +1175,14 @@ class Parser:
     def multiple_mainuwu_error(self, token: Token):
         self.errors.append(Error(
             "MULTIPLE MAINUWU FUNCTION",
-            f"The program must only have one mainuwu function.",
+            f"The program must only have one mainuwu function. Got 'mainuwu'",
             token.position,
             token.end_position
         ))
     def missing_mainuwu_error(self, token: Token):
         self.errors.append(Error(
             "MISSING MAINUWU FUNCTION",
-            f"The program must have at least one mainuwu function.",
+            f"The program must have at least one mainuwu function. Got 'EOF'",
             token.position,
             token.end_position
         ))
