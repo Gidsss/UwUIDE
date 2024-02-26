@@ -239,10 +239,8 @@ class Parser:
             TokenType.SAN
         ]
         if not self.expect_peek_in(data_types):
-            # Check for class id as data type (check Token's token str)
-            if self.peek_tok.token.token[:6] == "CWASS_":
-                self.advance()
-            else:
+            # Check for class id as data type
+            if not self.expect_peek_is_class_name():
                 self.no_data_type_error(self.peek_tok)
                 self.advance(2)
                 return None
@@ -339,10 +337,8 @@ class Parser:
             ]
 
             if not self.expect_peek_in(data_types):
-                # Check for class id as data type (check Token's token str)
-                if self.peek_tok.token.token[:6] == "CWASS_":
-                    self.advance()
-                else:
+                # Check for class id as data type
+                if not self.expect_peek_is_class_name():
                     self.no_data_type_error(self.peek_tok)
                     self.advance(2)
                     return None
@@ -437,10 +433,8 @@ class Parser:
                 ]
 
                 if not self.expect_peek_in(data_types):
-                    # Check for class id as data type (check Token's token str)
-                    if self.peek_tok.token.token[:6] == "CWASS_":
-                        self.advance()
-                    else:
+                    # Check for class id as data type
+                    if not self.expect_peek_is_class_name():
                         self.no_data_type_error(self.peek_tok)
                         self.advance(2)
                         return None
@@ -958,7 +952,7 @@ class Parser:
         advances the cursor if it is.
         cursor won't advance if not.
         '''
-        if self.peek_tok.token.token.startswith("IDENTIFIER"):
+        if self.peek_tok.token.token.startswith("IDENTIFIER_"):
             self.advance()
             return True
         else:
@@ -969,7 +963,7 @@ class Parser:
         advances the cursor if it is.
         cursor won't advance if not.
         '''
-        if self.peek_tok.token.token.startswith("CWASS"):
+        if self.peek_tok.token.token.startswith("CWASS_"):
             self.advance()
             return True
         else:
