@@ -349,6 +349,7 @@ class Parser:
             if not self.expect_peek(TokenType.CLOSE_BRACKET):
                 self.unclosed_bracket_error(self.peek_tok)
                 self.advance(2)
+                return func
             func.rtype.lexeme += "[]"
 
         func.params = self.parse_params(main=main)
