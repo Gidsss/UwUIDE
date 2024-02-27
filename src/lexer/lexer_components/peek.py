@@ -141,17 +141,12 @@ def identifier(context: tuple[list[str], list[int], str, list[Token], list[Delim
 
         in_next_line = position[0] != current_line
 
-        if is_end_of_file or in_next_line:
-            if in_next_line:
-                _, current_char = reverse_cursor(context)
-                context = lines, position, current_char, tokens, logs
+        if is_end_of_file or in_next_line or current_char in expected_delims:
+            if is_end_of_file:
+                line, col = position
+                logs.append(DelimError(delim_error_token, (line, col + 1), temp_id, "EOF"))
+                break
 
-            line, col = position
-            logs.append(DelimError(TokenType.GEN_IDENTIFIER, (line, col + 1), temp_id, '\n'))
-            cursor_advanced = True
-            break
-
-        elif current_char in expected_delims:
             _, current_char = reverse_cursor(context)
             context = lines, position, current_char, tokens, logs
 
