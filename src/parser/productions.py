@@ -318,7 +318,7 @@ class IfStatement(Production):
         self.condition = None
         self.then = None
         self.else_if: list[ElseIfStatement] = []
-        self.else_block = None
+        self.else_block: ElseStatement = None
 
     def header(self):
         return "if statement:"
@@ -334,12 +334,11 @@ class IfStatement(Production):
         res = sprintln("if statement:", indent=indent)
         res += sprintln("condition:", self.condition.string(), indent=indent+1)
         res += sprintln("then:", indent=indent+1)
-        res += self.then.string(indent+1)
+        res += self.then.string(indent+2)
         for e in self.else_if:
             res += e.string(indent+1)
         if self.else_block:
-            res += sprintln("else:", indent=indent+1)
-            res += self.else_block.string(indent+2)
+            res += self.else_block.string(indent+1)
         return res
 
 class ElseIfStatement(Production):
@@ -357,6 +356,21 @@ class ElseIfStatement(Production):
         res += sprintln("condition:", self.condition.string(), indent=indent+1)
         res += sprintln("then:", indent=indent+1)
         res += self.then.string(indent+2)
+        return res
+
+class ElseStatement(Production):
+    def __init__(self):
+        self.body = None
+
+    def header(self):
+        return "else statement:"
+    def child_nodes(self) -> None | dict[str, Production]:
+        return {"body":self.body}
+
+    def string(self, indent = 0):
+        res = sprintln("else statement:", indent=indent)
+        res += sprintln("body:", indent=indent+1)
+        res += self.body.string(indent+2)
         return res
 
 class WhileLoop(Production):
