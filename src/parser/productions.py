@@ -159,6 +159,53 @@ class FnCall(Production):
     def __len__(self):
         return 1
 
+class IndexedIdentifier(Production):
+    '''
+    id can be:
+    - token:    ident[i]
+    - FnCall:   fn()[i]
+    '''
+    def __init__(self):
+        self.id: Token | FnCall = None
+        self.index = None
+
+    def header(self):
+        return self.string()
+
+    def child_nodes(self) -> None | dict[str, Production]:
+        return None
+
+    def string(self, indent = 0):
+        return sprintln("id:", self.id.string(), "index:", self.index.string(), indent=indent)
+
+class ClassAccessor(Production):
+    '''
+    id can be:
+    - token:    ident.property, Cwass.property
+    - FnCall:   fn().property
+    can access:
+    - token:         ident.property, Cwass.property
+    - FnCall:        ident.method(), Cwass.method()
+    - indexed:       ident.property[index], Cwass.method()[index]
+    - ClassAccessor: ident.property.property, Cwass.property.method()
+    '''
+    def __init__(self):
+        self.id: Token | FnCall = None
+        self.accessed: Token | FnCall | IndexedIdentifier | ClassAccessor = None
+
+    def header(self):
+        return f"{self.id.string()}"
+    def child_nodes(self) -> None | dict[str, Production]:
+        return {"accessed":self.accessed}
+
+    def string(self, indent = 0):
+        ret = sprintln("id:", self.id.string())
+        ret += sprintln("accessed:", self.accessed.string(indent+1), indent=indent+1)
+        return ret
+    def __len__(self):
+        return 1
+
+
 ### GENERAL STATEMENT PRODUCTIONS ###
 class ReturnStatement(Production):
     def __init__(self):
@@ -237,7 +284,7 @@ class Assignment(Production):
 
     def string(self, indent = 0):
         res = sprintln("assign:", self.id.string(), indent=indent)
-        res += sprintln("value:", self.value.string(), indent=indent+1)
+        res += sprintln("value:", self.value.string(indent), indent=indent+1)
         return res
     def __len__(self):
         return 1

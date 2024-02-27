@@ -5,28 +5,13 @@ from .error_handler import ErrorSrc
 
 if __name__ == "__main__":
     sc = """
+    cwass Ojou()[[
+        ojou = shion.aqua().shion.aqua().shion().aqua~
+        aqua-chan = (1+1*ojou())
+    ]]
     fwunc mainuwu-san() [[
-        iwf (fax || cap && 1+1) [[
-            a-san[] = 20~
-        ]] ewse iwf (4 != 5 || 6 == 7) [[
-            aqua-sama = 6~
-            shion-sama = 6~
-            ojou-sama = 6~
-        ]] ewse iwf (7 == 8) [[
-            aqua-sama = 9~
-            shion-sama = 9~
-            ojou-sama = 9~
-        ]] ewse iwf (10 == 11) [[
-            aqua-sama = 12~
-            shion-sama = 12~
-            ojou-sama = 12~
-        ]] ewse [[
-            iwf (1 == 2) [[
-                sora-senpai = "nested!"~
-            ]] ewse [[
-                sora-senpai = "if statements!"~
-            ]]
-        ]]
+        a-san[] = 20~
+        >.< a[1] = 10~
     ]]
     """
 
