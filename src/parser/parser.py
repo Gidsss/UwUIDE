@@ -25,7 +25,7 @@ Overview:
     - for statements
 '''
 from typing import Callable
-from .error_handler import Error, BasicError, ErrorSrc
+from .error_handler import Error
 from src.lexer.token import Token, TokenType, UniqueTokenType
 from src.parser.productions import *
 
@@ -604,6 +604,10 @@ class Parser:
                 return fc
             return fc
 
+        # is an array access
+
+        # is a dot operation
+
         # is a useless id statement lmao
         if self.peek_tok_is(TokenType.TERMINATOR):
             self.advance()
@@ -855,24 +859,64 @@ class Parser:
     # unlike the above 4 expressions parsers,
     # these are made to be used in other parsers
     def parse_ident(self):
-        'parse identifiers which can also be function calls'
-        if not self.peek_tok_is(TokenType.OPEN_PAREN):
-            return self.curr_tok
+        '''
+        must start with curr_tok as IDENTIFIER
+        parse identifiers which can also be:
+        - function calls
+        - array indexing
+        - class accessors
+        - any combination of the above
+        '''
+        ident = self.curr_tok
 
-        fc = FnCall()
-        fc.id = self.curr_tok
-        fc.in_expr = True
-        self.advance(2)
-        stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
-        while not self.curr_tok_is_in(stop_conditions):
-            fc.args.append(self.parse_expression(LOWEST))
-            if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
-                break
-            self.advance()
-        if not self.curr_tok_is(TokenType.CLOSE_PAREN):
-            self.unclosed_paren_error(self.curr_tok)
-            return fc
-        return fc
+        if not self.peek_tok_is_in([TokenType.OPEN_PAREN, TokenType.DOT_OP, TokenType.OPEN_BRACKET]):
+            return ident
+
+        if self.peek_tok_is(TokenType.OPEN_PAREN):
+            ident = FnCall()
+            ident.id = self.curr_tok
+            ident.in_expr = True
+            self.advance(2)
+            stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
+            while not self.curr_tok_is_in(stop_conditions):
+                ident.args.append(self.parse_expression(LOWEST))
+                if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
+                    break
+                self.advance()
+            if not self.curr_tok_is(TokenType.CLOSE_PAREN):
+                self.unclosed_paren_error(self.curr_tok)
+                return ident
+
+        # array indexing, keep looping until curr tok is not close bracket
+        if self.peek_tok_is(TokenType.OPEN_BRACKET):
+            pass
+
+        # dot operations, keep recursing parse_ident until peek tok is not dot op
+        if self.expect_peek(TokenType.DOT_OP):
+            tmp = ClassAccessor()
+            tmp.id = ident
+            ident = tmp
+            if not self.expect_peek_is_identifier():
+                self.invalid_dot_op_error(self.peek_tok)
+                self.advance()
+                return ident
+            ident.accessed = self.parse_ident()
+            while self.peek_tok_is(TokenType.DOT_OP):
+                tmp = ClassAccessor()
+                tmp.id = ident.accessed
+                accessed = self.parse_ident()
+                tmp.accessed = accessed
+                ident.accessed = tmp
+            pass
+
+        return ident
+    def parse_class_accessor(self):
+        '''
+        must start with curr_tok as CWASS
+        and peek_tok as DOT_OP
+        '''
+        pass
+
     def parse_array(self):
         al = ArrayLiteral()
         self.advance() # consume the opening brace
@@ -971,7 +1015,7 @@ class Parser:
         advances the cursor if it is.
         cursor won't advance if not.
         '''
-        if self.peek_tok.token.token.startswith("IDENTIFIER_"):
+        if self.peek_tok.token.token.startswith("IDENTIFIER"):
             self.advance()
             return True
         else:
@@ -982,7 +1026,7 @@ class Parser:
         advances the cursor if it is.
         cursor won't advance if not.
         '''
-        if self.peek_tok.token.token.startswith("CWASS_"):
+        if self.peek_tok.token.token.startswith("CWASS"):
             self.advance()
             return True
         else:
@@ -1102,6 +1146,13 @@ class Parser:
         self.errors.append(Error(
             "INVALID PARAMETER",
             f"Invalid parameter. Expected ',' or ')', got {token.lexeme}.",
+            token.position,
+            token.end_position
+        ))
+    def invalid_dot_op_error(self, token: Token):
+        self.errors.append(Error(
+            "INVALID DOT OPERATION",
+            f"Invalid dot operation. Expected identifier, got {token.lexeme}.",
             token.position,
             token.end_position
         ))
