@@ -530,7 +530,9 @@ class Parser:
                 self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
                 self.advance()
                 return ie
-            ie.else_block = self.parse_block_statement()
+            es = ElseStatement()
+            es.body = self.parse_block_statement()
+            ie.else_block = es
             if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
                 self.advance()
                 self.unclosed_double_bracket_error(self.curr_tok)
