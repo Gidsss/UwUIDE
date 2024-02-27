@@ -33,23 +33,28 @@ from src.parser.productions import *
 To keep track of the precedence of each token.
 
 idents:                 LOWEST
-==, !=, <, >, <=, >=:   EQUALS
+&&, ||                  LOGICAL
+==, !=                  EQUALITY
+<, >, <=, >=:           LESS_GREATER
 +, -:                   SUM
 *, /, %:                PRODUCT
 - (as in negative):     PREFIX
 ident():                FN_CALL
 '''
 LOWEST = 0
-EQUALS = 1
-LESS_GREATER = 2
-SUM = 3
-PRODUCT = 4
-PREFIX = 5
-FN_CALL = 6
+LOGICAL = 1
+EQUALITY = 2
+LESS_GREATER = 3
+SUM = 4
+PRODUCT = 5
+PREFIX = 6
+FN_CALL = 7
 
 precedence_map = {
-    TokenType.EQUALITY_OPERATOR: EQUALS,
-    TokenType.INEQUALITY_OPERATOR: EQUALS,
+    TokenType.AND_OPERATOR: LOGICAL,
+    TokenType.OR_OPERATOR: LOGICAL,
+    TokenType.EQUALITY_OPERATOR: EQUALITY,
+    TokenType.INEQUALITY_OPERATOR: EQUALITY,
     TokenType.LESS_THAN_SIGN: LESS_GREATER,
     TokenType.LESS_THAN_OR_EQUAL_SIGN: LESS_GREATER,
     TokenType.GREATER_THAN_SIGN: LESS_GREATER,
@@ -143,6 +148,8 @@ class Parser:
         # infixes
         self.register_infix(TokenType.EQUALITY_OPERATOR, self.parse_infix_expression)
         self.register_infix(TokenType.INEQUALITY_OPERATOR, self.parse_infix_expression)
+        self.register_infix(TokenType.AND_OPERATOR, self.parse_infix_expression)
+        self.register_infix(TokenType.OR_OPERATOR, self.parse_infix_expression)
         self.register_infix(TokenType.LESS_THAN_SIGN, self.parse_infix_expression)
         self.register_infix(TokenType.LESS_THAN_OR_EQUAL_SIGN, self.parse_infix_expression)
         self.register_infix(TokenType.GREATER_THAN_SIGN, self.parse_infix_expression)
@@ -530,7 +537,9 @@ class Parser:
                 self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
                 self.advance()
                 return ie
-            ie.else_block = self.parse_block_statement()
+            es = ElseStatement()
+            es.body = self.parse_block_statement()
+            ie.else_block = es
             if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
                 self.advance()
                 self.unclosed_double_bracket_error(self.curr_tok)

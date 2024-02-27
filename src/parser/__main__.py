@@ -6,9 +6,9 @@ from .error_handler import ErrorSrc
 if __name__ == "__main__":
     sc = """
     fwunc mainuwu-san() [[
-        iwf (fax) [[
+        iwf (fax || cap && 1+1) [[
             a-san[] = 20~
-        ]] ewse iwf (4 == 5) [[
+        ]] ewse iwf (4 != 5 || 6 == 7) [[
             aqua-sama = 6~
             shion-sama = 6~
             ojou-sama = 6~
