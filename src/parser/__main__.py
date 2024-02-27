@@ -6,12 +6,17 @@ from .error_handler import ErrorSrc
 if __name__ == "__main__":
     sc = """
     cwass Ojou()[[
-        ojou = shion.aqua().shion.aqua().shion().aqua~
-        aqua-chan = (1+1*ojou())
+        ojou = shion[1][2]
+            .aqua()[3]
+            .shion
+            .aqua()[4][5]
+            .shion()
+            .aqua[6][7][8][9][0]~
+
+        aqua-chan = (1+1*ojou())~
     ]]
     fwunc mainuwu-san() [[
         a-san[] = 20~
-        >.< a[1] = 10~
     ]]
     """
 
@@ -28,6 +33,8 @@ if __name__ == "__main__":
 
     l = Lexer(source)
     if l.errors:
+        for err in l.errors:
+            print(err)
         exit(1)
 
     ErrorSrc.src = source

@@ -888,8 +888,24 @@ class Parser:
                 return ident
 
         # array indexing, keep looping until curr tok is not close bracket
-        if self.peek_tok_is(TokenType.OPEN_BRACKET):
-            pass
+        if self.expect_peek(TokenType.OPEN_BRACKET):
+            self.advance()
+            tmp = IndexedIdentifier()
+            tmp.id = ident
+            ident = tmp
+            idx = self.parse_expression(LOWEST)
+            if not self.expect_peek(TokenType.CLOSE_BRACKET):
+                self.unclosed_bracket_error(self.curr_tok)
+                return ident
+            ident.index.append(idx)
+            # if more indexing exists
+            while self.expect_peek(TokenType.OPEN_BRACKET):
+                self.advance()
+                idx = self.parse_expression(LOWEST)
+                if not self.expect_peek(TokenType.CLOSE_BRACKET):
+                    self.unclosed_bracket_error(self.peek_tok)
+                    return ident
+                ident.index.append(idx)
 
         # dot operations, keep recursing parse_ident until peek tok is not dot op
         if self.expect_peek(TokenType.DOT_OP):
@@ -901,13 +917,13 @@ class Parser:
                 self.advance()
                 return ident
             ident.accessed = self.parse_ident()
+            # if more dot ops exist
             while self.peek_tok_is(TokenType.DOT_OP):
                 tmp = ClassAccessor()
                 tmp.id = ident.accessed
                 accessed = self.parse_ident()
                 tmp.accessed = accessed
                 ident.accessed = tmp
-            pass
 
         return ident
     def parse_class_accessor(self):

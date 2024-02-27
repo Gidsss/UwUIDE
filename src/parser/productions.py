@@ -162,12 +162,13 @@ class FnCall(Production):
 class IndexedIdentifier(Production):
     '''
     id can be:
-    - token:    ident[i]
-    - FnCall:   fn()[i]
+    - token:             ident[i]
+    - FnCall:            fn()[i]
+    - IndexedIdentifier: ident[i][j]
     '''
     def __init__(self):
-        self.id: Token | FnCall = None
-        self.index = None
+        self.id: Token | FnCall | IndexedIdentifier = None
+        self.index: list = []
 
     def header(self):
         return self.string()
@@ -175,8 +176,11 @@ class IndexedIdentifier(Production):
     def child_nodes(self) -> None | dict[str, Production]:
         return None
 
-    def string(self, indent = 0):
-        return sprintln("id:", self.id.string(), "index:", self.index.string(), indent=indent)
+    def string(self, _ = 0):
+        ret = sprint("indexed id:", self.id.string())
+        if self.index:
+            ret += f", indices: {', '.join([i.string() for i in self.index])}"
+        return ret
 
 class ClassAccessor(Production):
     '''
@@ -199,7 +203,7 @@ class ClassAccessor(Production):
         return {"accessed":self.accessed}
 
     def string(self, indent = 0):
-        ret = sprintln("id:", self.id.string())
+        ret = sprintln("accessor id:", self.id.string())
         ret += sprintln("accessed:", self.accessed.string(indent+1), indent=indent+1)
         return ret
     def __len__(self):
