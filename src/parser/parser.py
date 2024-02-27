@@ -588,25 +588,56 @@ class Parser:
             fc = FnCall()
             fc.id = ident
             fc.in_expr = False
+            ident = fc
 
             self.advance(2)
             stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
             while not self.curr_tok_is_in(stop_conditions):
-                fc.args.append(self.parse_expression(LOWEST))
+                ident.args.append(self.parse_expression(LOWEST))
                 if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
                     break
                 self.advance()
             if not self.curr_tok_is(TokenType.CLOSE_PAREN):
                 self.unclosed_paren_error(self.curr_tok)
-                return fc
-            if not self.expect_peek(TokenType.TERMINATOR):
-                self.unterminated_error(self.peek_tok)
-                return fc
-            return fc
+                return ident
 
         # is an array access
+        if self.expect_peek(TokenType.OPEN_BRACKET):
+            tmp = IndexedIdentifier()
+            tmp.id = ident
+            ident = tmp
+            self.advance()
+            idx = self.parse_expression(LOWEST)
+            if not self.expect_peek(TokenType.CLOSE_BRACKET):
+                self.unclosed_bracket_error(self.curr_tok)
+                return ident
+            ident.index.append(idx)
+            # if more indexing exists
+            while self.expect_peek(TokenType.OPEN_BRACKET):
+                self.advance()
+                idx = self.parse_expression(LOWEST)
+                if not self.expect_peek(TokenType.CLOSE_BRACKET):
+                    self.unclosed_bracket_error(self.peek_tok)
+                    return ident
+                ident.index.append(idx)
 
         # is a dot operation
+        if self.expect_peek(TokenType.DOT_OP):
+            tmp = ClassAccessor()
+            tmp.id = ident
+            ident = tmp
+            if not self.expect_peek_is_identifier():
+                self.invalid_dot_op_error(self.peek_tok)
+                self.advance()
+                return ident
+            ident.accessed = self.parse_ident()
+            # if more dot ops exist
+            while self.peek_tok_is(TokenType.DOT_OP):
+                tmp = ClassAccessor()
+                tmp.id = ident.accessed
+                accessed = self.parse_ident()
+                tmp.accessed = accessed
+                ident.accessed = tmp
 
         # is a useless id statement lmao
         if self.peek_tok_is(TokenType.TERMINATOR):

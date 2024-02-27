@@ -287,7 +287,7 @@ class Assignment(Production):
         return {"value": self.value}
 
     def string(self, indent = 0):
-        res = sprintln("assign:", self.id.string(), indent=indent)
+        res = sprintln("assign:", self.id.string(indent), indent=indent)
         res += sprintln("value:", self.value.string(indent), indent=indent+1)
         return res
     def __len__(self):
