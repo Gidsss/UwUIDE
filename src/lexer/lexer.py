@@ -208,6 +208,9 @@ class Lexer():
             
             # string literals
             if self._current_char in ['|', '"']:
+                cursor_advanced = self.peek_reserved('||', TokenType.OR_OPERATOR)
+                if cursor_advanced:
+                    continue
                 self.peek_string()
                 if self._at_EOF:
                     break
