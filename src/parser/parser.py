@@ -378,7 +378,6 @@ class Parser:
             self.advance(2)
             return None
 
-        print(self.curr_tok, self.peek_tok)
         if (res := self.parse_block_statement()) is None:
             return None
         func.body = res
