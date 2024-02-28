@@ -277,7 +277,7 @@ class Assignment(Production):
 
     def string(self, indent = 0):
         res = sprintln("assign:", self.id.string(indent), indent=indent)
-        res += sprintln("value:", self.value.string(indent), indent=indent+1)
+        res += sprintln("value:", self.value.string(indent+1), indent=indent+1)
         return res
     def __len__(self):
         return 1
@@ -296,7 +296,7 @@ class Declaration(Production):
 
     def string(self, indent = 0):
         res = sprintln("declare:", self.id.string(indent), indent=indent)
-        res += sprintln("type:", self.dtype.string(), indent=indent+1)
+        res += sprintln("type:", self.dtype.string(indent+1), indent=indent+1)
         if self.is_const:
             res += sprintln("constant", indent=indent+1)
         if self.value:
