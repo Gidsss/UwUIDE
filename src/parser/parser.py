@@ -540,13 +540,16 @@ class Parser:
             es.body = self.parse_block_statement()
             ie.else_block = es
             if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
+                self.unclosed_double_bracket_error(self.peek_tok)
                 self.advance()
-                self.unclosed_double_bracket_error(self.curr_tok)
                 return ie
         return ie
 
     def parse_block_statement(self):
-        'take note that this starts with the open bracket as the current token'
+        '''
+        starts with the open bracket as the current token
+        ends with the close bracket in peek token
+        '''
         bs = BlockStatement()
 
         # Check if block is empty
@@ -554,10 +557,9 @@ class Parser:
             self.empty_code_body_error()
             return bs
 
-        self.advance()  # consume the open bracket
-
         stop_condition = [TokenType.DOUBLE_CLOSE_BRACKET, TokenType.EOF]
         while not self.peek_tok_is_in(stop_condition):
+            self.advance()
             parser = self.get_in_block_parse_fn(self.curr_tok.token)
             if parser is None:
                 self.no_in_block_parse_fn_error(self.curr_tok.token)
@@ -565,9 +567,6 @@ class Parser:
                 continue
             statement = parser()
             bs.statements.append(statement)
-            if self.peek_tok_is_in(stop_condition):
-                break
-            self.advance()
 
         return bs
 
@@ -729,8 +728,8 @@ class Parser:
             self.unclosed_paren_error(self.curr_tok)
             return p
         if not self.expect_peek(TokenType.TERMINATOR):
+            self.unterminated_error(self.peek_tok)
             self.advance()
-            self.unterminated_error(self.curr_tok)
             return p
         return p
 
