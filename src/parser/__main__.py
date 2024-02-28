@@ -5,7 +5,7 @@ from .error_handler import ErrorSrc
 if __name__ == "__main__":
     sc = """
     cwass Ojou()[[
-        aqua-chan = 1~
+        aqua-chan = iwf(fax)[[wetuwn(fax)~]] ewse iwf(cap)[[wetuwn(cap)~]] ewse [[ wetuwn(0)~ ]] ~
         Ojou.ojou = Shion.shion[1][2]
             .aqua("hello")[3]
             .shion
@@ -32,6 +32,7 @@ if __name__ == "__main__":
             ]]
         ]]
     ]]
+    gwobaw aqua-chan = {1,2,"hello | -nickname-- | world", 1+1*1, {3.4, 5.6}}~
     fwunc mainuwu-san() [[
         b()[1].a 
             .aqua("hello")[3]

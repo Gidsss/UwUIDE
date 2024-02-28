@@ -1191,22 +1191,26 @@ class Parser:
         ))
     def no_prefix_parse_fn_error(self, token_type):
         self.errors.append(Error(
-            "MISSING PREFIX PARSING FUNCTION",
-            f"No prefix parsing function found for '{token_type}'",
+            "INVALID EXPRESSION TOKEN",
+            f"'{token_type}' is not a valid starting token for an expression"
+            f"\n\tHint: use identifiers, numbers, strings, booleans, parenthesis enclosed expressions, arrays, or 'nuww'",
             self.curr_tok.position,
             self.curr_tok.end_position
         ))
     def no_in_block_parse_fn_error(self, token_type):
         self.errors.append(Error(
-            "MISSING IN-BLOCK PARSING FUNCTION",
-            f"No in-block parsing function found for {token_type}",
+            "INVALID IN-BLOCK STATEMENT TOKEN",
+            f"'{token_type}' is not a valid starting token for an in-block/body statement."
+            f"\n\tHint: use identifiers, 'inpwt', 'pwint', 'wetuwn', 'iwf', 'whiwe', 'do whiwe', or 'fow'",
             self.curr_tok.position,
             self.curr_tok.end_position
         ))
     def invalid_global_declaration_error(self, token: Token):
         self.errors.append(Error(
             "INVALID GLOBAL DECLARATION",
-            f"Only functions, classes, and global variable declarations are allowed in the global scope.\n\t'{token.lexeme}' is invalid.",
+            f"Only functions, classes, and global variable declarations are allowed in the global scope."
+            f"\n\t'{token.lexeme}' is an invalid starting token for global declarations."
+            f"\n\tHint: use 'gwobaw', 'fwunc' or 'cwass'",
             token.position,
             token.end_position
         ))
