@@ -5,17 +5,34 @@ from .error_handler import ErrorSrc
 if __name__ == "__main__":
     sc = """
     cwass Ojou()[[
+        aqua-chan = 1~
         Ojou.ojou = Shion.shion[1][2]
             .aqua("hello")[3]
             .shion
             .aqua(arg1, arg2)[4][5]
             .shion(fax)
             .aqua[6][7][8][9][0]~
+        shion~
 
         aqua-chan = (1+1*ojou(fax || shion != 5)[1]/2)~
+        iwf (fax) [[
+            pwint(fax)~
+            whiwe (1+2 != 3) [[
+                pwint(1+2)~
+            ]]
+        ]] ewse iwf(cap) [[
+            pwint(cap)~
+            do whiwe (fax && cap) [[
+                pwint(fax && cap)~
+            ]]
+        ]] ewse[[
+            pwint()~
+            fow(i~i>10||i<5~i++) [[
+                pwint(test)~
+            ]]
+        ]]
     ]]
     fwunc mainuwu-san() [[
-        a-san[] = 20~
         b()[1].a 
             .aqua("hello")[3]
             .shion
@@ -23,6 +40,7 @@ if __name__ == "__main__":
             .shion(fax)
             .aqua[6][7][8][9][0]-chan-dono = 10~
         c[2][1]~
+        a-san[]~
     ]]
     """
 
@@ -46,8 +64,6 @@ if __name__ == "__main__":
     ErrorSrc.src = source
     p = Parser(l.tokens)
     print()
-    for err in p.errors:
-        print(err)
 
     print("--- Printing Whole Program ---")
     print(p.program)
@@ -61,4 +77,6 @@ if __name__ == "__main__":
     print(p.program.classes_string())
 
     if p.errors:
+        for err in p.errors:
+            print(err)
         exit(1)
