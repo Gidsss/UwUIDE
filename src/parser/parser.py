@@ -138,6 +138,7 @@ class Parser:
 
         # literals (just returns curr_tok)
         self.register_prefix("IDENTIFIER", self.parse_ident)
+        self.register_prefix("CWASS", self.parse_class_ident)
         self.register_prefix(TokenType.INT_LITERAL, self.parse_literal)
         self.register_prefix(TokenType.STRING_LITERAL, self.parse_literal)
         self.register_prefix(TokenType.FLOAT_LITERAL, self.parse_literal)
@@ -168,6 +169,7 @@ class Parser:
 
         # in blocks
         self.register_in_block("IDENTIFIER", self.parse_ident_statement)
+        self.register_in_block("CWASS", self.parse_class_ident_statement)
         self.register_in_block(TokenType.IWF, self.parse_if_statement)
         self.register_in_block(TokenType.WETUWN, self.parse_return_statement)
         self.register_in_block(TokenType.WHIWE, self.parse_while_statement)
@@ -576,9 +578,43 @@ class Parser:
         return bs
 
     def parse_ident_statement(self):
-        'identifier statements are declarations and assignments'
-
+        '''
+        must start with Unique identifier in curr_tok
+        class identifier statements are class declarations and assignments
+        '''
         ident = self.parse_ident()
+
+        # is not a declaration or assignment
+        if self.expect_peek(TokenType.TERMINATOR):
+            id_stm = IdStatement()
+            id_stm.id = ident
+            return id_stm
+
+        # is a declaration
+        if self.peek_tok_is(TokenType.DASH):
+            return self.parse_declaration(ident)
+
+        # is an assignment
+        a = Assignment()
+        a.id = ident
+        if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
+            self.peek_error(TokenType.ASSIGNMENT_OPERATOR)
+            self.advance()
+            return a
+        self.advance()
+        a.value = self.parse_expression(LOWEST)
+        if not self.expect_peek(TokenType.TERMINATOR):
+            self.advance()
+            self.unterminated_error(self.curr_tok)
+            return a
+        return a
+
+    def parse_class_ident_statement(self):
+        '''
+        must start with Unique class identifier in curr_tok
+        class identifier statements are class declarations and assignments
+        '''
+        ident = self.parse_class_ident()
 
         # is not a declaration or assignment
         if self.expect_peek(TokenType.TERMINATOR):
@@ -848,7 +884,6 @@ class Parser:
             return ident
 
         if self.peek_tok_is(TokenType.OPEN_PAREN):
-            # Consume open paren
             fc = FnCall()
             fc.id = ident
             ident = fc
@@ -902,12 +937,20 @@ class Parser:
                 ident.accessed = tmp
 
         return ident
-    def parse_class_accessor(self):
-        '''
-        must start with curr_tok as CWASS
-        and peek_tok as DOT_OP
-        '''
-        pass
+
+    def parse_class_ident(self):
+        ident = ClassAccessor()
+        ident.id = self.curr_tok
+        if not self.expect_peek(TokenType.DOT_OP):
+            self.peek_error(TokenType.DOT_OP)
+            self.advance()
+            return ident
+        if not self.expect_peek_is_identifier():
+            self.invalid_dot_op_error(self.peek_tok)
+            self.advance()
+            return ident
+        ident.accessed = self.parse_ident()
+        return ident
 
     def parse_array(self):
         al = ArrayLiteral()

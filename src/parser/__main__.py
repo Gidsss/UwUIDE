@@ -5,7 +5,7 @@ from .error_handler import ErrorSrc
 if __name__ == "__main__":
     sc = """
     cwass Ojou()[[
-        ojou = shion[1][2]
+        Ojou.ojou = Shion.shion[1][2]
             .aqua("hello")[3]
             .shion
             .aqua(arg1, arg2)[4][5]
@@ -21,8 +21,8 @@ if __name__ == "__main__":
             .shion
             .aqua(arg1, arg2)[4][5]
             .shion(fax)
-            .aqua[6][7][8][9][0]~
-        c()~
+            .aqua[6][7][8][9][0]-chan-dono = 10~
+        c[2][1]~
     ]]
     """
 
