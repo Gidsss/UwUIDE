@@ -12,7 +12,7 @@ if __name__ == "__main__":
             .aqua(arg1, arg2)[4][5]
             .shion(fax)
             .aqua[6][7][8][9][0]~
-        shion~
+        shion()~
 
         aqua-chan = (1+1*ojou(fax || shion != 5)[1]/2)~
         iwf (fax) [[
