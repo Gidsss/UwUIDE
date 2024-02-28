@@ -340,7 +340,7 @@ def int_float(context: tuple[list[str], list[int], str, list[Token], list[DelimE
                     context = lines, position, current_char, tokens, logs
 
                     logs.append(
-                        DelimError(TokenType.INT_LITERAL, tuple(position), temp_num, invalid_delim))
+                        DelimError(TokenType.FLOAT_LITERAL, tuple(position), temp_num, invalid_delim))
                     break
 
                 temp_num += current_char
