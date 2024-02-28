@@ -1,9 +1,5 @@
-
-
-
 from .parser import *
 from ..lexer import Lexer
-from ..lexer import print_lex
 from .error_handler import ErrorSrc
 
 if __name__ == "__main__":
@@ -25,7 +21,8 @@ if __name__ == "__main__":
             .shion
             .aqua(arg1, arg2)[4][5]
             .shion(fax)
-            .aqua[6][7][8][9][0]-chan-dono = 10~
+            .aqua[6][7][8][9][0]~
+        c()~
     ]]
     """
 

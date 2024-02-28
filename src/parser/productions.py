@@ -133,29 +133,18 @@ class FnCall(Production):
     def __init__(self):
         self.id = None
         self.args = []
-        self.in_expr = False    # For determining indent in printing
 
     def header(self):
-        if self.in_expr:
-            return sprint(self.id.string(),
-                            f'({", ".join([a.string() for a in self.args])})',
-                            indent=0)
         return sprint("call:", self.id.string(),
                         f'({", ".join([a.string() for a in self.args])})',
                         indent=0)
-
     def child_nodes(self) -> None | dict[str, Production]:
         return None
 
-    def string(self, indent = 1):
-        if self.in_expr:
-            return sprint("call:", self.id.string(),
-                            f'({", ".join([a.string() for a in self.args])})',
-                            indent=0)
-        else:
-            return sprintln("call:", self.id.string(),
-                          f'({", ".join([a.string() for a in self.args])})',
-                          indent=indent)
+    def string(self, _ = 1):
+        return sprint("call:", self.id.string(),
+                      f'({", ".join([a.string() for a in self.args])})',
+                      indent=0)
     def __len__(self):
         return 1
 
@@ -203,8 +192,8 @@ class ClassAccessor(Production):
         return {"accessed":self.accessed}
 
     def string(self, indent = 0):
-        ret = sprintln("accessor id:", self.id.string())
-        ret += sprintln("accessed:", self.accessed.string(indent+1), indent=indent+1)
+        ret = sprintln(self.id.string())
+        ret += sprint("accessed:", self.accessed.string(indent+1), indent=indent+1)
         return ret
     def __len__(self):
         return 1
@@ -264,7 +253,7 @@ class ArrayDeclaration(Production):
 
         compute_lengths(self.value, 0)
 
-class UselessIdStatement(Production):
+class IdStatement(Production):
     def __init__(self):
         self.id: Token = None
 
@@ -274,7 +263,7 @@ class UselessIdStatement(Production):
         return None
 
     def string(self, indent = 0):
-        return sprintln("id:", self.id.string(), indent=indent)
+        return sprintln(self.id.string(indent), indent=indent)
 
 class Assignment(Production):
     def __init__(self):

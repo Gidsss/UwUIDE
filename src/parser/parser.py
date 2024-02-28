@@ -578,26 +578,17 @@ class Parser:
     def parse_ident_statement(self):
         'identifier statements are declarations and assignments'
 
-        '''
-        parse the ident whether its:
-        - a standalone ident
-        - a function call
-        - an indexed ident
-        - a class accessor
-        - any combination of the above
-        '''
-        ident = self.parse_ident(in_expr = False)
+        ident = self.parse_ident()
+
+        # is not a declaration or assignment
+        if self.expect_peek(TokenType.TERMINATOR):
+            id_stm = IdStatement()
+            id_stm.id = ident
+            return id_stm
 
         # is a declaration
         if self.peek_tok_is(TokenType.DASH):
             return self.parse_declaration(ident)
-
-        # is a useless id statement lmao
-        if self.peek_tok_is(TokenType.TERMINATOR):
-            self.advance()
-            useless_id = UselessIdStatement()
-            useless_id.id = ident
-            return useless_id
 
         # is an assignment
         a = Assignment()
@@ -842,7 +833,7 @@ class Parser:
     ### atomic parsers
     # unlike the above 4 expressions parsers,
     # these are made to be used in other parsers
-    def parse_ident(self, in_expr = True):
+    def parse_ident(self):
         '''
         must start with curr_tok as IDENTIFIER
         parse identifiers which can also be:
@@ -860,7 +851,6 @@ class Parser:
             # Consume open paren
             fc = FnCall()
             fc.id = ident
-            fc.in_expr = in_expr
             ident = fc
             self.advance(2)
             stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
