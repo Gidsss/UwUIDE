@@ -398,10 +398,7 @@ class Parser:
                 case _:
                     inner_stop_conditions = stop_conditions + [TokenType.FWUNC]
                     while not self.curr_tok_is_in(inner_stop_conditions):
-                        if isinstance(self.curr_tok.token, UniqueTokenType):
-                            parser = self.get_in_block_parse_fn("IDENTIFIER")
-                        else:
-                            parser = self.get_in_block_parse_fn(self.curr_tok.token)
+                        parser = self.get_in_block_parse_fn(self.curr_tok.token)
                         if parser is None:
                             self.no_in_block_parse_fn_error(self.curr_tok.token)
                             self.advance()
@@ -561,10 +558,7 @@ class Parser:
 
         stop_condition = [TokenType.DOUBLE_CLOSE_BRACKET, TokenType.EOF]
         while not self.peek_tok_is_in(stop_condition):
-            if isinstance(self.curr_tok.token, UniqueTokenType):
-                parser = self.get_in_block_parse_fn("IDENTIFIER")
-            else:
-                parser = self.get_in_block_parse_fn(self.curr_tok.token)
+            parser = self.get_in_block_parse_fn(self.curr_tok.token)
             if parser is None:
                 self.no_in_block_parse_fn_error(self.curr_tok.token)
                 self.advance()
@@ -773,20 +767,13 @@ class Parser:
                 - comparisons
                 - equality checks
         '''
-        if isinstance(self.curr_tok.token, UniqueTokenType):
-            prefix = self.get_prefix_parse_fn("IDENTIFIER")
-        else:
-            prefix = self.get_prefix_parse_fn(self.curr_tok.token)
-
+        prefix = self.get_prefix_parse_fn(self.curr_tok.token)
         if prefix is None:
             self.no_prefix_parse_fn_error(self.curr_tok.token)
             return None
 
         left_exp = prefix()
-        if isinstance(self.curr_tok.token, UniqueTokenType):
-            postfix = self.get_postfix_parse_fn("IDENTIFIER")
-        else:
-            postfix = self.get_postfix_parse_fn(self.curr_tok.token)
+        postfix = self.get_postfix_parse_fn(self.curr_tok.token)
         if postfix is not None:
             left_exp = postfix(left_exp)
 
@@ -797,10 +784,7 @@ class Parser:
             self.advance()
             left_exp = infix(left_exp)
 
-        if isinstance(self.curr_tok.token, UniqueTokenType):
-            postfix = self.get_postfix_parse_fn("IDENTIFIER")
-        else:
-            postfix = self.get_postfix_parse_fn(self.curr_tok.token)
+        postfix = self.get_postfix_parse_fn(self.curr_tok.token)
         if postfix is not None:
             left_exp = postfix(left_exp)
 
@@ -1005,24 +989,32 @@ class Parser:
         self.in_block_parse_fns[token_type] = fn
     # getting prefix and infix functions
     def get_prefix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+        if isinstance(token_type, UniqueTokenType):
+            token_type = "IDENTIFIER" if token_type.token.startswith("IDENTIFIER") else "CWASS"
         try:
             tmp = self.prefix_parse_fns[token_type]
             return tmp
         except KeyError:
             return None
     def get_infix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+        if isinstance(token_type, UniqueTokenType):
+            token_type = "IDENTIFIER" if token_type.token.startswith("IDENTIFIER") else "CWASS"
         try:
             tmp = self.infix_parse_fns[token_type]
             return tmp
         except KeyError:
             return None
     def get_postfix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+        if isinstance(token_type, UniqueTokenType):
+            token_type = "IDENTIFIER" if token_type.token.startswith("IDENTIFIER") else "CWASS"
         try:
             tmp = self.postfix_parse_fns[token_type]
             return tmp
         except KeyError:
             return None
     def get_in_block_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+        if isinstance(token_type, UniqueTokenType):
+            token_type = "IDENTIFIER" if token_type.token.startswith("IDENTIFIER") else "CWASS"
         try:
             tmp = self.in_block_parse_fns[token_type]
             return tmp
