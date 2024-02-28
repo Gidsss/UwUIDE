@@ -420,7 +420,7 @@ class Parser:
                         if parser is None:
                             self.no_in_block_parse_fn_error(self.curr_tok.token)
                             self.advance()
-                            continue
+                            return None
                         if (statement := parser()) is None:
                             return None
                         c.body.statements.append(statement)
@@ -846,6 +846,7 @@ class Parser:
         prefix = self.get_prefix_parse_fn(self.curr_tok.token)
         if prefix is None:
             self.no_prefix_parse_fn_error(self.curr_tok.token)
+            self.advance()
             return None
 
         left_exp = prefix()
