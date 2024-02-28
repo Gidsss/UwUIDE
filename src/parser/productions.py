@@ -238,7 +238,7 @@ class ArrayDeclaration(Production):
         return {"dtype":self.dtype, "value":self.value}
 
     def string(self, indent = 0):
-        res = sprintln("declare array:", self.id.string(), indent=indent)
+        res = sprintln("declare array:", self.id.string(indent), indent=indent)
         res += sprintln("type:", self.dtype.string(), indent=indent+1)
         if self.is_const:
             res += sprintln("constant", indent=indent+1)
@@ -306,7 +306,7 @@ class Declaration(Production):
         return {"dtype":self.dtype, "value":self.value}
 
     def string(self, indent = 0):
-        res = sprintln("declare:", self.id.string(), indent=indent)
+        res = sprintln("declare:", self.id.string(indent), indent=indent)
         res += sprintln("type:", self.dtype.string(), indent=indent+1)
         if self.is_const:
             res += sprintln("constant", indent=indent+1)

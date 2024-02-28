@@ -577,67 +577,20 @@ class Parser:
 
     def parse_ident_statement(self):
         'identifier statements are declarations and assignments'
-        ident = self.curr_tok
+
+        '''
+        parse the ident whether its:
+        - a standalone ident
+        - a function call
+        - an indexed ident
+        - a class accessor
+        - any combination of the above
+        '''
+        ident = self.parse_ident(in_expr = False)
+
         # is a declaration
         if self.peek_tok_is(TokenType.DASH):
             return self.parse_declaration(ident)
-
-        # is a function call
-        if self.peek_tok_is(TokenType.OPEN_PAREN):
-            # Consume open paren
-            fc = FnCall()
-            fc.id = ident
-            fc.in_expr = False
-            ident = fc
-
-            self.advance(2)
-            stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
-            while not self.curr_tok_is_in(stop_conditions):
-                ident.args.append(self.parse_expression(LOWEST))
-                if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
-                    break
-                self.advance()
-            if not self.curr_tok_is(TokenType.CLOSE_PAREN):
-                self.unclosed_paren_error(self.curr_tok)
-                return ident
-
-        # is an array access
-        if self.expect_peek(TokenType.OPEN_BRACKET):
-            tmp = IndexedIdentifier()
-            tmp.id = ident
-            ident = tmp
-            self.advance()
-            idx = self.parse_expression(LOWEST)
-            if not self.expect_peek(TokenType.CLOSE_BRACKET):
-                self.unclosed_bracket_error(self.curr_tok)
-                return ident
-            ident.index.append(idx)
-            # if more indexing exists
-            while self.expect_peek(TokenType.OPEN_BRACKET):
-                self.advance()
-                idx = self.parse_expression(LOWEST)
-                if not self.expect_peek(TokenType.CLOSE_BRACKET):
-                    self.unclosed_bracket_error(self.peek_tok)
-                    return ident
-                ident.index.append(idx)
-
-        # is a dot operation
-        if self.expect_peek(TokenType.DOT_OP):
-            tmp = ClassAccessor()
-            tmp.id = ident
-            ident = tmp
-            if not self.expect_peek_is_identifier():
-                self.invalid_dot_op_error(self.peek_tok)
-                self.advance()
-                return ident
-            ident.accessed = self.parse_ident()
-            # if more dot ops exist
-            while self.peek_tok_is(TokenType.DOT_OP):
-                tmp = ClassAccessor()
-                tmp.id = ident.accessed
-                accessed = self.parse_ident()
-                tmp.accessed = accessed
-                ident.accessed = tmp
 
         # is a useless id statement lmao
         if self.peek_tok_is(TokenType.TERMINATOR):
@@ -889,7 +842,7 @@ class Parser:
     ### atomic parsers
     # unlike the above 4 expressions parsers,
     # these are made to be used in other parsers
-    def parse_ident(self):
+    def parse_ident(self, in_expr = True):
         '''
         must start with curr_tok as IDENTIFIER
         parse identifiers which can also be:
@@ -904,9 +857,11 @@ class Parser:
             return ident
 
         if self.peek_tok_is(TokenType.OPEN_PAREN):
-            ident = FnCall()
-            ident.id = self.curr_tok
-            ident.in_expr = True
+            # Consume open paren
+            fc = FnCall()
+            fc.id = ident
+            fc.in_expr = in_expr
+            ident = fc
             self.advance(2)
             stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
             while not self.curr_tok_is_in(stop_conditions):
