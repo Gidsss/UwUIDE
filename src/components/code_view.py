@@ -91,6 +91,8 @@ class CodeEditor(CTkFrame):
         self.line_nums.grid(row=0, column=0, sticky='nsew')
         
         self.text.bind("<Button-1>", lambda e: self.line_nums.on_redraw(e))
+        self.text.bind("<Up>", lambda e: self.line_nums.on_redraw(e))
+        self.text.bind("<Down>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<Tab>", lambda e: self.on_tab(e))
         self.text.bind("<FocusIn>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<Return>", lambda e: self.line_nums.on_redraw(e))
@@ -215,6 +217,7 @@ class CodeView(CTkTabview):
         
         for file in self.file_names:
             self.create_new_tab(file)
+            self.bind_esc(editor=self.code_editors[file], file_name=file)
     
     def create_new_tab(self, file_name):
         tab = self.add(file_name)
@@ -223,7 +226,7 @@ class CodeView(CTkTabview):
 
         code_editor = CodeEditor(master=tab, fg_color='transparent', lexer=Lexer, parser=Parser)
         code_editor.grid(row=0, column=0, rowspan=2, columnspan=2, sticky='nsew')
-
+        self.bind_esc(editor=code_editor, file_name=file_name)
         self.code_editors[file_name] = code_editor
         
         # Pop up on right click
@@ -263,6 +266,9 @@ class CodeView(CTkTabview):
                 self.code_editors[file_name].text.delete('1.0', 'end-1c')
                 self.code_editors[file_name].text.insert('1.0', file_content)
             self.editor.init_linenums()
+    
+    def bind_esc(self, editor: CodeEditor, file_name: str):
+        editor.text.bind("<Escape>", lambda e: self.remove_tab(file_name))
 
     @property
     def editor(self) -> CodeEditor:
