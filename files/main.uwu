@@ -6,7 +6,9 @@ fwunc mainuwu-san()[[
 ]]
 
 fwunc fnOne-sama()[[
-    iwf()[[]]
+    iwf(fax)[[
+      pwint("hello world")~
+    ]]
     haiworld-senpai~
     pwint(haiworld)~
 ]]

@@ -115,7 +115,6 @@ class CodeEditor(CTkFrame):
 
     def run_lexer(self):
         self.source_code = [v if v else v + '\n' for v in self.text.get('1.0', 'end-1c').split('\n')]
-        print(self.source_code)
         lx: Lexer = self.lexer(self.source_code)
 
         self.tokens = lx.tokens
@@ -137,6 +136,8 @@ class CodeEditor(CTkFrame):
 
         if p.errors:
             self.p_errors = p.errors
+        else:
+            self.p_errors = []
 
     def format(self, tag: str, start_pos: tuple[int, int], end_pos: tuple[int, int] = None):
         """
