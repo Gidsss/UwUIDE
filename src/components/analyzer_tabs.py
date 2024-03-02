@@ -16,11 +16,6 @@ class UwUParserTab(CTkScrollableFrame):
         treestyles.map('Treeview', background=[('selected', "#1A1B26")], foreground=[('selected', "#89ca78")])
 
         self.tree = ttk.Treeview(self, height=100, show='tree')
-        self.tree_items = []
-        self.tree.insert('', 'end', text='Mainuwu', iid=0, open=False)
-        self.tree.insert('', 'end', text='Functions', iid=1, open=False)
-        self.tree.insert('', 'end', text='Globals', iid=2, open=False)
-        self.tree.insert('', 'end', text='Classes', iid=3, open=False)
 
         self.tree.grid(row=0, column=0, columnspan=2, sticky='nsew')
     
@@ -34,7 +29,6 @@ class UwUParserTab(CTkScrollableFrame):
                 return
             
             node_iid = uuid.uuid4()
-            self.tree_items.append(node_iid)
 
             self.tree.insert(parent, 'end', iid=node_iid, text=node.header())
 
@@ -49,26 +43,28 @@ class UwUParserTab(CTkScrollableFrame):
                 else:
                     loop_tree(node=v, parent=node_iid, key=k)
 
-        if(len(self.tree_items) > 0):
-            for item in self.tree_items:
-                try:
-                    self.tree.delete(item)
-                except:
-                    continue
-            
-            self.tree_items = []
+        if(len(self.tree.get_children()) > 0):
+            for item in self.tree.get_children():
+                self.tree.delete(item)
 
         if(program.mainuwu):
+            self.tree.insert('', 'end', text='Mainuwu', iid=0, open=False)
             loop_tree(node=program.mainuwu, parent='0')
         
-        for fn in program.functions:
-            loop_tree(node=fn, parent='1')
+        if(len(program.functions) > 0):
+            self.tree.insert('', 'end', text='Functions', iid=1, open=False)
+            for fn in program.functions:
+                loop_tree(node=fn, parent='1')
         
-        for g in program.globals:
-            loop_tree(node=g, parent='2')
+        if(len(program.globals) > 0):
+            self.tree.insert('', 'end', text='Globals', iid=2, open=False)
+            for g in program.globals:
+                loop_tree(node=g, parent='2')
 
-        for c in program.classes:
-            loop_tree(node=c, parent='3')
+        if(len(program.classes) > 0):
+            self.tree.insert('', 'end', text='Classes', iid=3, open=False)
+            for c in program.classes:
+                loop_tree(node=c, parent='3')
 
 class UwULexerTab(CTkScrollableFrame):
     def __init__(self, master, **kwargs):
