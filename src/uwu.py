@@ -123,7 +123,7 @@ class UwU(CTk):
 
         if len(code_editor.lx_errors) > 0:
             self.code_panel.update_error_logs(errors=code_editor.lx_errors)
-        if len(code_editor.p_errors) > 0:
+        else:
             self.code_panel.update_error_logs(errors=code_editor.p_errors)
         
 if __name__ == "__main__":
