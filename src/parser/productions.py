@@ -133,31 +133,71 @@ class FnCall(Production):
     def __init__(self):
         self.id = None
         self.args = []
-        self.in_expr = False    # For determining indent in printing
 
     def header(self):
-        if self.in_expr:
-            return sprint(self.id.string(),
-                            f'({", ".join([a.string() for a in self.args])})',
-                            indent=0)
         return sprint("call:", self.id.string(),
                         f'({", ".join([a.string() for a in self.args])})',
                         indent=0)
+    def child_nodes(self) -> None | dict[str, Production]:
+        return None
+
+    def string(self, _ = 1):
+        return sprint("call:", self.id.string(),
+                      f'({", ".join([a.string() for a in self.args])})',
+                      indent=0)
+    def __len__(self):
+        return 1
+
+class IndexedIdentifier(Production):
+    '''
+    id can be:
+    - token:             ident[i]
+    - FnCall:            fn()[i]
+    - IndexedIdentifier: ident[i][j]
+    '''
+    def __init__(self):
+        self.id: Token | FnCall | IndexedIdentifier = None
+        self.index: list = []
+
+    def header(self):
+        return self.string()
 
     def child_nodes(self) -> None | dict[str, Production]:
         return None
 
-    def string(self, indent = 1):
-        if self.in_expr:
-            return sprint("call:", self.id.string(),
-                            f'({", ".join([a.string() for a in self.args])})',
-                            indent=0)
-        else:
-            return sprintln("call:", self.id.string(),
-                          f'({", ".join([a.string() for a in self.args])})',
-                          indent=indent)
+    def string(self, _ = 0):
+        ret = sprint("indexed id:", self.id.string())
+        if self.index:
+            ret += f", indices: {', '.join([i.string() for i in self.index])}"
+        return ret
+
+class ClassAccessor(Production):
+    '''
+    id can be:
+    - token:    ident.property, Cwass.property
+    - FnCall:   fn().property
+    can access:
+    - token:         ident.property, Cwass.property
+    - FnCall:        ident.method(), Cwass.method()
+    - indexed:       ident.property[index], Cwass.method()[index]
+    - ClassAccessor: ident.property.property, Cwass.property.method()
+    '''
+    def __init__(self):
+        self.id: Token | FnCall = None
+        self.accessed: Token | FnCall | IndexedIdentifier | ClassAccessor = None
+
+    def header(self):
+        return f"{self.id.string()}"
+    def child_nodes(self) -> None | dict[str, Production]:
+        return {"accessed":self.accessed}
+
+    def string(self, indent = 0):
+        ret = sprintln(self.id.string())
+        ret += sprint("accessed:", self.accessed.string(indent+1), indent=indent+1)
+        return ret
     def __len__(self):
         return 1
+
 
 ### GENERAL STATEMENT PRODUCTIONS ###
 class ReturnStatement(Production):
@@ -187,7 +227,7 @@ class ArrayDeclaration(Production):
         return {"dtype":self.dtype, "value":self.value}
 
     def string(self, indent = 0):
-        res = sprintln("declare array:", self.id.string(), indent=indent)
+        res = sprintln("declare array:", self.id.string(indent), indent=indent)
         res += sprintln("type:", self.dtype.string(), indent=indent+1)
         if self.is_const:
             res += sprintln("constant", indent=indent+1)
@@ -213,7 +253,7 @@ class ArrayDeclaration(Production):
 
         compute_lengths(self.value, 0)
 
-class UselessIdStatement(Production):
+class IdStatement(Production):
     def __init__(self):
         self.id: Token = None
 
@@ -223,7 +263,7 @@ class UselessIdStatement(Production):
         return None
 
     def string(self, indent = 0):
-        return sprintln("id:", self.id.string(), indent=indent)
+        return sprintln(self.id.string(indent), indent=indent)
 
 class Assignment(Production):
     def __init__(self):
@@ -236,8 +276,8 @@ class Assignment(Production):
         return {"value": self.value}
 
     def string(self, indent = 0):
-        res = sprintln("assign:", self.id.string(), indent=indent)
-        res += sprintln("value:", self.value.string(), indent=indent+1)
+        res = sprintln("assign:", self.id.string(indent), indent=indent)
+        res += sprintln("value:", self.value.string(indent+1), indent=indent+1)
         return res
     def __len__(self):
         return 1
@@ -255,8 +295,8 @@ class Declaration(Production):
         return {"dtype":self.dtype, "value":self.value}
 
     def string(self, indent = 0):
-        res = sprintln("declare:", self.id.string(), indent=indent)
-        res += sprintln("type:", self.dtype.string(), indent=indent+1)
+        res = sprintln("declare:", self.id.string(indent), indent=indent)
+        res += sprintln("type:", self.dtype.string(indent+1), indent=indent+1)
         if self.is_const:
             res += sprintln("constant", indent=indent+1)
         if self.value:

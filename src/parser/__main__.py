@@ -1,32 +1,47 @@
 from .parser import *
 from ..lexer import Lexer
-from ..lexer import print_lex
 from .error_handler import ErrorSrc
 
 if __name__ == "__main__":
     sc = """
-    fwunc mainuwu-san() [[
-        iwf (fax || cap && 1+1) [[
-            a-san[] = 20~
-        ]] ewse iwf (4 != 5 || 6 == 7) [[
-            aqua-sama = 6~
-            shion-sama = 6~
-            ojou-sama = 6~
-        ]] ewse iwf (7 == 8) [[
-            aqua-sama = 9~
-            shion-sama = 9~
-            ojou-sama = 9~
-        ]] ewse iwf (10 == 11) [[
-            aqua-sama = 12~
-            shion-sama = 12~
-            ojou-sama = 12~
-        ]] ewse [[
-            iwf (1 == 2) [[
-                sora-senpai = "nested!"~
-            ]] ewse [[
-                sora-senpai = "if statements!"~
+    cwass Ojou()[[
+        aqua-chan = iwf(fax)[[wetuwn(fax)~]] ewse iwf(cap)[[wetuwn(cap)~]] ewse [[ wetuwn(0)~ ]] ~
+        Ojou.ojou = Shion.shion[1][2]
+            .aqua("hello")[3]
+            .shion
+            .aqua(arg1, arg2)[4][5]
+            .shion(fax)
+            .aqua[6][7][8][9][0]~
+        shion()~
+
+        aqua-chan = (1+1*ojou(fax || shion != 5)[1]/2)~
+        iwf (fax) [[
+            pwint(fax)~
+            whiwe (1+2 != 3) [[
+                pwint(1+2)~
+            ]]
+        ]] ewse iwf(cap) [[
+            pwint(cap)~
+            do whiwe (fax && cap) [[
+                pwint(fax && cap)~
+            ]]
+        ]] ewse[[
+            pwint()~
+            fow(i~i>10||i<5~i++) [[
+                pwint(test)~
             ]]
         ]]
+    ]]
+    gwobaw aqua-chan = {1,2,"hello | -nickname-- | world", 1+1*1, {3.4, 5.6}}~
+    fwunc mainuwu-san() [[
+        b()[1].a 
+            .aqua("hello")[3]
+            .shion
+            .aqua(arg1, arg2)[4][5]
+            .shion(fax)
+            .aqua[6][7][8][9][0]-chan-dono = 10~
+        c[2][1]~
+        a-san[]~
     ]]
     """
 
@@ -43,13 +58,13 @@ if __name__ == "__main__":
 
     l = Lexer(source)
     if l.errors:
+        for err in l.errors:
+            print(err)
         exit(1)
 
     ErrorSrc.src = source
     p = Parser(l.tokens)
     print()
-    for err in p.errors:
-        print(err)
 
     print("--- Printing Whole Program ---")
     print(p.program)
@@ -63,4 +78,6 @@ if __name__ == "__main__":
     print(p.program.classes_string())
 
     if p.errors:
+        for err in p.errors:
+            print(err)
         exit(1)
