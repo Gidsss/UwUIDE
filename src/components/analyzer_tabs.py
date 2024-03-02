@@ -58,7 +58,8 @@ class UwUParserTab(CTkScrollableFrame):
             
             self.tree_items = []
 
-        loop_tree(node=program.mainuwu, parent='0')
+        if(program.mainuwu):
+            loop_tree(node=program.mainuwu, parent='0')
         
         for fn in program.functions:
             loop_tree(node=fn, parent='1')
