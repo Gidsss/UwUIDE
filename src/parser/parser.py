@@ -1007,8 +1007,30 @@ class Parser:
         return ident
 
     def parse_class_ident(self):
+
+        # Class constructor
+        if self.peek_tok_is(TokenType.OPEN_PAREN):
+            cc = ClassConstructor()
+            cc.id = self.curr_tok
+
+            self.advance(2)
+            stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
+            while not self.curr_tok_is_in(stop_conditions):
+                if (res := self.parse_expression(LOWEST)) is None:
+                    return None
+                cc.args.append(res)
+                if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
+                    break
+                self.advance()
+            if not self.curr_tok_is(TokenType.CLOSE_PAREN):
+                self.unclosed_paren_error(self.curr_tok)
+                return None
+            return cc
+
+        # Class accessor
         ident = ClassAccessor()
         ident.id = self.curr_tok
+
         if not self.expect_peek(TokenType.DOT_OP):
             self.peek_error(TokenType.DOT_OP)
             self.advance()
