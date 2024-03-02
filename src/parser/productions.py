@@ -171,6 +171,28 @@ class IndexedIdentifier(Production):
             ret += f", indices: {', '.join([i.string() for i in self.index])}"
         return ret
 
+
+class ClassConstructor(Production):
+    def __init__(self):
+        self.id = None
+        self.args = []
+
+    def header(self):
+        return sprint("constructor:", self.id.string(),
+                        f'({", ".join([a.string() for a in self.args])})',
+                        indent=0)
+    def child_nodes(self) -> None | dict[str, Production]:
+        return None
+
+    def string(self, _ = 1):
+        return sprint("constructor:", self.id.string(),
+                      f'({", ".join([a.string() for a in self.args])})',
+                      indent=0)
+    def __len__(self):
+        return 1
+
+
+
 class ClassAccessor(Production):
     '''
     id can be:
