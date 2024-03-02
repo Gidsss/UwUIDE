@@ -30,6 +30,7 @@ class UwUCodePanel(CTkFrame):
         
         self.console_view = ConsoleView(
             master=self,
+            editor=self.code_view.editor,
             fg_color='transparent',
             bg_color='transparent',
             corner_radius=8,
@@ -50,7 +51,8 @@ class UwUCodePanel(CTkFrame):
         )
         self.command_menu.grid(row=0, columnspan=4, sticky='nsew', pady=8)
 
-        self.update_console_logs = self.console_view.update_logs
+        self.update_error_logs = self.console_view.update_error_logs
+        self.update_compiler_logs = self.console_view.update_compiler_logs
 
 class UwuAnalyzerPanel(CTkTabview):
     def __init__(self, master, **kwargs):
@@ -113,8 +115,16 @@ class UwU(CTk):
         code_editor.run_lexer()
         code_editor.run_parser()
         self.analyzer_panel.update_lexer(tokens=code_editor.tokens)
-        self.analyzer_panel.update_parser_tree(program=code_editor.program)
-        self.code_panel.update_console_logs(errors=code_editor.errors)
+        
+        if code_editor.program:
+            self.analyzer_panel.update_parser_tree(program=code_editor.program)
+
+        self.code_panel.update_compiler_logs(editor=code_editor)
+
+        if len(code_editor.lx_errors) > 0:
+            self.code_panel.update_error_logs(errors=code_editor.lx_errors)
+        if len(code_editor.p_errors) > 0:
+            self.code_panel.update_error_logs(errors=code_editor.p_errors)
         
 if __name__ == "__main__":
     app = UwU()  

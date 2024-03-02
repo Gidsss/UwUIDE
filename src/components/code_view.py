@@ -76,7 +76,9 @@ class CodeEditor(CTkFrame):
         self.lexer = lexer
         self.parser = parser
         self.tokens: list[Token] = []
-        self.errors: list[Error] = []
+        self.program = None
+        self.lx_errors: list[Error] = []
+        self.p_errors: list[Error] = []
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=25)
@@ -117,18 +119,24 @@ class CodeEditor(CTkFrame):
         lx: Lexer = self.lexer(self.source_code)
 
         self.tokens = lx.tokens
-        self.errors = lx.errors
+        self.lx_errors = lx.errors
+
+        if(len(self.lx_errors) > 0 and self.program):
+            self.program = None
+            self.p_errors = []
 
         Remote.code_editor_instance = self
 
     def run_parser(self):
-        if self.tokens == 0:
+        if len(self.lx_errors) > 0:
             return
         
         ErrorSrc.src = self.source_code
         p: Parser = self.parser(self.tokens)
         self.program = p.program
-        self.errors = p.errors
+
+        if p.errors:
+            self.p_errors = p.errors
 
     def format(self, tag: str, start_pos: tuple[int, int], end_pos: tuple[int, int] = None):
         """
