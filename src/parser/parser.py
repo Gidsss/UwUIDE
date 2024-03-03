@@ -36,6 +36,7 @@ idents:                 LOWEST
 &&, ||                  LOGICAL
 ==, !=                  EQUALITY
 <, >, <=, >=:           LESS_GREATER
+&:                      CONCAT
 +, -:                   SUM
 *, /, %:                PRODUCT
 - (as in negative):     PREFIX
@@ -45,10 +46,11 @@ LOWEST = 0
 LOGICAL = 1
 EQUALITY = 2
 LESS_GREATER = 3
-SUM = 4
-PRODUCT = 5
-PREFIX = 6
-FN_CALL = 7
+CONCAT = 4
+SUM = 5
+PRODUCT = 6
+PREFIX = 7
+FN_CALL = 8
 
 precedence_map = {
     TokenType.AND_OPERATOR: LOGICAL,
@@ -59,6 +61,7 @@ precedence_map = {
     TokenType.LESS_THAN_OR_EQUAL_SIGN: LESS_GREATER,
     TokenType.GREATER_THAN_SIGN: LESS_GREATER,
     TokenType.GREATER_THAN_OR_EQUAL_SIGN: LESS_GREATER,
+    TokenType.CONCATENATION_OPERATOR: CONCAT,
     TokenType.ADDITION_SIGN: SUM,
     TokenType.DASH: SUM,
     TokenType.MULTIPLICATION_SIGN: PRODUCT,
@@ -154,6 +157,7 @@ class Parser:
         self.register_infix(TokenType.LESS_THAN_OR_EQUAL_SIGN, self.parse_infix_expression)
         self.register_infix(TokenType.GREATER_THAN_SIGN, self.parse_infix_expression)
         self.register_infix(TokenType.GREATER_THAN_OR_EQUAL_SIGN, self.parse_infix_expression)
+        self.register_infix(TokenType.CONCATENATION_OPERATOR, self.parse_infix_expression)
         self.register_infix(TokenType.ADDITION_SIGN, self.parse_infix_expression)
         self.register_infix(TokenType.DASH, self.parse_infix_expression)
         self.register_infix(TokenType.MULTIPLICATION_SIGN, self.parse_infix_expression)
