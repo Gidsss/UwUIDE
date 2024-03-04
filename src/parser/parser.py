@@ -970,6 +970,12 @@ class Parser:
                 ident.args.append(res)
                 if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
                     break
+
+                if self.curr_tok_is(TokenType.COMMA) and self.peek_tok_is(TokenType.CLOSE_PAREN):
+                    self.hanging_comma_error(self.peek_tok)
+                    self.advance(2)
+                    return None
+
                 self.advance()
             if not self.curr_tok_is(TokenType.CLOSE_PAREN):
                 self.unclosed_paren_error(self.curr_tok)
@@ -1068,6 +1074,12 @@ class Parser:
             al.elements.append(res)
             if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
                 break
+
+            if self.curr_tok_is(TokenType.COMMA) and self.peek_tok_is(TokenType.CLOSE_BRACE):
+                self.hanging_comma_error(self.peek_tok)
+                self.advance(2)
+                return None
+
             self.advance()
 
         if not self.curr_tok_is(TokenType.CLOSE_BRACE):
@@ -1417,6 +1429,13 @@ class Parser:
         self.errors.append(Error(
             "MISSING MAINUWU FUNCTION",
             f"The program must have at least one mainuwu function. Got 'EOF'",
+            token.position,
+            token.end_position
+        ))
+    def hanging_comma_error(self, token: Token):
+        self.errors.append(Error(
+            "HANGING COMMA",
+            f"Expected a value or expression after the comma, got {token}.",
             token.position,
             token.end_position
         ))
