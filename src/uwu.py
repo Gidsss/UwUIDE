@@ -85,7 +85,7 @@ class UwU(CTk):
         super().__init__()     
         self.geometry("1280x720+200+60")
         self.resizable(False, False)
-        self.title("UwU++")
+        self.title("UwU++ by SenPys")
         self.configure(fg_color='#16161E')
         self.iconbitmap(f"{ICON_BLACK_ASSET}")
 
