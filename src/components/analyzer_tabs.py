@@ -19,6 +19,11 @@ class UwUParserTab(CTkScrollableFrame):
 
         self.tree.grid(row=0, column=0, columnspan=2, sticky='nsew')
     
+    def clear_parser_tree(self):
+        if(len(self.tree.get_children()) > 0):
+            for item in self.tree.get_children():
+                self.tree.delete(item)
+
     def update_parser_tree(self, program: Program):
         def loop_tree(node, parent: str |  None = None, key: str | None = None):
             """
@@ -43,9 +48,7 @@ class UwUParserTab(CTkScrollableFrame):
                 else:
                     loop_tree(node=v, parent=node_iid, key=k)
 
-        if(len(self.tree.get_children()) > 0):
-            for item in self.tree.get_children():
-                self.tree.delete(item)
+        self.clear_parser_tree()
 
         if(program.mainuwu):
             self.tree.insert('', 'end', text='Mainuwu', iid=0, open=False)

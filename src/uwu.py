@@ -75,6 +75,7 @@ class UwuAnalyzerPanel(CTkTabview):
 
         self.update_lexer = self.lexer_tab_content.update_lexer
         self.update_parser_tree = self.parser_tab_content.update_parser_tree
+        self.clear_parser_tree = self.parser_tab_content.clear_parser_tree
 
 class UwU(CTk):
     def __init__(self):
@@ -122,6 +123,7 @@ class UwU(CTk):
         self.code_panel.update_compiler_logs(editor=code_editor)
 
         if len(code_editor.lx_errors) > 0:
+            self.analyzer_panel.clear_parser_tree()
             self.code_panel.update_error_logs(errors=code_editor.lx_errors)
         else:
             self.code_panel.update_error_logs(errors=code_editor.p_errors)
