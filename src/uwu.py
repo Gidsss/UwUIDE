@@ -116,6 +116,8 @@ class UwU(CTk):
         self.analyzer_panel.grid(row=0, column=4, rowspan=5, columnspan=2, sticky='nsew')
 
         self.bind("<KeyPress>", lambda e : self.run(e))
+        self.bind("<Control-s>", lambda _ : self.code_panel.code_view.save_file())
+        self.bind("<Control-o>", lambda _ : self.code_panel.code_view.load_file())
 
     def run(self, e: Event):
         if e.keysym != 'F5':
