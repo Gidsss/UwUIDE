@@ -206,8 +206,8 @@ class Parser:
                 case TokenType.GWOBAW:
                     if res := self.parse_declaration():
                         p.globals.append(res)
-                case TokenType.TERMINATOR | TokenType.DOUBLE_CLOSE_BRACKET:
-                    self.advance()
+                # case TokenType.TERMINATOR | TokenType.DOUBLE_CLOSE_BRACKET:
+                #     self.advance()
                 case _:
                     self.invalid_global_declaration_error(self.curr_tok)
                     self.advance()
@@ -390,6 +390,10 @@ class Parser:
             self.advance(2)
             self.unclosed_double_bracket_error(self.curr_tok)
             return None
+
+        # Consume double close bracket
+        self.advance()
+
         return func
 
     def parse_class(self):
@@ -433,6 +437,10 @@ class Parser:
         if not self.curr_tok_is(TokenType.DOUBLE_CLOSE_BRACKET):
             self.unclosed_double_bracket_error(self.curr_tok)
             return None
+
+        # Consume double close bracket
+        self.advance()
+
         return c
 
     def parse_params(self, main=False):
