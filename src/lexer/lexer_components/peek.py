@@ -109,6 +109,8 @@ def reserved(to_check: str, token_type: TokenType,
                 is_end_of_file, current_char = identifier(context, from_keyword=to_check)
                 context = lines, position, current_char, tokens, logs
 
+                return True, is_end_of_file, current_char
+
         is_end_of_file, current_char = advance_cursor(context)
         cursor_advanced = True
 

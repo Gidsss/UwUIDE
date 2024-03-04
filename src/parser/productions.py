@@ -171,6 +171,28 @@ class IndexedIdentifier(Production):
             ret += f", indices: {', '.join([i.string() for i in self.index])}"
         return ret
 
+
+class ClassConstructor(Production):
+    def __init__(self):
+        self.id = None
+        self.args = []
+
+    def header(self):
+        return sprint("constructor:", self.id.string(),
+                        f'({", ".join([a.string() for a in self.args])})',
+                        indent=0)
+    def child_nodes(self) -> None | dict[str, Production]:
+        return None
+
+    def string(self, _ = 1):
+        return sprint("constructor:", self.id.string(),
+                      f'({", ".join([a.string() for a in self.args])})',
+                      indent=0)
+    def __len__(self):
+        return 1
+
+
+
 class ClassAccessor(Production):
     '''
     id can be:
@@ -322,20 +344,20 @@ class Print(Production):
 
 class Input(Production):
     def __init__(self):
-        self.value = None
+        self.expr = None
 
     def header(self):
-        return "input"
+        return self.string()
+
     def child_nodes(self) -> None | dict[str, Production]:
-        if self.value:
-            return {"value":self.value}
         return None
 
-    def string(self, indent = 0):
-        return sprintln("input:", self.value.string(), indent=indent)
-    def print(self, indent = 0):
-        print(f"{INDENT(indent)} input: ", end='')
-        self.value.print(indent)
+    def string(self, _ = 0):
+        return sprint("input:", self.expr.string(), indent=0)
+
+    def __len__(self):
+        return 1
+
 
 class Parameter(Production):
     def __init__(self):

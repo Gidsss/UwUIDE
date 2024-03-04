@@ -36,6 +36,7 @@ idents:                 LOWEST
 &&, ||                  LOGICAL
 ==, !=                  EQUALITY
 <, >, <=, >=:           LESS_GREATER
+&:                      CONCAT
 +, -:                   SUM
 *, /, %:                PRODUCT
 - (as in negative):     PREFIX
@@ -45,10 +46,11 @@ LOWEST = 0
 LOGICAL = 1
 EQUALITY = 2
 LESS_GREATER = 3
-SUM = 4
-PRODUCT = 5
-PREFIX = 6
-FN_CALL = 7
+CONCAT = 4
+SUM = 5
+PRODUCT = 6
+PREFIX = 7
+FN_CALL = 8
 
 precedence_map = {
     TokenType.AND_OPERATOR: LOGICAL,
@@ -59,6 +61,7 @@ precedence_map = {
     TokenType.LESS_THAN_OR_EQUAL_SIGN: LESS_GREATER,
     TokenType.GREATER_THAN_SIGN: LESS_GREATER,
     TokenType.GREATER_THAN_OR_EQUAL_SIGN: LESS_GREATER,
+    TokenType.CONCATENATION_OPERATOR: CONCAT,
     TokenType.ADDITION_SIGN: SUM,
     TokenType.DASH: SUM,
     TokenType.MULTIPLICATION_SIGN: PRODUCT,
@@ -144,6 +147,7 @@ class Parser:
         self.register_prefix(TokenType.FAX, self.parse_literal)
         self.register_prefix(TokenType.CAP, self.parse_literal)
         self.register_prefix(TokenType.NUWW, self.parse_literal)
+        self.register_prefix(TokenType.INPWT, self.parse_input)
 
         # infixes
         self.register_infix(TokenType.EQUALITY_OPERATOR, self.parse_infix_expression)
@@ -154,6 +158,7 @@ class Parser:
         self.register_infix(TokenType.LESS_THAN_OR_EQUAL_SIGN, self.parse_infix_expression)
         self.register_infix(TokenType.GREATER_THAN_SIGN, self.parse_infix_expression)
         self.register_infix(TokenType.GREATER_THAN_OR_EQUAL_SIGN, self.parse_infix_expression)
+        self.register_infix(TokenType.CONCATENATION_OPERATOR, self.parse_infix_expression)
         self.register_infix(TokenType.ADDITION_SIGN, self.parse_infix_expression)
         self.register_infix(TokenType.DASH, self.parse_infix_expression)
         self.register_infix(TokenType.MULTIPLICATION_SIGN, self.parse_infix_expression)
@@ -175,7 +180,7 @@ class Parser:
         self.register_in_block(TokenType.DO_WHIWE, self.parse_while_statement)
         self.register_in_block(TokenType.FOW, self.parse_for_statement)
         self.register_in_block(TokenType.PWINT, self.parse_print)
-        self.register_in_block(TokenType.INPWT, self.parse_input)
+        # self.register_in_block(TokenType.INPWT, self.parse_input)
 
     def parse_program(self) -> Program:
         '''
@@ -806,27 +811,27 @@ class Parser:
             return None
         return p
 
-    def parse_input(self):
-        i = Input()
-        if not self.expect_peek(TokenType.OPEN_PAREN):
-            self.peek_error(TokenType.OPEN_PAREN)
-            self.advance()
-            return None
-        self.advance()
-
-        if (res := self.parse_ident_statement()) is None:
-            return None
-        i.value = res
-
-        if not self.expect_peek(TokenType.CLOSE_PAREN):
-            self.unclosed_paren_error(self.peek_tok)
-            self.advance()
-            return None
-        if not self.expect_peek(TokenType.TERMINATOR):
-            self.unterminated_error(self.peek_tok)
-            self.advance()
-            return None
-        return i
+    # def parse_input(self):
+    #     i = Input()
+    #     if not self.expect_peek(TokenType.OPEN_PAREN):
+    #         self.peek_error(TokenType.OPEN_PAREN)
+    #         self.advance()
+    #         return None
+    #     self.advance()
+    #
+    #     if (res := self.parse_ident_statement()) is None:
+    #         return None
+    #     i.value = res
+    #
+    #     if not self.expect_peek(TokenType.CLOSE_PAREN):
+    #         self.unclosed_paren_error(self.peek_tok)
+    #         self.advance()
+    #         return None
+    #     if not self.expect_peek(TokenType.TERMINATOR):
+    #         self.unterminated_error(self.peek_tok)
+    #         self.advance()
+    #         return None
+    #     return i
 
     ### expression parsers
     def parse_expression(self, precedence):
@@ -1007,8 +1012,30 @@ class Parser:
         return ident
 
     def parse_class_ident(self):
+
+        # Class constructor
+        if self.peek_tok_is(TokenType.OPEN_PAREN):
+            cc = ClassConstructor()
+            cc.id = self.curr_tok
+
+            self.advance(2)
+            stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
+            while not self.curr_tok_is_in(stop_conditions):
+                if (res := self.parse_expression(LOWEST)) is None:
+                    return None
+                cc.args.append(res)
+                if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
+                    break
+                self.advance()
+            if not self.curr_tok_is(TokenType.CLOSE_PAREN):
+                self.unclosed_paren_error(self.curr_tok)
+                return None
+            return cc
+
+        # Class accessor
         ident = ClassAccessor()
         ident.id = self.curr_tok
+
         if not self.expect_peek(TokenType.DOT_OP):
             self.peek_error(TokenType.DOT_OP)
             self.advance()
@@ -1066,6 +1093,23 @@ class Parser:
     def parse_literal(self):
         'returns the current token'
         return self.curr_tok
+
+    def parse_input(self):
+        inp = Input()
+        if not self.expect_peek(TokenType.OPEN_PAREN):
+            self.peek_error(TokenType.OPEN_PAREN)
+            self.advance()
+            return None
+        self.advance() # consume the open paren
+
+        if (res := self.parse_expression(LOWEST)) is None:
+            return None
+        inp.expr = res
+        if not self.expect_peek(TokenType.CLOSE_PAREN):
+            self.advance()
+            self.unclosed_paren_error(self.curr_tok)
+            return None
+        return inp
 
     ### helper methods
     # registering prefix and infix functions to parse certain token types
