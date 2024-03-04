@@ -206,8 +206,8 @@ class Parser:
                 case TokenType.GWOBAW:
                     if res := self.parse_declaration():
                         p.globals.append(res)
-                case TokenType.TERMINATOR | TokenType.DOUBLE_CLOSE_BRACKET:
-                    self.advance()
+                # case TokenType.TERMINATOR | TokenType.DOUBLE_CLOSE_BRACKET:
+                #     self.advance()
                 case _:
                     self.invalid_global_declaration_error(self.curr_tok)
                     self.advance()
@@ -390,6 +390,10 @@ class Parser:
             self.advance(2)
             self.unclosed_double_bracket_error(self.curr_tok)
             return None
+
+        # Consume double close bracket
+        self.advance()
+
         return func
 
     def parse_class(self):
@@ -433,6 +437,10 @@ class Parser:
         if not self.curr_tok_is(TokenType.DOUBLE_CLOSE_BRACKET):
             self.unclosed_double_bracket_error(self.curr_tok)
             return None
+
+        # Consume double close bracket
+        self.advance()
+
         return c
 
     def parse_params(self, main=False):
@@ -625,6 +633,17 @@ class Parser:
             id_stm = IdStatement()
             id_stm.id = ident
             return id_stm
+
+        # is a unary statement
+        if self.expect_peek_in([TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]):
+            unary_stm = UnaryStatement()
+            unary_stm.id = ident
+            unary_stm.op = self.curr_tok
+            if not self.expect_peek(TokenType.TERMINATOR):
+                self.advance()
+                self.unterminated_error(self.curr_tok)
+                return None
+            return unary_stm
 
         # is a declaration
         if self.peek_tok_is(TokenType.DASH):
@@ -962,6 +981,12 @@ class Parser:
                 ident.args.append(res)
                 if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
                     break
+
+                if self.curr_tok_is(TokenType.COMMA) and self.peek_tok_is(TokenType.CLOSE_PAREN):
+                    self.hanging_comma_error(self.peek_tok)
+                    self.advance(2)
+                    return None
+
                 self.advance()
             if not self.curr_tok_is(TokenType.CLOSE_PAREN):
                 self.unclosed_paren_error(self.curr_tok)
@@ -1060,6 +1085,12 @@ class Parser:
             al.elements.append(res)
             if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
                 break
+
+            if self.curr_tok_is(TokenType.COMMA) and self.peek_tok_is(TokenType.CLOSE_BRACE):
+                self.hanging_comma_error(self.peek_tok)
+                self.advance(2)
+                return None
+
             self.advance()
 
         if not self.curr_tok_is(TokenType.CLOSE_BRACE):
@@ -1409,6 +1440,13 @@ class Parser:
         self.errors.append(Error(
             "MISSING MAINUWU FUNCTION",
             f"The program must have at least one mainuwu function. Got 'EOF'",
+            token.position,
+            token.end_position
+        ))
+    def hanging_comma_error(self, token: Token):
+        self.errors.append(Error(
+            "HANGING COMMA",
+            f"Expected a value or expression after the comma, got {token}.",
             token.position,
             token.end_position
         ))
