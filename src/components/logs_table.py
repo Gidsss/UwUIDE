@@ -20,10 +20,11 @@ class LogsTable(CTkFrame):
             start_pos = line, col = self.logs[row].position
             end_pos = None if isinstance(self.logs[row], DelimError) else self.logs[row].end_position
             line_label = CTkLabel(master=self, text=line + 1, fg_color='transparent', font=('JetBrains Mono', 10), text_color='#FFFFFF', anchor='n')
+            self.line_labels.append(line_label)
 
-            log_message_label = CTkLabel(master=self, text=self.logs[row], fg_color='transparent', font=('JetBrains Mono', 10), text_color='#ff5349',
-                                         anchor='nw', justify="left")
-            
+            log_message_label = CTkLabel(master=self, text=self.logs[row], fg_color='transparent', font=('JetBrains Mono', 10), text_color='#ff5349', anchor='nw', justify="left")
+            self.log_message_labels.append(log_message_label)
+
              # Bind callbacks
             log_message_label.bind("<Enter>", lambda ev, sp=start_pos, ep=end_pos: self.code_editor.format(
                 Tags.ERROR_HIGHLIGHT.name, sp, ep
@@ -31,12 +32,22 @@ class LogsTable(CTkFrame):
             log_message_label.bind("<Leave>", lambda ev: self.code_editor.clear_format())
             line_label.grid(row=row, column=0, sticky='nsew', padx=32, pady=8)
             log_message_label.grid(row=row, column=1, sticky='nsew', columnspan=9, pady=8)
+    
+    def delete_labels(self):
+        if(len(self.line_labels) > 0 and len(self.log_message_labels) > 0):
+            for i in range(len(self.line_labels)):
+                self.line_labels[i].destroy()
+                self.log_message_labels[i].destroy()
+            
+            self.line_labels = []
+            self.log_message_labels = []
 
 class LogsCanvas(CTkCanvas):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
-        CTkCanvas.__init__(self, master=master, width=16, borderwidth=0,highlightthickness=0, bg='#1A1B26')
+        CTkCanvas.__init__(self, master=master, width=16, borderwidth=0,highlightthickness=0, bg='#16161E')
 
+        self.table: LogsTable | None = None 
         self.grid_columnconfigure((0,1), weight=1)
 
         self.render_table()
@@ -49,6 +60,10 @@ class LogsCanvas(CTkCanvas):
         )
         self.logs_table.grid(row=0, column=0, rowspan=2, columnspan=2, sticky='nsew')
 
+        self.table = self.logs_table
+
     def update_logs(self, errors: list[Error]):
-        self.delete('all')
+        if self.table:
+            self.table.delete_labels()
+
         self.render_table(errors=errors)

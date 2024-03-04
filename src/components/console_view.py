@@ -15,7 +15,7 @@ class GeneratedLogFrame(CTkFrame):
         print(self.generated_log)
         for i, (k, v) in enumerate(self.generated_log.items()):
             if(v):
-                self.generated_log_label = CTkLabel(master=self, text=v if not v else f">\t{k}: {v}", text_color='#FFFFFF', font=('JetBrains Mono', 10))
+                self.generated_log_label = CTkLabel(master=self, text=v if not v else f">\t{k}: {v}", text_color='#FFFFFF', font=('JetBrains Mono', 11))
                 self.generated_log_label.grid(row=i, column=0, sticky="nw")
         
 class CompilerLogsCanvas(CTkCanvas):
@@ -24,8 +24,14 @@ class CompilerLogsCanvas(CTkCanvas):
         CTkCanvas.__init__(self, master=master, width=16, borderwidth=0,bg='#16161E', highlightthickness=0)
         self.grid_columnconfigure((0,1), weight=1)
 
-        self.intro_label = CTkLabel(master=self, text=">\tWelcome to UwU++ IDE! Start cowding ^_^", text_color='#FFFFFF', font=('JetBrains Mono', 10))
-        self.intro_label.grid(row=0, column=0, sticky="nw")
+        self.init_compiler_messages = [">\tWelcome to UwU++ IDE! The IDE supports the following shortcuts:", ">\tPress F5 to run the program", ">\tPress Ctrl+S to save the program", ">\tPress Ctrl+O to import a program", ">\tStart coding u qtpie 💖💖💖"]
+
+        self.labels = []
+
+        for i, message in enumerate(self.init_compiler_messages):
+            intro_label = CTkLabel(master=self, text=message, text_color='#FFFFFF', font=('JetBrains Mono', 11))
+            intro_label.grid(row=i, column=0, sticky="nw")
+            self.labels.append(intro_label)
 
     def generate_log(self, lx_errors: list, p_errors: list) -> dict:
         return {
@@ -41,7 +47,12 @@ class CompilerLogsCanvas(CTkCanvas):
         self.generated_log_frame.grid(row=0, column=0, columnspan=2, sticky='nsew')
 
     def update_logs(self, editor: CodeEditor):
-        self.delete('all')
+        if len(self.labels) > 0:
+            for label in self.labels:
+                label.destroy()
+            
+            self.labels = []
+
         self.render_logs(lx_errors=editor.lx_errors,p_errors=editor.p_errors)
 
 class CompilerLogs(CTkScrollableFrame):
