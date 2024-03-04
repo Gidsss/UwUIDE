@@ -7,6 +7,8 @@ from .components.analyzer_tabs import UwULexerTab, UwUParserTab
 from .components.welcome_window import WelcomeWindow
 from constants.path import *
 
+FontManager.load_font('./assets/font/JetBrainsMono/JetBrainsMono-Regular.ttf')
+
 class UwUCodePanel(CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
