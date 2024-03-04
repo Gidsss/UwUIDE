@@ -1,4 +1,5 @@
 from customtkinter import *
+from tkinter import *
 
 from .components.code_view import CodeView, CodeEditor
 from .components.console_view import ConsoleView
@@ -113,6 +114,14 @@ class UwU(CTk):
             segmented_button_unselected_color='#1A1B26',segmented_button_unselected_hover_color='gray'
         )
         self.analyzer_panel.grid(row=0, column=4, rowspan=5, columnspan=2, sticky='nsew')
+
+        self.bind("<KeyPress>", lambda e : self.run(e))
+
+    def run(self, e: Event):
+        if e.keysym != 'F5':
+            return
+        
+        self.on_compiler_run(code_editor=self.code_panel.code_view.editor)
 
     def on_compiler_run(self, code_editor: CodeEditor):
         code_editor.run_lexer()
