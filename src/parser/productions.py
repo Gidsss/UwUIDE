@@ -287,6 +287,21 @@ class IdStatement(Production):
     def string(self, indent = 0):
         return sprintln(self.id.string(indent), indent=indent)
 
+class UnaryStatement(Production):
+    def __init__(self):
+        self.id: Token = None
+        self.op: Token = None
+
+    def header(self):
+        return self.string()
+
+    def child_nodes(self) -> None | dict[str, Production]:
+        return None
+
+    def string(self, indent = 0):
+        return sprintln("unary:", self.id.string(indent) + self.op.string(), indent=indent)
+
+
 class Assignment(Production):
     def __init__(self):
         self.id: Token = None

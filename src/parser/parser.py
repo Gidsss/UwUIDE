@@ -626,6 +626,17 @@ class Parser:
             id_stm.id = ident
             return id_stm
 
+        # is a unary statement
+        if self.expect_peek_in([TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]):
+            unary_stm = UnaryStatement()
+            unary_stm.id = ident
+            unary_stm.op = self.curr_tok
+            if not self.expect_peek(TokenType.TERMINATOR):
+                self.advance()
+                self.unterminated_error(self.curr_tok)
+                return None
+            return unary_stm
+
         # is a declaration
         if self.peek_tok_is(TokenType.DASH):
             return self.parse_declaration(ident)
