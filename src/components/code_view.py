@@ -97,16 +97,24 @@ class CodeEditor(CTkFrame):
         self.text.bind("<FocusIn>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<Return>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<BackSpace>", lambda e: self.line_nums.on_redraw(e))
+        self.text.bind("<Visibility>", lambda e: self.line_nums.on_redraw(e))
 
         self.text.bind("<Control-c>", lambda e: self.copy_text(e))
         self.text.bind("<Control-v>", lambda e: self.paste_text(e))
         self.text.bind("<Control-z>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<Control-y>", lambda e: self.line_nums.on_redraw(e)) 
          
+        # Initialize QoL text for untitled code editor
+        self.init_text()
  
         # Initialize tags
         for tag in Tags:
             self.text.tag_config(tag.name, **tag.options)
+
+
+    def init_text(self):
+        initial_text = ">.< global declarations\n\nfwunc mainuwu-san() [[\n\n]]\n\n>.< global declarations" # For QoL Purposes
+        self.text.insert('1.0', initial_text)
 
     def init_linenums(self):
         self.text.focus_set()
