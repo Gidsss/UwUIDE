@@ -205,6 +205,7 @@ class Parser:
                         p.classes.append(res)
                 case TokenType.GWOBAW:
                     if res := self.parse_declaration():
+                        self.advance()
                         p.globals.append(res)
                 # case TokenType.TERMINATOR | TokenType.DOUBLE_CLOSE_BRACKET:
                 #     self.advance()
