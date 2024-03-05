@@ -4,44 +4,9 @@ from .error_handler import ErrorSrc
 
 if __name__ == "__main__":
     sc = """
-    cwass Ojou()[[
-        aqua-chan = iwf(fax)[[wetuwn(fax)~]] ewse iwf(cap)[[wetuwn(cap)~]] ewse [[ wetuwn(0)~ ]] ~
-        Ojou.ojou = Shion.shion[1][2]
-            .aqua("hello")[3]
-            .shion
-            .aqua(arg1, arg2)[4][5]
-            .shion(fax)
-            .aqua[6][7][8][9][0]~
-        shion()~
-
-        aqua-chan = (1+1*ojou(fax || shion != 5)[1]/2)~
-        iwf (fax) [[
-            pwint(fax)~
-            whiwe (1+2 != 3) [[
-                pwint(1+2)~
-            ]]
-        ]] ewse iwf(cap) [[
-            pwint(cap)~
-            do whiwe (fax && cap) [[
-                pwint(fax && cap)~
-            ]]
-        ]] ewse[[
-            pwint()~
-            fow(i~i>10||i<5~i++) [[
-                pwint(test)~
-            ]]
-        ]]
-    ]]
-    gwobaw aqua-chan = {1,2,"hello | -nickname-- | world", 1+1*1, {3.4, 5.6}}~
+    gwobaw message-senpai = "Hey"~
     fwunc mainuwu-san() [[
-        b()[1].a 
-            .aqua("hello")[3]
-            .shion
-            .aqua(arg1, arg2)[4][5]
-            .shion(fax)
-            .aqua[6][7][8][9][0]-chan-dono = 10~
-        c[2][1]~
-        a-san[]~
+        a~
     ]]
     """
 
