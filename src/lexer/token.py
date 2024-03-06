@@ -27,8 +27,6 @@ class TokenType(Enum):
         return str.__format__(str(self), format_spec)
 
     # GENERAL KEYWORDS
-    START = ("staart!", "start_done")
-    DONE = ("donee~", "start_done")
     MAINUWU = ("mainuwu", "mainuwu")
     FWUNC = ("fwunc", "whitespace")
     CWASS = ("cwass", "whitespace")
