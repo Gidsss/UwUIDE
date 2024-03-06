@@ -191,8 +191,6 @@ class ClassConstructor(Production):
     def __len__(self):
         return 1
 
-
-
 class ClassAccessor(Production):
     '''
     id can be:
@@ -209,7 +207,7 @@ class ClassAccessor(Production):
         self.accessed: Token | FnCall | IndexedIdentifier | ClassAccessor = None
 
     def header(self):
-        return f"{self.id.string()}"
+        return f"accessor: {self.id.string()}"
     def child_nodes(self) -> None | dict[str, Production]:
         return {"accessed":self.accessed}
 
@@ -304,13 +302,17 @@ class UnaryStatement(Production):
 
 class Assignment(Production):
     def __init__(self):
-        self.id: Token = None
+        self.id: Token | ClassAccessor = None
         self.value = None
 
     def header(self):
-        return f"assign: {self.id.string()}"
+        return f"assign: {self.id.header()}"
     def child_nodes(self) -> None | dict[str, Production]:
-        return {"value": self.value}
+        res: dict = {}
+        if isinstance(self.id, ClassAccessor):
+            res["accessed"] = self.id.accessed
+        res["value"] = self.value
+        return res
 
     def string(self, indent = 0):
         res = sprintln("assign:", self.id.string(indent), indent=indent)
