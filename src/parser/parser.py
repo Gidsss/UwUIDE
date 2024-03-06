@@ -518,20 +518,20 @@ class Parser:
             return None
 
         # Check if condition is empty
-        if self.peek_tok_is(TokenType.CLOSE_PAREN):
+        if self.expect_peek(TokenType.CLOSE_PAREN):
             self.empty_condition_error()
             self.advance()
             return None
-        else:
-            self.advance()
-            if (res := self.parse_expression(LOWEST)) is None:
-                return None
-            ie.condition = res
 
-            if not self.expect_peek(TokenType.CLOSE_PAREN):
-                self.unclosed_paren_error(self.peek_tok)
-                self.advance()
-                return None
+        self.advance()
+        if (res := self.parse_expression(LOWEST)) is None:
+            return None
+        ie.condition = res
+
+        if not self.expect_peek(TokenType.CLOSE_PAREN):
+            self.unclosed_paren_error(self.peek_tok)
+            self.advance()
+            return None
 
         if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
             self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
