@@ -553,29 +553,36 @@ class Parser:
                 self.peek_error(TokenType.OPEN_PAREN)
                 self.advance()
                 return None
-            self.advance()
-            if (res := self.parse_expression(LOWEST)) is None:
-                return None
-            eie.condition = res
-
-            if not self.expect_peek(TokenType.CLOSE_PAREN):
-                self.advance()
-                self.unclosed_paren_error(self.curr_tok)
-                return None
-            if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
-                self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
+            
+            # Check if condition is empty
+            if self.peek_tok_is(TokenType.CLOSE_PAREN):
+                self.empty_condition_error()
                 self.advance()
                 return None
-
-            if (res := self.parse_block_statement()) is None:
-                return None
-            eie.then = res
-
-            if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
-                self.unclosed_double_bracket_error(self.peek_tok)
+            else:
                 self.advance()
-                return None
-            ie.else_if.append(eie)
+                if (res := self.parse_expression(LOWEST)) is None:
+                    return None
+                eie.condition = res
+
+                if not self.expect_peek(TokenType.CLOSE_PAREN):
+                    self.advance()
+                    self.unclosed_paren_error(self.curr_tok)
+                    return None
+                if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
+                    self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
+                    self.advance()
+                    return None
+
+                if (res := self.parse_block_statement()) is None:
+                    return None
+                eie.then = res
+
+                if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
+                    self.unclosed_double_bracket_error(self.peek_tok)
+                    self.advance()
+                    return None
+                ie.else_if.append(eie)
 
         if self.expect_peek(TokenType.EWSE):
             if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
