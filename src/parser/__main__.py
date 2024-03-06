@@ -5,7 +5,11 @@ from .error_handler import ErrorSrc
 if __name__ == "__main__":
     sc = """
     fwunc mainuwu-san() [[
-        b = {-2}
+        b = {-2}~
+    ]]
+    gwobaw message-senpai = "Hey"~
+    fwunc a-san() [[
+        a++~
     ]]
     """
 
