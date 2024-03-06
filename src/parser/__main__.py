@@ -4,9 +4,12 @@ from .error_handler import ErrorSrc
 
 if __name__ == "__main__":
     sc = """
-    gwobaw message-senpai = "Hey"~
     fwunc mainuwu-san() [[
-        a~
+        b = {-2}~
+    ]]
+    gwobaw message-senpai = "Hey"~
+    fwunc a-san() [[
+        a++~
     ]]
     """
 
