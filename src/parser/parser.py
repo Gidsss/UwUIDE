@@ -36,8 +36,7 @@ idents:                 LOWEST
 &&, ||                  LOGICAL
 ==, !=                  EQUALITY
 <, >, <=, >=:           LESS_GREATER
-&:                      CONCAT
-+, -:                   SUM
++, -, &:                   SUM
 *, /, %:                PRODUCT
 - (as in negative):     PREFIX
 ident():                FN_CALL
@@ -46,11 +45,10 @@ LOWEST = 0
 LOGICAL = 1
 EQUALITY = 2
 LESS_GREATER = 3
-CONCAT = 4
-SUM = 5
-PRODUCT = 6
-PREFIX = 7
-FN_CALL = 8
+SUM = 4
+PRODUCT = 5
+PREFIX = 6
+FN_CALL = 7
 
 precedence_map = {
     TokenType.AND_OPERATOR: LOGICAL,
@@ -61,7 +59,7 @@ precedence_map = {
     TokenType.LESS_THAN_OR_EQUAL_SIGN: LESS_GREATER,
     TokenType.GREATER_THAN_SIGN: LESS_GREATER,
     TokenType.GREATER_THAN_OR_EQUAL_SIGN: LESS_GREATER,
-    TokenType.CONCATENATION_OPERATOR: CONCAT,
+    TokenType.CONCATENATION_OPERATOR: SUM,
     TokenType.ADDITION_SIGN: SUM,
     TokenType.DASH: SUM,
     TokenType.MULTIPLICATION_SIGN: PRODUCT,
