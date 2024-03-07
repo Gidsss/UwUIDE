@@ -38,13 +38,8 @@ class UwUParserTab(CTkScrollableFrame):
             self.tree.insert(parent, 'end', iid=node_iid, text=f"{key}: {node.header()}" if key else node.header())
 
             for k, v in node.child_nodes().items():
-                if(not isinstance(v, Production)):
-                    if v:
-                        if(not isinstance(v, list)):
-                            self.tree.insert(node_iid, 'end', text=f"{k}: {v}")
-                        else:
-                            for p in v:
-                                loop_tree(node=p, parent=node_iid)
+                if v and not isinstance(v, Production):
+                    self.tree.insert(node_iid, 'end', text=f"{k}: {v}")
                 else:
                     loop_tree(node=v, parent=node_iid, key=k)
 
