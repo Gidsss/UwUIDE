@@ -207,7 +207,7 @@ class ClassAccessor(Production):
         self.accessed: Token | FnCall | IndexedIdentifier | ClassAccessor = None
 
     def header(self):
-        return f"accessor: {self.id.string()}"
+        return self.id.string()
     def child_nodes(self) -> None | dict[str, Production]:
         return {"accessed":self.accessed}
 
