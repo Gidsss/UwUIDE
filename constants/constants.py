@@ -47,7 +47,6 @@ DELIMS = {
     'line': {'\n', ' ', *ATOMS['alpha'], ']'},
     'comma': {*ATOMS['alpha'], ' ', *ATOMS['number'], '"', '-', '\n', '>', '{'},
     'dot_op': {*ATOMS['alpha'], '[', '(', '\n'},
-    'start_done': {'\n', ' ', '>'},
     'nuww': {' ', '~', ')', '}', ',', '\n'},
     'whitespace': {' ', '\n'},
     'single_line_comment': {'\n'},
