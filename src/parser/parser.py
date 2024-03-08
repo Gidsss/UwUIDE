@@ -46,11 +46,10 @@ LOWEST = 0
 LOGICAL = 1
 EQUALITY = 2
 LESS_GREATER = 3
-CONCAT = 4
-SUM = 5
-PRODUCT = 6
-PREFIX = 7
-FN_CALL = 8
+SUM = 4
+PRODUCT = 5
+PREFIX = 6
+FN_CALL = 7
 
 precedence_map = {
     TokenType.AND_OPERATOR: LOGICAL,
@@ -61,7 +60,7 @@ precedence_map = {
     TokenType.LESS_THAN_OR_EQUAL_SIGN: LESS_GREATER,
     TokenType.GREATER_THAN_SIGN: LESS_GREATER,
     TokenType.GREATER_THAN_OR_EQUAL_SIGN: LESS_GREATER,
-    TokenType.CONCATENATION_OPERATOR: CONCAT,
+    TokenType.CONCATENATION_OPERATOR: SUM,
     TokenType.ADDITION_SIGN: SUM,
     TokenType.DASH: SUM,
     TokenType.MULTIPLICATION_SIGN: PRODUCT,
@@ -180,6 +179,7 @@ class Parser:
         self.register_in_block(TokenType.DO_WHIWE, self.parse_while_statement)
         self.register_in_block(TokenType.FOW, self.parse_for_statement)
         self.register_in_block(TokenType.PWINT, self.parse_print)
+        # TODO: change cfg to accomodate this as an in block statement
         # self.register_in_block(TokenType.INPWT, self.parse_input)
 
     def parse_program(self) -> Program:
@@ -205,6 +205,7 @@ class Parser:
                         p.classes.append(res)
                 case TokenType.GWOBAW:
                     if res := self.parse_declaration():
+                        self.advance()
                         p.globals.append(res)
                 # case TokenType.TERMINATOR | TokenType.DOUBLE_CLOSE_BRACKET:
                 #     self.advance()
@@ -517,20 +518,20 @@ class Parser:
             return None
 
         # Check if condition is empty
-        if self.peek_tok_is(TokenType.CLOSE_PAREN):
+        if self.expect_peek(TokenType.CLOSE_PAREN):
             self.empty_condition_error()
             self.advance()
             return None
-        else:
-            self.advance()
-            if (res := self.parse_expression(LOWEST)) is None:
-                return None
-            ie.condition = res
 
-            if not self.expect_peek(TokenType.CLOSE_PAREN):
-                self.unclosed_paren_error(self.peek_tok)
-                self.advance()
-                return None
+        self.advance()
+        if (res := self.parse_expression(LOWEST)) is None:
+            return None
+        ie.condition = res
+
+        if not self.expect_peek(TokenType.CLOSE_PAREN):
+            self.unclosed_paren_error(self.peek_tok)
+            self.advance()
+            return None
 
         if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
             self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
@@ -552,29 +553,36 @@ class Parser:
                 self.peek_error(TokenType.OPEN_PAREN)
                 self.advance()
                 return None
-            self.advance()
-            if (res := self.parse_expression(LOWEST)) is None:
-                return None
-            eie.condition = res
-
-            if not self.expect_peek(TokenType.CLOSE_PAREN):
-                self.advance()
-                self.unclosed_paren_error(self.curr_tok)
-                return None
-            if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
-                self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
+            
+            # Check if condition is empty
+            if self.peek_tok_is(TokenType.CLOSE_PAREN):
+                self.empty_condition_error()
                 self.advance()
                 return None
-
-            if (res := self.parse_block_statement()) is None:
-                return None
-            eie.then = res
-
-            if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
-                self.unclosed_double_bracket_error(self.peek_tok)
+            else:
                 self.advance()
-                return None
-            ie.else_if.append(eie)
+                if (res := self.parse_expression(LOWEST)) is None:
+                    return None
+                eie.condition = res
+
+                if not self.expect_peek(TokenType.CLOSE_PAREN):
+                    self.advance()
+                    self.unclosed_paren_error(self.curr_tok)
+                    return None
+                if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
+                    self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
+                    self.advance()
+                    return None
+
+                if (res := self.parse_block_statement()) is None:
+                    return None
+                eie.then = res
+
+                if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
+                    self.unclosed_double_bracket_error(self.peek_tok)
+                    self.advance()
+                    return None
+                ie.else_if.append(eie)
 
         if self.expect_peek(TokenType.EWSE):
             if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
@@ -806,6 +814,27 @@ class Parser:
             return None
         return fl
 
+    def parse_input(self):
+        inp = Input()
+        if not self.expect_peek(TokenType.OPEN_PAREN):
+            self.peek_error(TokenType.OPEN_PAREN)
+            self.advance()
+            return None
+        # empty input
+        if self.expect_peek(TokenType.CLOSE_PAREN):
+            inp.expr = Token("", TokenType.STRING_LITERAL, self.curr_tok.position, self.curr_tok.end_position)
+            return inp
+
+        self.advance() # consume the open paren
+        if (res := self.parse_expression(LOWEST)) is None:
+            return None
+        inp.expr = res
+        if not self.expect_peek(TokenType.CLOSE_PAREN):
+            self.advance()
+            self.unclosed_paren_error(self.curr_tok)
+            return None
+        return inp
+
     def parse_print(self):
         p = Print()
         if not self.expect_peek(TokenType.OPEN_PAREN):
@@ -829,28 +858,6 @@ class Parser:
             self.advance()
             return None
         return p
-
-    # def parse_input(self):
-    #     i = Input()
-    #     if not self.expect_peek(TokenType.OPEN_PAREN):
-    #         self.peek_error(TokenType.OPEN_PAREN)
-    #         self.advance()
-    #         return None
-    #     self.advance()
-    #
-    #     if (res := self.parse_ident_statement()) is None:
-    #         return None
-    #     i.value = res
-    #
-    #     if not self.expect_peek(TokenType.CLOSE_PAREN):
-    #         self.unclosed_paren_error(self.peek_tok)
-    #         self.advance()
-    #         return None
-    #     if not self.expect_peek(TokenType.TERMINATOR):
-    #         self.unterminated_error(self.peek_tok)
-    #         self.advance()
-    #         return None
-    #     return i
 
     ### expression parsers
     def parse_expression(self, precedence):
@@ -1124,23 +1131,6 @@ class Parser:
     def parse_literal(self):
         'returns the current token'
         return self.curr_tok
-
-    def parse_input(self):
-        inp = Input()
-        if not self.expect_peek(TokenType.OPEN_PAREN):
-            self.peek_error(TokenType.OPEN_PAREN)
-            self.advance()
-            return None
-        self.advance() # consume the open paren
-
-        if (res := self.parse_expression(LOWEST)) is None:
-            return None
-        inp.expr = res
-        if not self.expect_peek(TokenType.CLOSE_PAREN):
-            self.advance()
-            self.unclosed_paren_error(self.curr_tok)
-            return None
-        return inp
 
     ### helper methods
     # registering prefix and infix functions to parse certain token types
