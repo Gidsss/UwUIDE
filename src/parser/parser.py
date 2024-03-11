@@ -422,7 +422,6 @@ class Parser:
                     if (res := self.parse_function()) is None:
                         return None
                     c.methods.append(res)
-                    self.advance() # consume the double close bracket
                 case _:
                     inner_stop_conditions = stop_conditions + [TokenType.FWUNC]
                     while not self.curr_tok_is_in(inner_stop_conditions):
