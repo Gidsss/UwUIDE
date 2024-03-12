@@ -79,6 +79,12 @@ class Parser:
         self.infix_parse_fns: dict = {}
         self.postfix_parse_fns: dict = {}
         self.in_block_parse_fns: dict = {}
+        # to keep track of expected tokens
+        self.expected_prefix = []
+        self.expected_infix = []
+        self.expected_postfix = []
+        self.expected_in_block = []
+
         self.register_init()
 
         if not self.tokens:
@@ -139,7 +145,7 @@ class Parser:
 
         # literals (just returns curr_tok)
         self.register_prefix("IDENTIFIER", self.parse_ident)
-        self.register_prefix("CWASS", self.parse_class_ident)
+        self.register_prefix("CWASS_ID", self.parse_class_ident)
         self.register_prefix(TokenType.INT_LITERAL, self.parse_literal)
         self.register_prefix(TokenType.STRING_LITERAL, self.parse_literal)
         self.register_prefix(TokenType.FLOAT_LITERAL, self.parse_literal)
@@ -172,7 +178,7 @@ class Parser:
 
         # in blocks
         self.register_in_block("IDENTIFIER", self.parse_ident_statement)
-        self.register_in_block("CWASS", self.parse_class_ident_statement)
+        self.register_in_block("CWASS_ID", self.parse_class_ident_statement)
         self.register_in_block(TokenType.IWF, self.parse_if_statement)
         self.register_in_block(TokenType.WETUWN, self.parse_return_statement)
         self.register_in_block(TokenType.WHIWE, self.parse_while_statement)
@@ -1246,6 +1252,18 @@ class Parser:
     ### error methods
 
     # general error
+    def expected_error(self, tokens: list[TokenType], curr=False):
+        msg = f"Expected next token to be one of the ff:"
+        for token in tokens[:-1]:
+            msg += f" '{token}',"
+        msg += f" '{tokens[-1]}'"
+        msg += f"\n\tgot '{self.peek_tok if not curr else self.curr_tok}' instead"
+        self.errors.append(Error(
+            "UNEXPECTED TOKEN",
+            msg,
+            self.peek_tok.position if not curr else self.curr_tok.position,
+            self.peek_tok.end_position if not curr else self.curr_tok.end_position
+        ))
     def peek_error(self, token: TokenType):
         self.errors.append(Error(
             "UNEXPECTED TOKEN",
@@ -1439,3 +1457,5 @@ class Parser:
             token.position,
             token.end_position
         ))
+    def expected_exprs(self) -> list:
+        return self.expected_infix + [TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
