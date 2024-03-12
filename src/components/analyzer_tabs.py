@@ -40,7 +40,7 @@ class UwUParserTab(CTkScrollableFrame):
             for k, v in node.child_nodes().items():
                 if v and not isinstance(v, Production):
                     self.tree.insert(node_iid, 'end', text=f"{k}: {v}")
-                else:
+                elif v:
                     loop_tree(node=v, parent=node_iid, key=k)
 
         self.clear_parser_tree()
