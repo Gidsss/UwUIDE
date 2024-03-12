@@ -1,4 +1,10 @@
 '''
+TODOS:
+- add dot ops to expected if last token in expr is identifier/class_id
+- implement value superset and separation of logical and other operators
+'''
+
+'''
 PLEASE READ!
 Headers are prepended by '###' so just search for that
 
@@ -289,7 +295,10 @@ class Parser:
         # uninitialized
         if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
             if not self.expect_peek(TokenType.TERMINATOR):
-                self.unterminated_error(self.peek_tok)
+                expecteds =[TokenType.TERMINATOR, TokenType.ASSIGNMENT_OPERATOR] 
+                if not isinstance(d, ArrayDeclaration) or d.is_const:
+                    expecteds.append(TokenType.OPEN_BRACKET)
+                self.expected_error(expecteds)
                 self.advance(2)
                 return None
             return d
@@ -298,13 +307,15 @@ class Parser:
         self.advance()
         if self.curr_tok_is(TokenType.TERMINATOR):
             self.uninitialized_assignment_error(self.peek_tok)
+            self.advance()
             return None
 
         if (res := self.parse_expression(LOWEST)) is None:
             return None
         d.value = res
         if not self.expect_peek(TokenType.TERMINATOR):
-            self.unterminated_error(self.peek_tok)
+            added = [] if isinstance(d.value, PostfixExpression) else [TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
+            self.expected_error([TokenType.TERMINATOR, *self.expected_infix, *added])
             self.advance(2)
             return None
         return d
@@ -324,8 +335,9 @@ class Parser:
         rs.expr = res
 
         if not self.expect_peek(TokenType.CLOSE_PAREN):
+            added = [] if isinstance(rs.expr, PostfixExpression) else [TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
+            self.expected_error([TokenType.CLOSE_PAREN, *self.expected_infix, *added])
             self.advance()
-            self.unclosed_paren_error(self.curr_tok)
             return None
         if not self.expect_peek(TokenType.TERMINATOR):
             self.advance()
@@ -513,7 +525,7 @@ class Parser:
                     return None
             return parameters
 
-    def  parse_if_statement(self):
+    def parse_if_statement(self):
         ie = IfStatement()
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
@@ -532,8 +544,9 @@ class Parser:
         ie.condition = res
 
         if not self.expect_peek(TokenType.CLOSE_PAREN):
-            self.unclosed_paren_error(self.peek_tok)
-            self.advance()
+            added = [] if isinstance(ie.condition, PostfixExpression) else [TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
+            self.expected_error([TokenType.CLOSE_PAREN, *self.expected_infix, *added])
+            self.advance(2)
             return None
 
         if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
@@ -569,8 +582,9 @@ class Parser:
                 eie.condition = res
 
                 if not self.expect_peek(TokenType.CLOSE_PAREN):
-                    self.advance()
-                    self.unclosed_paren_error(self.curr_tok)
+                    added = [] if isinstance(eie.condition, PostfixExpression) else [TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
+                    self.expected_error([TokenType.CLOSE_PAREN, *self.expected_infix, *added])
+                    self.advance(2)
                     return None
                 if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
                     self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
@@ -613,8 +627,9 @@ class Parser:
         bs = BlockStatement()
 
         # Check if block is empty
-        if self.peek_tok_is(TokenType.DOUBLE_CLOSE_BRACKET):
+        if self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
             self.empty_code_body_error()
+            self.advance()
             return None
 
         stop_condition = [TokenType.DOUBLE_CLOSE_BRACKET, TokenType.EOF]
@@ -624,7 +639,7 @@ class Parser:
             if parser is None:
                 self.no_in_block_parse_fn_error(self.curr_tok.token)
                 self.advance()
-                continue
+                return None
             if (statement := parser()) is None:
                 return None
             bs.statements.append(statement)
@@ -651,8 +666,8 @@ class Parser:
             unary_stm.id = ident
             unary_stm.op = self.curr_tok
             if not self.expect_peek(TokenType.TERMINATOR):
+                self.expected_error([TokenType.TERMINATOR, *self.expected_infix])
                 self.advance()
-                self.unterminated_error(self.curr_tok)
                 return None
             return unary_stm
 
@@ -664,8 +679,8 @@ class Parser:
         a = Assignment()
         a.id = ident
         if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
-            self.peek_error(TokenType.ASSIGNMENT_OPERATOR)
-            self.advance()
+            self.expected_error([TokenType.DOT_OP, TokenType.TERMINATOR, TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR, TokenType.DASH, TokenType.ASSIGNMENT_OPERATOR])
+            self.advance(2)
             return None
 
         self.advance()
@@ -674,8 +689,9 @@ class Parser:
         a.value = res
 
         if not self.expect_peek(TokenType.TERMINATOR):
+            added = [] if isinstance(a.value, PostfixExpression) else [TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
+            self.expected_error([TokenType.TERMINATOR, *self.expected_infix, *added])
             self.advance()
-            self.unterminated_error(self.curr_tok)
             return None
         return a
 
@@ -702,7 +718,7 @@ class Parser:
         a = Assignment()
         a.id = ident
         if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
-            self.peek_error(TokenType.ASSIGNMENT_OPERATOR)
+            self.expected_error([TokenType.DOT_OP, TokenType.TERMINATOR, TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR, TokenType.DASH, TokenType.ASSIGNMENT_OPERATOR])
             self.advance()
             return None
 
@@ -712,8 +728,9 @@ class Parser:
         a.value = res
 
         if not self.expect_peek(TokenType.TERMINATOR):
+            added = [] if isinstance(a.value, PostfixExpression) else [TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
+            self.expected_error([TokenType.TERMINATOR, *self.expected_infix, *added])
             self.advance()
-            self.unterminated_error(self.curr_tok)
             return None
         return a
 
@@ -728,7 +745,7 @@ class Parser:
             return None
 
         # Check if condition is empty
-        if self.peek_tok_is(TokenType.CLOSE_PAREN):
+        if self.expect_peek(TokenType.CLOSE_PAREN):
             self.empty_condition_error()
             self.advance()
             return None
@@ -739,8 +756,9 @@ class Parser:
             wl.condition = res
 
             if not self.expect_peek(TokenType.CLOSE_PAREN):
+                added = [] if isinstance(wl.condition, PostfixExpression) else [TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
+                self.expected_error([TokenType.CLOSE_PAREN, *self.expected_infix, *added])
                 self.advance()
-                self.unclosed_paren_error(self.curr_tok)
                 return None
 
         if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
@@ -764,7 +782,14 @@ class Parser:
             self.peek_error(TokenType.OPEN_PAREN)
             self.advance()
             return None
-        self.advance()
+        if self.expect_peek(TokenType.CLOSE_PAREN):
+            self.empty_condition_error()
+            self.advance()
+            return None
+        if not self.expect_peek_is_identifier():
+            self.peek_error("IDENTIFIER")
+            self.advance(2)
+            return None
 
         # just an identifier without initialization or assignment
         if self.peek_tok_is(TokenType.TERMINATOR):
@@ -777,29 +802,26 @@ class Parser:
             if (res := self.parse_ident_statement()) is None:
                 return None
             fl.init = res
-
-        if not self.curr_tok_is(TokenType.TERMINATOR):
-            self.peek_error(TokenType.TERMINATOR)
-            self.advance()
-            return None
-        self.advance()
+        self.advance() # consume the terminator after ident statement
 
         if (res := self.parse_expression(LOWEST)) is None:
             return None
         fl.condition = res
 
         if not self.expect_peek(TokenType.TERMINATOR):
-            self.peek_error(TokenType.TERMINATOR)
+            added = [] if isinstance(fl.condition, PostfixExpression) else [TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
+            self.expected_error([TokenType.TERMINATOR, *self.expected_infix, *added])
             self.advance()
             return None
-
         self.advance()
+
         if (res := self.parse_expression(LOWEST)) is None:
             return None
         fl.update = res
 
         if not self.expect_peek(TokenType.CLOSE_PAREN):
-            self.unclosed_paren_error(self.peek_tok)
+            added = [] if isinstance(fl.update, PostfixExpression) else [TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
+            self.expected_error([TokenType.CLOSE_PAREN, *self.expected_infix, *added])
             self.advance()
             return None
         if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
@@ -833,8 +855,9 @@ class Parser:
             return None
         inp.expr = res
         if not self.expect_peek(TokenType.CLOSE_PAREN):
-            self.advance()
-            self.unclosed_paren_error(self.curr_tok)
+            added = [] if isinstance(inp.expr, PostfixExpression) else [TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
+            self.expected_error([TokenType.CLOSE_PAREN, *self.expected_infix, *added], curr=True)
+            self.advance(2)
             return None
         return inp
 
@@ -853,9 +876,16 @@ class Parser:
             if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
                 break
             self.advance()
+
         if not self.curr_tok_is(TokenType.CLOSE_PAREN):
-            self.unclosed_paren_error(self.curr_tok)
+            if len(p.values)!=0:
+                added = [*self.expected_infix] if isinstance(p.values[-1], PostfixExpression) else [*self.expected_infix, TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
+            else:
+                added = self.expected_prefix
+            self.expected_error([TokenType.CLOSE_PAREN, *added], curr=True if self.curr_tok_is_in([TokenType.TERMINATOR, TokenType.EOF]) else False)
+            self.advance(2)
             return None
+
         if not self.expect_peek(TokenType.TERMINATOR):
             self.unterminated_error(self.peek_tok)
             self.advance()
@@ -956,9 +986,10 @@ class Parser:
         self.advance()
         expr = self.parse_expression(LOWEST)
         if not self.expect_peek(TokenType.CLOSE_PAREN):
-            self.advance()
-            self.unclosed_paren_error(self.curr_tok)
-            return expr
+            added = [] if isinstance(expr, PostfixExpression) else [TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
+            self.expected_error([TokenType.CLOSE_PAREN, *self.expected_infix, *added])
+            self.advance(2)
+            return None
         return expr
 
 
@@ -999,7 +1030,14 @@ class Parser:
 
                 self.advance()
             if not self.curr_tok_is(TokenType.CLOSE_PAREN):
-                self.unclosed_paren_error(self.curr_tok)
+                if len(ident.args) == 0:
+                    added = self.expected_prefix
+                else:
+                    added = [*self.expected_infix] if isinstance(ident.args[-1], PostfixExpression) else [
+                        *self.expected_infix, TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
+                    if ident.args[-1].token.token.startswith('IDENTIFIER') or ident.args[-1].token.token.startswith('CWASS'):
+                        added.append(TokenType.DOT_OP)
+                self.expected_error([TokenType.CLOSE_PAREN, *added], curr=True if self.curr_tok_is_in([TokenType.TERMINATOR, TokenType.EOF]) else False)
                 return None
 
         # array indexing, keep looping until curr tok is not close bracket
@@ -1011,8 +1049,10 @@ class Parser:
             if (idx := self.parse_expression(LOWEST)) is None:
                 return None
             if not self.expect_peek(TokenType.CLOSE_BRACKET):
-                self.unclosed_bracket_error(self.curr_tok)
+                added = [] if isinstance(idx, PostfixExpression) else [TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
+                self.expected_error([TokenType.CLOSE_BRACKET, *self.expected_infix, *added])
                 return None
+
             ident.index.append(idx)
             # if more indexing exists
             while self.expect_peek(TokenType.OPEN_BRACKET):
@@ -1020,7 +1060,8 @@ class Parser:
                 if (idx := self.parse_expression(LOWEST)) is None:
                     return None
                 if not self.expect_peek(TokenType.CLOSE_BRACKET):
-                    self.unclosed_bracket_error(self.peek_tok)
+                    added = [] if isinstance(idx, PostfixExpression) else [TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
+                    self.expected_error([TokenType.CLOSE_BRACKET, *self.expected_infix, *added])
                     return None
                 ident.index.append(idx)
 
@@ -1047,7 +1088,6 @@ class Parser:
         return ident
 
     def parse_class_ident(self):
-
         # Class constructor
         if self.peek_tok_is(TokenType.OPEN_PAREN):
             cc = ClassConstructor()
@@ -1061,9 +1101,18 @@ class Parser:
                 cc.args.append(res)
                 if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
                     break
+                if self.curr_tok_is(TokenType.COMMA) and self.peek_tok_is(TokenType.CLOSE_PAREN):
+                    self.hanging_comma_error(self.peek_tok)
+                    self.advance(2)
+                    return None
                 self.advance()
             if not self.curr_tok_is(TokenType.CLOSE_PAREN):
-                self.unclosed_paren_error(self.curr_tok)
+                if len(ident.args) == 0:
+                    added = self.expected_prefix
+                else:
+                    added = [*self.expected_infix] if isinstance(ident.args[-1], PostfixExpression) else [
+                        *self.expected_infix, TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
+                self.expected_error([TokenType.CLOSE_PAREN, *added], curr=True if self.curr_tok_is_in([TokenType.TERMINATOR, TokenType.EOF]) else False)
                 return None
             return cc
 
@@ -1072,7 +1121,7 @@ class Parser:
         ident.id = self.curr_tok
 
         if not self.expect_peek(TokenType.DOT_OP):
-            self.peek_error(TokenType.DOT_OP)
+            self.expected_error([TokenType.DOT_OP, TokenType.OPEN_PAREN])
             self.advance()
             return None
         if not self.expect_peek_is_identifier():
@@ -1096,7 +1145,7 @@ class Parser:
             if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
                 break
 
-            if self.curr_tok_is(TokenType.COMMA) and self.peek_tok_is(TokenType.CLOSE_BRACE):
+            if self.curr_tok_is(TokenType.COMMA) and self.peek_tok_is_in(stop_conditions):
                 self.hanging_comma_error(self.peek_tok)
                 self.advance(2)
                 return None
@@ -1104,7 +1153,12 @@ class Parser:
             self.advance()
 
         if not self.curr_tok_is(TokenType.CLOSE_BRACE):
-            self.unclosed_brace_error(self.peek_tok)
+            if len(al.elements) == 0:
+                added = self.expected_prefix
+            else:
+                added = [*self.expected_infix] if isinstance(al.elements[-1], PostfixExpression) else [
+                    *self.expected_infix, TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
+            self.expected_error([TokenType.CLOSE_BRACE, *added], curr=True if self.curr_tok_is_in([TokenType.TERMINATOR, TokenType.EOF]) else False)
             return None
         return al
     def parse_string_parts(self):
@@ -1127,7 +1181,8 @@ class Parser:
                 sf.mid.append(self.curr_tok)
 
         if not self.expect_peek(TokenType.STRING_PART_END):
-            self.unclosed_string_part_error(sf.start, self.peek_tok)
+            self.unclosed_string_part_error(self.peek_tok, sf.exprs, added = len(sf.mid) < len(sf.exprs))
+            self.advance(2)
             return None
         sf.end = self.curr_tok
         return sf
