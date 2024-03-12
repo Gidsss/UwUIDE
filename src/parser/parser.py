@@ -1141,16 +1141,20 @@ class Parser:
     # registering prefix and infix functions to parse certain token types
     def register_prefix(self, token_type: str | TokenType, fn: Callable):
         self.prefix_parse_fns[token_type] = fn
+        self.expected_prefix.append(token_type)
     def register_infix(self, token_type: str | TokenType, fn: Callable):
         self.infix_parse_fns[token_type] = fn
+        self.expected_infix.append(token_type)
     def register_postfix(self, token_type: str | TokenType, fn: Callable):
         self.postfix_parse_fns[token_type] = fn
+        self.expected_postfix.append(token_type)
     def register_in_block(self, token_type: str | TokenType, fn: Callable):
         self.in_block_parse_fns[token_type] = fn
+        self.expected_in_block.append(token_type)
     # getting prefix and infix functions
     def get_prefix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
-            token_type = "IDENTIFIER" if token_type.token.startswith("IDENTIFIER") else "CWASS"
+            token_type = "IDENTIFIER" if token_type.token.startswith("IDENTIFIER") else "CWASS_ID"
         try:
             tmp = self.prefix_parse_fns[token_type]
             return tmp
@@ -1158,7 +1162,7 @@ class Parser:
             return None
     def get_infix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
-            token_type = "IDENTIFIER" if token_type.token.startswith("IDENTIFIER") else "CWASS"
+            token_type = "IDENTIFIER" if token_type.token.startswith("IDENTIFIER") else "CWASS_ID"
         try:
             tmp = self.infix_parse_fns[token_type]
             return tmp
@@ -1166,7 +1170,7 @@ class Parser:
             return None
     def get_postfix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
-            token_type = "IDENTIFIER" if token_type.token.startswith("IDENTIFIER") else "CWASS"
+            token_type = "IDENTIFIER" if token_type.token.startswith("IDENTIFIER") else "CWASS_ID"
         try:
             tmp = self.postfix_parse_fns[token_type]
             return tmp
@@ -1174,7 +1178,7 @@ class Parser:
             return None
     def get_in_block_parse_fn(self, token_type: str | TokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
-            token_type = "IDENTIFIER" if token_type.token.startswith("IDENTIFIER") else "CWASS"
+            token_type = "IDENTIFIER" if token_type.token.startswith("IDENTIFIER") else "CWASS_ID"
         try:
             tmp = self.in_block_parse_fns[token_type]
             return tmp
@@ -1272,18 +1276,29 @@ class Parser:
             self.peek_tok.end_position
         ))
     def no_prefix_parse_fn_error(self, token_type):
+        msg = f"'{token_type}' is not a valid starting token for an expression"
+        msg += f"\n\tExpected any of the ff:"
+        for token in self.expected_prefix[:-1]:
+            msg += f" '{token}',"
+        msg += f" '{self.expected_prefix[-1]}'"
+        msg += f"\n\tgot '{self.curr_tok}' instead"
+
         self.errors.append(Error(
             "INVALID EXPRESSION TOKEN",
-            f"'{token_type}' is not a valid starting token for an expression"
-            f"\n\tHint: use identifiers, numbers, strings, booleans, parenthesis enclosed expressions, arrays, or 'nuww'",
+            msg,
             self.curr_tok.position,
             self.curr_tok.end_position
         ))
     def no_in_block_parse_fn_error(self, token_type):
+        msg = f"'{token_type}' is not a valid starting token for an in-block/body statement.\n\t"
+        msg += "Expected any of the ff:"
+        for token in self.expected_in_block[:-1]:
+            msg += f" '{token}',"
+        msg += f" '{self.expected_in_block[-1]}'"
+        msg += f"\n\tgot '{self.curr_tok}' instead"
         self.errors.append(Error(
             "INVALID IN-BLOCK STATEMENT TOKEN",
-            f"'{token_type}' is not a valid starting token for an in-block/body statement."
-            f"\n\tHint: use identifiers, 'inpwt', 'pwint', 'wetuwn', 'iwf', 'whiwe', 'do whiwe', or 'fow'",
+            msg,
             self.curr_tok.position,
             self.curr_tok.end_position
         ))
@@ -1334,7 +1349,7 @@ class Parser:
     def no_data_type_error(self, token: Token):
         self.errors.append(Error(
             "MISSING DATA TYPE",
-            f"Expected data type, got {token.lexeme}.",
+            f"Expected data type ('chan', 'kun', 'sama', 'senpai', 'san', 'class_id'), got {token.lexeme}.",
             token.position,
             token.end_position
         ))
@@ -1348,7 +1363,7 @@ class Parser:
     def invalid_parameter_error(self, token: Token):
         self.errors.append(Error(
             "INVALID PARAMETER",
-            f"Invalid parameter. Expected ',' or ')', got {token.lexeme}.",
+            f"Expected ',' or ')', got {token.lexeme}.",
             token.position,
             token.end_position
         ))
@@ -1395,32 +1410,65 @@ class Parser:
             token.end_position
         ))
     def empty_condition_error(self):
+        msg = f"Expected any of the ff:"
+        for token in self.expected_prefix[:-1]:
+            msg += f" '{token}',"
+        msg += f" '{self.expected_prefix[-1]}'"
+        msg += f"\n\tgot '{self.curr_tok}' instead"
         self.errors.append(Error(
             "EMPTY CONDITION",
-            f"Conditions cannot be empty.",
+            f"Conditions cannot be empty."
+            f"\n\t{msg}",
             self.curr_tok.position,
             self.curr_tok.end_position
         ))
     def empty_code_body_error(self):
+        msg = f"Code bodies must contain at least one or more statement.\n\t"
+        msg += f"Expected any of the ff:"
+        for token in self.expected_in_block[:-1]:
+            msg += f" '{token}',"
+        msg += f" '{self.expected_in_block[-1]}'"
+        msg += f"\n\tgot '{self.curr_tok}' instead"
         self.errors.append(Error(
             "EMPTY CODE BODY",
-            f"Code bodies must contain at least one or more statement.",
+            msg,
             self.curr_tok.position,
             self.curr_tok.end_position
         ))
     def uninitialized_assignment_error(self, token: Token):
+        msg = f"Expected any of the ff:"
+        for token in self.expected_prefix[:-1]:
+            msg += f" '{token}',"
+        msg += f" '{self.expected_prefix[-1]}'"
+        msg += f"\n\tgot '{self.curr_tok}' instead"
         self.errors.append(Error(
             "MISSING VALUE ASSIGNMENT",
-            f"Assignments must have a value after '='. got '{token.lexeme}'.",
-            token.position,
-            token.end_position
+            msg,
+            self.curr_tok.position,
+            self.curr_tok.end_position
         ))
-    def unclosed_string_part_error(self, string_start, token: Token):
+    def unclosed_string_part_error(self, token: Token, exprs, added = False):
+        msg = f"Expected any of the ff: "
+        msg += "'STRING_PART_END',"
+        if added:
+            if exprs:
+                postfix = [] if isinstance(exprs[-1], PostfixExpression) else [TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
+                for token in postfix:
+                    msg += f" '{token}',"
+            for token in self.expected_infix:
+                msg += f" '{token}',"
+            msg += "'STRING_PART_MID'"
+        else:
+            for token in self.expected_prefix[:-1]:
+                msg += f" '{token}',"
+            msg += f" '{self.expected_prefix[-1]}'"
+
+        msg += f"\n\tgot '{self.peek_tok}' instead"
         self.errors.append(Error(
             "UNCLOSED FORMAT STRING",
-            f"Unclosed string part. . Expected '{string_start.lexeme[:-1]}|' to be enclosed, got '{token.lexeme}'.",
-            token.position,
-            token.end_position
+            msg,
+            self.peek_tok.position,
+            self.peek_tok.end_position
         ))
     def invalid_mainuwu_rtype_error(self, token: Token):
         self.errors.append(Error(
@@ -1439,23 +1487,31 @@ class Parser:
     def multiple_mainuwu_error(self, token: Token):
         self.errors.append(Error(
             "MULTIPLE MAINUWU FUNCTION",
-            f"The program must only have one mainuwu function. Got 'mainuwu'",
+            f"Expected identifier. Got 'mainuwu'"
+            f"\n\tHint: The program must only have one mainuwu function",
             token.position,
             token.end_position
         ))
     def missing_mainuwu_error(self, token: Token):
         self.errors.append(Error(
             "MISSING MAINUWU FUNCTION",
-            f"The program must have at least one mainuwu function. Got 'EOF'",
+            f"Expected 'fwunc mainuwu'. Got 'EOF'"
+            f"\n\tHint: The program must have a mainuwu function",
             token.position,
             token.end_position
         ))
     def hanging_comma_error(self, token: Token):
+        msg = f"Expected any of the ff:"
+        for token in self.expected_prefix[:-1]:
+            msg += f" '{token}',"
+        msg += f" '{self.expected_prefix[-1]}'"
+        msg += f"\n\tgot '{self.peek_tok}' instead"
         self.errors.append(Error(
             "HANGING COMMA",
-            f"Expected a value or expression after the comma, got {token}.",
-            token.position,
-            token.end_position
+            msg,
+            self.peek_tok.position,
+            self.peek_tok.end_position
         ))
+
     def expected_exprs(self) -> list:
         return self.expected_infix + [TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
