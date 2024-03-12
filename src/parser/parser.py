@@ -213,10 +213,8 @@ class Parser:
                     if res := self.parse_declaration():
                         self.advance()
                         p.globals.append(res)
-                # case TokenType.TERMINATOR | TokenType.DOUBLE_CLOSE_BRACKET:
-                #     self.advance()
                 case _:
-                    self.invalid_global_declaration_error(self.curr_tok)
+                    self.expected_error([TokenType.FWUNC, TokenType.CWASS, TokenType.GWOBAW], curr=True)
                     self.advance()
 
         if p.mainuwu is None:
