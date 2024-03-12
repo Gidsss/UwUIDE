@@ -1038,6 +1038,7 @@ class Parser:
                     if ident.args[-1].token.token.startswith('IDENTIFIER') or ident.args[-1].token.token.startswith('CWASS'):
                         added.append(TokenType.DOT_OP)
                 self.expected_error([TokenType.CLOSE_PAREN, *added], curr=True if self.curr_tok_is_in([TokenType.TERMINATOR, TokenType.EOF]) else False)
+                self.advance(2)
                 return None
 
         # array indexing, keep looping until curr tok is not close bracket
