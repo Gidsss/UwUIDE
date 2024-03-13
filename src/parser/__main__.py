@@ -5,10 +5,13 @@ from .error_handler import ErrorSrc
 if __name__ == "__main__":
     sc = """
     fwunc mainuwu-san() [[
-        a = (1 + 2)~
+        a = (1 + (2-3))~
     ]]
     fwunc error-san() [[
         a = (a++)~ ~ ~ ~
+    ]]
+    fwunc error2-san() [[
+        a = (1 + (2))~
     ]]
     """
 
