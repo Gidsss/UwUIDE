@@ -1011,11 +1011,14 @@ class Parser:
             self.advance()
             return None
         expr = prefix()
-        if not self.peek_tok_is_in(self.expected_infix):
-            self.expected_error(self.expected_infix)
+        postfix = self.get_postfix_parse_fn(self.curr_tok.token)
+        if postfix is not None:
+            expr = postfix(expr)
+        self.advance() # consume the lhs
+        if not self.curr_tok_is_in(self.expected_infix):
+            self.no_infix_parse_fn_error(self.curr_tok.token, expr)
             self.advance(2)
             return None
-        self.advance() # consume the lhs
         infix = self.get_infix_parse_fn(self.curr_tok.token)
         if infix is None:
             self.expected_error(self.expected_infix)
@@ -1360,7 +1363,6 @@ class Parser:
             msg += f" '{token}',"
         msg += f" '{self.expected_prefix[-1]}'"
         msg += f"\n\tgot '{self.curr_tok}' instead"
-
         self.errors.append(Error(
             "INVALID EXPRESSION TOKEN",
             msg,
