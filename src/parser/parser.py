@@ -1160,8 +1160,15 @@ class Parser:
                     return None
                 sf.exprs.append(res)
 
-            if self.expect_peek(TokenType.STRING_PART_MID):
-                sf.mid.append(self.curr_tok)
+            if not self.expect_peek(TokenType.STRING_PART_MID):
+                if self.peek_tok_is(TokenType.STRING_PART_END):
+                    sf.mid.append(self.curr_tok)
+                    continue
+                self.unclosed_string_part_error(self.peek_tok, sf.exprs, added = len(sf.mid) < len(sf.exprs))
+                self.advance(2)
+                return None
+            sf.mid.append(self.curr_tok)
+            
 
         if not self.expect_peek(TokenType.STRING_PART_END):
             self.unclosed_string_part_error(self.peek_tok, sf.exprs, added = len(sf.mid) < len(sf.exprs))
