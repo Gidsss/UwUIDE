@@ -975,6 +975,7 @@ class Parser:
         if postfix is not None:
             left_exp = postfix(left_exp)
 
+
         return left_exp
     # PLEASE USE self.parse_expression(precedence)
     # to use the 4 methods below in other parsers.
@@ -1068,8 +1069,9 @@ class Parser:
         self.advance()
         if (expr := self.parse_expression(LOWEST, grouped=True)) is None:
             return None
+        print(self.curr_tok, self.peek_tok, expr)
         if not self.expect_peek(TokenType.CLOSE_PAREN):
-            self.expected_error([TokenType.CLOSE_PAREN, *self.error_context(expr)], curr=True)
+            self.expected_error([TokenType.CLOSE_PAREN, *self.error_context(expr)])
             self.advance(2)
             return None
         return expr
