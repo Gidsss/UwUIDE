@@ -968,6 +968,21 @@ class Parser:
         pe.op = self.curr_tok
 
         self.advance()
+        pe.right = self.parse_expression(PREFIX, limit_to=self.expected_prefix)
+        if pe.right is None:
+            return None
+        return pe
+    def parse_prefix_special_expression(self):
+        '''
+        parse prefix special expressions
+        eg.
+        "hello | name |!"
+        {1,2,3}
+        '''
+        pe = PrefixExpression()
+        pe.op = self.curr_tok
+
+        self.advance()
         pe.right = self.parse_expression(PREFIX)
         if pe.right is None:
             return None
@@ -983,6 +998,23 @@ class Parser:
         ie = InfixExpression()
         ie.left = left
         ie.op = self.curr_tok.token
+
+        precedence = self.curr_precedence()
+        self.advance()
+        ie.right = self.parse_expression(precedence, limit_to=self.expected_prefix)
+        if ie.right is None:
+            return None
+        return ie
+    def parse_infix_special_expression(self, left):
+        '''
+        parse infix special expressions
+        eg.
+        "string" != 2
+        {1,2} && {3,4}
+        '''
+        ie = InfixExpression()
+        ie.left = left
+        ie.op = self.curr_tok
 
         precedence = self.curr_precedence()
         self.advance()
