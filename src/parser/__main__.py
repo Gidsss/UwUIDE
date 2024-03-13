@@ -5,7 +5,10 @@ from .error_handler import ErrorSrc
 if __name__ == "__main__":
     sc = """
     fwunc mainuwu-san() [[
-        a = A(a,b,d)~
+        a = (1 + 2)~
+    ]]
+    fwunc error-san() [[
+        a = (1)~
     ]]
     """
 
