@@ -1661,7 +1661,10 @@ class Parser:
         if not isinstance(tok, PostfixExpression):
             added.update({TokenType.OPEN_PAREN, TokenType.OPEN_BRACKET, TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR})
             while not isinstance(tok, Token):
-                tmp = tok.id if not isinstance(tok, ClassAccessor) else tok.accessed
+                try:
+                    tmp = tok.id if not isinstance(tok, ClassAccessor) else tok.accessed
+                except:
+                    break
                 # remove ( or [ if token is a fn call or indexed identifier respectively
                 if isinstance(tmp, Token) or (isinstance(tmp, FnCall) and isinstance(tmp.id, Token)) or (
                     isinstance(tmp, IndexedIdentifier) and (isinstance(tmp.id, Token) or (isinstance(tmp.id, FnCall) and isinstance(tmp.id.id, Token)))):
