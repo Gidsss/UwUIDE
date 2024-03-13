@@ -917,7 +917,7 @@ class Parser:
         return p
 
     ### expression parsers
-    def parse_expression(self, precedence):
+    def parse_expression(self, precedence, limit_to: list[TokenType] = [], grouped: bool = False):
         '''
         parse expressions.
         Expressions can be:
@@ -931,11 +931,20 @@ class Parser:
                 - comparisons
                 - equality checks
         '''
-        prefix = self.get_prefix_parse_fn(self.curr_tok.token)
-        if prefix is None:
-            self.no_prefix_parse_fn_error(self.curr_tok.token)
+        if limit_to and not self.curr_tok_is_in(limit_to):
+            self.expected_error(limit_to, curr=True)
             self.advance()
             return None
+
+        special = False
+        prefix = self.get_prefix_parse_fn(self.curr_tok.token)
+        if prefix is None:
+            prefix = self.get_prefix_special_parse_fn(self.curr_tok.token)
+            if prefix is None:
+                self.no_prefix_parse_fn_error(self.curr_tok.token)
+                self.advance()
+                return None
+            special = True
         if (left_exp := prefix()) is None:
             return None
 
@@ -944,9 +953,21 @@ class Parser:
             left_exp = postfix(left_exp)
 
         while not self.peek_tok_is_in([TokenType.TERMINATOR, TokenType.EOF]) and precedence < self.peek_precedence():
-            infix = self.get_infix_parse_fn(self.peek_tok.token)
+            if not special or isinstance(left_exp, InfixExpression):
+                infix = self.get_infix_parse_fn(self.peek_tok.token)
+                expecteds = self.expected_infix+self.expected_infix_special
+            else:
+                infix = self.get_infix_special_parse_fn(self.peek_tok.token)
+                expecteds = self.expected_infix_special
             if infix is None:
-                return left_exp
+                if not grouped:
+                    return left_exp
+                else:
+                    self.advance()
+                    self.no_infix_parse_fn_error(self.curr_tok.token, left_exp, expecteds)
+                    self.advance()
+                    return None
+
             self.advance()
             left_exp = infix(left_exp)
 
@@ -1044,35 +1065,11 @@ class Parser:
         (1 + 2)
         (shion + aqua) + ojou
         '''
-        self.advance() # consume the (
-        prefix = self.get_prefix_parse_fn(self.curr_tok.token)
-        if prefix is None:
-            self.no_prefix_parse_fn_error(self.curr_tok.token)
-            self.advance()
-            return None
-        if (expr := prefix()) is None:
-            return None
-
-        postfix = self.get_postfix_parse_fn(self.curr_tok.token)
-        if postfix is not None:
-            if (expr := postfix(expr)) is None:
-                return None
-
-        self.advance() # consume the lhs
-        if not self.curr_tok_is_in(self.expected_infix):
-            self.no_infix_parse_fn_error(self.curr_tok.token, expr)
-            self.advance()
-            return None
-        infix = self.get_infix_parse_fn(self.curr_tok.token)
-        if infix is None:
-            self.expected_error(self.expected_infix)
-            self.advance()
-            return None
-
-        if (expr := infix(expr)) is None:
+        self.advance()
+        if (expr := self.parse_expression(LOWEST, grouped=True)) is None:
             return None
         if not self.expect_peek(TokenType.CLOSE_PAREN):
-            self.expected_error([TokenType.CLOSE_PAREN, *self.error_context(expr)])
+            self.expected_error([TokenType.CLOSE_PAREN, *self.error_context(expr)], curr=True)
             self.advance(2)
             return None
         return expr
