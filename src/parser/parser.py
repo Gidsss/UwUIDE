@@ -1017,7 +1017,7 @@ class Parser:
         self.advance() # consume the lhs
         if not self.curr_tok_is_in(self.expected_infix):
             self.no_infix_parse_fn_error(self.curr_tok.token, expr)
-            self.advance(2)
+            self.advance()
             return None
         infix = self.get_infix_parse_fn(self.curr_tok.token)
         if infix is None:
