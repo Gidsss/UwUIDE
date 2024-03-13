@@ -1505,11 +1505,8 @@ class Parser:
         msg = f"Expected any of the ff: "
         msg += "'STRING_PART_END',"
         if added:
-            if exprs:
-                postfix = [] if isinstance(exprs[-1], PostfixExpression) else [TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
-                for token in postfix:
-                    msg += f" '{token}',"
-            for token in self.expected_infix:
+            added = []
+            for token in self.error_context(exprs):
                 msg += f" '{token}',"
             msg += "'STRING_PART_MID'"
         else:
@@ -1569,3 +1566,37 @@ class Parser:
 
     def expected_exprs(self) -> list:
         return self.expected_infix + [TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
+    def error_context(self, tok) -> list[TokenType]:
+        'error context for expression tokens'
+        if isinstance(tok, list) and len(tok) == 0:
+            return self.expected_prefix
+        elif isinstance(tok, list) and len(tok) != 0:
+            tok = tok[-1]
+
+        added = {*self.expected_infix}
+        # add/remove expected tokens based on passed token
+        if not isinstance(tok, PostfixExpression):
+            added.update({TokenType.OPEN_PAREN, TokenType.OPEN_BRACKET, TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR})
+            while not isinstance(tok, Token):
+                tmp = tok.id if not isinstance(tok, ClassAccessor) else tok.accessed
+                # remove ( or [ if token is a fn call or indexed identifier respectively
+                if isinstance(tmp, Token) or (isinstance(tmp, FnCall) and isinstance(tmp.id, Token)) or (
+                    isinstance(tmp, IndexedIdentifier) and (isinstance(tmp.id, Token) or (isinstance(tmp.id, FnCall) and isinstance(tmp.id.id, Token)))):
+                    if isinstance(tok, ClassAccessor) or isinstance(tok, FnCall) or isinstance(tok, IndexedIdentifier):
+                        added.add(TokenType.DOT_OP)
+                        if isinstance(tok, IndexedIdentifier):
+                            try:
+                                added.remove(TokenType.OPEN_BRACKET)
+                                added.remove(TokenType.OPEN_PAREN)
+                            except:
+                                pass
+                        elif isinstance(tok, FnCall):
+                            try:
+                                added.remove(TokenType.OPEN_PAREN)
+                            except:
+                                pass
+                tok = tok.id if not isinstance(tok, ClassAccessor) else tok.accessed
+
+        if isinstance(tok, Token) and (tok.token.token.startswith("IDENTIFIER") or tok.token.token.startswith("CWASS")):
+            added.add(TokenType.DOT_OP)
+        return list(added)
