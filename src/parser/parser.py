@@ -81,12 +81,16 @@ class Parser:
         # to associate prefix and infix parsing functions for certain token types
         # key : val == TokenType : ParsingFunction
         self.prefix_parse_fns: dict = {}
+        self.prefix_special_parse_fns: dict = {}
         self.infix_parse_fns: dict = {}
+        self.infix_special_parse_fns: dict = {}
         self.postfix_parse_fns: dict = {}
         self.in_block_parse_fns: dict = {}
         # to keep track of expected tokens
         self.expected_prefix = []
+        self.expected_prefix_special = []
         self.expected_infix = []
+        self.expected_infix_special = []
         self.expected_postfix = []
         self.expected_in_block = []
 
@@ -144,31 +148,31 @@ class Parser:
         '''
         # prefixes
         self.register_prefix(TokenType.DASH, self.parse_prefix_expression)
-        self.register_prefix(TokenType.OPEN_BRACE, self.parse_array)
-        self.register_prefix(TokenType.STRING_PART_START, self.parse_string_parts)
+        self.register_prefix_special(TokenType.OPEN_BRACE, self.parse_array)
+        self.register_prefix_special(TokenType.STRING_PART_START, self.parse_string_parts)
         self.register_prefix(TokenType.OPEN_PAREN, self.parse_grouped_expressions)
 
         # literals (just returns curr_tok)
         self.register_prefix("IDENTIFIER", self.parse_ident)
-        self.register_prefix("CWASS_ID", self.parse_class_ident)
         self.register_prefix(TokenType.INT_LITERAL, self.parse_literal)
-        self.register_prefix(TokenType.STRING_LITERAL, self.parse_literal)
+        self.register_prefix_special(TokenType.STRING_LITERAL, self.parse_literal)
         self.register_prefix(TokenType.FLOAT_LITERAL, self.parse_literal)
         self.register_prefix(TokenType.FAX, self.parse_literal)
         self.register_prefix(TokenType.CAP, self.parse_literal)
-        self.register_prefix(TokenType.NUWW, self.parse_literal)
-        self.register_prefix(TokenType.INPWT, self.parse_input)
+        self.register_prefix_special(TokenType.NUWW, self.parse_literal)
+        self.register_prefix_special(TokenType.INPWT, self.parse_input)
 
         # infixes
-        self.register_infix(TokenType.EQUALITY_OPERATOR, self.parse_infix_expression)
-        self.register_infix(TokenType.INEQUALITY_OPERATOR, self.parse_infix_expression)
-        self.register_infix(TokenType.AND_OPERATOR, self.parse_infix_expression)
-        self.register_infix(TokenType.OR_OPERATOR, self.parse_infix_expression)
+        self.register_infix_special(TokenType.EQUALITY_OPERATOR, self.parse_infix_special_expression)
+        self.register_infix_special(TokenType.INEQUALITY_OPERATOR, self.parse_infix_special_expression)
+        self.register_infix_special(TokenType.AND_OPERATOR, self.parse_infix_special_expression)
+        self.register_infix_special(TokenType.OR_OPERATOR, self.parse_infix_special_expression)
+
         self.register_infix(TokenType.LESS_THAN_SIGN, self.parse_infix_expression)
         self.register_infix(TokenType.LESS_THAN_OR_EQUAL_SIGN, self.parse_infix_expression)
         self.register_infix(TokenType.GREATER_THAN_SIGN, self.parse_infix_expression)
         self.register_infix(TokenType.GREATER_THAN_OR_EQUAL_SIGN, self.parse_infix_expression)
-        self.register_infix(TokenType.CONCATENATION_OPERATOR, self.parse_infix_expression)
+        # self.register_infix(TokenType.CONCATENATION_OPERATOR, self.parse_infix_expression)
         self.register_infix(TokenType.ADDITION_SIGN, self.parse_infix_expression)
         self.register_infix(TokenType.DASH, self.parse_infix_expression)
         self.register_infix(TokenType.MULTIPLICATION_SIGN, self.parse_infix_expression)
@@ -180,11 +184,10 @@ class Parser:
         self.register_postfix(TokenType.INT_LITERAL, self.parse_postfix_expression)
         self.register_postfix(TokenType.FLOAT_LITERAL, self.parse_postfix_expression)
         self.register_postfix(TokenType.CLOSE_PAREN, self.parse_postfix_expression)
-        self.register_postfix(TokenType.CLOSE_BRACKET, self.parse_postfix_expression)
+        # self.register_postfix(TokenType.CLOSE_BRACKET, self.parse_postfix_expression)
 
         # in blocks
         self.register_in_block("IDENTIFIER", self.parse_ident_statement)
-        self.register_in_block("CWASS_ID", self.parse_class_ident_statement)
         self.register_in_block(TokenType.IWF, self.parse_if_statement)
         self.register_in_block(TokenType.WETUWN, self.parse_return_statement)
         self.register_in_block(TokenType.WHIWE, self.parse_while_statement)
@@ -1234,9 +1237,15 @@ class Parser:
     def register_prefix(self, token_type: str | TokenType, fn: Callable):
         self.prefix_parse_fns[token_type] = fn
         self.expected_prefix.append(token_type)
+    def register_prefix_special(self, token_type: str | TokenType, fn: Callable):
+        self.prefix_special_parse_fns[token_type] = fn
+        self.expected_prefix_special.append(token_type)
     def register_infix(self, token_type: str | TokenType, fn: Callable):
         self.infix_parse_fns[token_type] = fn
         self.expected_infix.append(token_type)
+    def register_infix_special(self, token_type: str | TokenType, fn: Callable):
+        self.infix_special_parse_fns[token_type] = fn
+        self.expected_infix_special.append(token_type)
     def register_postfix(self, token_type: str | TokenType, fn: Callable):
         self.postfix_parse_fns[token_type] = fn
         self.expected_postfix.append(token_type)
@@ -1252,11 +1261,27 @@ class Parser:
             return tmp
         except KeyError:
             return None
+    def get_prefix_special_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+        if isinstance(token_type, UniqueTokenType):
+            token_type = "IDENTIFIER" if token_type.token.startswith("IDENTIFIER") else "CWASS_ID"
+        try:
+            tmp = self.prefix_special_parse_fns[token_type]
+            return tmp
+        except KeyError:
+            return None
     def get_infix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
             token_type = "IDENTIFIER" if token_type.token.startswith("IDENTIFIER") else "CWASS_ID"
         try:
             tmp = self.infix_parse_fns[token_type]
+            return tmp
+        except KeyError:
+            return None
+    def get_infix_special_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+        if isinstance(token_type, UniqueTokenType):
+            token_type = "IDENTIFIER" if token_type.token.startswith("IDENTIFIER") else "CWASS_ID"
+        try:
+            tmp = self.infix_special_parse_fns[token_type]
             return tmp
         except KeyError:
             return None
@@ -1367,12 +1392,15 @@ class Parser:
             self.peek_tok.position,
             self.peek_tok.end_position
         ))
-    def no_prefix_parse_fn_error(self, token_type):
+    def no_prefix_parse_fn_error(self, token_type, special = False):
         msg = f"'{token_type}' is not a valid starting token for an expression"
         msg += f"\n\tExpected any of the ff:"
-        for token in self.expected_prefix[:-1]:
+        tmp = self.expected_prefix+self.expected_prefix_special
+        if special:
+            tmp = self.expected_prefix_special
+        for token in tmp[:-1]:
             msg += f" '{token}',"
-        msg += f" '{self.expected_prefix[-1]}'"
+        msg += f" '{tmp[-1]}'"
         msg += f"\n\tgot '{self.curr_tok}' instead"
         self.errors.append(Error(
             "INVALID EXPRESSION TOKEN",
@@ -1380,14 +1408,17 @@ class Parser:
             self.curr_tok.position,
             self.curr_tok.end_position
         ))
-    def no_infix_parse_fn_error(self, token_type, lhs):
+    def no_infix_parse_fn_error(self, token_type, lhs, expecteds = []):
+        if not isinstance(lhs, PostfixExpression) and not expecteds:
+            expecteds += [TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
+        if not expecteds:
+            expecteds += self.expected_infix
+
         msg = f"'{token_type}' is not a valid operator for an expression"
         msg += f"\n\tExpected any of the ff:"
-        for token in self.expected_infix[:-1]:
+        for token in expecteds[:-1]:
             msg += f" '{token}',"
-        if not isinstance(lhs, PostfixExpression):
-            msg += f" '{TokenType.INCREMENT_OPERATOR}', '{TokenType.DECREMENT_OPERATOR}',"
-        msg += f" '{self.expected_infix[-1]}'"
+        msg += f" '{expecteds[-1]}'"
         msg += f"\n\tgot '{self.curr_tok}' instead"
         self.errors.append(Error(
             "INVALID OPERATOR",
