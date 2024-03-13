@@ -933,8 +933,9 @@ class Parser:
             self.no_prefix_parse_fn_error(self.curr_tok.token)
             self.advance()
             return None
+        if (left_exp := prefix()) is None:
+            return None
 
-        left_exp = prefix()
         postfix = self.get_postfix_parse_fn(self.curr_tok.token)
         if postfix is not None:
             left_exp = postfix(left_exp)
@@ -965,6 +966,8 @@ class Parser:
 
         self.advance()
         pe.right = self.parse_expression(PREFIX)
+        if pe.right is None:
+            return None
         return pe
     def parse_infix_expression(self, left):
         '''
@@ -981,6 +984,8 @@ class Parser:
         precedence = self.curr_precedence()
         self.advance()
         ie.right = self.parse_expression(precedence)
+        if ie.right is None:
+            return None
         return ie
     def parse_postfix_expression(self, left):
         '''
@@ -1010,10 +1015,14 @@ class Parser:
             self.no_prefix_parse_fn_error(self.curr_tok.token)
             self.advance()
             return None
-        expr = prefix()
+        if (expr := prefix()) is None:
+            return None
+
         postfix = self.get_postfix_parse_fn(self.curr_tok.token)
         if postfix is not None:
-            expr = postfix(expr)
+            if (expr := postfix(expr)) is None:
+                return None
+
         self.advance() # consume the lhs
         if not self.curr_tok_is_in(self.expected_infix):
             self.no_infix_parse_fn_error(self.curr_tok.token, expr)
@@ -1024,7 +1033,9 @@ class Parser:
             self.expected_error(self.expected_infix)
             self.advance()
             return None
-        expr = infix(expr)
+
+        if (expr := infix(expr)) is None:
+            return None
         if not self.expect_peek(TokenType.CLOSE_PAREN):
             self.expected_error([TokenType.CLOSE_PAREN, *self.error_context(expr)])
             self.advance(2)
