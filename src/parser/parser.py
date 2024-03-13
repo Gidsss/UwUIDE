@@ -181,6 +181,7 @@ class Parser:
         self.register_postfix(TokenType.INT_LITERAL, self.parse_postfix_expression)
         self.register_postfix(TokenType.FLOAT_LITERAL, self.parse_postfix_expression)
         self.register_postfix(TokenType.CLOSE_PAREN, self.parse_postfix_expression)
+        self.register_postfix(TokenType.CLOSE_BRACKET, self.parse_postfix_expression)
 
         # in blocks
         self.register_in_block("IDENTIFIER", self.parse_ident_statement)
