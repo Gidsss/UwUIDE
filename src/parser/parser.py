@@ -1004,8 +1004,24 @@ class Parser:
         (1 + 2)
         (shion + aqua) + ojou
         '''
-        self.advance()
-        expr = self.parse_expression(LOWEST)
+        self.advance() # consume the (
+        prefix = self.get_prefix_parse_fn(self.curr_tok.token)
+        if prefix is None:
+            self.no_prefix_parse_fn_error(self.curr_tok.token)
+            self.advance()
+            return None
+        expr = prefix()
+        if not self.peek_tok_is_in(self.expected_infix):
+            self.expected_error(self.expected_infix)
+            self.advance(2)
+            return None
+        self.advance() # consume the lhs
+        infix = self.get_infix_parse_fn(self.curr_tok.token)
+        if infix is None:
+            self.expected_error(self.expected_infix)
+            self.advance()
+            return None
+        expr = infix(expr)
         if not self.expect_peek(TokenType.CLOSE_PAREN):
             self.expected_error([TokenType.CLOSE_PAREN, *self.error_context(expr)])
             self.advance(2)
