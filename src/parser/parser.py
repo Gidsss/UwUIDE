@@ -1,6 +1,5 @@
 '''
 TODOS:
-- add dot ops to expected if last token in expr is identifier/class_id
 - implement value superset and separation of logical and other operators
 '''
 
@@ -338,7 +337,7 @@ class Parser:
 
         if not self.expect_peek(TokenType.CLOSE_PAREN):
             self.expected_error([TokenType.CLOSE_PAREN, *self.error_context(rs.expr)])
-            self.advance()
+            self.advance(2)
             return None
         if not self.expect_peek(TokenType.TERMINATOR):
             self.advance()
@@ -829,7 +828,7 @@ class Parser:
 
         if not self.expect_peek(TokenType.CLOSE_PAREN):
             self.expected_error([TokenType.CLOSE_PAREN, *self.error_context(fl.update)])
-            self.advance()
+            self.advance(2)
             return None
         if not self.expect_peek(TokenType.DOUBLE_OPEN_BRACKET):
             self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
@@ -1111,11 +1110,11 @@ class Parser:
 
         if not self.expect_peek(TokenType.DOT_OP):
             self.expected_error([TokenType.DOT_OP, TokenType.OPEN_PAREN])
-            self.advance()
+            self.advance(2)
             return None
         if not self.expect_peek_is_identifier():
             self.invalid_dot_op_error(self.peek_tok)
-            self.advance()
+            self.advance(2)
             return None
         if (res := self.parse_ident()) is None:
             return None
