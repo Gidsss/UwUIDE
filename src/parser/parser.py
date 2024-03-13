@@ -1367,6 +1367,21 @@ class Parser:
             self.curr_tok.position,
             self.curr_tok.end_position
         ))
+    def no_infix_parse_fn_error(self, token_type, lhs):
+        msg = f"'{token_type}' is not a valid operator for an expression"
+        msg += f"\n\tExpected any of the ff:"
+        for token in self.expected_infix[:-1]:
+            msg += f" '{token}',"
+        if not isinstance(lhs, PostfixExpression):
+            msg += f" '{TokenType.INCREMENT_OPERATOR}', '{TokenType.DECREMENT_OPERATOR}',"
+        msg += f" '{self.expected_infix[-1]}'"
+        msg += f"\n\tgot '{self.curr_tok}' instead"
+        self.errors.append(Error(
+            "INVALID OPERATOR",
+            msg,
+            self.curr_tok.position,
+            self.curr_tok.end_position
+        ))
     def no_in_block_parse_fn_error(self, token_type):
         msg = f"'{token_type}' is not a valid starting token for an in-block/body statement.\n\t"
         msg += "Expected any of the ff:"
