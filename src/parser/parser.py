@@ -655,14 +655,9 @@ class Parser:
         # is not a declaration or assignment
         expected = [TokenType.DOT_OP, TokenType.TERMINATOR, TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR,
                     TokenType.DASH, TokenType.ASSIGNMENT_OPERATOR, TokenType.OPEN_BRACKET, TokenType.OPEN_PAREN]
-        if not self.peek_tok_is_in(expected):
+        if self.expect_peek(TokenType.TERMINATOR):
             id_stm = IdStatement()
             id_stm.id = ident
-
-            if not self.expect_peek(TokenType.TERMINATOR):
-                self.expected_error(expected)
-                self.advance(2)
-                return None
             return id_stm
 
         # is a unary statement
@@ -684,7 +679,18 @@ class Parser:
         a = Assignment()
         a.id = ident
         if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
-            self.expected_error([TokenType.DOT_OP, TokenType.TERMINATOR, TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR, TokenType.DASH, TokenType.ASSIGNMENT_OPERATOR])
+            if isinstance(a.id, IndexedIdentifier):
+                try:
+                    expected.remove(TokenType.OPEN_BRACKET)
+                    expected.remove(TokenType.OPEN_PAREN)
+                except:
+                    pass
+            if isinstance(a.id, FnCall):
+                try:
+                    expected.remove(TokenType.OPEN_PAREN)
+                except:
+                    pass
+            self.expected_error(expected)
             self.advance(2)
             return None
 
@@ -707,17 +713,19 @@ class Parser:
         if (res := self.parse_class_ident()) is None:
             return None
         ident = res
+        if isinstance(ident, ClassConstructor):
+            if not self.expect_peek(TokenType.TERMINATOR):
+                self.peek_error(TokenType.TERMINATOR)
+                self.advance(2)
+                return None
+            return ident
 
         # is not a declaration or assignment
         expected = [TokenType.DOT_OP, TokenType.TERMINATOR, TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR,
                     TokenType.DASH, TokenType.ASSIGNMENT_OPERATOR, TokenType.OPEN_BRACKET, TokenType.OPEN_PAREN]
-        if not self.peek_tok_is_in(expected):
+        if self.expect_peek(TokenType.TERMINATOR):
             id_stm = IdStatement()
             id_stm.id = ident
-            if not self.expect_peek(TokenType.TERMINATOR):
-                self.expected_error(expected)
-                self.advance(2)
-                return None
             return id_stm
 
         # is a declaration
@@ -728,7 +736,18 @@ class Parser:
         a = Assignment()
         a.id = ident
         if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
-            self.expected_error([TokenType.DOT_OP, TokenType.TERMINATOR, TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR, TokenType.DASH, TokenType.ASSIGNMENT_OPERATOR])
+            if isinstance(a.id, IndexedIdentifier):
+                try:
+                    expected.remove(TokenType.OPEN_BRACKET)
+                    expected.remove(TokenType.OPEN_PAREN)
+                except:
+                    pass
+            if isinstance(a.id, FnCall):
+                try:
+                    expected.remove(TokenType.OPEN_PAREN)
+                except:
+                    pass
+            self.expected_error(expected)
             self.advance()
             return None
 
