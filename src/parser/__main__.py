@@ -8,7 +8,7 @@ if __name__ == "__main__":
         a = (1 + 2)~
     ]]
     fwunc error-san() [[
-        a = (1)~
+        a = (a++)~ ~ ~ ~
     ]]
     """
 
