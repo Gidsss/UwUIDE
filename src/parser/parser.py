@@ -1,7 +1,6 @@
 '''
 TODOS:
 - implement value superset and separation of logical and other operators
-- add & to expecteds after string part end and string lit
 '''
 
 '''
@@ -321,8 +320,10 @@ class Parser:
         d.value = res
         if not self.expect_peek(TokenType.TERMINATOR):
             added = self.error_context(d.value)
-            if self.curr_tok_is_in(self.expected_prefix_special):
+            if self.curr_tok_is_in(self.expected_prefix_special) or isinstance(d.value, Input):
                 added = self.expected_infix_special
+                if self.curr_tok_is_in([TokenType.STRING_LITERAL, TokenType.STRING_PART_END]) or isinstance(d.value, Input):
+                    added += [TokenType.CONCATENATION_OPERATOR]
             self.expected_error([TokenType.TERMINATOR, *added])
             self.advance(2)
             return None
@@ -708,8 +709,10 @@ class Parser:
 
         if not self.expect_peek(TokenType.TERMINATOR):
             added = self.error_context(a.value)
-            if self.curr_tok_is_in(self.expected_prefix_special):
+            if self.curr_tok_is_in(self.expected_prefix_special) or isinstance(a.value, Input):
                 added = self.expected_infix_special
+                if self.curr_tok_is_in([TokenType.STRING_LITERAL, TokenType.STRING_PART_END]) or isinstance(a.value, Input):
+                    added += [TokenType.CONCATENATION_OPERATOR]
             self.expected_error([TokenType.TERMINATOR, *added])
             self.advance(2)
             return None
@@ -768,8 +771,10 @@ class Parser:
 
         if not self.expect_peek(TokenType.TERMINATOR):
             added = self.error_context(a.value)
-            if self.curr_tok_is_in(self.expected_prefix_special):
+            if self.curr_tok_is_in(self.expected_prefix_special) or isinstance(a.value, Input):
                 added = self.expected_infix_special
+                if self.curr_tok_is_in([TokenType.STRING_LITERAL, TokenType.STRING_PART_END]) or isinstance(a.value, Input):
+                    added += [TokenType.CONCATENATION_OPERATOR]
             self.expected_error([TokenType.TERMINATOR, *added])
             self.advance()
             return None
@@ -973,9 +978,8 @@ class Parser:
                 if not grouped:
                     return left_exp
                 else:
-                    self.advance()
-                    self.no_infix_parse_fn_error(self.curr_tok.token, left_exp, expecteds)
-                    self.advance()
+                    self.no_infix_parse_fn_error(self.peek_tok.token, left_exp, expecteds)
+                    self.advance(2)
                     return None
 
             self.advance()
@@ -1455,13 +1459,14 @@ class Parser:
             expecteds += [TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
         if not expecteds:
             expecteds += self.expected_infix
+        if self.curr_tok_is_in([TokenType.STRING_LITERAL, TokenType.STRING_PART_END]) or isinstance(lhs, Input):
+            expecteds += [TokenType.CONCATENATION_OPERATOR]
 
         msg = f"'{token_type}' is not a valid operator for an expression"
         msg += f"\n\tExpected any of the ff:"
         for token in expecteds[:-1]:
             msg += f" '{token}',"
         msg += f" '{expecteds[-1]}'"
-        msg += f"\n\tgot '{self.curr_tok}' instead"
         self.errors.append(Error(
             "INVALID OPERATOR",
             msg,
