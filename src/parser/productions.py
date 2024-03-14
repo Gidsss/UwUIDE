@@ -525,7 +525,7 @@ class Class(Production):
         self.id = None
         self.params: list = []
         self.body: BlockStatement = None
-        self.properties: list = []
+        self.properties: list[Declaration] = []
         self.methods: list = []
 
     def header(self):
