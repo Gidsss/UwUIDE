@@ -5,7 +5,7 @@ from .error_handler import ErrorSrc
 if __name__ == "__main__":
     sc = """
     fwunc mainuwu-san() [[
-        a[2].a.a.a[1].a[3].b.a.b()~
+        a[2].a.a.a[1].a[3].b.a.b() = 2~
         a = a[2].a().a.a[1].a[3].b~
     ]]
     """
