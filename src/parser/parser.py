@@ -1754,6 +1754,9 @@ class Parser:
                                 pass
                 tok = tok.id if not isinstance(tok, ClassAccessor) else tok.accessed
 
-        if isinstance(tok, Token) and (tok.token.token.startswith("IDENTIFIER") or tok.token.token.startswith("CWASS")):
+        if isinstance(tok, Token) and tok.token.token.startswith("IDENTIFIER"):
             added.add(TokenType.DOT_OP)
+        if isinstance(tok, Token) and not tok.token.token.startswith("IDENTIFIER"):
+            added.remove(TokenType.OPEN_BRACKET)
+            added.remove(TokenType.OPEN_PAREN)
         return list(added)
