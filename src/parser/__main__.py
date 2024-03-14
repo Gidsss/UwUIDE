@@ -5,13 +5,8 @@ from .error_handler import ErrorSrc
 if __name__ == "__main__":
     sc = """
     fwunc mainuwu-san() [[
-        a(A(), B(), C(A(B())))~
-    ]]
-    cwass Class() [[
-        a-chan = a~
-        fwunc test-san() [[
-            a(A() a )~
-        ]]
+        a[2].a.a.a[1].a[3].b.a.b()~
+        a = a[2].a().a.a[1].a[3].b~
     ]]
     """
 

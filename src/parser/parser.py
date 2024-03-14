@@ -1052,7 +1052,7 @@ class Parser:
     ### atomic parsers
     # unlike the above 4 expressions parsers,
     # these are made to be used in other parsers
-    def parse_ident(self):
+    def parse_ident(self, expr=True):
         '''
         must start with curr_tok as IDENTIFIER
         parse identifiers which can also be:
@@ -1062,11 +1062,15 @@ class Parser:
         - any combination of the above
         '''
         ident = self.curr_tok
+        is_call = False
 
         if not self.peek_tok_is_in([TokenType.OPEN_PAREN, TokenType.DOT_OP, TokenType.OPEN_BRACKET]):
             return ident
 
         if self.peek_tok_is(TokenType.OPEN_PAREN):
+            if not expr:
+                is_call = True
+
             fc = FnCall()
             fc.id = ident
             ident = fc
@@ -1102,8 +1106,13 @@ class Parser:
                 return None
 
         # array indexing, keep looping until curr tok is not close bracket
-        if self.expect_peek(TokenType.OPEN_BRACKET):
-            self.advance()
+        if self.peek_tok_is(TokenType.OPEN_BRACKET):
+            if not expr and is_call:
+                self.peek_error(TokenType.TERMINATOR)
+                self.advance(2)
+                return None
+
+            self.advance(2)
             tmp = IndexedIdentifier()
             tmp.id = ident
             ident = tmp
@@ -1125,7 +1134,13 @@ class Parser:
                 ident.index.append(idx)
 
         # dot operations, keep recursing parse_ident until peek tok is not dot op
-        if self.expect_peek(TokenType.DOT_OP):
+        if self.peek_tok_is(TokenType.DOT_OP):
+            if not expr and is_call:
+                self.peek_error(TokenType.TERMINATOR)
+                self.advance(2)
+                return None
+            self.advance()
+
             tmp = ClassAccessor()
             tmp.id = ident
             ident = tmp
@@ -1133,17 +1148,24 @@ class Parser:
                 self.invalid_dot_op_error(self.peek_tok)
                 self.advance()
                 return None
-            if (res := self.parse_ident()) is None:
+            if (res := self.parse_ident(expr=expr)) is None:
                 return None
             ident.accessed = res
             # if more dot ops exist
             while self.peek_tok_is(TokenType.DOT_OP):
                 tmp = ClassAccessor()
                 tmp.id = ident.accessed
-                if (accessed := self.parse_ident()) is None:
+                if (accessed := self.parse_ident(expr=expr)) is None:
                     return None
                 tmp.accessed = accessed
                 ident.accessed = tmp
+
+        if not expr and isinstance(ident, FnCall) and not self.peek_tok_is(TokenType.TERMINATOR):
+            self.peek_error(TokenType.TERMINATOR)
+            self.advance(2)
+            return None
+
+        print(ident, expr)
         return ident
 
     def parse_class_ident(self):
