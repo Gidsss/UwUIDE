@@ -144,34 +144,31 @@ class Parser:
 
         - in block parsing functions are used to parse tokens inside a block statement
         '''
-        # prefixes
+        # prefixes to possible expressions
         self.register_prefix(TokenType.DASH, self.parse_prefix_expression)
+        self.register_prefix(TokenType.OPEN_PAREN, self.parse_grouped_expressions)
+
+        self.register_prefix_special(TokenType.OPEN_PAREN, self.parse_grouped_expressions)
         self.register_prefix_special(TokenType.OPEN_BRACE, self.parse_array)
         self.register_prefix_special(TokenType.STRING_PART_START, self.parse_string_parts)
-        self.register_prefix(TokenType.OPEN_PAREN, self.parse_grouped_expressions)
-        self.register_prefix_special(TokenType.OPEN_PAREN, self.parse_grouped_expressions)
 
         # literals (just returns curr_tok)
         self.register_prefix("IDENTIFIER", self.parse_ident)
-        self.register_prefix_special("IDENTIFIER", self.parse_ident)
         self.register_prefix(TokenType.INT_LITERAL, self.parse_literal)
+        self.register_prefix(TokenType.FLOAT_LITERAL, self.parse_literal)
+        self.register_prefix(TokenType.FAX, self.parse_literal)
+        self.register_prefix(TokenType.CAP, self.parse_literal)
+
+        self.register_prefix_special("IDENTIFIER", self.parse_ident)
         self.register_prefix_special(TokenType.INT_LITERAL, self.parse_literal)
         self.register_prefix_special(TokenType.STRING_LITERAL, self.parse_literal)
-        self.register_prefix(TokenType.FLOAT_LITERAL, self.parse_literal)
         self.register_prefix_special(TokenType.FLOAT_LITERAL, self.parse_literal)
-        self.register_prefix(TokenType.FAX, self.parse_literal)
         self.register_prefix_special(TokenType.FAX, self.parse_literal)
-        self.register_prefix(TokenType.CAP, self.parse_literal)
         self.register_prefix_special(TokenType.CAP, self.parse_literal)
         self.register_prefix_special(TokenType.NUWW, self.parse_literal)
         self.register_prefix_special(TokenType.INPWT, self.parse_input)
 
         # infixes
-        self.register_infix_special(TokenType.EQUALITY_OPERATOR, self.parse_infix_special_expression)
-        self.register_infix_special(TokenType.INEQUALITY_OPERATOR, self.parse_infix_special_expression)
-        self.register_infix_special(TokenType.AND_OPERATOR, self.parse_infix_special_expression)
-        self.register_infix_special(TokenType.OR_OPERATOR, self.parse_infix_special_expression)
-
         self.register_infix(TokenType.EQUALITY_OPERATOR, self.parse_infix_special_expression)
         self.register_infix(TokenType.INEQUALITY_OPERATOR, self.parse_infix_special_expression)
         self.register_infix(TokenType.AND_OPERATOR, self.parse_infix_special_expression)
@@ -180,6 +177,12 @@ class Parser:
         self.register_infix(TokenType.LESS_THAN_OR_EQUAL_SIGN, self.parse_infix_expression)
         self.register_infix(TokenType.GREATER_THAN_SIGN, self.parse_infix_expression)
         self.register_infix(TokenType.GREATER_THAN_OR_EQUAL_SIGN, self.parse_infix_expression)
+
+        self.register_infix_special(TokenType.EQUALITY_OPERATOR, self.parse_infix_special_expression)
+        self.register_infix_special(TokenType.INEQUALITY_OPERATOR, self.parse_infix_special_expression)
+        self.register_infix_special(TokenType.AND_OPERATOR, self.parse_infix_special_expression)
+        self.register_infix_special(TokenType.OR_OPERATOR, self.parse_infix_special_expression)
+
         # self.register_infix(TokenType.CONCATENATION_OPERATOR, self.parse_infix_expression)
         self.register_infix(TokenType.ADDITION_SIGN, self.parse_infix_expression)
         self.register_infix(TokenType.DASH, self.parse_infix_expression)
