@@ -1,6 +1,5 @@
 '''
 TODOS:
-- implement value superset and separation of logical and other operators
 '''
 
 '''
@@ -48,13 +47,13 @@ idents:                 LOWEST
 ident():                FN_CALL
 '''
 LOWEST = 0
-LESS_GREATER = 1
-SUM = 2
-PRODUCT = 3
-PREFIX = 4
-FN_CALL = 5
-LOGICAL = 6
-EQUALITY = 7
+LOGICAL = 1
+EQUALITY = 2
+LESS_GREATER = 3
+SUM = 4
+PRODUCT = 5
+PREFIX = 6
+FN_CALL = 7
 
 precedence_map = {
     TokenType.AND_OPERATOR: LOGICAL,
