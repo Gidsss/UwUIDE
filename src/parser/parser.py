@@ -1072,21 +1072,32 @@ class Parser:
             ident = fc
             self.advance(2)
             stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
+            cwass = False
             while not self.curr_tok_is_in(stop_conditions):
-                if (res := self.parse_expression(LOWEST)) is None:
-                    return None
-                ident.args.append(res)
+                if self.curr_tok_is_class_name():
+                    if (res := self.parse_class_ident()) is None:
+                        return None
+                    ident.args.append(res)
+                    cwass = True
+                else:
+                    if (res := self.parse_expression(LOWEST)) is None:
+                        return None
+                    ident.args.append(res)
+
                 if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
                     break
 
                 if self.curr_tok_is(TokenType.COMMA) and self.peek_tok_is(TokenType.CLOSE_PAREN):
-                    self.hanging_comma_error(self.peek_tok)
+                    self.hanging_comma_error(self.peek_tok, cwass=cwass)
                     self.advance(2)
                     return None
 
+                cwass = False
                 self.advance()
-            if not self.curr_tok_is(TokenType.CLOSE_PAREN):
-                self.expected_error([TokenType.CLOSE_PAREN, *self.error_context(ident.args)], curr=True if self.curr_tok_is_in([TokenType.TERMINATOR, TokenType.EOF]) else False)
+
+            if not self.curr_tok_is(TokenType.CLOSE_PAREN) or (cwass and self.curr_tok_is(TokenType.CLOSE_PAREN)):
+                added = self.error_context(ident.args) if not cwass else []
+                self.expected_error([TokenType.CLOSE_PAREN, TokenType.COMMA, *added], curr=True if self.curr_tok_is_in([TokenType.TERMINATOR, TokenType.EOF]) else False)
                 self.advance(2)
                 return None
 
