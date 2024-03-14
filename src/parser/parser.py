@@ -350,12 +350,17 @@ class Parser:
             return None
         self.advance() # consume the open paren
 
-        if (res := self.parse_expression(LOWEST)) is None:
-            return None
-        rs.expr = res
+        if self.curr_tok_is_class_name():
+            if (res := self.parse_class_ident()) is None:
+                return None
+            rs.expr = res
+        else:
+            if (res := self.parse_expression(LOWEST, cwass=True)) is None:
+                return None
+            rs.expr = res
 
         if not self.expect_peek(TokenType.CLOSE_PAREN):
-            self.expected_error([TokenType.CLOSE_PAREN, *self.error_context(rs.expr)])
+            self.peek_error(TokenType.CLOSE_PAREN)
             self.advance(2)
             return None
         if not self.expect_peek(TokenType.TERMINATOR):
