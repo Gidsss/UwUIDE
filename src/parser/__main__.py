@@ -10,12 +10,12 @@ if __name__ == "__main__":
     cwass Class() [[
         a-chan = a~
         fwunc test-san() [[
-            a = a~
-            >.< a = Person()~
-            Person.a = a~
+            a = a + 1~
+            a = Person()~
             iwf (fax) [[
                 pwint("do something")~
             ]]
+            wetuwn({1+1, A(1,2,B(A())), B()})~
         ]]
     ]]
     """
