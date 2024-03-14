@@ -1,6 +1,8 @@
 '''
 TODOS:
 - implement value superset and separation of logical and other operators
+- accurate error messages when specials are undelimited outside of grouped expressions
+- add & to expecteds after string part end and string lit
 '''
 
 '''
@@ -1236,8 +1238,7 @@ class Parser:
         while not self.peek_tok_is_in([TokenType.STRING_PART_END, TokenType.TERMINATOR, TokenType.EOF]):
             # no expression after string_mid
             if self.peek_tok_is(TokenType.STRING_PART_MID):
-                sf.exprs.append(Token("", TokenType.STRING_LITERAL, (0, 0), (0, 0)))
-                self.advance()
+                sf.exprs.append(Token("", TokenType.STRING_LITERAL, self.curr_tok.end_position, self.peek_tok.position))
             # expressions
             else:
                 self.advance()
