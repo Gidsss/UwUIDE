@@ -1012,7 +1012,9 @@ class Parser:
         pe.op = self.curr_tok
 
         self.advance()
-        pe.right = self.parse_expression(PREFIX)
+        tmp = self.expected_prefix.copy()
+        tmp.remove(TokenType.DASH)
+        pe.right = self.parse_expression(PREFIX, limit_to=tmp)
         if pe.right is None:
             return None
         return pe
