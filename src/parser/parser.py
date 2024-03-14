@@ -452,23 +452,16 @@ class Parser:
         c.body = BlockStatement()
         stop_conditions = [TokenType.DOUBLE_CLOSE_BRACKET, TokenType.EOF]
         while not self.curr_tok_is_in(stop_conditions):
-            match self.curr_tok.token:
-                case TokenType.FWUNC:
-                    if (res := self.parse_function()) is None:
-                        return None
-                    c.methods.append(res)
-                case _:
-                    inner_stop_conditions = stop_conditions + [TokenType.FWUNC]
-                    while not self.curr_tok_is_in(inner_stop_conditions):
-                        parser = self.get_in_block_parse_fn(self.curr_tok.token)
-                        if parser is None:
-                            self.no_in_block_parse_fn_error(self.curr_tok.token)
-                            self.advance()
-                            return None
-                        if (statement := parser()) is None:
-                            return None
-                        c.body.statements.append(statement)
-                        self.advance()
+            if self.curr_tok_is(TokenType.FWUNC):
+                if (res := self.parse_function()) is None:
+                    return None
+                c.methods.append(res)
+            elif self.curr_tok_is_identifier():
+                if (res := self.parse_declaration(ident=self.curr_tok)) is None:
+                    return None
+                c.properties.append(res)
+                self.advance()
+
         if not self.curr_tok_is(TokenType.DOUBLE_CLOSE_BRACKET):
             self.unclosed_double_bracket_error(self.curr_tok)
             return None
@@ -1363,8 +1356,28 @@ class Parser:
     # keeping track of tokens
     def curr_tok_is(self, token_type: TokenType) -> bool:
         return self.curr_tok.token == token_type
+    def curr_tok_is_identifier(self) -> bool:
+        '''
+        checks if the next token is an identifier.
+        advances the cursor if it is.
+        cursor won't advance if not.
+        '''
+        if self.curr_tok.token.token.startswith("IDENTIFIER"):
+            return True
+        else:
+            return False
     def peek_tok_is(self, token_type: TokenType) -> bool:
         return self.peek_tok.token == token_type
+    def peek_tok_is_identifier(self) -> bool:
+        '''
+        checks if the next token is an identifier.
+        advances the cursor if it is.
+        cursor won't advance if not.
+        '''
+        if self.curr_tok.token.token.startswith("IDENTIFIER"):
+            return True
+        else:
+            return False
     def expect_peek(self, token_type: TokenType) -> bool:
         '''
         checks if the next token is the given token type.

@@ -5,8 +5,18 @@ from .error_handler import ErrorSrc
 if __name__ == "__main__":
     sc = """
     fwunc mainuwu-san() [[
-        a = inpwt() nuww 3
-        >.<a = ("| | | |")~
+        a=a~
+    ]]
+    cwass Class() [[
+        a-chan = a~
+        fwunc test-san() [[
+            a = a~
+            >.< a = Person()~
+            Person.a = a~
+            iwf (fax) [[
+                pwint("do something")~
+            ]]
+        ]]
     ]]
     """
 
