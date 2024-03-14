@@ -685,15 +685,14 @@ class Parser:
         # fn calls must ONLY be followed by a terminator
         tmp = res
         if isinstance(tmp, ClassAccessor):
+            # check if last accessed id is an fn call
             peek_tmp = tmp
-            while True:
+            while not isinstance(peek_tmp, Token):
+                tmp = peek_tmp
                 if isinstance(tmp, ClassAccessor):
                     peek_tmp = tmp.accessed
                 elif isinstance(tmp, IndexedIdentifier) or isinstance(tmp, FnCall):
                     peek_tmp = tmp.id
-                if isinstance(peek_tmp, Token):
-                    break
-                tmp = peek_tmp
         if isinstance(tmp, FnCall):
             if not self.expect_peek(TokenType.TERMINATOR):
                 self.peek_error(TokenType.TERMINATOR)
@@ -701,6 +700,7 @@ class Parser:
                 return None
             return res
 
+        # is an assignment cont.
         a.id = res
         if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
             if isinstance(a.id, IndexedIdentifier):
