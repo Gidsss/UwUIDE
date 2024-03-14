@@ -1172,22 +1172,32 @@ class Parser:
         self.advance() # consume the opening brace
 
         stop_conditions = [TokenType.CLOSE_BRACE, TokenType.TERMINATOR, TokenType.EOF]
+        cwass = False
         while not self.curr_tok_is_in(stop_conditions):
-            if (res := self.parse_expression(LOWEST)) is None:
-                return None
-            al.elements.append(res)
+            if self.curr_tok_is_class_name():
+                if (res := self.parse_class_ident()) is None:
+                    return None
+                al.elements.append(res)
+                cwass = True
+            else:
+                if (res := self.parse_expression(LOWEST)) is None:
+                    return None
+                al.elements.append(res)
+
             if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
                 break
 
             if self.curr_tok_is(TokenType.COMMA) and self.peek_tok_is_in(stop_conditions):
-                self.hanging_comma_error(self.peek_tok)
+                self.hanging_comma_error(self.peek_tok, cwass=cwass)
                 self.advance(2)
                 return None
 
+            cwass = False
             self.advance()
 
         if not self.curr_tok_is(TokenType.CLOSE_BRACE):
-            self.expected_error([TokenType.CLOSE_BRACE, *self.error_context(al.elements)], curr=True if self.curr_tok_is_in([TokenType.TERMINATOR, TokenType.EOF]) else False)
+            added = self.error_context(al.elements) if not cwass else []
+            self.expected_error([TokenType.CLOSE_BRACE, TokenType.COMMA, *added], curr=True if self.curr_tok_is_in([TokenType.TERMINATOR, TokenType.EOF]) else False)
             return None
         return al
     def parse_string_parts(self):
