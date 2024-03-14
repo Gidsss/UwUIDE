@@ -665,36 +665,43 @@ class Parser:
         must start with Unique identifier in curr_tok
         class identifier statements are class declarations and assignments
         '''
-        if (res := self.parse_ident()) is None:
-            return None
-        ident = res
-
         # is not a declaration or assignment
-        expected = [TokenType.DOT_OP, TokenType.TERMINATOR, TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR,
-                    TokenType.DASH, TokenType.ASSIGNMENT_OPERATOR, TokenType.OPEN_BRACKET, TokenType.OPEN_PAREN]
-        if self.expect_peek(TokenType.TERMINATOR):
-            id_stm = IdStatement()
-            id_stm.id = ident
-            return id_stm
+        expected = [TokenType.DOT_OP, TokenType.DASH, TokenType.ASSIGNMENT_OPERATOR, TokenType.OPEN_BRACKET, TokenType.OPEN_PAREN]
+        if not self.peek_tok_is_in(expected):
+            self.expected_error(expected)
+            self.advance(2)
+            return None
 
-        # is a unary statement
-        if self.expect_peek_in([TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]):
-            unary_stm = UnaryStatement()
-            unary_stm.id = ident
-            unary_stm.op = self.curr_tok
+        # is a declaration
+        if self.peek_tok_is(TokenType.DASH):
+            return self.parse_declaration(self.curr_tok)
+
+        # is an assignment
+        a = Assignment()
+        if (res := self.parse_ident(expr=False)) is None:
+            return None
+
+        # check if ident is a fn call
+        # fn calls must ONLY be followed by a terminator
+        tmp = res
+        if isinstance(tmp, ClassAccessor):
+            peek_tmp = tmp
+            while True:
+                if isinstance(tmp, ClassAccessor):
+                    peek_tmp = tmp.accessed
+                elif isinstance(tmp, IndexedIdentifier) or isinstance(tmp, FnCall):
+                    peek_tmp = tmp.id
+                if isinstance(peek_tmp, Token):
+                    break
+                tmp = peek_tmp
+        if isinstance(tmp, FnCall):
             if not self.expect_peek(TokenType.TERMINATOR):
                 self.peek_error(TokenType.TERMINATOR)
                 self.advance(2)
                 return None
-            return unary_stm
+            return res
 
-        # is a declaration
-        if self.peek_tok_is(TokenType.DASH):
-            return self.parse_declaration(ident)
-
-        # is an assignment
-        a = Assignment()
-        a.id = ident
+        a.id = res
         if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
             if isinstance(a.id, IndexedIdentifier):
                 try:
