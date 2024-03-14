@@ -5,7 +5,8 @@ from .error_handler import ErrorSrc
 if __name__ == "__main__":
     sc = """
     fwunc mainuwu-san() [[
-        a = ("hello| nuww == {} |"  3)~
+        >.<a = nuww 3
+        a = ("| | | |")~
     ]]
     """
 
