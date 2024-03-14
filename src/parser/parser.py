@@ -1131,45 +1131,41 @@ class Parser:
         return ident
 
     def parse_class_ident(self):
-        # Class constructor
-        if self.peek_tok_is(TokenType.OPEN_PAREN):
-            cc = ClassConstructor()
-            cc.id = self.curr_tok
-
+        '''
+        parse class identifiers
+        must start with curr_tok as CWASS_ID
+        ends with close paren in curr_tok
+        '''
+        cc = ClassConstructor()
+        cc.id = self.curr_tok
+        if not self.expect_peek(TokenType.OPEN_PAREN):
+            self.peek_error(TokenType.OPEN_PAREN)
             self.advance(2)
-            stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
-            while not self.curr_tok_is_in(stop_conditions):
-                if (res := self.parse_expression(LOWEST)) is None:
+            return None
+
+        self.advance()
+        stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
+        while not self.curr_tok_is_in(stop_conditions):
+            if self.curr_tok_is_class_name():
+                if (res := self.parse_class_ident()) is None:
                     return None
                 cc.args.append(res)
-                if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
-                    break
-                if self.curr_tok_is(TokenType.COMMA) and self.peek_tok_is(TokenType.CLOSE_PAREN):
-                    self.hanging_comma_error(self.peek_tok)
-                    self.advance(2)
+            else:
+                if (res := self.parse_expression(LOWEST, cwass=True)) is None:
                     return None
-                self.advance()
-            if not self.curr_tok_is(TokenType.CLOSE_PAREN):
-                self.expected_error([TokenType.CLOSE_PAREN, *self.error_context(cc.args)], curr=True if self.curr_tok_is_in([TokenType.TERMINATOR, TokenType.EOF]) else False)
+                cc.args.append(res)
+
+            if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
+                break
+            if self.curr_tok_is(TokenType.COMMA) and self.peek_tok_is(TokenType.CLOSE_PAREN):
+                self.hanging_comma_error(self.peek_tok, cwass=True)
+                self.advance(2)
                 return None
-            return cc
-
-        # Class accessor
-        ident = ClassAccessor()
-        ident.id = self.curr_tok
-
-        if not self.expect_peek(TokenType.DOT_OP):
-            self.expected_error([TokenType.DOT_OP, TokenType.OPEN_PAREN])
-            self.advance(2)
+            self.advance()
+        if not self.curr_tok_is(TokenType.CLOSE_PAREN):
+            self.expected_error([TokenType.CLOSE_PAREN, *self.error_context(cc.args, cwass=True)], curr=True if self.curr_tok_is_in([TokenType.TERMINATOR, TokenType.EOF]) else False)
             return None
-        if not self.expect_peek_is_identifier():
-            self.invalid_dot_op_error(self.peek_tok)
-            self.advance(2)
-            return None
-        if (res := self.parse_ident()) is None:
-            return None
-        ident.accessed = res
-        return ident
+        return cc
 
     def parse_array(self):
         al = ArrayLiteral()
