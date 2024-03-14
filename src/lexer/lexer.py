@@ -98,10 +98,6 @@ class Lexer():
                 cursor_advanced = self.peek_reserved('do whiwe', TokenType.DO_WHIWE)
                 if cursor_advanced:
                     continue
-                
-                cursor_advanced = self.peek_reserved('donee~', TokenType.DONE)
-                if cursor_advanced:
-                    continue
             
             if self._current_char == 'e':
                 cursor_advanced = self.peek_reserved('ewse iwf', TokenType.EWSE_IWF)
@@ -172,10 +168,6 @@ class Lexer():
                 if cursor_advanced:
                     continue
 
-                cursor_advanced = self.peek_reserved('staart!', TokenType.START)
-                if cursor_advanced:
-                    continue
-
             if self._current_char == 'w':
                 cursor_advanced = self.peek_reserved('whiwe', TokenType.WHIWE)
                 if cursor_advanced:
@@ -241,8 +233,8 @@ class Lexer():
                 before_slice = self._lines[line][:column]
 
                 if len(after_slice) < 1:
-                    line, col = self._position
-                    self._logs.append(DelimError(TokenType.DASH, (line, col + 1), '-', '\n'))
+                    starting_position = ending_position = tuple(self._position)
+                    self._tokens.append(Token('-', TokenType.DASH, starting_position, ending_position))
                     self.advance()
                     continue
 

@@ -142,13 +142,7 @@ def identifier(context: tuple[list[str], list[int], str, list[Token], list[Delim
         context = lines, position, current_char, tokens, logs
 
         in_next_line = position[0] != current_line
-
         if is_end_of_file or in_next_line or current_char in expected_delims:
-            if is_end_of_file:
-                line, col = position
-                logs.append(DelimError(delim_error_token, (line, col + 1), temp_id, "EOF"))
-                break
-
             _, current_char = reverse_cursor(context)
             context = lines, position, current_char, tokens, logs
 
@@ -273,17 +267,9 @@ def int_float(context: tuple[list[str], list[int], str, list[Token], list[DelimE
         context = lines, position, current_char, tokens, logs
 
         in_next_line = position[0] != current_line
-        if is_end_of_file or in_next_line:
-            if in_next_line:
-                _, current_char = reverse_cursor(context)
-                context = lines, position, current_char, tokens, logs
-                
-            line, col = position
-            logs.append(DelimError(TokenType.INT_LITERAL, (line, col + 1), temp_num, '\n'))
-            break
 
         # preemptively break when a delimiter is found for integers
-        if current_char in DELIMS['int_float']:
+        if current_char in DELIMS['int_float'] or in_next_line or is_end_of_file:
             _, current_char = reverse_cursor(context)
             context = lines, position, current_char, tokens, logs
 
@@ -303,17 +289,8 @@ def int_float(context: tuple[list[str], list[int], str, list[Token], list[DelimE
 
                 in_next_line = position[0] != current_line
 
-                if is_end_of_file or in_next_line:
-                    if in_next_line:
-                        _, current_char = reverse_cursor(context)
-                        context = lines, position, current_char, tokens, logs
-
-                    line, col = position
-                    logs.append(DelimError(TokenType.FLOAT_LITERAL, (line, col + 1), temp_num, '\n'))
-                    break
-
                 # preemptively break when a delimiter is found for floats
-                elif current_char in DELIMS['int_float']:
+                if current_char in DELIMS['int_float'] or in_next_line or is_end_of_file:
                     _, current_char = reverse_cursor(context)
                     context = lines, position, current_char, tokens, logs
 

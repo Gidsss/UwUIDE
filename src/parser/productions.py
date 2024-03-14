@@ -91,7 +91,7 @@ class StringFmt(Production):
         for val in self.mid_expr_iter():
             res += sprintln(val.string(), indent=indent+1)
         res += sprint(self.end.string(), indent=indent+1)
-        return res[:-1]
+        return res if res[-1] != '\n' else res[:-1]
     def mid_expr_iter(self):
         if self.exprs:
             yield self.exprs[0]
@@ -525,7 +525,7 @@ class Class(Production):
         self.id = None
         self.params: list = []
         self.body: BlockStatement = None
-        self.properties: list = []
+        self.properties: list[Declaration] = []
         self.methods: list = []
 
     def header(self):

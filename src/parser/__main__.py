@@ -5,11 +5,7 @@ from .error_handler import ErrorSrc
 if __name__ == "__main__":
     sc = """
     fwunc mainuwu-san() [[
-        b = {-2}~
-    ]]
-    gwobaw message-senpai = "Hey"~
-    fwunc a-san() [[
-        a++~
+        a = s( } )~
     ]]
     """
 
@@ -34,8 +30,6 @@ if __name__ == "__main__":
     p = Parser(l.tokens)
     print()
 
-    print("--- Printing Whole Program ---")
-    print(p.program)
     print("\n--- Printing only Main Function ---")
     print(p.program.mainuwu_string())
     print("\n--- Printing only Global Declarations ---")
