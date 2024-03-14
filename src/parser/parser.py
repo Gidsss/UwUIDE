@@ -1069,9 +1069,11 @@ class Parser:
         self.advance()
         if (expr := self.parse_expression(LOWEST, grouped=True)) is None:
             return None
-        print(self.curr_tok, self.peek_tok, expr)
         if not self.expect_peek(TokenType.CLOSE_PAREN):
-            self.expected_error([TokenType.CLOSE_PAREN, *self.error_context(expr)])
+            expecteds = self.expected_infix
+            if (isinstance(expr, Token) and expr.token in self.expected_prefix_special) or isinstance(expr, StringFmt):
+                expecteds = self.expected_infix_special
+            self.expected_error([TokenType.CLOSE_PAREN, *expecteds])
             self.advance(2)
             return None
         return expr
