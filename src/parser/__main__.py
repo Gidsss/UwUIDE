@@ -5,7 +5,7 @@ from .error_handler import ErrorSrc
 if __name__ == "__main__":
     sc = """
     fwunc mainuwu-san() [[
-        w( } ""=="" + 1)~
+        a = s( } )~
     ]]
     """
 

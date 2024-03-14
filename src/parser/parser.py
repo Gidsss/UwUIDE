@@ -920,7 +920,7 @@ class Parser:
         if prefix is None:
             prefix = self.get_prefix_special_parse_fn(self.curr_tok.token)
             if prefix is None:
-                self.no_prefix_parse_fn_error(self.curr_tok.token, cwass=cwass)
+                self.no_prefix_parse_fn_error(self.curr_tok.token, cwass=cwass, strfmt=strfmt, array=array, func=func)
                 self.advance()
                 return None
             special = True
@@ -1475,11 +1475,17 @@ class Parser:
             self.peek_tok.position,
             self.peek_tok.end_position
         ))
-    def no_prefix_parse_fn_error(self, token_type, special = False, cwass=False):
+    def no_prefix_parse_fn_error(self, token_type, special = False, cwass=False,
+                                 strfmt=False, array=False, func=False):
         msg = f"'{token_type}' is not a valid starting token for an expression"
         msg += f"\n\tExpected any of the ff:"
         tmp = list(set(self.expected_prefix+self.expected_prefix_special))
+
         tmp += ["CWASS_ID"] if cwass else []
+        tmp += ["STRING_PART_MID", "STRING_PART_END"] if strfmt else []
+        tmp += [",", "}"] if array else []
+        tmp += [",", ")"] if func else []
+
         if special:
             tmp = self.expected_prefix_special
         for token in tmp[:-1]:
