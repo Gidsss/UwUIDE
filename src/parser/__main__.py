@@ -5,17 +5,12 @@ from .error_handler import ErrorSrc
 if __name__ == "__main__":
     sc = """
     fwunc mainuwu-san() [[
-        a=a~
+        a(A(), B(), C(A(B())))~
     ]]
     cwass Class() [[
         a-chan = a~
         fwunc test-san() [[
-            a = a + 1~
-            a = Person()~
-            iwf (fax) [[
-                pwint("do something")~
-            ]]
-            wetuwn({1+1, A(1,2,B(A())), B()})~
+            a(A() a )~
         ]]
     ]]
     """
