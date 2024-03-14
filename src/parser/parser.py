@@ -1300,10 +1300,16 @@ class Parser:
     def curr_tok_is_identifier(self) -> bool:
         '''
         checks if the next token is an identifier.
-        advances the cursor if it is.
-        cursor won't advance if not.
         '''
         if self.curr_tok.token.token.startswith("IDENTIFIER"):
+            return True
+        else:
+            return False
+    def curr_tok_is_class_name(self) -> bool:
+        '''
+        checks if the next token is an identifier.
+        '''
+        if self.curr_tok.token.token.startswith("CWASS"):
             return True
         else:
             return False
@@ -1312,10 +1318,16 @@ class Parser:
     def peek_tok_is_identifier(self) -> bool:
         '''
         checks if the next token is an identifier.
-        advances the cursor if it is.
-        cursor won't advance if not.
         '''
         if self.curr_tok.token.token.startswith("IDENTIFIER"):
+            return True
+        else:
+            return False
+    def peek_tok_is_class_name(self) -> bool:
+        '''
+        checks if the next token is an identifier.
+        '''
+        if self.curr_tok.token.token.startswith("CWASS"):
             return True
         else:
             return False
@@ -1405,7 +1417,6 @@ class Parser:
             self.peek_tok.position,
             self.peek_tok.end_position
         ))
-    def no_prefix_parse_fn_error(self, token_type, special = False):
         msg = f"'{token_type}' is not a valid starting token for an expression"
         msg += f"\n\tExpected any of the ff:"
         tmp = self.expected_prefix+self.expected_prefix_special
