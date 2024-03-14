@@ -895,7 +895,8 @@ class Parser:
         return p
 
     ### expression parsers
-    def parse_expression(self, precedence, limit_to: list[TokenType] = [], grouped: bool = False, cwass=False):
+    def parse_expression(self, precedence, limit_to: list[TokenType] = [],
+                         grouped: bool = False, cwass=False, strfmt=False):
         '''
         parse expressions.
         Expressions can be:
@@ -937,6 +938,7 @@ class Parser:
             else:
                 infix = self.get_infix_special_parse_fn(self.peek_tok.token)
                 expecteds = self.expected_infix_special
+            expecteds += [TokenType.STRING_PART_MID, TokenType.STRING_PART_END] if strfmt else []
             if infix is None:
                 self.advance()
                 self.no_infix_parse_fn_error(self.curr_tok.token, left_exp, expecteds)
@@ -1255,7 +1257,7 @@ class Parser:
             # expressions
             else:
                 self.advance()
-                if (res := self.parse_expression(LOWEST)) is None:
+                if (res := self.parse_expression(LOWEST, strfmt=True)) is None:
                     return None
                 sf.exprs.append(res)
 
