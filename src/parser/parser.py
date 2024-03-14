@@ -938,12 +938,10 @@ class Parser:
                 infix = self.get_infix_special_parse_fn(self.peek_tok.token)
                 expecteds = self.expected_infix_special
             if infix is None:
-                if not grouped:
-                    return left_exp
-                else:
-                    self.no_infix_parse_fn_error(self.peek_tok.token, left_exp, expecteds)
-                    self.advance(2)
-                    return None
+                self.advance()
+                self.no_infix_parse_fn_error(self.curr_tok.token, left_exp, expecteds)
+                self.advance()
+                return None
 
             self.advance()
             left_exp = infix(left_exp)
