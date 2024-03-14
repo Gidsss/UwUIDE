@@ -1620,7 +1620,18 @@ class Parser:
     def unclosed_string_part_error(self, token: Token, exprs, added = False):
         msg = f"Expected any of the ff: "
         msg += "'STRING_PART_END',"
-        if added:
+        if self.curr_tok_is_in(self.expected_prefix_special):
+            if added:
+                added = []
+                for token in self.expected_infix_special:
+                    msg += f" '{token}',"
+                msg += "'STRING_PART_MID'"
+            else:
+                for token in self.expected_infix_special[:-1]:
+                    msg += f" '{token}',"
+                msg += f" '{self.expected_infix_special[-1]}'"
+                msg += f"\n\tgot '{self.peek_tok}' instead"
+        elif added:
             added = []
             for token in self.error_context(exprs):
                 msg += f" '{token}',"
