@@ -1,7 +1,6 @@
 '''
 TODOS:
 - implement value superset and separation of logical and other operators
-- accurate error messages when specials are undelimited outside of grouped expressions
 - add & to expecteds after string part end and string lit
 '''
 
@@ -321,7 +320,10 @@ class Parser:
             return None
         d.value = res
         if not self.expect_peek(TokenType.TERMINATOR):
-            self.expected_error([TokenType.TERMINATOR, *self.error_context(d.value)])
+            added = self.error_context(d.value)
+            if self.curr_tok_is_in(self.expected_prefix_special):
+                added = self.expected_infix_special
+            self.expected_error([TokenType.TERMINATOR, *added])
             self.advance(2)
             return None
         return d
@@ -705,7 +707,10 @@ class Parser:
         a.value = res
 
         if not self.expect_peek(TokenType.TERMINATOR):
-            self.expected_error([TokenType.TERMINATOR, *self.error_context(a.value)])
+            added = self.error_context(a.value)
+            if self.curr_tok_is_in(self.expected_prefix_special):
+                added = self.expected_infix_special
+            self.expected_error([TokenType.TERMINATOR, *added])
             self.advance(2)
             return None
         return a
@@ -762,7 +767,10 @@ class Parser:
         a.value = res
 
         if not self.expect_peek(TokenType.TERMINATOR):
-            self.expected_error([TokenType.TERMINATOR, *self.error_context(a.value)])
+            added = self.error_context(a.value)
+            if self.curr_tok_is_in(self.expected_prefix_special):
+                added = self.expected_infix_special
+            self.expected_error([TokenType.TERMINATOR, *added])
             self.advance()
             return None
         return a
