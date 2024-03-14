@@ -1417,9 +1417,11 @@ class Parser:
             self.peek_tok.position,
             self.peek_tok.end_position
         ))
+    def no_prefix_parse_fn_error(self, token_type, special = False, cwass=False):
         msg = f"'{token_type}' is not a valid starting token for an expression"
         msg += f"\n\tExpected any of the ff:"
         tmp = self.expected_prefix+self.expected_prefix_special
+        tmp += ["CWASS_ID"] if cwass else []
         if special:
             tmp = self.expected_prefix_special
         for token in tmp[:-1]:
@@ -1670,11 +1672,12 @@ class Parser:
             token.position,
             token.end_position
         ))
-    def hanging_comma_error(self, token: Token):
+    def hanging_comma_error(self, token: Token, cwass=False):
         msg = f"Expected any of the ff:"
         for token in self.expected_prefix[:-1]:
             msg += f" '{token}',"
         msg += f" '{self.expected_prefix[-1]}'"
+        msg += f", 'CWASS_ID'" if cwass else ""
         msg += f"\n\tgot '{self.peek_tok}' instead"
         self.errors.append(Error(
             "HANGING COMMA",
@@ -1685,7 +1688,7 @@ class Parser:
 
     def expected_exprs(self) -> list:
         return self.expected_infix + [TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR]
-    def error_context(self, tok) -> list[TokenType]:
+    def error_context(self, tok, cwass=False) -> list[TokenType]:
         'error context for expression tokens'
         if isinstance(tok, list) and len(tok) == 0:
             return self.expected_prefix
@@ -1693,6 +1696,7 @@ class Parser:
             tok = tok[-1]
 
         added = {*self.expected_infix}
+        added.update({"CWASS_ID"} if cwass else {})
         # add/remove expected tokens based on passed token
         if not isinstance(tok, PostfixExpression):
             added.update({TokenType.OPEN_PAREN, TokenType.OPEN_BRACKET, TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR})
