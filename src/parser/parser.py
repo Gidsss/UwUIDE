@@ -881,7 +881,7 @@ class Parser:
         return p
 
     ### expression parsers
-    def parse_expression(self, precedence, limit_to: list[TokenType] = [], grouped: bool = False):
+    def parse_expression(self, precedence, limit_to: list[TokenType] = [], grouped: bool = False, cwass=False):
         '''
         parse expressions.
         Expressions can be:
@@ -905,7 +905,7 @@ class Parser:
         if prefix is None:
             prefix = self.get_prefix_special_parse_fn(self.curr_tok.token)
             if prefix is None:
-                self.no_prefix_parse_fn_error(self.curr_tok.token)
+                self.no_prefix_parse_fn_error(self.curr_tok.token, cwass=cwass)
                 self.advance()
                 return None
             special = True
