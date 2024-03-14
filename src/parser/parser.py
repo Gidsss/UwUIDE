@@ -895,8 +895,8 @@ class Parser:
         return p
 
     ### expression parsers
-    def parse_expression(self, precedence, limit_to: list[TokenType] = [],
-                         grouped: bool = False, cwass=False, strfmt=False):
+    def parse_expression(self, precedence, limit_to: list[TokenType] = [], grouped=False,
+                         cwass=False, strfmt=False, array=False, func=False):
         '''
         parse expressions.
         Expressions can be:
@@ -938,7 +938,10 @@ class Parser:
             else:
                 infix = self.get_infix_special_parse_fn(self.peek_tok.token)
                 expecteds = self.expected_infix_special
+
             expecteds += [TokenType.STRING_PART_MID, TokenType.STRING_PART_END] if strfmt else []
+            expecteds += [TokenType.COMMA, TokenType.CLOSE_BRACE] if array else []
+            expecteds += [TokenType.COMMA, TokenType.CLOSE_PAREN] if func else []
             if infix is None:
                 self.advance()
                 self.no_infix_parse_fn_error(self.curr_tok.token, left_exp, expecteds)
@@ -951,7 +954,6 @@ class Parser:
         postfix = self.get_postfix_parse_fn(self.curr_tok.token)
         if postfix is not None:
             left_exp = postfix(left_exp)
-
 
         return left_exp
     # PLEASE USE self.parse_expression(precedence)
@@ -1093,7 +1095,7 @@ class Parser:
                     ident.args.append(res)
                     cwass = True
                 else:
-                    if (res := self.parse_expression(LOWEST)) is None:
+                    if (res := self.parse_expression(LOWEST, func=True)) is None:
                         return None
                     ident.args.append(res)
 
@@ -1226,7 +1228,7 @@ class Parser:
                 al.elements.append(res)
                 cwass = True
             else:
-                if (res := self.parse_expression(LOWEST)) is None:
+                if (res := self.parse_expression(LOWEST, array=True)) is None:
                     return None
                 al.elements.append(res)
 
