@@ -1047,7 +1047,7 @@ class Parser:
 
         precedence = self.curr_precedence()
         self.advance()
-        ie.right = self.parse_expression(precedence)
+        ie.right = self.parse_expression(precedence, limit_to=self.expected_prefix)
         if ie.right is None:
             return None
         return ie
