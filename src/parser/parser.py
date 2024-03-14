@@ -1478,7 +1478,7 @@ class Parser:
     def no_prefix_parse_fn_error(self, token_type, special = False, cwass=False):
         msg = f"'{token_type}' is not a valid starting token for an expression"
         msg += f"\n\tExpected any of the ff:"
-        tmp = self.expected_prefix+self.expected_prefix_special
+        tmp = list(set(self.expected_prefix+self.expected_prefix_special))
         tmp += ["CWASS_ID"] if cwass else []
         if special:
             tmp = self.expected_prefix_special
