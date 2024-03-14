@@ -331,7 +331,7 @@ class Parser:
         d.value = res
         if not self.expect_peek(TokenType.TERMINATOR):
             added = self.error_context(d.value)
-            if self.curr_tok_is_in(self.expected_prefix_special) or isinstance(d.value, Input):
+            if not self.curr_tok_is_in(self.expected_prefix) or isinstance(d.value, Input):
                 added = self.expected_infix_special
                 if self.curr_tok_is_in([TokenType.STRING_LITERAL, TokenType.STRING_PART_END]) or isinstance(d.value, Input):
                     added += [TokenType.CONCATENATION_OPERATOR]
@@ -720,7 +720,7 @@ class Parser:
 
         if not self.expect_peek(TokenType.TERMINATOR):
             added = self.error_context(a.value)
-            if self.curr_tok_is_in(self.expected_prefix_special) or isinstance(a.value, Input):
+            if not self.curr_tok_is_in(self.expected_prefix) or isinstance(a.value, Input):
                 added = self.expected_infix_special
                 if self.curr_tok_is_in([TokenType.STRING_LITERAL, TokenType.STRING_PART_END]) or isinstance(a.value, Input):
                     added += [TokenType.CONCATENATION_OPERATOR]
@@ -782,7 +782,7 @@ class Parser:
 
         if not self.expect_peek(TokenType.TERMINATOR):
             added = self.error_context(a.value)
-            if self.curr_tok_is_in(self.expected_prefix_special) or isinstance(a.value, Input):
+            if not self.curr_tok_is_in(self.expected_prefix) or isinstance(a.value, Input):
                 added = self.expected_infix_special
                 if self.curr_tok_is_in([TokenType.STRING_LITERAL, TokenType.STRING_PART_END]) or isinstance(a.value, Input):
                     added += [TokenType.CONCATENATION_OPERATOR]
@@ -1647,7 +1647,7 @@ class Parser:
     def unclosed_string_part_error(self, token: Token, exprs, added = False):
         msg = f"Expected any of the ff: "
         msg += "'STRING_PART_END',"
-        if self.curr_tok_is_in(self.expected_prefix_special):
+        if not self.curr_tok_is_in(self.expected_prefix):
             if added:
                 added = []
                 for token in self.expected_infix_special:
