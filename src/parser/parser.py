@@ -707,80 +707,25 @@ class Parser:
             return None
 
         self.advance()
-        if (res := self.parse_expression(LOWEST)) is None:
-            return None
-        a.value = res
+        if self.curr_tok_is_class_name():
+            if (res := self.parse_class_ident()) is None:
+                return None
+            a.value = res
+        else:
+            if (res := self.parse_expression(LOWEST, cwass=True)) is None:
+                return None
+            a.value = res
 
         if not self.expect_peek(TokenType.TERMINATOR):
             added = self.error_context(a.value)
-            if not self.curr_tok_is_in(self.expected_prefix) or isinstance(a.value, Input):
+            if isinstance(a.value, ClassConstructor):
+                added = []
+            elif not self.curr_tok_is_in(self.expected_prefix) or isinstance(a.value, Input):
                 added = self.expected_infix_special
                 if self.curr_tok_is_in([TokenType.STRING_LITERAL, TokenType.STRING_PART_END]) or isinstance(a.value, Input):
                     added += [TokenType.CONCATENATION_OPERATOR]
             self.expected_error([TokenType.TERMINATOR, *added])
             self.advance(2)
-            return None
-        return a
-
-    def parse_class_ident_statement(self):
-        '''
-        must start with Unique class identifier in curr_tok
-        class identifier statements are class declarations and assignments
-        '''
-        if (res := self.parse_class_ident()) is None:
-            return None
-        ident = res
-        if isinstance(ident, ClassConstructor):
-            if not self.expect_peek(TokenType.TERMINATOR):
-                self.peek_error(TokenType.TERMINATOR)
-                self.advance(2)
-                return None
-            return ident
-
-        # is not a declaration or assignment
-        expected = [TokenType.DOT_OP, TokenType.TERMINATOR, TokenType.INCREMENT_OPERATOR, TokenType.DECREMENT_OPERATOR,
-                    TokenType.DASH, TokenType.ASSIGNMENT_OPERATOR, TokenType.OPEN_BRACKET, TokenType.OPEN_PAREN]
-        if self.expect_peek(TokenType.TERMINATOR):
-            id_stm = IdStatement()
-            id_stm.id = ident
-            return id_stm
-
-        # is a declaration
-        if self.peek_tok_is(TokenType.DASH):
-            return self.parse_declaration(ident)
-
-        # is an assignment
-        a = Assignment()
-        a.id = ident
-        if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
-            if isinstance(a.id, IndexedIdentifier):
-                try:
-                    expected.remove(TokenType.OPEN_BRACKET)
-                    expected.remove(TokenType.OPEN_PAREN)
-                except:
-                    pass
-            if isinstance(a.id, FnCall):
-                try:
-                    expected.remove(TokenType.OPEN_PAREN)
-                except:
-                    pass
-            self.expected_error(expected)
-            self.advance()
-            return None
-
-        self.advance()
-        if (res := self.parse_expression(LOWEST)) is None:
-            return None
-        a.value = res
-
-        if not self.expect_peek(TokenType.TERMINATOR):
-            added = self.error_context(a.value)
-            if not self.curr_tok_is_in(self.expected_prefix) or isinstance(a.value, Input):
-                added = self.expected_infix_special
-                if self.curr_tok_is_in([TokenType.STRING_LITERAL, TokenType.STRING_PART_END]) or isinstance(a.value, Input):
-                    added += [TokenType.CONCATENATION_OPERATOR]
-            self.expected_error([TokenType.TERMINATOR, *added])
-            self.advance()
             return None
         return a
 
