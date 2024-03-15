@@ -79,19 +79,25 @@ class StringFmt(Production):
         self.mid = []
         self.exprs = []
         self.end = None
+        self.concats = []
 
     def header(self):
         return "string fmt:"
     def child_nodes(self) -> None | dict[str, Production]:
-        return {"start":self.start, **{f"mid_{i+1}":m for i,m in enumerate(self.mid_expr_iter())}, "end":self.end}
+        return {"start":self.start, **{f"mid_{i+1}":m for i,m in enumerate(self.mid_expr_iter())}, "end":self.end, **{f"concat_{i+1}":c for i,c in enumerate(self.concats)}}
 
     def string(self, indent = 0):
         res = sprintln("string fmt:", indent=0)
         res += sprintln(self.start.string(), indent=indent+1)
         for val in self.mid_expr_iter():
             res += sprintln(val.string(), indent=indent+1)
-        res += sprint(self.end.string(), indent=indent+1)
-        return res if res[-1] != '\n' else res[:-1]
+        res += sprintln(self.end.string(), indent=indent+1)
+        if self.concats:
+            res += sprintln("concats:", indent=indent+1)
+            for c in self.concats[:-1]:
+                res += sprintln(c.string(indent=indent+2), indent=indent+2)
+            res += sprint(self.concats[-1].string(indent=indent+2), indent=indent+2)
+        return res
     def mid_expr_iter(self):
         if self.exprs:
             yield self.exprs[0]
@@ -362,15 +368,21 @@ class Print(Production):
 class Input(Production):
     def __init__(self):
         self.expr = None
+        self.concats = []
 
     def header(self):
-        return self.string()
+        return "input:"
 
     def child_nodes(self) -> None | dict[str, Production]:
-        return None
+        return {"expr":self.expr, **{f"concat_{i+1}":c for i,c in enumerate(self.concats)}}
 
-    def string(self, _ = 0):
-        return sprint("input:", self.expr.string(), indent=0)
+    def string(self, indent = 0):
+        res = sprintln("input:", indent=indent)
+        res += sprintln("expr:", self.expr.string(indent=indent+1), indent=indent+1)
+        for c in self.concats:
+            res += sprintln("concats:", indent=indent+1)
+            res += sprintln(c.string(indent=indent+2), indent=indent+2)
+        return res
 
     def __len__(self):
         return 1
