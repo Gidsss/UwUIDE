@@ -237,12 +237,15 @@ class ReturnStatement(Production):
         self.expr = None
 
     def header(self):
-        return self.string()
+        return "return"
     def child_nodes(self) -> None | dict[str, Production]:
-        return None
+        return {"val":self.expr}
 
     def string(self, indent = 0):
-        return sprintln("return", self.expr.string(indent), indent=indent)
+        res = sprintln("return", indent=indent)
+        if self.expr:
+            res += sprintln(self.expr.string(indent+1), indent=indent+1)
+        # return sprintln("return", self.expr.string(indent), indent=indent)
     def __len__(self):
         return 1
 
