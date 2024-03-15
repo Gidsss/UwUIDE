@@ -1304,10 +1304,16 @@ class Parser:
             str_lit = self.parse_literal()
         elif self.curr_tok_is(TokenType.INPWT):
             str_lit = self.parse_input()
+        else:
+            self.expected_error([TokenType.STRING_LITERAL, TokenType.STRING_PART_START,
+                                 TokenType.INPWT], curr=True)
+            self.advance()
+            return None
 
         if self.expect_peek(TokenType.CONCATENATION_OPERATOR):
             self.advance()
-            str_next = self.parse_gen_string()
+            if (str_next := self.parse_gen_string()) is None:
+                return None
             if isinstance(str_lit, Token) and isinstance(str_next, Token):
                 str_lit.lexeme = str_lit.lexeme[:-1] + str_next.lexeme[1:]
                 str_lit.end_position = str_next.end_position
