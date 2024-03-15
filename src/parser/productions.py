@@ -49,9 +49,9 @@ class InfixExpression(Production):
         self.op = None
         self.right = None
     def header(self):
-        return self.string()
+        return ""
     def child_nodes(self) -> None | dict[str, Production]:
-        return {"(":"", self.left:'', self.op:'', self.right:"", ")":""}
+        return {"left":self.left, "op":self.op, "right":self.right}
 
     def string(self, indent = 1):
         res = "\n"
