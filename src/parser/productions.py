@@ -49,12 +49,19 @@ class InfixExpression(Production):
         self.op = None
         self.right = None
     def header(self):
-        return self.string()
+        return ""
     def child_nodes(self) -> None | dict[str, Production]:
-        return None
+        return {"left":self.left, "op":self.op, "right":self.right}
 
-    def string(self, _ = 1):
-        return f'({self.left.string()} {self.op.string()} {self.right.string()})'
+    def string(self, indent = 1):
+        res = "\n"
+        res += sprintln("(", indent=indent)
+        res += sprintln(self.left.string(indent+1), indent=indent+1)
+        res += sprintln(self.op.string(indent+1), indent=indent+1)
+        res += sprintln(self.right.string(indent+1), indent=indent+1)
+        res += sprintln(")", indent=indent)
+        return res
+        # return f'({self.left.string()} {self.op.string()} {self.right.string()})'
     def __len__(self):
         return 1
 
@@ -94,9 +101,8 @@ class StringFmt(Production):
         res += sprintln(self.end.string(), indent=indent+1)
         if self.concats:
             res += sprintln("concats:", indent=indent+1)
-            for c in self.concats[:-1]:
+            for c in self.concats:
                 res += sprintln(c.string(indent=indent+2), indent=indent+2)
-            res += sprint(self.concats[-1].string(indent=indent+2), indent=indent+2)
         return res
     def mid_expr_iter(self):
         if self.exprs:
@@ -377,11 +383,12 @@ class Input(Production):
         return {"expr":self.expr, **{f"concat_{i+1}":c for i,c in enumerate(self.concats)}}
 
     def string(self, indent = 0):
-        res = sprintln("input:", indent=indent)
+        res = sprintln("input:", indent=0)
         res += sprintln("expr:", self.expr.string(indent=indent+1), indent=indent+1)
-        for c in self.concats:
+        if self.concats:
             res += sprintln("concats:", indent=indent+1)
-            res += sprintln(c.string(indent=indent+2), indent=indent+2)
+            for c in self.concats:
+                res += sprintln(c.string(indent=indent+2), indent=indent+2)
         return res
 
     def __len__(self):
