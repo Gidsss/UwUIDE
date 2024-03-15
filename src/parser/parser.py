@@ -150,7 +150,7 @@ class Parser:
 
         self.register_prefix_special(TokenType.OPEN_PAREN, self.parse_grouped_expressions)
         self.register_prefix_special(TokenType.OPEN_BRACE, self.parse_array)
-        self.register_prefix_special(TokenType.STRING_PART_START, self.parse_string_parts)
+        self.register_prefix_special(TokenType.STRING_PART_START, self.parse_gen_string)
 
         # literals (just returns curr_tok)
         self.register_prefix("IDENTIFIER", self.parse_ident)
@@ -161,12 +161,12 @@ class Parser:
 
         self.register_prefix_special("IDENTIFIER", self.parse_ident)
         self.register_prefix_special(TokenType.INT_LITERAL, self.parse_literal)
-        self.register_prefix_special(TokenType.STRING_LITERAL, self.parse_string)
+        self.register_prefix_special(TokenType.STRING_LITERAL, self.parse_gen_string)
         self.register_prefix_special(TokenType.FLOAT_LITERAL, self.parse_literal)
         self.register_prefix_special(TokenType.FAX, self.parse_literal)
         self.register_prefix_special(TokenType.CAP, self.parse_literal)
         self.register_prefix_special(TokenType.NUWW, self.parse_literal)
-        self.register_prefix_special(TokenType.INPWT, self.parse_input)
+        self.register_prefix_special(TokenType.INPWT, self.parse_gen_string)
 
         # infixes
         self.register_infix(TokenType.EQUALITY_OPERATOR, self.parse_infix_special_expression)
@@ -1298,14 +1298,24 @@ class Parser:
             return None
         sf.end = self.curr_tok
         return sf
-    def parse_string(self):
-        'returns the string literal with any other string literals if followed by concat'
-        str_lit = self.curr_tok
+    def parse_gen_string(self):
+        if self.curr_tok_is(TokenType.STRING_PART_START):
+            str_lit = self.parse_string_parts()
+        elif self.curr_tok_is(TokenType.STRING_LITERAL):
+            str_lit = self.parse_literal()
+        elif self.curr_tok_is(TokenType.INPWT):
+            str_lit = self.parse_input()
+
         if self.expect_peek(TokenType.CONCATENATION_OPERATOR):
             self.advance()
-            str_next = self.parse_string()
-            str_lit.lexeme = str_lit.lexeme[:-1] + str_next.lexeme[1:]
-            str_lit.end_position = str_next.end_position
+            str_next = self.parse_gen_string()
+            if isinstance(str_lit, Token) and isinstance(str_next, Token):
+                str_lit.lexeme = str_lit.lexeme[:-1] + str_next.lexeme[1:]
+                str_lit.end_position = str_next.end_position
+            elif isinstance(str_lit, Token):
+                str_next.concats.append(str_lit)
+            else:
+                str_lit.concats.append(str_next)
         return str_lit
 
     def parse_literal(self):
