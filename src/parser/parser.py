@@ -479,7 +479,6 @@ class Parser:
     def parse_params(self, main=False):
         'note that this must start with ( in peek_tok'
         parameters: list[Parameter] = []
-        param = Parameter()
 
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
@@ -494,6 +493,7 @@ class Parser:
                 return None
 
             while True:
+                param = Parameter()
                 if not self.expect_peek_is_identifier():
                     self.no_ident_in_param_error(self.peek_tok)
                     self.advance(2)
