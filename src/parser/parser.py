@@ -942,6 +942,7 @@ class Parser:
         if postfix is not None:
             left_exp = postfix(left_exp)
 
+        operand_count = 1
         while not self.peek_tok_is_in([TokenType.TERMINATOR, TokenType.EOF]) and precedence < self.peek_precedence():
             if not special or isinstance(left_exp, InfixExpression):
                 infix = self.get_infix_parse_fn(self.peek_tok.token)
@@ -961,6 +962,13 @@ class Parser:
 
             self.advance()
             left_exp = infix(left_exp)
+            operand_count += 1
+
+        if grouped and operand_count < 2:
+            self.advance()
+            self.expected_error([TokenType.CLOSE_PAREN, *self.error_context(left_exp)], curr=True)
+            self.advance(2)
+            return None
 
         postfix = self.get_postfix_parse_fn(self.curr_tok.token)
         if postfix is not None:
