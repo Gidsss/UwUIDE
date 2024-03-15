@@ -161,7 +161,7 @@ class Parser:
 
         self.register_prefix_special("IDENTIFIER", self.parse_ident)
         self.register_prefix_special(TokenType.INT_LITERAL, self.parse_literal)
-        self.register_prefix_special(TokenType.STRING_LITERAL, self.parse_literal)
+        self.register_prefix_special(TokenType.STRING_LITERAL, self.parse_string)
         self.register_prefix_special(TokenType.FLOAT_LITERAL, self.parse_literal)
         self.register_prefix_special(TokenType.FAX, self.parse_literal)
         self.register_prefix_special(TokenType.CAP, self.parse_literal)
@@ -1290,6 +1290,16 @@ class Parser:
             return None
         sf.end = self.curr_tok
         return sf
+    def parse_string(self):
+        'returns the string literal with any other string literals if followed by concat'
+        str_lit = self.curr_tok
+        if self.expect_peek(TokenType.CONCATENATION_OPERATOR):
+            self.advance()
+            str_next = self.parse_string()
+            str_lit.lexeme = str_lit.lexeme[:-1] + str_next.lexeme[1:]
+            str_lit.end_position = str_next.end_position
+        return str_lit
+
     def parse_literal(self):
         'returns the current token'
         return self.curr_tok
