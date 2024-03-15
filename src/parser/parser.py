@@ -881,9 +881,14 @@ class Parser:
         self.advance()
         stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
         while not self.curr_tok_is_in(stop_conditions):
-            if (res := self.parse_expression(LOWEST)) is None:
-                return None
-            p.values.append(res)
+            if self.curr_tok_is_class_name():
+                if (res := self.parse_class_ident()) is None:
+                    return None
+                p.values.append(res)
+            else:
+                if (res := self.parse_expression(LOWEST)) is None:
+                    return None
+                p.values.append(res)
             if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
                 break
             self.advance()
