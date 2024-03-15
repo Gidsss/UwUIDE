@@ -147,16 +147,15 @@ class FnCall(Production):
         self.args = []
 
     def header(self):
-        return sprint("call:", self.id.string(),
-                        f'({", ".join([a.string() for a in self.args])})',
-                        indent=0)
+        return sprint("call:", self.id.string(),indent=0)
     def child_nodes(self) -> None | dict[str, Production]:
-        return None
+        return {**{f"arg_{i+1}":a for i,a in enumerate(self.args)}}
 
-    def string(self, _ = 1):
-        return sprint("call:", self.id.string(),
-                      f'({", ".join([a.string() for a in self.args])})',
-                      indent=0)
+    def string(self, indent = 1):
+        res = sprintln("call:", self.id.string(),indent=0)
+        for a in self.args:
+            res += sprintln(a.string(indent=indent+1), indent=indent+1)
+        return res
     def __len__(self):
         return 1
 
@@ -190,16 +189,15 @@ class ClassConstructor(Production):
         self.args = []
 
     def header(self):
-        return sprint("constructor:", self.id.string(),
-                        f'({", ".join([a.string() for a in self.args])})',
-                        indent=0)
+        return sprint("constructor:", self.id.string(),indent=0)
     def child_nodes(self) -> None | dict[str, Production]:
-        return None
+        return {**{f"arg_{i+1}":a for i,a in enumerate(self.args)}}
 
-    def string(self, _ = 1):
-        return sprint("constructor:", self.id.string(),
-                      f'({", ".join([a.string() for a in self.args])})',
-                      indent=0)
+    def string(self, indent = 1):
+        res = sprintln("constructor:", self.id.string(),indent=0)
+        for a in self.args:
+            res += sprintln(a.string(indent=indent+1), indent=indent+1)
+        return res
     def __len__(self):
         return 1
 
