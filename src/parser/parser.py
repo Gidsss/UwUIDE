@@ -6,6 +6,7 @@ TODOS:
 PLEASE READ!
 Headers are prepended by '###' so just search for that
 
+
 Overview:
 1. Statements: can be declarations, expressions, or block statements
 
@@ -950,7 +951,6 @@ class Parser:
             else:
                 infix = self.get_infix_special_parse_fn(self.peek_tok.token)
                 expecteds = self.expected_infix_special
-
             expecteds += [TokenType.STRING_PART_MID, TokenType.STRING_PART_END] if strfmt else []
             expecteds += [TokenType.COMMA, TokenType.CLOSE_BRACE] if array else []
             expecteds += [TokenType.COMMA, TokenType.CLOSE_PAREN] if func else []
@@ -973,7 +973,7 @@ class Parser:
         postfix = self.get_postfix_parse_fn(self.curr_tok.token)
         if postfix is not None:
             left_exp = postfix(left_exp)
-
+        
         return left_exp
     # PLEASE USE self.parse_expression(precedence)
     # to use the 4 methods below in other parsers.
@@ -1305,10 +1305,16 @@ class Parser:
             str_lit = self.parse_literal()
         elif self.curr_tok_is(TokenType.INPWT):
             str_lit = self.parse_input()
+        else:
+            self.expected_error([TokenType.STRING_LITERAL, TokenType.STRING_PART_START,
+                                 TokenType.INPWT], curr=True)
+            self.advance()
+            return None
 
         if self.expect_peek(TokenType.CONCATENATION_OPERATOR):
             self.advance()
-            str_next = self.parse_gen_string()
+            if (str_next := self.parse_gen_string()) is None:
+                return None
             if isinstance(str_lit, Token) and isinstance(str_next, Token):
                 str_lit.lexeme = str_lit.lexeme[:-1] + str_next.lexeme[1:]
                 str_lit.end_position = str_next.end_position
@@ -1463,9 +1469,15 @@ class Parser:
             return False
     def curr_tok_is_in(self, token_types: list[TokenType]) -> bool:
         'checks if the current token is in the list of token types.'
+        if "IDENTIFIER" in token_types and self.curr_tok_is_identifier() or (
+            "CWASS_ID" in token_types and self.curr_tok_is_class_name()):
+            return True
         return self.curr_tok.token in token_types
     def peek_tok_is_in(self, token_types: list[TokenType]) -> bool:
         'checks if the next token is in the list of token types.'
+        if "IDENTIFIER" in token_types and self.curr_tok_is_identifier() or (
+            "CWASS_ID" in token_types and self.curr_tok_is_class_name()):
+            return True
         return self.peek_tok.token in token_types
     def expect_peek_in(self, token_types: list[TokenType]) -> bool:
         '''
@@ -1473,7 +1485,10 @@ class Parser:
         advances the cursor if it is.
         cursor won't advance if not.
         '''
-        if self.peek_tok_is_in(token_types):
+        if self.peek_tok_is_in(token_types) or (
+            "IDENTIFIER" in token_types and self.curr_tok_is_identifier() or (
+                "CWASS_ID" in token_types and self.curr_tok_is_class_name()
+            )):
             self.advance()
             return True
         else:
