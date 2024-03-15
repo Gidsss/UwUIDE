@@ -246,6 +246,7 @@ class ReturnStatement(Production):
         if self.expr:
             res += sprintln(self.expr.string(indent+1), indent=indent+1)
         # return sprintln("return", self.expr.string(indent), indent=indent)
+        return res
     def __len__(self):
         return 1
 
