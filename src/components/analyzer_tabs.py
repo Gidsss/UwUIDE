@@ -35,10 +35,11 @@ class UwUParserTab(CTkScrollableFrame):
             
             node_iid = uuid.uuid4()
 
-            self.tree.insert(parent, 'end', iid=node_iid, text=f"{key}: {node.header()}" if key else node.header())
+            self.tree.insert(parent, 'end', iid=node_iid, text=f"{key}: {node.header()}" if key else node.header(), open=True)
 
             for k, v in node.child_nodes().items():
                 if v and not isinstance(v, Production):
+                    print(v)
                     self.tree.insert(node_iid, 'end', text=f"{k}: {v}")
                 elif v:
                     loop_tree(node=v, parent=node_iid, key=k)
@@ -46,21 +47,21 @@ class UwUParserTab(CTkScrollableFrame):
         self.clear_parser_tree()
 
         if(program.mainuwu):
-            self.tree.insert('', 'end', text='Mainuwu', iid=0, open=False)
+            self.tree.insert('', 'end', text='Mainuwu', iid=0, open=True)
             loop_tree(node=program.mainuwu, parent='0')
         
         if(len(program.functions) > 0):
-            self.tree.insert('', 'end', text='Functions', iid=1, open=False)
+            self.tree.insert('', 'end', text='Functions', iid=1, open=True)
             for fn in program.functions:
                 loop_tree(node=fn, parent='1')
         
         if(len(program.globals) > 0):
-            self.tree.insert('', 'end', text='Globals', iid=2, open=False)
+            self.tree.insert('', 'end', text='Globals', iid=2, open=True)
             for g in program.globals:
                 loop_tree(node=g, parent='2')
 
         if(len(program.classes) > 0):
-            self.tree.insert('', 'end', text='Classes', iid=3, open=False)
+            self.tree.insert('', 'end', text='Classes', iid=3, open=True)
             for c in program.classes:
                 loop_tree(node=c, parent='3')
 
