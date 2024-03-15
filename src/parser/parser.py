@@ -326,9 +326,15 @@ class Parser:
             self.advance()
             return None
 
-        if (res := self.parse_expression(LOWEST)) is None:
-            return None
-        d.value = res
+        if self.curr_tok_is_class_name():
+            if (res := self.parse_class_ident()) is None:
+                return None
+            d.value = res
+        else:
+            if (res := self.parse_expression(LOWEST)) is None:
+                return None
+            d.value = res
+
         if not self.expect_peek(TokenType.TERMINATOR):
             added = self.error_context(d.value)
             if not self.curr_tok_is_in(self.expected_prefix) or isinstance(d.value, Input):
@@ -479,7 +485,6 @@ class Parser:
     def parse_params(self, main=False):
         'note that this must start with ( in peek_tok'
         parameters: list[Parameter] = []
-        param = Parameter()
 
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
@@ -494,6 +499,7 @@ class Parser:
                 return None
 
             while True:
+                param = Parameter()
                 if not self.expect_peek_is_identifier():
                     self.no_ident_in_param_error(self.peek_tok)
                     self.advance(2)
@@ -875,9 +881,14 @@ class Parser:
         self.advance()
         stop_conditions = [TokenType.CLOSE_PAREN, TokenType.TERMINATOR, TokenType.EOF]
         while not self.curr_tok_is_in(stop_conditions):
-            if (res := self.parse_expression(LOWEST)) is None:
-                return None
-            p.values.append(res)
+            if self.curr_tok_is_class_name():
+                if (res := self.parse_class_ident()) is None:
+                    return None
+                p.values.append(res)
+            else:
+                if (res := self.parse_expression(LOWEST)) is None:
+                    return None
+                p.values.append(res)
             if not self.expect_peek(TokenType.COMMA) and not self.peek_tok_is_in(stop_conditions):
                 break
             self.advance()
