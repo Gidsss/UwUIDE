@@ -326,9 +326,15 @@ class Parser:
             self.advance()
             return None
 
-        if (res := self.parse_expression(LOWEST)) is None:
-            return None
-        d.value = res
+        if self.curr_tok_is_class_name():
+            if (res := self.parse_class_ident()) is None:
+                return None
+            d.value = res
+        else:
+            if (res := self.parse_expression(LOWEST)) is None:
+                return None
+            d.value = res
+
         if not self.expect_peek(TokenType.TERMINATOR):
             added = self.error_context(d.value)
             if not self.curr_tok_is_in(self.expected_prefix) or isinstance(d.value, Input):
