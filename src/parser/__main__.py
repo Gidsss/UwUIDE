@@ -1,32 +1,11 @@
 from .parser import *
 from ..lexer import Lexer
-from ..lexer import print_lex
 from .error_handler import ErrorSrc
 
 if __name__ == "__main__":
     sc = """
     fwunc mainuwu-san() [[
-        iwf (fax) [[
-            a-san[] = 20~
-        ]] ewse iwf (4 == 5) [[
-            aqua-sama = 6~
-            shion-sama = 6~
-            ojou-sama = 6~
-        ]] ewse iwf (7 == 8) [[
-            aqua-sama = 9~
-            shion-sama = 9~
-            ojou-sama = 9~
-        ]] ewse iwf (10 == 11) [[
-            aqua-sama = 12~
-            shion-sama = 12~
-            ojou-sama = 12~
-        ]] ewse [[
-            iwf (1 == 2) [[
-                sora-senpai = "nested!"~
-            ]] ewse [[
-                sora-senpai = "if statements!"~
-            ]]
-        ]]
+        a = s( } )~
     ]]
     """
 
@@ -43,16 +22,14 @@ if __name__ == "__main__":
 
     l = Lexer(source)
     if l.errors:
+        for err in l.errors:
+            print(err)
         exit(1)
 
     ErrorSrc.src = source
     p = Parser(l.tokens)
     print()
-    for err in p.errors:
-        print(err)
 
-    print("--- Printing Whole Program ---")
-    print(p.program)
     print("\n--- Printing only Main Function ---")
     print(p.program.mainuwu_string())
     print("\n--- Printing only Global Declarations ---")
@@ -63,4 +40,6 @@ if __name__ == "__main__":
     print(p.program.classes_string())
 
     if p.errors:
+        for err in p.errors:
+            print(err)
         exit(1)

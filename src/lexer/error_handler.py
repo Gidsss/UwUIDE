@@ -124,6 +124,7 @@ class DelimError:
 
         for delim in self.expected_delims:
             delim = delim if delim != " " else "WHITESPACE"
+            delim = delim if delim != "\n" else "NEWLINE"
             log += f"{delim} "
         log += f"\n\tafter {self.temp_id} but got {self.actual_delim if self.actual_delim != ' ' else 'WHITESPACE'} instead\n"
 
