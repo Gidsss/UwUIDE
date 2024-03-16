@@ -3,6 +3,7 @@ from tkinter import *
 from constants.path import *
 
 from src.lexer import Lexer, Token, Error
+from src.parser import Parser, ErrorSrc
 
 from enum import Enum
 from PIL import Image
@@ -69,12 +70,15 @@ class Tags(Enum):
 
 
 class CodeEditor(CTkFrame):
-    def __init__(self, master, lexer: Lexer, **kwargs):
+    def __init__(self, master, lexer: Lexer, parser: Parser, **kwargs):
         super().__init__(master, **kwargs)
 
         self.lexer = lexer
+        self.parser = parser
         self.tokens: list[Token] = []
-        self.errors: list[Error] = []
+        self.program = None
+        self.lx_errors: list[Error] = []
+        self.p_errors: list[Error] = []
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=25)
@@ -87,20 +91,30 @@ class CodeEditor(CTkFrame):
         self.line_nums.grid(row=0, column=0, sticky='nsew')
         
         self.text.bind("<Button-1>", lambda e: self.line_nums.on_redraw(e))
+        self.text.bind("<Up>", lambda e: self.line_nums.on_redraw(e))
+        self.text.bind("<Down>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<Tab>", lambda e: self.on_tab(e))
         self.text.bind("<FocusIn>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<Return>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<BackSpace>", lambda e: self.line_nums.on_redraw(e))
+        self.text.bind("<Visibility>", lambda e: self.line_nums.on_redraw(e))
 
         self.text.bind("<Control-c>", lambda e: self.copy_text(e))
         self.text.bind("<Control-v>", lambda e: self.paste_text(e))
         self.text.bind("<Control-z>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<Control-y>", lambda e: self.line_nums.on_redraw(e)) 
          
+        # Initialize QoL text for untitled code editor
+        self.init_text()
  
         # Initialize tags
         for tag in Tags:
             self.text.tag_config(tag.name, **tag.options)
+
+
+    def init_text(self):
+        initial_text = ">.< global declarations\n\nfwunc mainuwu-san() [[\n\n]]\n\n>.< global declarations" # For QoL Purposes
+        self.text.insert('1.0', initial_text)
 
     def init_linenums(self):
         self.text.focus_set()
@@ -110,14 +124,30 @@ class CodeEditor(CTkFrame):
         return 'break'
 
     def run_lexer(self):
-        source_code = [v if v else v + '\n' for v in self.text.get('1.0', 'end-1c').split('\n')]
-        print(source_code)
-        lx: Lexer = self.lexer(source_code)
+        self.source_code = [v if v else v + '\n' for v in self.text.get('1.0', 'end-1c').split('\n')]
+        lx: Lexer = self.lexer(self.source_code)
 
         self.tokens = lx.tokens
-        self.errors = lx.errors
+        self.lx_errors = lx.errors
+
+        if(len(self.lx_errors) > 0 and self.program):
+            self.program = None
+            self.p_errors = []
 
         Remote.code_editor_instance = self
+
+    def run_parser(self):
+        if len(self.lx_errors) > 0:
+            return
+        
+        ErrorSrc.src = self.source_code
+        p: Parser = self.parser(self.tokens)
+        self.program = p.program
+
+        if p.errors:
+            self.p_errors = p.errors
+        else:
+            self.p_errors = []
 
     def format(self, tag: str, start_pos: tuple[int, int], end_pos: tuple[int, int] = None):
         """
@@ -195,15 +225,16 @@ class CodeView(CTkTabview):
         
         for file in self.file_names:
             self.create_new_tab(file)
+            self.bind_esc(editor=self.code_editors[file], file_name=file)
     
     def create_new_tab(self, file_name):
         tab = self.add(file_name)
         tab.grid_columnconfigure((0, 1), weight=1)
         tab.grid_rowconfigure((0, 1), weight=1)
 
-        code_editor = CodeEditor(master=tab, fg_color='transparent', lexer=Lexer)
+        code_editor = CodeEditor(master=tab, fg_color='transparent', lexer=Lexer, parser=Parser)
         code_editor.grid(row=0, column=0, rowspan=2, columnspan=2, sticky='nsew')
-
+        self.bind_esc(editor=code_editor, file_name=file_name)
         self.code_editors[file_name] = code_editor
         
         # Pop up on right click
@@ -243,6 +274,9 @@ class CodeView(CTkTabview):
                 self.code_editors[file_name].text.delete('1.0', 'end-1c')
                 self.code_editors[file_name].text.insert('1.0', file_content)
             self.editor.init_linenums()
+    
+    def bind_esc(self, editor: CodeEditor, file_name: str):
+        editor.text.bind("<Escape>", lambda e: self.remove_tab(file_name))
 
     @property
     def editor(self) -> CodeEditor:
