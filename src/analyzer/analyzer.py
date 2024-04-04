@@ -1,15 +1,7 @@
 from enum import Enum
+from src.analyzer.error_handler import DuplicateDefinitionError, GlobalType
 from src.parser.productions import *
 
-class GlobalName(Enum):
-    def __init__(self, name):
-        self._name = name
-    def __str__(self):
-        return self._name
-
-    IDENTIFIER = "IDENTIFIER"
-    FUNCTION = "FUNCTION"
-    CLASS = "CLASS"
 
 class MemberAnalyzer:
     def __init__(self, program: Program | None) -> None:
@@ -20,7 +12,7 @@ class MemberAnalyzer:
         self.errors = []
         self.warnings = []
 
-        self.global_names: dict[str, GlobalName] = {}
+        self.global_names: dict[str, tuple[Token, GlobalType]] = {}
         self.analyze_program()
 
     def analyze_program(self) -> None:
