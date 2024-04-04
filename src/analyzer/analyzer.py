@@ -1,7 +1,5 @@
-from enum import Enum
 from src.analyzer.error_handler import DuplicateDefinitionError, GlobalType
 from src.parser.productions import *
-
 
 class MemberAnalyzer:
     def __init__(self, program: Program | None) -> None:
@@ -36,16 +34,18 @@ class MemberAnalyzer:
                 ))
             except KeyError:
                 self.global_names[func.id.string()] = (func.id, GlobalType.FUNCTION)
-        for cls in self.program.classes:
+        self.analyze_functions()
+        for cwass in self.program.classes:
             try:
-                self.global_names[cls.id.string()]
+                self.global_names[cwass.id.string()]
                 self.errors.append(DuplicateDefinitionError(
-                    *self.global_names[cls.id.string()],
-                    cls.id,
+                    *self.global_names[cwass.id.string()],
+                    cwass.id,
                     GlobalType.CLASS,
                 ))
             except KeyError:
-                self.global_names[cls.id.string()] = (cls.id, GlobalType.CLASS)
+                self.global_names[cwass.id.string()] = (cwass.id, GlobalType.CLASS)
+        self.analyze_classes()
 
     def analyze_functions(self) -> None:
         raise NotImplementedError

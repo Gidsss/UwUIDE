@@ -18,7 +18,10 @@ if __name__ == "__main__":
         b-senpai = 10~
         c-chan = 100~
     ]]
-    fwunc areallylongname-chan() [[
+    fwunc sum-chan() [[
+        wetuwn("unimplemented")~
+    ]]
+    fwunc sum-chan() [[
         wetuwn("unimplemented")~
     ]]
     """
