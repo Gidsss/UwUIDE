@@ -25,7 +25,8 @@ class CommandMenu(CTkFrame):
             master=self,
             image=self.runBgImage,
             fg_color='#1A1B26',
-            text='',
+            text='Run',
+            font=('JetBrains Mono', 12),
             width=99,
             height=30,
             command=lambda : self.parent.on_compiler_run(code_editor=self.code_view.editor)
@@ -37,7 +38,8 @@ class CommandMenu(CTkFrame):
             master=self,
             image=self.saveBgImage,
             fg_color='#1A1B26',
-            text='',
+            text='Save',
+            font=('JetBrains Mono', 12),
             width=99,
             height=30,
             command=self.code_view.save_file # Set the command to trigger file saving
@@ -49,7 +51,8 @@ class CommandMenu(CTkFrame):
             master=self,
             image=self.loadBgImage,
             fg_color='#1A1B26',
-            text='',
+            text='Import',
+            font=('JetBrains Mono', 12),
             width=99,
             height=30,
             command=self.code_view.load_file # Set the command to trigger file loading

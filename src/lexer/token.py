@@ -22,13 +22,15 @@ class TokenType(Enum):
 
     def __str__(self):
         return self.token
+    def string(self, indent = 1):
+        return self.__str__()
+    def header(self):
+        return self.token
 
     def __format__(self, format_spec):
         return str.__format__(str(self), format_spec)
 
     # GENERAL KEYWORDS
-    START = ("staart!", "start_done")
-    DONE = ("donee~", "start_done")
     MAINUWU = ("mainuwu", "mainuwu")
     FWUNC = ("fwunc", "whitespace")
     CWASS = ("cwass", "whitespace")
@@ -106,6 +108,7 @@ class TokenType(Enum):
     SINGLE_LINE_COMMENT = ("COMMENT", "single_line_comment")
     MULTI_LINE_COMMENT = ("MULTI LINE COMMENT", "line")
     WHITESPACE = ("WHITESPACE", "all")
+    EOF = ("EOF", "all")
 
 class UniqueTokenType:
     """
@@ -163,7 +166,14 @@ class Token:
         self._end_position = end_position
 
     def __repr__(self):
-        return f"Token(lexeme='{self.lexeme}', token='{self.token}', position={self.position}, end_position={self.end_position})"
+        return self._lexeme
+    def __str__(self):
+        return self._lexeme
+    def string(self, indent = 1):
+        return self._lexeme
+    def header(self):
+        return self._lexeme
+
 
     @property
     def lexeme(self) -> str:
@@ -174,11 +184,11 @@ class Token:
         self._lexeme = lexeme
 
     @property
-    def token(self) -> str:
+    def token(self) -> TokenType:
         return self._token
 
     @token.setter
-    def token(self, token: str):
+    def token(self, token: TokenType):
         self._token = token
 
     @property

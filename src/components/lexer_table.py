@@ -38,6 +38,14 @@ class LexerTable(CTkFrame):
 
             self.lexemes_labels.append(lexeme_label)
             self.token_labels.append(token_label)
+    
+    def delete_labels(self):
+        if(len(self.lexemes_labels) > 0 and len(self.token_labels) > 0):
+            for i in range(len(self.lexemes_labels)):
+                self.lexemes_labels[i].destroy()
+                self.token_labels[i].destroy()
+            self.lexemes_labels = []
+            self.token_labels = []
 
     def on_hover(self, token):
         self.code_editor.format(Tags.TOKEN_HIGHLIGHT.name, tuple(token.position), tuple(token.end_position))
@@ -52,6 +60,8 @@ class LexerCanvas(CTkCanvas):
         super().__init__(master, **kwargs)
         CTkCanvas.__init__(self, master=master, width=16, borderwidth=0, highlightthickness=0, bg='#1A1B26')
 
+        self.table: LexerTable | None = None
+
         self.grid_columnconfigure((0, 1), weight=1)
 
         self.render_table()
@@ -64,6 +74,10 @@ class LexerCanvas(CTkCanvas):
         )
         self.lexer_table.grid(row=0, column=0, rowspan=2, columnspan=2, sticky='nsew')
 
+        self.table = self.lexer_table
+
     def update_lexer(self, tokens: list[Token]):
-        self.delete('all')
+        if self.table:
+            self.table.delete_labels()
+
         self.render_table(tokens=tokens)

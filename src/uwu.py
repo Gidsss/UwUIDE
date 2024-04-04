@@ -1,4 +1,5 @@
 from customtkinter import *
+from tkinter import *
 
 from .components.code_view import CodeView, CodeEditor
 from .components.console_view import ConsoleView
@@ -6,6 +7,8 @@ from .components.command_menu import CommandMenu
 from .components.analyzer_tabs import UwULexerTab, UwUParserTab
 from .components.welcome_window import WelcomeWindow
 from constants.path import *
+
+FontManager.load_font('./assets/font/JetBrainsMono/JetBrainsMono-Regular.ttf')
 
 class UwUCodePanel(CTkFrame):
     def __init__(self, master, **kwargs):
@@ -30,6 +33,7 @@ class UwUCodePanel(CTkFrame):
         
         self.console_view = ConsoleView(
             master=self,
+            editor=self.code_view.editor,
             fg_color='transparent',
             bg_color='transparent',
             corner_radius=8,
@@ -50,7 +54,8 @@ class UwUCodePanel(CTkFrame):
         )
         self.command_menu.grid(row=0, columnspan=4, sticky='nsew', pady=8)
 
-        self.update_console_logs = self.console_view.update_logs
+        self.update_error_logs = self.console_view.update_error_logs
+        self.update_compiler_logs = self.console_view.update_compiler_logs
 
 class UwuAnalyzerPanel(CTkTabview):
     def __init__(self, master, **kwargs):
@@ -72,13 +77,15 @@ class UwuAnalyzerPanel(CTkTabview):
         self.parser_tab_content.grid(row=0, column=0, rowspan=2, columnspan=2, sticky='nsew')
 
         self.update_lexer = self.lexer_tab_content.update_lexer
+        self.update_parser_tree = self.parser_tab_content.update_parser_tree
+        self.clear_parser_tree = self.parser_tab_content.clear_parser_tree
 
 class UwU(CTk):
     def __init__(self):
         super().__init__()     
         self.geometry("1280x720+200+60")
         self.resizable(False, False)
-        self.title("UwU++")
+        self.title("UwU++ by SenPys")
         self.configure(fg_color='#16161E')
         self.iconbitmap(f"{ICON_BLACK_ASSET}")
 
@@ -108,10 +115,31 @@ class UwU(CTk):
         )
         self.analyzer_panel.grid(row=0, column=4, rowspan=5, columnspan=2, sticky='nsew')
 
+        self.bind("<KeyPress>", lambda e : self.run(e))
+        self.bind("<Control-s>", lambda _ : self.code_panel.code_view.save_file())
+        self.bind("<Control-o>", lambda _ : self.code_panel.code_view.load_file())
+
+    def run(self, e: Event):
+        if e.keysym != 'F5':
+            return
+        
+        self.on_compiler_run(code_editor=self.code_panel.code_view.editor)
+
     def on_compiler_run(self, code_editor: CodeEditor):
         code_editor.run_lexer()
+        code_editor.run_parser()
         self.analyzer_panel.update_lexer(tokens=code_editor.tokens)
-        self.code_panel.update_console_logs(errors=code_editor.errors)
+        
+        if code_editor.program:
+            self.analyzer_panel.update_parser_tree(program=code_editor.program)
+
+        self.code_panel.update_compiler_logs(editor=code_editor)
+
+        if len(code_editor.lx_errors) > 0:
+            self.analyzer_panel.clear_parser_tree()
+            self.code_panel.update_error_logs(errors=code_editor.lx_errors)
+        else:
+            self.code_panel.update_error_logs(errors=code_editor.p_errors)
         
 if __name__ == "__main__":
     app = UwU()  
