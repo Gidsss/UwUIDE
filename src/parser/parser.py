@@ -1469,9 +1469,15 @@ class Parser:
             return False
     def curr_tok_is_in(self, token_types: list[TokenType]) -> bool:
         'checks if the current token is in the list of token types.'
+        if "IDENTIFIER" in token_types and self.curr_tok_is_identifier() or (
+            "CWASS_ID" in token_types and self.curr_tok_is_class_name()):
+            return True
         return self.curr_tok.token in token_types
     def peek_tok_is_in(self, token_types: list[TokenType]) -> bool:
         'checks if the next token is in the list of token types.'
+        if "IDENTIFIER" in token_types and self.curr_tok_is_identifier() or (
+            "CWASS_ID" in token_types and self.curr_tok_is_class_name()):
+            return True
         return self.peek_tok.token in token_types
     def expect_peek_in(self, token_types: list[TokenType]) -> bool:
         '''
@@ -1479,7 +1485,10 @@ class Parser:
         advances the cursor if it is.
         cursor won't advance if not.
         '''
-        if self.peek_tok_is_in(token_types):
+        if self.peek_tok_is_in(token_types) or (
+            "IDENTIFIER" in token_types and self.curr_tok_is_identifier() or (
+                "CWASS_ID" in token_types and self.curr_tok_is_class_name()
+            )):
             self.advance()
             return True
         else:
