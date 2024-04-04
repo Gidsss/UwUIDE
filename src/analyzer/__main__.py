@@ -1,3 +1,4 @@
+from .analyzer import MemberAnalyzer
 from src.lexer import Lexer
 from src.parser import Parser
 from src.parser.error_handler import ErrorSrc
@@ -40,5 +41,11 @@ if __name__ == "__main__":
     p = Parser(l.tokens)
     if p.errors:
         for err in p.errors:
+            print(err)
+        exit(1)
+
+    ma = MemberAnalyzer(p.program)
+    if ma.errors:
+        for err in ma.errors:
             print(err)
         exit(1)
