@@ -19,30 +19,36 @@ class MemberAnalyzer:
         for global_dec in self.program.globals:
             try:
                 self.global_names[global_dec.id.string()]
-                self.duplicate_global_error(global_dec.id, GlobalName.IDENTIFIER)
+                self.errors.append(DuplicateDefinitionError(
+                    *self.global_names[global_dec.id.string()],
+                    global_dec.id,
+                    GlobalType.IDENTIFIER,
+                ))
             except KeyError:
-                self.global_names[global_dec.id.string()] = GlobalName.IDENTIFIER
+                self.global_names[global_dec.id.string()] = (global_dec.id, GlobalType.IDENTIFIER)
         for func in self.program.functions:
             try:
                 self.global_names[func.id.string()]
-                self.duplicate_global_error(func.id, GlobalName.FUNCTION)
+                self.errors.append(DuplicateDefinitionError(
+                    *self.global_names[func.id.string()],
+                    func.id,
+                    GlobalType.FUNCTION,
+                ))
             except KeyError:
-                self.global_names[func.id.string()] = GlobalName.FUNCTION
+                self.global_names[func.id.string()] = (func.id, GlobalType.FUNCTION)
         for cls in self.program.classes:
             try:
                 self.global_names[cls.id.string()]
-                self.duplicate_global_error(cls.id, GlobalName.CLASS)
+                self.errors.append(DuplicateDefinitionError(
+                    *self.global_names[cls.id.string()],
+                    cls.id,
+                    GlobalType.CLASS,
+                ))
             except KeyError:
-                self.global_names[cls.id.string()] = GlobalName.CLASS
+                self.global_names[cls.id.string()] = (cls.id, GlobalType.CLASS)
 
     def analyze_functions(self) -> None:
         raise NotImplementedError
 
     def analyze_classes(self) -> None:
         raise NotImplementedError
-
-    def duplicate_global_error(self, name: Token, dupe: GlobalName) -> None:
-        msg = f"Duplicate global: {name}\n"
-        msg += f"\tDefined as {self.global_names[name.string()]}\n"
-        msg += f"\ttried to redefine as {('another ' if dupe == self.global_names[name.string()] else '') + dupe.name}\n"
-        self.errors.append(msg)
