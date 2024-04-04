@@ -84,6 +84,15 @@ def parser(ct: ConsoleTools) -> None:
     print('Running parser package...')
     ct.run_subprocess([sys.executable, '-m'], 'src.parser')
 
+def analyzer(ct: ConsoleTools) -> None:
+    """
+    This function can run analyzer package.
+
+    uwu analyzer
+    """
+    print('Running analyzer package...')
+    ct.run_subprocess([sys.executable, '-m'], 'src.analyzer')
+
 # Run IDE
 def build(ct: ConsoleTools) -> None:      
     """
