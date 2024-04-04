@@ -1,12 +1,13 @@
+from .error_handler import ErrorSrc
 from .analyzer import MemberAnalyzer
 from src.lexer import Lexer
 from src.parser import Parser
-from src.parser.error_handler import ErrorSrc
+from src.parser.error_handler import ErrorSrc as parErrorSrc
 
 if __name__ == "__main__":
     sc = """
-    gwobaw pi-kun-dono = 3.14~
-    gwobaw pi-kun-dono = 3.14~
+    gwobaw areallylongname-kun-dono = 3.14~
+    gwobaw areallylongname-kun-dono = 3.14~
     cwass Hololive() [[
         fwunc init-san() [[
             wetuwn(1)~
@@ -17,7 +18,7 @@ if __name__ == "__main__":
         b-senpai = 10~
         c-chan = 100~
     ]]
-    fwunc pi-chan() [[
+    fwunc areallylongname-chan() [[
         wetuwn("unimplemented")~
     ]]
     """
@@ -37,13 +38,14 @@ if __name__ == "__main__":
         for err in l.errors:
             print(err)
         exit(1)
-    ErrorSrc.src = source
+    parErrorSrc.src = source
     p = Parser(l.tokens)
     if p.errors:
         for err in p.errors:
             print(err)
         exit(1)
 
+    ErrorSrc.src = source
     ma = MemberAnalyzer(p.program)
     if ma.errors:
         for err in ma.errors:
