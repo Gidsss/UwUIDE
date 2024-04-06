@@ -112,12 +112,12 @@ class MemberAnalyzer:
                 case Collection():
                     self.analyze_collection(arg, local_defs)
                 case Token():
-                    self.analyze_token(arg, local_defs)
+                    self.expect_defined_token(arg, local_defs)
 
     def analyze_return(self, ret: ReturnStatement, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         match ret.expr:
             case Token():
-                self.analyze_token(ret.expr, local_defs)
+                self.expect_defined_token(ret.expr, local_defs)
             case Expression():
                 self.analyze_expression(ret.expr, local_defs)
             case IdentifierProds():
@@ -133,14 +133,14 @@ class MemberAnalyzer:
             case IndexedIdentifier():
                 match ident_prod.id:
                     case Token():
-                        self.analyze_token(ident_prod.id, local_defs)
+                        self.expect_defined_token(ident_prod.id, local_defs)
                     case FnCall():
                         raise NotImplementedError
                 self.analyze_array_indices(ident_prod.index, local_defs)
             case FnCall():
                 match ident_prod.id:
                     case Token():
-                        self.analyze_token(ident_prod.id, local_defs)
+                        self.expect_defined_token(ident_prod.id, local_defs)
                 self.analyze_args(ident_prod.args, local_defs)
             case ClassConstructor():
                 self.analyze_args(ident_prod.args, local_defs)
@@ -148,7 +148,7 @@ class MemberAnalyzer:
                 if access_depth > 0:
                     match ident_prod.id:
                         case Token():
-                            self.analyze_token(ident_prod.id, local_defs)
+                            self.expect_defined_token(ident_prod.id, local_defs)
                         case FnCall():
                             self.analyze_ident_prods(ident_prod.id, local_defs)
                 match ident_prod.accessed:
@@ -182,7 +182,7 @@ class MemberAnalyzer:
         for elem in array_literal.elements:
             match elem:
                 case Token():
-                    self.analyze_token(elem, local_defs)
+                    self.expect_defined_token(elem, local_defs)
                 case Expression():
                     self.analyze_expression(elem, local_defs)
                 case IdentifierProds():
@@ -200,7 +200,7 @@ class MemberAnalyzer:
                 case IdentifierProds():
                     self.analyze_ident_prods(idx, local_defs)
                 case Token():
-                    self.analyze_token(idx, local_defs)
+                    self.expect_defined_token(idx, local_defs)
     
     def analyze_expression(self, expr: Expression, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         match expr:
@@ -211,7 +211,7 @@ class MemberAnalyzer:
                     case Collection():
                         self.analyze_collection(expr.right, local_defs)
                     case Token():
-                        self.analyze_token(expr.right, local_defs)
+                        self.expect_defined_token(expr.right, local_defs)
             case PostfixExpression():
                 match expr.left:
                     case Expression():
@@ -219,7 +219,7 @@ class MemberAnalyzer:
                     case Collection():
                         self.analyze_collection(expr.right, local_defs)
                     case Token():
-                        self.analyze_token(expr.left, local_defs)
+                        self.expect_defined_token(expr.left, local_defs)
             case InfixExpression():
                 match expr.left:
                     case Expression():
@@ -227,14 +227,14 @@ class MemberAnalyzer:
                     case Collection():
                         self.analyze_collection(expr.right, local_defs)
                     case Token():
-                        self.analyze_token(expr.left, local_defs)
+                        self.expect_defined_token(expr.left, local_defs)
                 match expr.right:
                     case Expression():
                         self.analyze_expression(expr.right, local_defs)
                     case Collection():
                         self.analyze_collection(expr.right, local_defs)
                     case Token():
-                        self.analyze_token(expr.right, local_defs)
+                        self.expect_defined_token(expr.right, local_defs)
             case _:
                 raise ValueError(f"Unknown expression: {expr}")
 
@@ -250,9 +250,9 @@ class MemberAnalyzer:
                 case IdentifierProds():
                     self.analyze_ident_prods(expr, local_defs)
                 case Token():
-                    self.analyze_token(expr, local_defs)
+                    self.expect_defined_token(expr, local_defs)
 
-    def analyze_token(self, token: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+    def expect_defined_token(self, token: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         '''
         checks whether the token is defined in the scope
         if not, appends to errors
@@ -267,5 +267,22 @@ class MemberAnalyzer:
                     self.errors.append(UndefinedError(
                         token,
                     ))
+            case _:
+                raise ValueError(f"Unknown token: {token}")
+    def expect_unique_token(self, token: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        '''
+        checks whether the token is not yet defined in the scope
+        if already defined (duplicate), appends to errors
+        '''
+        match token.token:
+            case UniqueTokenType():
+                if token.string() in local_defs:
+                    self.errors.append(DuplicateDefinitionError(
+                        *local_defs[token.string()],
+                        token,
+                        GlobalType.LOCAL_DEF,
+                    ))
+                else:
+                    local_defs[token.string()] = (token, GlobalType.LOCAL_DEF)
             case _:
                 raise ValueError(f"Unknown token: {token}")
