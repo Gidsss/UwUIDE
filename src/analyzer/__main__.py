@@ -16,7 +16,7 @@ if __name__ == "__main__":
         wetuwn(1)~
     ]]
     fwunc sum-chan(a-chan) [[
-        wetuwn(a + a || a)~
+        wetuwn(a + a || b || "hello | b | world")~
     ]]
     fwunc sum-chan(a-chan) [[
         wetuwn(a(b).c(d))~

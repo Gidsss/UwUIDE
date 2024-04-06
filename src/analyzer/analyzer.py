@@ -274,6 +274,9 @@ class MemberAnalyzer:
                     case Expression():
                         if not (tmp := self.analyze_expression(expr.right, local_defs)):
                             res = tmp
+                    case Collection():
+                        if not (tmp := self.analyze_collection(expr.right, local_defs)):
+                            res = tmp
                     case Token():
                         if not (tmp := self.analyze_token(expr.right, local_defs)):
                             res = tmp
@@ -281,6 +284,9 @@ class MemberAnalyzer:
                 match expr.left:
                     case Expression():
                         if not (tmp := self.analyze_expression(expr.left, local_defs)):
+                            res = tmp
+                    case Collection():
+                        if not (tmp := self.analyze_collection(expr.right, local_defs)):
                             res = tmp
                     case Token():
                         if not (tmp := self.analyze_token(expr.left, local_defs)):
@@ -290,12 +296,18 @@ class MemberAnalyzer:
                     case Expression():
                         if not (tmp := self.analyze_expression(expr.left, local_defs)):
                             res = tmp
+                    case Collection():
+                        if not (tmp := self.analyze_collection(expr.right, local_defs)):
+                            res = tmp
                     case Token():
                         if not (tmp := self.analyze_token(expr.left, local_defs)):
                             res = tmp
                 match expr.right:
                     case Expression():
                         if not (tmp := self.analyze_expression(expr.right, local_defs)):
+                            res = tmp
+                    case Collection():
+                        if not (tmp := self.analyze_collection(expr.right, local_defs)):
                             res = tmp
                     case Token():
                         if not (tmp := self.analyze_token(expr.right, local_defs)):
