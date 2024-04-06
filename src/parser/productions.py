@@ -387,7 +387,7 @@ class Print(Production):
             res += sprintln(v.string(), indent=indent+1)
         return res
 
-class Input(Production):
+class Input(Collection):
     def __init__(self):
         self.expr = None
         self.concats = []
