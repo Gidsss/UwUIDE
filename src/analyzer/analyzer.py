@@ -133,14 +133,7 @@ class MemberAnalyzer:
         return true if no errors, false otherwise
         '''
         match ret.expr:
-            case Expression():
-                raise NotImplementedError
-            case IdentifierProds():
-                return self.analyze_ident_prods(ret.expr, local_defs)
-            case Collection():
-                return self.analyze_collection(ret.expr, local_defs)
             case Token():
-                # raise Exception(ret.expr.token)
                 match ret.expr.token:
                     case TokenType.STRING_LITERAL | TokenType.INT_LITERAL | TokenType.FLOAT_LITERAL | TokenType.FAX | TokenType.CAP | TokenType.NUWW:
                         return True
@@ -153,6 +146,12 @@ class MemberAnalyzer:
                                 ret.expr,
                             ))
                             return False
+            case Expression():
+                return self.analyze_expression(ret.expr, local_defs)
+            case IdentifierProds():
+                return self.analyze_ident_prods(ret.expr, local_defs)
+            case Collection():
+                return self.analyze_collection(ret.expr, local_defs)
             case _:
                 raise ValueError(f"Unknown return expression: {ret.expr}")
 
@@ -173,15 +172,17 @@ class MemberAnalyzer:
                 raise NotImplementedError
             case ClassAccessor():
                 raise NotImplementedError
+        return True
 
     def analyze_collection(self, collection: Collection, local_defs: dict[str, tuple[Token, GlobalType]]) -> bool:
         match collection:
             case ArrayLiteral():
-                raise NotImplementedError
+                return self.analyze_array_literal(collection, local_defs)
             case StringFmt():
-                raise NotImplementedError
+                return self.analyze_string_fmt(collection, local_defs)
             case _:
                 raise ValueError(f"Unknown collection: {collection}")
+
     def analyze_array_literal(self, array_literal: ArrayLiteral, local_defs: dict[str, tuple[Token, GlobalType]]) -> bool:
         for elem in array_literal.elements:
             match elem:
@@ -203,3 +204,8 @@ class MemberAnalyzer:
                     raise ValueError(f"Unknown array element: {elem}")
         return True
     
+    def analyze_expression(self, expr: Expression, local_defs: dict[str, tuple[Token, GlobalType]]) -> bool:
+        raise NotImplementedError
+
+    def analyze_string_fmt(self, string_fmt: StringFmt, local_defs: dict[str, tuple[Token, GlobalType]]) -> bool:
+        raise NotImplementedError
