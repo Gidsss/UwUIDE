@@ -1663,13 +1663,6 @@ class Parser:
             token.position,
             token.end_position
         ))
-    def unclosed_paren_error(self, token: Token):
-        self.errors.append(Error(
-            "UNCLOSED PARENTHESIS",
-            f"Expected ')' to close the parenthesis, got {token.lexeme}.",
-            token.position,
-            token.end_position
-        ))
     def unclosed_double_bracket_error(self, token: Token):
         self.errors.append(Error(
             "UNCLOSED DOUBLE BRACKET",
@@ -1681,13 +1674,6 @@ class Parser:
         self.errors.append(Error(
             "UNCLOSED BRACKET",
             f"Expected ']' to close the bracket, got {token.lexeme}.",
-            token.position,
-            token.end_position
-        ))
-    def unclosed_brace_error(self, token: Token):
-        self.errors.append(Error(
-            "UNCLOSED BRACE",
-            f"Expected '}}' to close the brace, got {token.lexeme}.",
             token.position,
             token.end_position
         ))
