@@ -110,10 +110,6 @@ class MemberAnalyzer:
                     self.analyze_assignment(stmt, local_defs)
                 case IfStatement():
                     self.analyze_if(stmt, local_defs)
-                case ElseIfStatement():
-                    self.analyze_if(stmt, local_defs, else_if=True)
-                case ElseStatement():
-                    self.analyze_body(stmt.body, local_defs.copy())
                 case WhileLoop():
                     self.analyze_while_loop(stmt, local_defs)
                 case ForLoop():
@@ -148,7 +144,14 @@ class MemberAnalyzer:
                 self.expect_defined_token(input_stmt.expr, local_defs)
 
     def analyze_if(self, if_stmt: IfStatement | ElseIfStatement, local_defs: dict[str, tuple[Token, GlobalType]], else_if: bool = False) -> None:
-        raise NotImplementedError
+        self.analyze_expression(if_stmt.condition, local_defs)
+        self.analyze_body(if_stmt.then, local_defs.copy())
+        if else_if: return
+        assert isinstance(if_stmt, IfStatement)
+        for elif_stmt in if_stmt.else_if:
+            self.analyze_if(elif_stmt, local_defs, else_if=True)
+        if if_stmt.else_block:
+            self.analyze_body(if_stmt.else_block, local_defs.copy())
 
     def analyze_declaration(self, decl: Declaration | ArrayDeclaration, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         self.expect_unique_token(decl.id, local_defs)
