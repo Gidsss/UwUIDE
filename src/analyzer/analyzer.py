@@ -22,37 +22,35 @@ class MemberAnalyzer:
     def compile_global_names(self) -> None:
         '''
         populates the self.global_names dict with the unique global names
+        any duplicates will be appended to error
         '''
         self.global_names: dict[str, tuple[Token, GlobalType]] = {}
         for global_dec in self.program.globals:
-            try:
-                self.global_names[global_dec.id.string()]
+            if global_dec.id.string() in self.global_names:
                 self.errors.append(DuplicateDefinitionError(
                     *self.global_names[global_dec.id.string()],
                     global_dec.id,
                     GlobalType.IDENTIFIER,
                 ))
-            except KeyError:
+            else:
                 self.global_names[global_dec.id.string()] = (global_dec.id, GlobalType.IDENTIFIER)
         for func in self.program.functions:
-            try:
-                self.global_names[func.id.string()]
+            if func.id.string() in self.global_names:
                 self.errors.append(DuplicateDefinitionError(
                     *self.global_names[func.id.string()],
                     func.id,
                     GlobalType.FUNCTION,
                 ))
-            except KeyError:
+            else:
                 self.global_names[func.id.string()] = (func.id, GlobalType.FUNCTION)
         for cwass in self.program.classes:
-            try:
-                self.global_names[cwass.id.string()]
+            if cwass.id.string() in self.global_names:
                 self.errors.append(DuplicateDefinitionError(
                     *self.global_names[cwass.id.string()],
                     cwass.id,
                     GlobalType.CLASS,
                 ))
-            except KeyError:
+            else:
                 self.global_names[cwass.id.string()] = (cwass.id, GlobalType.CLASS)
 
     def analyze_function(self, fn: Function) -> bool:
