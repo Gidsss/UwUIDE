@@ -18,6 +18,8 @@ class MemberAnalyzer:
     def analyze_program(self) -> None:
         for func in self.program.functions:
             self.analyze_function(func)
+        for cwass in self.program.classes:
+            self.analyze_class(cwass)
 
     def compile_global_names(self) -> None:
         '''
@@ -61,9 +63,13 @@ class MemberAnalyzer:
         self.analyze_body(fn.body, local_defs)
 
     def analyze_class(self, cwass: Class) -> None:
-        # parse params
-        # parse methods (use self.analyze_function)
-        raise NotImplementedError
+        local_defs: dict[str, tuple[Token, GlobalType]] = self.global_names.copy()
+        for p in cwass.params:
+            self.analyze_param(p, local_defs)
+        for prop in cwass.properties:
+            self.analyze_declaration(prop, local_defs)
+        for method in cwass.methods:
+            self.analyze_function(method)
 
     def analyze_param(self, param: Parameter, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         assert isinstance(param.id, Token)
@@ -84,7 +90,7 @@ class MemberAnalyzer:
                 case Input():
                     raise NotImplementedError
                 case Declaration() | ArrayDeclaration():
-                    raise NotImplementedError
+                    self.analyze_declaration(stmt, local_defs)
                 case Assignment():
                     raise NotImplementedError
                 case IfStatement():
