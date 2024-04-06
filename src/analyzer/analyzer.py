@@ -106,23 +106,20 @@ class MemberAnalyzer:
                     raise ValueError(f"Unknown statement: {stmt}")
         return True
 
-    def analyze_param(self, param: Parameter, local_defs: dict[str, tuple[Token, GlobalType]]) -> bool:
+    def analyze_param(self, param: Parameter, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         '''
         must pass in a param production
         will return a param id to be used for local_defs dict
         '''
         assert isinstance(param.id, Token)
-        try:
-            local_defs[param.id.string()]
+        if param.id.string() in local_defs:
             self.errors.append(DuplicateDefinitionError(
                 *local_defs[param.id.string()],
                 param.id,
-                GlobalType.LOCAL_ANY,
+                GlobalType.LOCAL_DEF,
             ))
-            return False
-        except KeyError:
-            local_defs[param.id.string()] = (param.id, GlobalType.LOCAL_ANY)
-            return True
+        else:
+            local_defs[param.id.string()] = (param.id, GlobalType.LOCAL_DEF)
 
     def analyze_args(self, args: list[Production], local_defs: dict[str, tuple[Token, GlobalType]]) -> bool:
         '''
