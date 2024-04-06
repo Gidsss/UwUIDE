@@ -54,10 +54,6 @@ class MemberAnalyzer:
                 self.global_names[cwass.id.string()] = (cwass.id, GlobalType.CLASS)
 
     def analyze_function(self, fn: Function) -> None:
-        '''
-        must pass in a fn production
-        if error, will not raise. just append to errors
-        '''
         local_defs: dict[str, tuple[Token, GlobalType]] = self.global_names.copy()
         for p in fn.params:
             self.analyze_param(p, local_defs)
@@ -65,13 +61,20 @@ class MemberAnalyzer:
         self.analyze_body(fn.body, local_defs)
 
     def analyze_class(self, cwass: Class) -> None:
-        '''
-        must pass in a class production
-        if error, will not raise. just append to errors
-        '''
         # parse params
         # parse methods (use self.analyze_function)
         raise NotImplementedError
+
+    def analyze_param(self, param: Parameter, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        assert isinstance(param.id, Token)
+        if param.id.string() in local_defs:
+            self.errors.append(DuplicateDefinitionError(
+                *local_defs[param.id.string()],
+                param.id,
+                GlobalType.LOCAL_DEF,
+            ))
+        else:
+            local_defs[param.id.string()] = (param.id, GlobalType.LOCAL_DEF)
 
     def analyze_body(self, body: BlockStatement, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         for stmt in body.statements:
@@ -99,26 +102,7 @@ class MemberAnalyzer:
                 case _:
                     raise ValueError(f"Unknown statement: {stmt}")
 
-    def analyze_param(self, param: Parameter, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
-        '''
-        must pass in a param production
-        will return a param id to be used for local_defs dict
-        '''
-        assert isinstance(param.id, Token)
-        if param.id.string() in local_defs:
-            self.errors.append(DuplicateDefinitionError(
-                *local_defs[param.id.string()],
-                param.id,
-                GlobalType.LOCAL_DEF,
-            ))
-        else:
-            local_defs[param.id.string()] = (param.id, GlobalType.LOCAL_DEF)
-
     def analyze_args(self, args: list[Production], local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
-        '''
-        must pass in a list of args in a fn/method call
-        returns true if no errors in analysis, false otherwise
-        '''
         for arg in args:
             match arg:
                 case Expression():
@@ -131,11 +115,6 @@ class MemberAnalyzer:
                     self.analyze_token(arg, local_defs)
 
     def analyze_return(self, ret: ReturnStatement, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
-        '''
-        must pass in a return production
-        if error, will not raise. just append to errors
-        return true if no errors, false otherwise
-        '''
         match ret.expr:
             case Token():
                 self.analyze_token(ret.expr, local_defs)
@@ -183,6 +162,10 @@ class MemberAnalyzer:
                 raise ValueError(f"Unknown identifier production: {ident_prod}")
 
     def analyze_collection(self, collection: Collection, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        '''
+        this is for array literals and string fmt
+        try not to use analyze_array_literal or analyze_string_fmt directly and instead use this function
+        '''
         match collection:
             case ArrayLiteral():
                 self.analyze_array_literal(collection, local_defs)
@@ -192,6 +175,10 @@ class MemberAnalyzer:
                 raise ValueError(f"Unknown collection: {collection}")
 
     def analyze_array_literal(self, array_literal: ArrayLiteral, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        '''
+        try not to use this method directly.
+        use analyze_collection instead
+        '''
         for elem in array_literal.elements:
             match elem:
                 case Token():
@@ -252,6 +239,10 @@ class MemberAnalyzer:
                 raise ValueError(f"Unknown expression: {expr}")
 
     def analyze_string_fmt(self, string_fmt: StringFmt, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        '''
+        try not to use this method directly.
+        use analyze_collection instead
+        '''
         for expr in string_fmt.exprs:
             match expr:
                 case Expression():
@@ -262,6 +253,10 @@ class MemberAnalyzer:
                     self.analyze_token(expr, local_defs)
 
     def analyze_token(self, token: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        '''
+        checks whether the token is defined in the scope
+        if not, appends to errors
+        '''
         match token.token:
             case TokenType.STRING_LITERAL | TokenType.INT_LITERAL | TokenType.FLOAT_LITERAL | TokenType.FAX | TokenType.CAP | TokenType.NUWW:
                 pass
