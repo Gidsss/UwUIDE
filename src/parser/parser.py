@@ -461,7 +461,6 @@ class Parser:
             self.advance()
             return None
         self.advance()
-        c.body = BlockStatement()
         stop_conditions = [TokenType.DOUBLE_CLOSE_BRACKET, TokenType.EOF]
         while not self.curr_tok_is_in(stop_conditions):
             if self.curr_tok_is(TokenType.FWUNC):
