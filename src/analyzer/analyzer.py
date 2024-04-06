@@ -209,3 +209,18 @@ class MemberAnalyzer:
 
     def analyze_string_fmt(self, string_fmt: StringFmt, local_defs: dict[str, tuple[Token, GlobalType]]) -> bool:
         raise NotImplementedError
+
+    def analyze_token(self, token: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> bool:
+        match token.token:
+            case TokenType.STRING_LITERAL | TokenType.INT_LITERAL | TokenType.FLOAT_LITERAL | TokenType.FAX | TokenType.CAP | TokenType.NUWW:
+                return True
+            case UniqueTokenType():
+                if token.string() in local_defs:
+                    return True
+                else:
+                    self.errors.append(UndefinedError(
+                        token,
+                    ))
+                    return False
+            case _:
+                raise ValueError(f"Unknown token: {token}")
