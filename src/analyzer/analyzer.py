@@ -160,7 +160,6 @@ class MemberAnalyzer:
                     case TokenType.STRING_LITERAL | TokenType.INT_LITERAL | TokenType.FLOAT_LITERAL | TokenType.FAX | TokenType.CAP | TokenType.NUWW:
                         return True
                     case UniqueTokenType():
-                        # check if defined in local def 
                         if ret.expr.string() in local_defs:
                             return True
                         else:
@@ -307,7 +306,19 @@ class MemberAnalyzer:
         return res
 
     def analyze_string_fmt(self, string_fmt: StringFmt, local_defs: dict[str, tuple[Token, GlobalType]]) -> bool:
-        raise NotImplementedError
+        res = True
+        for expr in string_fmt.exprs:
+            match expr:
+                case Expression():
+                    if not (tmp := self.analyze_expression(expr, local_defs)):
+                        res = tmp
+                case IdentifierProds():
+                    if not (tmp := self.analyze_ident_prods(expr, local_defs)):
+                        res = tmp
+                case Token():
+                    if not (tmp := self.analyze_token(expr, local_defs)):
+                        res = tmp
+        return res
 
     def analyze_token(self, token: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> bool:
         match token.token:
