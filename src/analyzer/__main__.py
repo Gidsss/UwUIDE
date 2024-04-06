@@ -7,22 +7,16 @@ from src.parser.error_handler import ErrorSrc as parErrorSrc
 if __name__ == "__main__":
     sc = """
     gwobaw areallylongname-kun-dono = 3.14~
-    gwobaw areallylongname-kun-dono = 3.14~
     cwass Hololive() [[
         fwunc init-san() [[
             wetuwn(1)~
         ]]
     ]]
     fwunc mainuwu-san() [[
-        a = 1~
-        b-senpai = 10~
-        c-chan = 100~
+        wetuwn(1)~
     ]]
     fwunc sum-chan() [[
-        wetuwn("unimplemented")~
-    ]]
-    fwunc sum-chan() [[
-        wetuwn("unimplemented")~
+        wetuwn(a.a[1])~
     ]]
     """
     source: list[str] = [line if line else '\n' for line in sc.split("\n")]
