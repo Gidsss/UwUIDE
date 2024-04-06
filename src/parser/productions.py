@@ -4,6 +4,22 @@ from src.lexer import Token
 # for type checking
 class Production:
     pass
+# For Productions that have operands
+class Expression(Production):
+    pass
+# For Productions that are considered a single value
+# eg. identifier, identifier[2], "string", ident.property
+#     fnCall(), "string | fmt | !"
+class Unit(Production):
+    pass
+# For Units that can contain other Productions
+# eg. arrays and string fmts
+class Collection(Unit):
+    pass
+# For Units that are identifiers
+# eg. identifiers, identifier[2], fnCall(), ident.property
+class IdentifierProds(Unit):
+    pass
 '''
 All productions must have these methods:
 1. string(self, indent = 0)
@@ -28,7 +44,7 @@ def sprintln(*val, indent = 0):
     return sprint(*val, indent=indent) + "\n"
 
 ### EXPRESSION PRODUCTIONS
-class PrefixExpression(Production):
+class PrefixExpression(Expression):
     def __init__(self):
         self.op = None
         self.right = None
@@ -43,7 +59,7 @@ class PrefixExpression(Production):
     def __len__(self):
         return 1
 
-class InfixExpression(Production):
+class InfixExpression(Expression):
     def __init__(self):
         self.left = None
         self.op = None
@@ -65,7 +81,7 @@ class InfixExpression(Production):
     def __len__(self):
         return 1
 
-class PostfixExpression(Production):
+class PostfixExpression(Expression):
     def __init__(self):
         self.left = None
         self.op = None
@@ -80,7 +96,7 @@ class PostfixExpression(Production):
         return 1
 
 ### LITERAL PRODUCTIONS
-class StringFmt(Production):
+class StringFmt(Collection):
     def __init__(self):
         self.start = None
         self.mid = []
@@ -122,7 +138,7 @@ class StringFmt(Production):
     def __len__(self):
         return 1
 
-class ArrayLiteral(Production):
+class ArrayLiteral(Collection):
     def __init__(self):
         self.elements = []
 
@@ -141,7 +157,7 @@ class ArrayLiteral(Production):
     def __iter__(self):
         return iter(self.elements)
 
-class FnCall(Production):
+class FnCall(IdentifierProds):
     def __init__(self):
         self.id = None
         self.args = []
@@ -159,7 +175,7 @@ class FnCall(Production):
     def __len__(self):
         return 1
 
-class IndexedIdentifier(Production):
+class IndexedIdentifier(IdentifierProds):
     '''
     id can be:
     - token:             ident[i]
@@ -182,8 +198,7 @@ class IndexedIdentifier(Production):
             ret += f", indices: {', '.join([i.string() for i in self.index])}"
         return ret
 
-
-class ClassConstructor(Production):
+class ClassConstructor(IdentifierProds):
     def __init__(self):
         self.id = None
         self.args = []
@@ -201,7 +216,7 @@ class ClassConstructor(Production):
     def __len__(self):
         return 1
 
-class ClassAccessor(Production):
+class ClassAccessor(IdentifierProds):
     '''
     id can be:
     - token:    ident.property, Cwass.property
