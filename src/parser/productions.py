@@ -557,10 +557,9 @@ class Function(Production):
 
 class Class(Production):
     def __init__(self):
-        self.id = None
+        self.id: Token = None
         self.params: list = []
-        self.body: BlockStatement = None
-        self.properties: list[Declaration] = []
+        self.properties: list[Declaration | ArrayDeclaration] = []
         self.methods: list = []
 
     def header(self):
@@ -569,8 +568,6 @@ class Class(Production):
         ret = {}
         if self.params:
             ret.update(**{f"param_{i+1}":p for i,p in enumerate(self.params)})
-        if self.body:
-            ret["body"] = self.body
         if self.properties:
             ret.update(**{f"property_{i+1}":p for i,p in enumerate(self.properties)})
         if self.methods:
@@ -591,9 +588,6 @@ class Class(Production):
             res += sprintln("methods:", indent=indent+1)
             for method in self.methods:
                 res += method.string(indent+2)
-        if self.body:
-            res += sprintln("body:", indent=indent+1)
-            res += self.body.string(indent+2)
         return res
 
 class BlockStatement(Production):
