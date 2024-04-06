@@ -244,6 +244,8 @@ class MemberAnalyzer:
                 self.analyze_array_literal(collection, local_defs)
             case StringFmt():
                 self.analyze_string_fmt(collection, local_defs)
+            case Input():
+                self.analyze_input(collection, local_defs)
             case _:
                 raise ValueError(f"Unknown collection: {collection}")
 
