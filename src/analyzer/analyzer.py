@@ -228,7 +228,7 @@ class MemberAnalyzer:
                     case Token():
                         self.expect_defined_token(ident_prod.id, local_defs)
                     case FnCall():
-                        raise NotImplementedError
+                        self.analyze_ident_prods(ident_prod.id, local_defs)
                 self.analyze_array_indices(ident_prod.index, local_defs)
             case FnCall():
                 match ident_prod.id:
