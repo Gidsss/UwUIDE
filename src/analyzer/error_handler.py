@@ -12,6 +12,7 @@ class GlobalType(Enum):
     IDENTIFIER = "IDENTIFIER"
     FUNCTION = "FUNCTION"
     CLASS = "CLASS"
+    LOCAL_ANY = "LOCAL_ANY"
 
 class ErrorSrc:
     src = [""]
@@ -20,7 +21,7 @@ class DuplicateDefinitionError:
     def __init__(self, original: Token, original_type: GlobalType, duplicate: Token, duplicate_type: GlobalType):
         self.original = original
         self.duplicate = duplicate
-        self.origina_type = original_type
+        self.original_type = original_type
         self.duplicate_type = duplicate_type
 
     def __str__(self):
@@ -35,7 +36,7 @@ class DuplicateDefinitionError:
         msg += border
         msg += f"\t{' ' * max_pad} | \t"
         msg += Styled.sprintln(
-            f'Original {self.origina_type} definition',
+            f'Original {self.original_type} definition',
             color=AnsiColor.RED)
         msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.original.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.original.position[1]}{'^' * (og_range)}\n"
@@ -44,7 +45,7 @@ class DuplicateDefinitionError:
 
         msg += f"\t{' ' * max_pad} | |\t"
         msg += Styled.sprintln(
-            f'tried to redefine as', ('another ' if self.duplicate_type == self.origina_type else '') + self.duplicate_type.name,
+            f'tried to redefine as', ('another ' if self.duplicate_type == self.original_type else '') + self.duplicate_type.name,
             color=AnsiColor.RED)
         msg += f"\t{dupe_index} | |{ErrorSrc.src[self.duplicate.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | |{' ' * self.duplicate.position[1]}{'^' * (error_range)}\n"
