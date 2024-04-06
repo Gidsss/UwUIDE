@@ -182,3 +182,11 @@ class MemberAnalyzer:
             case ClassAccessor():
                 raise NotImplementedError
 
+    def analyze_collection(self, collection: Collection, local_defs: dict[str, tuple[Token, GlobalType]]) -> bool:
+        match collection:
+            case ArrayLiteral():
+                raise NotImplementedError
+            case StringFmt():
+                raise NotImplementedError
+            case _:
+                raise ValueError(f"Unknown collection: {collection}")
