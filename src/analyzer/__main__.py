@@ -15,11 +15,11 @@ if __name__ == "__main__":
     fwunc mainuwu-san() [[
         wetuwn(1)~
     ]]
-    fwunc sum-chan() [[
-        wetuwn(a.a[1])~
+    fwunc sum-chan(a-chan) [[
+        wetuwn(a + a || a)~
     ]]
-    fwunc sum-chan() [[
-        wetuwn(a.a)~
+    fwunc sum-chan(a-chan) [[
+        wetuwn(a(b).c(d))~
     ]]
     """
     source: list[str] = [line if line else '\n' for line in sc.split("\n")]
