@@ -628,11 +628,9 @@ class Parser:
                 self.advance()
                 return None
 
-            es = ElseStatement()
             if (res := self.parse_block_statement()) is None:
                 return None
-            es.body = res
-            ie.else_block = es
+            ie.else_block = res
 
             if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
                 self.unclosed_double_bracket_error(self.peek_tok)
