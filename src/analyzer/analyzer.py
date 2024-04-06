@@ -285,6 +285,8 @@ class MemberAnalyzer:
                         self.analyze_expression(expr.right, local_defs)
                     case Collection():
                         self.analyze_collection(expr.right, local_defs)
+                    case IdentifierProds():
+                        self.analyze_ident_prods(expr.right, local_defs)
                     case Token():
                         self.expect_defined_token(expr.right, local_defs)
             case PostfixExpression():
@@ -292,7 +294,9 @@ class MemberAnalyzer:
                     case Expression():
                         self.analyze_expression(expr.left, local_defs)
                     case Collection():
-                        self.analyze_collection(expr.right, local_defs)
+                        self.analyze_collection(expr.left, local_defs)
+                    case IdentifierProds():
+                        self.analyze_ident_prods(expr.left, local_defs)
                     case Token():
                         self.expect_defined_token(expr.left, local_defs)
             case InfixExpression():
@@ -300,7 +304,9 @@ class MemberAnalyzer:
                     case Expression():
                         self.analyze_expression(expr.left, local_defs)
                     case Collection():
-                        self.analyze_collection(expr.right, local_defs)
+                        self.analyze_collection(expr.left, local_defs)
+                    case IdentifierProds():
+                        self.analyze_ident_prods(expr.left, local_defs)
                     case Token():
                         self.expect_defined_token(expr.left, local_defs)
                 match expr.right:
@@ -308,6 +314,8 @@ class MemberAnalyzer:
                         self.analyze_expression(expr.right, local_defs)
                     case Collection():
                         self.analyze_collection(expr.right, local_defs)
+                    case IdentifierProds():
+                        self.analyze_ident_prods(expr.right, local_defs)
                     case Token():
                         self.expect_defined_token(expr.right, local_defs)
             case _:
