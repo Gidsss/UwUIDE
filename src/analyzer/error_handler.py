@@ -56,7 +56,22 @@ class DuplicateDefinitionError:
 
 class UndefinedError:
     def __init__(self, token: Token) -> None:
-        raise NotImplementedError
+        self.token = token
 
     def __str__(self):
-        raise NotImplementedError
+        index_str = str(self.token.position[0] + 1)
+        max_pad = len(index_str)
+        border = f"\t{'_' * (len(ErrorSrc.src[self.token.position[0]]) + len(str(self.token.position[0] + 1)) + 3)}\n"
+        error_range = 1 if self.token.end_position is None else self.token.end_position[1] - self.token.position[1] + 1
+
+        msg = f"Undefined: {self.token}\n"
+        msg += border
+        msg += f"\t{' ' * max_pad} | \t"
+        msg += Styled.sprintln(
+            'Undefined identifier',
+            color=AnsiColor.RED)
+        msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.token.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | {' ' * self.token.position[1]}{'^' * (error_range)}\n"
+        msg += f"\t{' ' * max_pad} | {'_' * (self.token.position[1])}|\n"
+        msg += border
+        return msg
