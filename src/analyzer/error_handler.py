@@ -12,7 +12,7 @@ class GlobalType(Enum):
     IDENTIFIER = "IDENTIFIER"
     FUNCTION = "FUNCTION"
     CLASS = "CLASS"
-    LOCAL_ANY = "LOCAL_ANY"
+    LOCAL_DEF = "LOCAL_DEF"
 
 class ErrorSrc:
     src = [""]
