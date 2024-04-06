@@ -113,7 +113,7 @@ class MemberAnalyzer:
                 case WhileLoop():
                     self.analyze_while_loop(stmt, local_defs)
                 case ForLoop():
-                    self.analyze_for_loop(stmt, local_defs)
+                    self.analyze_for_loop(stmt, local_defs.copy())
                 case ReturnStatement():
                     self.analyze_return(stmt, local_defs)
                 case _:
@@ -184,10 +184,27 @@ class MemberAnalyzer:
                 self.expect_defined_token(assign.value, local_defs)
 
     def analyze_while_loop(self, while_loop: WhileLoop, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
-        raise NotImplementedError
+        self.analyze_expression(while_loop.condition, local_defs)
+        self.analyze_body(while_loop.body, local_defs.copy())
 
     def analyze_for_loop(self, for_loop: ForLoop, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
-        raise NotImplementedError
+        '''
+        when calling analyze_for_loop(), make sure to pass in a copy of local_defs
+        '''
+        match for_loop.init:
+            case Assignment():
+                self.analyze_assignment(for_loop.init, local_defs)
+            case Declaration() | ArrayDeclaration():
+                self.analyze_declaration(for_loop.init, local_defs)
+            case Token():
+                self.expect_defined_token(for_loop.init, local_defs)
+            case IdentifierProds():
+                self.analyze_ident_prods(for_loop.init, local_defs)
+            case _:
+                raise ValueError(f"Unknown for loop init: {for_loop.init}")
+        self.analyze_expression(for_loop.condition, local_defs)
+        self.analyze_expression(for_loop.update, local_defs)
+        self.analyze_body(for_loop.body, local_defs.copy())
 
     def analyze_return(self, ret: ReturnStatement, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         match ret.expr:

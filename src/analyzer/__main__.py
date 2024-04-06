@@ -26,6 +26,10 @@ if __name__ == "__main__":
         ]] ewse [[
             d = 1~
         ]]
+        fow(i-chan[]=1~i<10~i+1) [[
+            pwint(a)~
+        ]]
+        pwint(i)~
         a.a[1].b[b] = 1~
         wetuwn({b})~
     ]]
