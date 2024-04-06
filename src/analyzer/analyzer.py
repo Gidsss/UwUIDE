@@ -95,31 +95,44 @@ class MemberAnalyzer:
                     self.expect_defined_token(arg, local_defs)
 
     def analyze_body(self, body: BlockStatement, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        '''
+        when you're calling analyze_body(), make sure to pass in a copy of local_defs
+        '''
         for stmt in body.statements:
             match stmt:
                 case Print():
-                    raise NotImplementedError
+                    self.analyze_print(stmt, local_defs)
                 case Input():
-                    raise NotImplementedError
+                    self.analyze_input(stmt, local_defs)
                 case Declaration() | ArrayDeclaration():
                     self.analyze_declaration(stmt, local_defs)
                 case Assignment():
                     self.analyze_assignment(stmt, local_defs)
                 case IfStatement():
-                    raise NotImplementedError
+                    self.analyze_if(stmt, local_defs)
                 case ElseIfStatement():
-                    raise NotImplementedError
+                    self.analyze_if(stmt, local_defs, else_if=True)
                 case ElseStatement():
-                    raise NotImplementedError
+                    self.analyze_body(stmt.body, local_defs.copy())
                 case WhileLoop():
-                    raise NotImplementedError
+                    self.analyze_while_loop(stmt, local_defs)
                 case ForLoop():
-                    raise NotImplementedError
+                    self.analyze_for_loop(stmt, local_defs)
                 case ReturnStatement():
                     self.analyze_return(stmt, local_defs)
                 case _:
                     raise ValueError(f"Unknown statement: {stmt}")
+
     ## IN BODY ANALYZERS
+    def analyze_print(self, print_stmt: Print, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        raise NotImplementedError
+
+    def analyze_input(self, input_stmt: Input, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        raise NotImplementedError
+
+    def analyze_if(self, if_stmt: IfStatement | ElseIfStatement, local_defs: dict[str, tuple[Token, GlobalType]], else_if: bool = False) -> None:
+        raise NotImplementedError
+
     def analyze_declaration(self, decl: Declaration | ArrayDeclaration, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         self.expect_unique_token(decl.id, local_defs)
         match decl.value:
@@ -149,6 +162,12 @@ class MemberAnalyzer:
                 self.analyze_collection(assign.value, local_defs)
             case Token():
                 self.expect_defined_token(assign.value, local_defs)
+
+    def analyze_while_loop(self, while_loop: WhileLoop, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        raise NotImplementedError
+
+    def analyze_for_loop(self, for_loop: ForLoop, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        raise NotImplementedError
 
     def analyze_return(self, ret: ReturnStatement, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         match ret.expr:
