@@ -203,6 +203,20 @@ class MemberAnalyzer:
                 case _:
                     raise ValueError(f"Unknown array element: {elem}")
         return True
+    def analyze_array_indices(self, index_list: list[Production], local_defs: dict[str, tuple[Token, GlobalType]]) -> bool:
+        res = True
+        for idx in index_list:
+            match idx:
+                case Expression():
+                    if not (tmp := self.analyze_expression(idx, local_defs)):
+                        res = tmp
+                case IdentifierProds():
+                    if not (tmp := self.analyze_ident_prods(idx, local_defs)):
+                        res = tmp
+                case Token():
+                    if not (tmp := self.analyze_token(idx, local_defs)):
+                        res = tmp
+        return res
     
     def analyze_expression(self, expr: Expression, local_defs: dict[str, tuple[Token, GlobalType]]) -> bool:
         res = True
