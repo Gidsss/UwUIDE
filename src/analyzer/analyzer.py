@@ -82,6 +82,18 @@ class MemberAnalyzer:
         else:
             local_defs[param.id.string()] = (param.id, GlobalType.LOCAL_DEF)
 
+    def analyze_args(self, args: list[Production], local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        for arg in args:
+            match arg:
+                case Expression():
+                    self.analyze_expression(arg, local_defs)
+                case IdentifierProds():
+                    self.analyze_ident_prods(arg, local_defs)
+                case Collection():
+                    self.analyze_collection(arg, local_defs)
+                case Token():
+                    self.expect_defined_token(arg, local_defs)
+
     def analyze_body(self, body: BlockStatement, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         for stmt in body.statements:
             match stmt:
@@ -92,7 +104,7 @@ class MemberAnalyzer:
                 case Declaration() | ArrayDeclaration():
                     self.analyze_declaration(stmt, local_defs)
                 case Assignment():
-                    raise NotImplementedError
+                    self.analyze_assignment(stmt, local_defs)
                 case IfStatement():
                     raise NotImplementedError
                 case ElseIfStatement():
@@ -107,6 +119,7 @@ class MemberAnalyzer:
                     self.analyze_return(stmt, local_defs)
                 case _:
                     raise ValueError(f"Unknown statement: {stmt}")
+    ## IN BODY ANALYZERS
     def analyze_declaration(self, decl: Declaration | ArrayDeclaration, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         self.expect_unique_token(decl.id, local_defs)
         match decl.value:
@@ -119,17 +132,23 @@ class MemberAnalyzer:
             case Token():
                 self.expect_defined_token(decl.value, local_defs)
 
-    def analyze_args(self, args: list[Production], local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
-        for arg in args:
-            match arg:
-                case Expression():
-                    self.analyze_expression(arg, local_defs)
-                case IdentifierProds():
-                    self.analyze_ident_prods(arg, local_defs)
-                case Collection():
-                    self.analyze_collection(arg, local_defs)
-                case Token():
-                    self.expect_defined_token(arg, local_defs)
+    def analyze_assignment(self, assign: Assignment, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        match assign.id:
+            case Token():
+                self.expect_defined_token(assign.id, local_defs)
+            case IdentifierProds():
+                self.analyze_ident_prods(assign.id, local_defs)
+            case _:
+                raise ValueError(f"Unknown assignment left hand side: {assign.id}")
+        match assign.value:
+            case Expression():
+                self.analyze_expression(assign.value, local_defs)
+            case IdentifierProds():
+                self.analyze_ident_prods(assign.value, local_defs)
+            case Collection():
+                self.analyze_collection(assign.value, local_defs)
+            case Token():
+                self.expect_defined_token(assign.value, local_defs)
 
     def analyze_return(self, ret: ReturnStatement, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         match ret.expr:
@@ -144,6 +163,7 @@ class MemberAnalyzer:
             case _:
                 raise ValueError(f"Unknown return expression: {ret.expr}")
 
+    ## OTHER ANALYZERS
     def analyze_ident_prods(self, ident_prod: IdentifierProds, local_defs: dict[str, tuple[Token, GlobalType]],
                             access_depth: int = 1) -> None:
         match ident_prod:
@@ -269,6 +289,7 @@ class MemberAnalyzer:
                 case Token():
                     self.expect_defined_token(expr, local_defs)
 
+    ## HELPER METHODS
     def expect_defined_token(self, token: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         '''
         checks whether the token is defined in the scope
