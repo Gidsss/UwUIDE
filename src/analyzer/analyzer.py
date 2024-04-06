@@ -182,3 +182,24 @@ class MemberAnalyzer:
                 raise NotImplementedError
             case _:
                 raise ValueError(f"Unknown collection: {collection}")
+    def analyze_array_literal(self, array_literal: ArrayLiteral, local_defs: dict[str, tuple[Token, GlobalType]]) -> bool:
+        for elem in array_literal.elements:
+            match elem:
+                case Token():
+                    match elem.token:
+                        case UniqueTokenType():
+                            if not elem.string() in local_defs:
+                                self.errors.append(UndefinedError(
+                                    elem,
+                                ))
+                                return False
+                case Expression():
+                    return self.analyze_expression(elem, local_defs)
+                case IdentifierProds():
+                    return self.analyze_ident_prods(elem, local_defs)
+                case Collection():
+                    return self.analyze_collection(elem, local_defs)
+                case _:
+                    raise ValueError(f"Unknown array element: {elem}")
+        return True
+    
