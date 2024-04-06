@@ -177,24 +177,51 @@ class MemberAnalyzer:
             case _:
                 raise ValueError(f"Unknown return expression: {ret.expr}")
 
-    def analyze_ident_prods(self, ident_prod: IdentifierProds, local_defs: dict[str, tuple[Token, GlobalType]]) -> bool:
-        # check if defined in local def 
-        if not ident_prod.id.string() in local_defs:
-            self.errors.append(UndefinedError(
-                ident_prod.id,
-            ))
-            return False
-
+    def analyze_ident_prods(self, ident_prod: IdentifierProds, local_defs: dict[str, tuple[Token, GlobalType]],
+                            access_depth: int = 1) -> bool:
+        res = True
         match ident_prod:
             case IndexedIdentifier():
-                raise NotImplementedError
+                match ident_prod.id:
+                    case Token():
+                        if not (tmp := self.analyze_token(ident_prod.id, local_defs)):
+                            res = tmp
+                    case FnCall():
+                        raise NotImplementedError
+                if not (tmp := self.analyze_array_indices(ident_prod.index, local_defs)):
+                    res = tmp
             case FnCall():
-                raise NotImplementedError
+                match ident_prod.id:
+                    case Token():
+                        if not (tmp := self.analyze_token(ident_prod.id, local_defs)):
+                            res = tmp
+                if not (tmp := self.analyze_args(ident_prod.args, local_defs)):
+                    res = tmp
             case ClassConstructor():
-                raise NotImplementedError
+                if not (tmp := self.analyze_args(ident_prod.args, local_defs)):
+                    res = tmp
             case ClassAccessor():
-                raise NotImplementedError
-        return True
+                if access_depth > 0:
+                    match ident_prod.id:
+                        case Token():
+                            if not (tmp := self.analyze_token(ident_prod.id, local_defs)):
+                                res = tmp
+                        case FnCall():
+                            if not (tmp := self.analyze_ident_prods(ident_prod.id, local_defs)):
+                                res = tmp
+                match ident_prod.accessed:
+                    case FnCall():
+                        if not (tmp := self.analyze_args(ident_prod.accessed.args, local_defs)):
+                            res = tmp
+                    case IndexedIdentifier():
+                        if not (tmp := self.analyze_array_indices(ident_prod.accessed.index, local_defs)):
+                            res = tmp
+                    case ClassAccessor():
+                        if not (tmp := self.analyze_ident_prods(ident_prod.accessed, local_defs, access_depth=access_depth+1)):
+                            res = tmp
+            case _:
+                raise ValueError(f"Unknown identifier production: {ident_prod}")
+        return res
 
     def analyze_collection(self, collection: Collection, local_defs: dict[str, tuple[Token, GlobalType]]) -> bool:
         match collection:
