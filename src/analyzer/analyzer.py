@@ -125,10 +125,27 @@ class MemberAnalyzer:
 
     ## IN BODY ANALYZERS
     def analyze_print(self, print_stmt: Print, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
-        raise NotImplementedError
+        for val in print_stmt.values:
+            match val:
+                case Expression():
+                    self.analyze_expression(val, local_defs)
+                case IdentifierProds():
+                    self.analyze_ident_prods(val, local_defs)
+                case Collection():
+                    self.analyze_collection(val, local_defs)
+                case Token():
+                    self.expect_defined_token(val, local_defs)
 
     def analyze_input(self, input_stmt: Input, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
-        raise NotImplementedError
+        match input_stmt.expr:
+            case Expression():
+                self.analyze_expression(input_stmt.expr, local_defs)
+            case IdentifierProds():
+                self.analyze_ident_prods(input_stmt.expr, local_defs)
+            case Collection():
+                self.analyze_collection(input_stmt.expr, local_defs)
+            case Token():
+                self.expect_defined_token(input_stmt.expr, local_defs)
 
     def analyze_if(self, if_stmt: IfStatement | ElseIfStatement, local_defs: dict[str, tuple[Token, GlobalType]], else_if: bool = False) -> None:
         raise NotImplementedError
