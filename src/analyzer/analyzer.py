@@ -205,7 +205,43 @@ class MemberAnalyzer:
         return True
     
     def analyze_expression(self, expr: Expression, local_defs: dict[str, tuple[Token, GlobalType]]) -> bool:
-        raise NotImplementedError
+        res = True
+        match expr:
+            case PrefixExpression():
+                match expr.right:
+                    case Expression():
+                        if not (tmp := self.analyze_expression(expr.right, local_defs)):
+                            res = tmp
+                    case Token():
+                        if not (tmp := self.analyze_token(expr.right, local_defs)):
+                            res = tmp
+            case PostfixExpression():
+                match expr.left:
+                    case Expression():
+                        if not (tmp := self.analyze_expression(expr.left, local_defs)):
+                            res = tmp
+                    case Token():
+                        if not (tmp := self.analyze_token(expr.left, local_defs)):
+                            res = tmp
+            case InfixExpression():
+                match expr.left:
+                    case Expression():
+                        if not (tmp := self.analyze_expression(expr.left, local_defs)):
+                            res = tmp
+                    case Token():
+                        if not (tmp := self.analyze_token(expr.left, local_defs)):
+                            res = tmp
+                match expr.right:
+                    case Expression():
+                        if not (tmp := self.analyze_expression(expr.right, local_defs)):
+                            res = tmp
+                    case Token():
+                        if not (tmp := self.analyze_token(expr.right, local_defs)):
+                            res = tmp
+                return res
+            case _:
+                raise ValueError(f"Unknown expression: {expr}")
+        return res
 
     def analyze_string_fmt(self, string_fmt: StringFmt, local_defs: dict[str, tuple[Token, GlobalType]]) -> bool:
         raise NotImplementedError
