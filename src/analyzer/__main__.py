@@ -7,18 +7,26 @@ from src.parser.error_handler import ErrorSrc as parErrorSrc
 if __name__ == "__main__":
     sc = """
     gwobaw areallylongname-kun-dono = 3.14~
-    cwass Hololive() [[
-        fwunc init-san() [[
-            wetuwn(1)~
+    cwass Hololive(a-chan) [[
+        fwunc init-chan(a-chan) [[
+            b = inpwt(a[1].a() + a || b || "hello | b | world")~
         ]]
     ]]
     fwunc mainuwu-san() [[
         wetuwn(1)~
     ]]
-    fwunc sum-chan(sum-chan) [[
-        wetuwn(a + a || b || "hello | b | world")~
-    ]]
     fwunc sum-chan(a-chan) [[
+        iwf (fax || cap) [[
+            a = 1~
+        ]] ewse iwf (fax + cap) [[
+            b-chan = 1~
+            b = 1~
+        ]] ewse iwf (fax - cap) [[
+            b = 1~
+        ]] ewse [[
+            d = 1~
+        ]]
+        a.a[1].b[b] = 1~
         wetuwn({b})~
     ]]
     """
