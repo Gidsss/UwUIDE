@@ -155,6 +155,9 @@ class UniqueTokenType:
     def __format__(self, format_spec):
         return str.__format__(str(self), format_spec)
 
+    def string(self, indent = 1):
+        return self.__str__()
+
 
 class Token:
     'A class for representing tokens in a lexer'
