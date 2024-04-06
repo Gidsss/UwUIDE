@@ -156,17 +156,7 @@ class MemberAnalyzer:
         '''
         match ret.expr:
             case Token():
-                match ret.expr.token:
-                    case TokenType.STRING_LITERAL | TokenType.INT_LITERAL | TokenType.FLOAT_LITERAL | TokenType.FAX | TokenType.CAP | TokenType.NUWW:
-                        return True
-                    case UniqueTokenType():
-                        if ret.expr.string() in local_defs:
-                            return True
-                        else:
-                            self.errors.append(UndefinedError(
-                                ret.expr,
-                            ))
-                            return False
+                return self.analyze_token(ret.expr, local_defs)
             case Expression():
                 return self.analyze_expression(ret.expr, local_defs)
             case IdentifierProds():

@@ -19,7 +19,7 @@ if __name__ == "__main__":
         wetuwn(a + a || b || "hello | b | world")~
     ]]
     fwunc sum-chan(a-chan) [[
-        wetuwn(a(b).c(d))~
+        wetuwn({b})~
     ]]
     """
     source: list[str] = [line if line else '\n' for line in sc.split("\n")]
