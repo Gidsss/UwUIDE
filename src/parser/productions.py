@@ -351,8 +351,8 @@ class Assignment(Production):
 
 class Declaration(Production):
     def __init__(self):
-        self.id = None
-        self.dtype = None
+        self.id: Token = None
+        self.dtype: Token = None
         self.value = None
         self.is_const: bool = False
 
@@ -474,8 +474,8 @@ class ElseIfStatement(Production):
 
 class WhileLoop(Production):
     def __init__(self):
-        self.condition = None
-        self.body = None
+        self.condition: Expression = None
+        self.body: BlockStatement = None
         self.is_do = False
 
     def header(self):
@@ -492,10 +492,10 @@ class WhileLoop(Production):
 
 class ForLoop(Production):
     def __init__(self):
-        self.init = None # can be declaration or just an ident
-        self.condition = None
-        self.update = None
-        self.body = None
+        self.init: Token | Assignment | Declaration | ArrayDeclaration | IdentifierProds = None # can be declaration or just an ident
+        self.condition: Expression = None
+        self.update: Expression = None
+        self.body: BlockStatement = None
 
     def header(self):
         return "for loop:"
@@ -543,9 +543,9 @@ class Function(Production):
 class Class(Production):
     def __init__(self):
         self.id: Token = None
-        self.params: list = []
+        self.params: list[Parameter] = []
         self.properties: list[Declaration | ArrayDeclaration] = []
-        self.methods: list = []
+        self.methods: list[Function] = []
 
     def header(self):
         return f"class: {self.id.string()}"
