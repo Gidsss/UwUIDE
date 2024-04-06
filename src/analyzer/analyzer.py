@@ -164,3 +164,21 @@ class MemberAnalyzer:
             case _:
                 raise ValueError(f"Unknown return expression: {ret.expr}")
 
+    def analyze_ident_prods(self, ident_prod: IdentifierProds, local_defs: dict[str, tuple[Token, GlobalType]]) -> bool:
+        # check if defined in local def 
+        if not ident_prod.id.string() in local_defs:
+            self.errors.append(UndefinedError(
+                ident_prod.id,
+            ))
+            return False
+
+        match ident_prod:
+            case IndexedIdentifier():
+                raise NotImplementedError
+            case FnCall():
+                raise NotImplementedError
+            case ClassConstructor():
+                raise NotImplementedError
+            case ClassAccessor():
+                raise NotImplementedError
+
