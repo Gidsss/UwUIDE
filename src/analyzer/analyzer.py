@@ -101,6 +101,17 @@ class MemberAnalyzer:
                     self.analyze_return(stmt, local_defs)
                 case _:
                     raise ValueError(f"Unknown statement: {stmt}")
+    def analyze_declaration(self, decl: Declaration | ArrayDeclaration, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        self.expect_unique_token(decl.id, local_defs)
+        match decl.value:
+            case Expression():
+                self.analyze_expression(decl.value, local_defs)
+            case IdentifierProds():
+                self.analyze_ident_prods(decl.value, local_defs)
+            case Collection():
+                self.analyze_collection(decl.value, local_defs)
+            case Token():
+                self.expect_defined_token(decl.value, local_defs)
 
     def analyze_args(self, args: list[Production], local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         for arg in args:
