@@ -180,10 +180,9 @@ class IndexedIdentifier(IdentifierProds):
     id can be:
     - token:             ident[i]
     - FnCall:            fn()[i]
-    - IndexedIdentifier: ident[i][j]
     '''
     def __init__(self):
-        self.id: Token | FnCall | IndexedIdentifier = None
+        self.id: Token | FnCall = None
         self.index: list = []
 
     def header(self):
