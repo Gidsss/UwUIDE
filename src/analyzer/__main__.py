@@ -18,6 +18,9 @@ if __name__ == "__main__":
     fwunc sum-chan() [[
         wetuwn(a.a[1])~
     ]]
+    fwunc sum-chan() [[
+        wetuwn(a.a)~
+    ]]
     """
     source: list[str] = [line if line else '\n' for line in sc.split("\n")]
     max_digit_length = len(str(len(source)))

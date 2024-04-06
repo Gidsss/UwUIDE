@@ -12,56 +12,48 @@ class MemberAnalyzer:
         self.warnings = []
 
         self.global_names: dict[str, tuple[Token, GlobalType]] = {}
+        self.compile_global_names()
         self.analyze_program()
 
     def analyze_program(self) -> None:
-        if not (res := self.compile_global_names()):
-            return None
-        self.global_names = res
         for func in self.program.functions:
             self.analyze_function(func)
 
-    def compile_global_names(self) -> dict[str, tuple[Token, GlobalType]] | None:
+    def compile_global_names(self) -> None:
         '''
-        returns a global_names dict with the names of all globals in the program
-        returns None if there are any errors
+        populates the self.global_names dict with the unique global names
         '''
-        global_names: dict[str, tuple[Token, GlobalType]] = {}
+        self.global_names: dict[str, tuple[Token, GlobalType]] = {}
         for global_dec in self.program.globals:
             try:
-                global_names[global_dec.id.string()]
+                self.global_names[global_dec.id.string()]
                 self.errors.append(DuplicateDefinitionError(
-                    *global_names[global_dec.id.string()],
+                    *self.global_names[global_dec.id.string()],
                     global_dec.id,
                     GlobalType.IDENTIFIER,
                 ))
             except KeyError:
-                global_names[global_dec.id.string()] = (global_dec.id, GlobalType.IDENTIFIER)
+                self.global_names[global_dec.id.string()] = (global_dec.id, GlobalType.IDENTIFIER)
         for func in self.program.functions:
             try:
-                global_names[func.id.string()]
+                self.global_names[func.id.string()]
                 self.errors.append(DuplicateDefinitionError(
-                    *global_names[func.id.string()],
+                    *self.global_names[func.id.string()],
                     func.id,
                     GlobalType.FUNCTION,
                 ))
             except KeyError:
-                global_names[func.id.string()] = (func.id, GlobalType.FUNCTION)
+                self.global_names[func.id.string()] = (func.id, GlobalType.FUNCTION)
         for cwass in self.program.classes:
             try:
-                global_names[cwass.id.string()]
+                self.global_names[cwass.id.string()]
                 self.errors.append(DuplicateDefinitionError(
-                    *global_names[cwass.id.string()],
+                    *self.global_names[cwass.id.string()],
                     cwass.id,
                     GlobalType.CLASS,
                 ))
             except KeyError:
-                global_names[cwass.id.string()] = (cwass.id, GlobalType.CLASS)
-
-        if self.errors:
-            return None
-        else:
-            return global_names
+                self.global_names[cwass.id.string()] = (cwass.id, GlobalType.CLASS)
 
     def analyze_function(self, fn: Function) -> bool:
         '''
@@ -79,7 +71,7 @@ class MemberAnalyzer:
             return False
         return True
 
-    def analyze_class(self, cwass: Class) -> None:
+    def analyze_class(self, cwass: Class) -> bool:
         '''
         must pass in a class production
         if error, will not raise. just append to errors
