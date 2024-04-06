@@ -126,6 +126,28 @@ class MemberAnalyzer:
             local_defs[param.id.string()] = (param.id, GlobalType.LOCAL_ANY)
             return True
 
+    def analyze_args(self, args: list[Production], local_defs: dict[str, tuple[Token, GlobalType]]) -> bool:
+        '''
+        must pass in a list of args in a fn/method call
+        returns true if no errors in analysis, false otherwise
+        '''
+        res = True
+        for arg in args:
+            match arg:
+                case Expression():
+                    if not (tmp := self.analyze_expression(arg, local_defs)):
+                        res = tmp
+                case IdentifierProds():
+                    if not (tmp := self.analyze_ident_prods(arg, local_defs)):
+                        res = tmp
+                case Collection():
+                    if not (tmp := self.analyze_collection(arg, local_defs)):
+                        res = tmp
+                case Token():
+                    if not (tmp := self.analyze_token(arg, local_defs)):
+                        res = tmp
+        return res
+
     def analyze_return(self, ret: ReturnStatement, local_defs: dict[str, tuple[Token, GlobalType]]) -> bool:
         '''
         must pass in a return production
