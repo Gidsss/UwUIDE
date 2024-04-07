@@ -26,6 +26,28 @@ class String_UWU:
                                msg=f"OwO... you can't compare with that!")
         return self.val != other
 
+    # converting to other types
+    def __nonzero__(self):
+        'determines the truth value of String (same as str)'
+        expect_type_is_in(self.val, self.valid_operands(),
+                               msg=f"OwO... that ain't a String!")
+        return bool(self.val)
+    def __bool__(self):
+        'determines the truth value of String (same as str)'
+        expect_type_is_in(self.val, self.valid_operands(),
+                               msg=f"OwO... that ain't a String!")
+        return bool(self.val)
+    def __int__(self):
+        'converts String to int'
+        expect_type_is_in(self.val, self.valid_operands(),
+                               msg=f"OwO... that ain't a String!")
+        return int(self.val)
+    def __float__(self):
+        'converts String to float'
+        expect_type_is_in(self.val, self.valid_operands(),
+                               msg=f"OwO... that ain't a String!")
+        return float(self.val)
+
     ## UTILS
     def stringable_types(self) -> list[type]:
         return [str, String_UWU, int, float, bool, Array_UWU]
@@ -51,6 +73,18 @@ class Array_UWU:
         expect_type_is_in(other, self.valid_operands(),
                                msg=f"OwO... you can't compare with that!")
         return self.val != other
+
+    # converting to other types
+    def __nonzero__(self):
+        'determines the truth value of Array (same as list)'
+        expect_type_is_in(self.val, self.valid_operands(),
+                               msg=f"OwO... that ain't an Array!")
+        return bool(self.val)
+    def __bool__(self):
+        'determines the truth value of Array (same as list)'
+        expect_type_is_in(self.val, self.valid_operands(),
+                               msg=f"OwO... that ain't an Array!")
+        return bool(self.val)
 
     ## UTILS
     def valid_array_elems(self) -> list[type]:
