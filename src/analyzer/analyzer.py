@@ -89,8 +89,8 @@ class MemberAnalyzer:
                     self.analyze_expression(arg, local_defs)
                 case IdentifierProds():
                     self.analyze_ident_prods(arg, local_defs)
-                case Collection():
-                    self.analyze_collection(arg, local_defs)
+                case Iterable():
+                    self.analyze_iterable(arg, local_defs)
                 case Token():
                     self.expect_defined_token(arg, local_defs)
 
@@ -127,8 +127,8 @@ class MemberAnalyzer:
                     self.analyze_expression(val, local_defs)
                 case IdentifierProds():
                     self.analyze_ident_prods(val, local_defs)
-                case Collection():
-                    self.analyze_collection(val, local_defs)
+                case Iterable():
+                    self.analyze_iterable(val, local_defs)
                 case Token():
                     self.expect_defined_token(val, local_defs)
 
@@ -138,8 +138,8 @@ class MemberAnalyzer:
                 self.analyze_expression(input_stmt.expr, local_defs)
             case IdentifierProds():
                 self.analyze_ident_prods(input_stmt.expr, local_defs)
-            case Collection():
-                self.analyze_collection(input_stmt.expr, local_defs)
+            case Iterable():
+                self.analyze_iterable(input_stmt.expr, local_defs)
             case Token():
                 self.expect_defined_token(input_stmt.expr, local_defs)
 
@@ -160,8 +160,8 @@ class MemberAnalyzer:
                 self.analyze_expression(decl.value, local_defs)
             case IdentifierProds():
                 self.analyze_ident_prods(decl.value, local_defs)
-            case Collection():
-                self.analyze_collection(decl.value, local_defs)
+            case Iterable():
+                self.analyze_iterable(decl.value, local_defs)
             case Token():
                 self.expect_defined_token(decl.value, local_defs)
 
@@ -178,8 +178,8 @@ class MemberAnalyzer:
                 self.analyze_expression(assign.value, local_defs)
             case IdentifierProds():
                 self.analyze_ident_prods(assign.value, local_defs)
-            case Collection():
-                self.analyze_collection(assign.value, local_defs)
+            case Iterable():
+                self.analyze_iterable(assign.value, local_defs)
             case Token():
                 self.expect_defined_token(assign.value, local_defs)
 
@@ -214,8 +214,8 @@ class MemberAnalyzer:
                 self.analyze_expression(ret.expr, local_defs)
             case IdentifierProds():
                 self.analyze_ident_prods(ret.expr, local_defs)
-            case Collection():
-                self.analyze_collection(ret.expr, local_defs)
+            case Iterable():
+                self.analyze_iterable(ret.expr, local_defs)
             case _:
                 raise ValueError(f"Unknown return expression: {ret.expr}")
 
@@ -254,10 +254,11 @@ class MemberAnalyzer:
             case _:
                 raise ValueError(f"Unknown identifier production: {ident_prod}")
 
-    def analyze_collection(self, collection: Collection, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+    def analyze_iterable(self, collection: Iterable, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         '''
-        this is for array literals and string fmt
-        try not to use analyze_array_literal or analyze_string_fmt directly and instead use this function
+        this is for array literals, string fmt, and string literals
+        try not to use analyze_array_literal, analyze_string_fmt, or analyze_string_literal directly.
+        use this method instead.
         '''
         match collection:
             case ArrayLiteral():
@@ -266,13 +267,29 @@ class MemberAnalyzer:
                 self.analyze_string_fmt(collection, local_defs)
             case Input():
                 self.analyze_input(collection, local_defs)
+            case StringLiteral():
+                self.analyze_string_literal(collection, local_defs)
             case _:
                 raise ValueError(f"Unknown collection: {collection}")
+
+    def analyze_string_literal(self, str_lit: StringLiteral, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        '''
+        try not to use this method directly.
+        use analyze_iterable instead
+        '''
+        for concat in str_lit.concats:
+            match concat:
+                case StringFmt():
+                    self.analyze_string_fmt(concat, local_defs)
+                case Input():
+                    self.analyze_input(concat, local_defs)
+                case StringLiteral():
+                    self.analyze_string_literal(concat, local_defs)
 
     def analyze_array_literal(self, array_literal: ArrayLiteral, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         '''
         try not to use this method directly.
-        use analyze_collection instead
+        use analyze_iterable instead
         '''
         for elem in array_literal.elements:
             match elem:
@@ -282,8 +299,8 @@ class MemberAnalyzer:
                     self.analyze_expression(elem, local_defs)
                 case IdentifierProds():
                     self.analyze_ident_prods(elem, local_defs)
-                case Collection():
-                    self.analyze_collection(elem, local_defs)
+                case Iterable():
+                    self.analyze_iterable(elem, local_defs)
                 case _:
                     raise ValueError(f"Unknown array element: {elem}")
     
@@ -303,8 +320,8 @@ class MemberAnalyzer:
                 match expr.right:
                     case Expression():
                         self.analyze_expression(expr.right, local_defs)
-                    case Collection():
-                        self.analyze_collection(expr.right, local_defs)
+                    case Iterable():
+                        self.analyze_iterable(expr.right, local_defs)
                     case IdentifierProds():
                         self.analyze_ident_prods(expr.right, local_defs)
                     case Token():
@@ -313,8 +330,8 @@ class MemberAnalyzer:
                 match expr.left:
                     case Expression():
                         self.analyze_expression(expr.left, local_defs)
-                    case Collection():
-                        self.analyze_collection(expr.left, local_defs)
+                    case Iterable():
+                        self.analyze_iterable(expr.left, local_defs)
                     case IdentifierProds():
                         self.analyze_ident_prods(expr.left, local_defs)
                     case Token():
@@ -323,8 +340,8 @@ class MemberAnalyzer:
                 match expr.left:
                     case Expression():
                         self.analyze_expression(expr.left, local_defs)
-                    case Collection():
-                        self.analyze_collection(expr.left, local_defs)
+                    case Iterable():
+                        self.analyze_iterable(expr.left, local_defs)
                     case IdentifierProds():
                         self.analyze_ident_prods(expr.left, local_defs)
                     case Token():
@@ -332,8 +349,8 @@ class MemberAnalyzer:
                 match expr.right:
                     case Expression():
                         self.analyze_expression(expr.right, local_defs)
-                    case Collection():
-                        self.analyze_collection(expr.right, local_defs)
+                    case Iterable():
+                        self.analyze_iterable(expr.right, local_defs)
                     case IdentifierProds():
                         self.analyze_ident_prods(expr.right, local_defs)
                     case Token():
@@ -344,7 +361,7 @@ class MemberAnalyzer:
     def analyze_string_fmt(self, string_fmt: StringFmt, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         '''
         try not to use this method directly.
-        use analyze_collection instead
+        use analyze_iterable instead
         '''
         for expr in string_fmt.exprs:
             match expr:
@@ -354,6 +371,14 @@ class MemberAnalyzer:
                     self.analyze_ident_prods(expr, local_defs)
                 case Token():
                     self.expect_defined_token(expr, local_defs)
+
+        for concat in string_fmt.concats:
+            match concat:
+                case StringFmt() | Input() | StringLiteral():
+                    self.analyze_iterable(concat, local_defs)
+                case _:
+                    raise ValueError(f"Unknown concat: {concat}")
+
 
     ## HELPER METHODS
     def expect_defined_token(self, token: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
