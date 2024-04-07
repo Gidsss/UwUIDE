@@ -58,6 +58,18 @@ class String_UWU:
     def __iter__(self):
         return iter(self.val)
 
+    ## BUILTIN METHODS
+    def len(self) -> int:
+        return self.__len__()
+    def reversed(self) -> Self:
+        return type(self)(self.val[::-1])
+    def has(self, item: str) -> bool:
+        return item in self.val
+    def upper(self) -> Self:
+        return type(self)(self.val.upper())
+    def lower(self) -> Self:
+        return type(self)(self.val.lower())
+
     ## UTILS
     def stringable_types(self) -> list[type]:
         return [str, String_UWU, int, float, bool, Array_UWU]
@@ -104,6 +116,24 @@ class Array_UWU:
         return item in self.val
     def __iter__(self):
         return iter(self.val)
+
+    ## BUILTIN METHODS
+    def len(self) -> int:
+        return self.__len__()
+    def reversed(self) -> Self:
+        return type(self)(self.val[::-1])
+    def has(self, item: str) -> bool:
+        return item in self.val
+    def append(self, item):
+        expect_type_is_in(item, self.valid_array_elems(),
+                               msg=f"OwO... that ain't an Array!")
+        self.val.append(item)
+    def remove(self, item):
+        self.val.remove(item)
+    def extend(self, other: list | Self):
+        expect_type_is_in(other, self.valid_operands(),
+                               msg=f"OwO... that ain't an Array!")
+        self.val.extend(other)
 
     ## UTILS
     def valid_array_elems(self) -> list[type]:
