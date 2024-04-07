@@ -12,9 +12,9 @@ class Expression(Production):
 #     fnCall(), "string | fmt | !"
 class Unit(Production):
     pass
-# For Units that can contain other Productions
-# eg. arrays and string fmts
-class Collection(Unit):
+# For Units that can: contain other Productions, and/or be subsliced
+# eg. arrays, string fmts, and string literals
+class Iterable(Unit):
     pass
 # For Units that are identifiers
 # eg. identifiers, identifier[2], fnCall(), ident.property
@@ -96,7 +96,7 @@ class PostfixExpression(Expression):
         return 1
 
 ### LITERAL PRODUCTIONS
-class StringLiteral(Unit):
+class StringLiteral(Iterable):
     def __init__(self, val: Token):
         self.val: Token = val
         self.concats: list[StringFmt | Input | StringLiteral] = []
@@ -109,7 +109,7 @@ class StringLiteral(Unit):
     def __len__(self):
         return 1
 
-class StringFmt(Collection):
+class StringFmt(Iterable):
     def __init__(self):
         self.start = None
         self.mid = []
@@ -151,7 +151,7 @@ class StringFmt(Collection):
     def __len__(self):
         return 1
 
-class ArrayLiteral(Collection):
+class ArrayLiteral(Iterable):
     def __init__(self):
         self.elements = []
 
@@ -400,7 +400,7 @@ class Print(Production):
             res += sprintln(v.string(), indent=indent+1)
         return res
 
-class Input(Collection):
+class Input(Iterable):
     def __init__(self):
         self.expr = None
         self.concats: list[StringFmt | Input | StringLiteral] = []
