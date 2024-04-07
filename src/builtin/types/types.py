@@ -1,3 +1,5 @@
+from typing import Self
+
 class String_UWU:
     def __init__(self, val: str):
         expect_type_is_in(val, self.stringable_types(),
@@ -48,11 +50,20 @@ class String_UWU:
                                msg=f"OwO... that ain't a String!")
         return float(self.val)
 
+    # subscripting
+    def __getitem__(self, index):
+        return self.val[index]
+    def __contains__(self, item):
+        return item in self.val
+    def __iter__(self):
+        return iter(self.val)
+
     ## UTILS
     def stringable_types(self) -> list[type]:
         return [str, String_UWU, int, float, bool, Array_UWU]
     def valid_operands(self) -> list[type]:
         return [str, String_UWU]
+
 class Array_UWU:
     def __init__(self, vals: list):
         self.val: list = vals
@@ -85,6 +96,14 @@ class Array_UWU:
         expect_type_is_in(self.val, self.valid_operands(),
                                msg=f"OwO... that ain't an Array!")
         return bool(self.val)
+
+    # subscripting
+    def __getitem__(self, index):
+        return self.val[index]
+    def __contains__(self, item):
+        return item in self.val
+    def __iter__(self):
+        return iter(self.val)
 
     ## UTILS
     def valid_array_elems(self) -> list[type]:
