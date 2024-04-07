@@ -96,13 +96,26 @@ class PostfixExpression(Expression):
         return 1
 
 ### LITERAL PRODUCTIONS
+class StringLiteral(Unit):
+    def __init__(self, val: Token):
+        self.val: Token = val
+        self.concats: list[StringFmt | Input | StringLiteral] = []
+    def header(self):
+        return self.string()
+    def child_nodes(self) -> None | dict[str, Production]:
+        return None
+    def string(self, indent = 0):
+        return sprintln(self.val.string(indent=indent), *[c.string(indent=indent) for c in self.concats])
+    def __len__(self):
+        return 1
+
 class StringFmt(Collection):
     def __init__(self):
         self.start = None
         self.mid = []
         self.exprs = []
         self.end = None
-        self.concats = []
+        self.concats: list[StringFmt | Input | StringLiteral] = []
 
     def header(self):
         return "string fmt:"
@@ -390,7 +403,7 @@ class Print(Production):
 class Input(Collection):
     def __init__(self):
         self.expr = None
-        self.concats = []
+        self.concats: list[StringFmt | Input | StringLiteral] = []
 
     def header(self):
         return "input:"

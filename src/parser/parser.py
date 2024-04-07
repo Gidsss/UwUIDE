@@ -1297,11 +1297,14 @@ class Parser:
         return sf
     def parse_gen_string(self):
         if self.curr_tok_is(TokenType.STRING_PART_START):
-            str_lit = self.parse_string_parts()
+            if (str_lit := self.parse_string_parts()) is None:
+                return None
         elif self.curr_tok_is(TokenType.STRING_LITERAL):
-            str_lit = self.parse_literal()
+            if (str_lit := self.parse_string_literal()) is None:
+                return None
         elif self.curr_tok_is(TokenType.INPWT):
-            str_lit = self.parse_input()
+            if (str_lit := self.parse_input()) is None:
+                return None
         else:
             self.expected_error([TokenType.STRING_LITERAL, TokenType.STRING_PART_START,
                                  TokenType.INPWT], curr=True)
@@ -1312,14 +1315,12 @@ class Parser:
             self.advance()
             if (str_next := self.parse_gen_string()) is None:
                 return None
-            if isinstance(str_lit, Token) and isinstance(str_next, Token):
-                str_lit.lexeme = str_lit.lexeme[:-1] + str_next.lexeme[1:]
-                str_lit.end_position = str_next.end_position
-            elif isinstance(str_lit, Token):
-                str_next.concats.append(str_lit)
-            else:
-                str_lit.concats.append(str_next)
+            str_lit.concats.append(str_next)
         return str_lit
+
+    def parse_string_literal(self):
+        'string token must be current token'
+        return StringLiteral(self.curr_tok)
 
     def parse_literal(self):
         'returns the current token'
