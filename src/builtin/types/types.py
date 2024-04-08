@@ -22,11 +22,11 @@ class String_UWU:
     def __eq__(self, other):
         expect_type_is_in(other, self.stringable_types(),
                                msg=f"OwO... you can't compare with that!")
-        return self.val == other
+        return other == self.val
     def __ne__(self, other):
         expect_type_is_in(other, self.stringable_types(),
                                msg=f"OwO... you can't compare with that!")
-        return self.val != other
+        return other != self.val
 
     # converting to other types
     def __nonzero__(self):
