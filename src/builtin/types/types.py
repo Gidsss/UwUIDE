@@ -131,7 +131,8 @@ class Array_UWU:
                                msg=f"OwO... you can't append with that!")
         self.val.append(item)
     def remove(self, item):
-        self.val.remove(item)
+        if item in self.val:
+            self.val.remove(item)
     def extend(self, other: list | Self):
         expect_type_is_in(other, self.valid_operands(),
                                msg=f"OwO... you can't extend with that!")
