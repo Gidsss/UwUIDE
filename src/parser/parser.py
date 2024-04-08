@@ -29,7 +29,7 @@ Overview:
     - while and do while statements
     - for statements
 '''
-from typing import Callable
+from typing import Callable, Literal
 from .error_handler import Error
 from src.lexer.token import Token, TokenType, UniqueTokenType
 from src.parser.productions import *
@@ -75,7 +75,7 @@ precedence_map = {
 class Parser:
     def __init__(self, tokens: list[Token]):
         self.tokens = [token for token in tokens if token.token not in [TokenType.WHITESPACE, TokenType.SINGLE_LINE_COMMENT, TokenType.MULTI_LINE_COMMENT]]
-        self.errors: list = []
+        self.errors: list[Error] = []
 
         # to associate prefix and infix parsing functions for certain token types
         # key : val == TokenType : ParsingFunction
@@ -243,7 +243,7 @@ class Parser:
 
         return p
 
-    def parse_declaration(self, ident = None):
+    def parse_declaration(self, ident = None) -> Declaration | ArrayDeclaration | None:
         '''
         parse declarations of variables/constants, whether global or local.
         if encountered brackets, the parsed declaration is an array declaration.
@@ -348,7 +348,7 @@ class Parser:
         return d
 
     ### statement parsers
-    def parse_return_statement(self):
+    def parse_return_statement(self) -> ReturnStatement | None:
         'parse return statements'
         rs = ReturnStatement()
         if not self.expect_peek(TokenType.OPEN_PAREN):
@@ -377,7 +377,7 @@ class Parser:
         return rs
 
     # block statements
-    def parse_function(self, main=False):
+    def parse_function(self, main=False) -> Function | None:
         func = Function()
 
         if not self.expect_peek_is_identifier() and not self.expect_peek(TokenType.MAINUWU):
@@ -444,7 +444,7 @@ class Parser:
 
         return func
 
-    def parse_class(self):
+    def parse_class(self) -> Class | None:
         'parse classes'
         c = Class()
         if not self.expect_peek_is_class_name():
@@ -482,7 +482,7 @@ class Parser:
 
         return c
 
-    def parse_params(self, main=False):
+    def parse_params(self, main=False) -> list[Parameter] | None:
         'note that this must start with ( in peek_tok'
         parameters: list[Parameter] = []
 
@@ -548,7 +548,7 @@ class Parser:
                     return None
             return parameters
 
-    def parse_if_statement(self):
+    def parse_if_statement(self) -> IfStatement | None:
         ie = IfStatement()
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
@@ -638,7 +638,7 @@ class Parser:
                 return None
         return ie
 
-    def parse_block_statement(self):
+    def parse_block_statement(self) -> BlockStatement | None:
         '''
         starts with the open bracket as the current token
         ends with the close bracket in peek token
@@ -664,7 +664,11 @@ class Parser:
             bs.statements.append(statement)
         return bs
 
-    def parse_ident_statement(self):
+    def parse_ident_statement(self) -> (
+        ClassAccessor | FnCall |
+        Declaration | ArrayDeclaration | Assignment |
+        None
+    ):
         '''
         must start with Unique identifier in curr_tok
         class identifier statements are class declarations and assignments
@@ -684,11 +688,14 @@ class Parser:
                 elif isinstance(last_accessed, IndexedIdentifier) or isinstance(last_accessed, FnCall):
                     peek_accessed = last_accessed.id
         if isinstance(last_accessed, FnCall):
+            assert isinstance(res, FnCall) or isinstance(res, ClassAccessor)
             if not self.expect_peek(TokenType.TERMINATOR):
                 self.peek_error(TokenType.TERMINATOR)
                 self.advance(2)
                 return None
             return res
+
+        assert not isinstance(res, FnCall)
 
         # is not a declaration or assignment
         expected = [TokenType.DOT_OP, TokenType.DASH, TokenType.ASSIGNMENT_OPERATOR, TokenType.OPEN_BRACKET, TokenType.OPEN_PAREN]
@@ -747,7 +754,7 @@ class Parser:
             return None
         return a
 
-    def parse_while_statement(self):
+    def parse_while_statement(self) -> WhileLoop | None:
         'this includes do while block statements'
         wl = WhileLoop()
         if self.curr_tok_is(TokenType.DO_WHIWE):
@@ -788,7 +795,7 @@ class Parser:
             return None
         return wl
 
-    def parse_for_statement(self):
+    def parse_for_statement(self) -> ForLoop | None:
         fl = ForLoop()
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
@@ -849,7 +856,7 @@ class Parser:
             return None
         return fl
 
-    def parse_input(self):
+    def parse_input(self) -> Input | None:
         inp = Input()
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
@@ -870,7 +877,7 @@ class Parser:
             return None
         return inp
 
-    def parse_print(self):
+    def parse_print(self) -> Print | None:
         p = Print()
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
@@ -905,7 +912,7 @@ class Parser:
 
     ### expression parsers
     def parse_expression(self, precedence, limit_to: list[TokenType] = [], grouped=False,
-                         cwass=False, strfmt=False, array=False, func=False):
+                         cwass=False, strfmt=False, array=False, func=False) -> Value | None:
         '''
         parse expressions.
         Expressions can be:
@@ -975,7 +982,7 @@ class Parser:
     # PLEASE USE self.parse_expression(precedence)
     # to use the 4 methods below in other parsers.
     # DO NOT USE THESE 4 METHODS DIRECTLY
-    def parse_prefix_expression(self):
+    def parse_prefix_expression(self) -> PrefixExpression | None:
         '''
         parse prefix expressions.
         Only prefix expression in UwU++ that is parsed here are negative idents.
@@ -987,11 +994,11 @@ class Parser:
         self.advance()
         tmp = self.expected_prefix.copy()
         tmp.remove(TokenType.DASH)
-        pe.right = self.parse_expression(PREFIX, limit_to=tmp)
-        if pe.right is None:
+        if (res := self.parse_expression(PREFIX, limit_to=tmp)) is None:
             return None
+        pe.right = res
         return pe
-    def parse_prefix_special_expression(self):
+    def parse_prefix_special_expression(self) -> PrefixExpression | None:
         '''
         parse prefix special expressions
         eg.
@@ -1002,11 +1009,11 @@ class Parser:
         pe.op = self.curr_tok
 
         self.advance()
-        pe.right = self.parse_expression(PREFIX, limit_to=self.expected_prefix_special)
-        if pe.right is None:
+        if (res := self.parse_expression(PREFIX, limit_to=self.expected_prefix_special)) is None:
             return None
+        pe.right = res
         return pe
-    def parse_infix_expression(self, left):
+    def parse_infix_expression(self, left) -> InfixExpression | None:
         '''
         parse infix expressions.
         eg.
@@ -1016,15 +1023,15 @@ class Parser:
         '''
         ie = InfixExpression()
         ie.left = left
-        ie.op = self.curr_tok.token
+        ie.op = self.curr_tok
 
         precedence = self.curr_precedence()
         self.advance()
-        ie.right = self.parse_expression(precedence, limit_to=self.expected_prefix)
-        if ie.right is None:
+        if (res := self.parse_expression(precedence, limit_to=self.expected_prefix)) is None:
             return None
+        ie.right = res
         return ie
-    def parse_infix_special_expression(self, left):
+    def parse_infix_special_expression(self, left) -> InfixExpression | None:
         '''
         parse infix special expressions
         eg.
@@ -1037,9 +1044,9 @@ class Parser:
 
         precedence = self.curr_precedence()
         self.advance()
-        ie.right = self.parse_expression(precedence, limit_to=self.expected_prefix_special)
-        if ie.right is None:
+        if (res := self.parse_expression(precedence, limit_to=self.expected_prefix_special)) is None:
             return None
+        ie.right = res
         return ie
     def parse_postfix_expression(self, left):
         '''
@@ -1055,7 +1062,7 @@ class Parser:
             return left
         pe.op = self.curr_tok
         return pe
-    def parse_grouped_expressions(self):
+    def parse_grouped_expressions(self) -> Value | None:
         '''
         must start with ( in current token
         parse grouped expressions
@@ -1079,7 +1086,7 @@ class Parser:
     ### atomic parsers
     # unlike the above 4 expressions parsers,
     # these are made to be used in other parsers
-    def parse_ident(self, expr=True):
+    def parse_ident(self, expr=True) -> Token | FnCall | IndexedIdentifier | ClassAccessor | None:
         '''
         must start with curr_tok as IDENTIFIER
         parse identifiers which can also be:
@@ -1194,7 +1201,7 @@ class Parser:
 
         return ident
 
-    def parse_class_ident(self):
+    def parse_class_ident(self) -> ClassConstructor | None:
         '''
         parse class identifiers
         must start with curr_tok as CWASS_ID
@@ -1231,7 +1238,7 @@ class Parser:
             return None
         return cc
 
-    def parse_array(self):
+    def parse_array(self) -> ArrayLiteral | None:
         al = ArrayLiteral()
         self.advance() # consume the opening brace
 
@@ -1264,7 +1271,7 @@ class Parser:
             self.expected_error([TokenType.CLOSE_BRACE, TokenType.COMMA, *added], curr=True if self.curr_tok_is_in([TokenType.TERMINATOR, TokenType.EOF]) else False)
             return None
         return al
-    def parse_string_parts(self):
+    def parse_string_parts(self) -> StringFmt | None:
         sf = StringFmt()
         sf.start = self.curr_tok
         # append middle parts if any
@@ -1295,7 +1302,7 @@ class Parser:
             return None
         sf.end = self.curr_tok
         return sf
-    def parse_gen_string(self):
+    def parse_gen_string(self) -> StringFmt | StringLiteral | Input | None:
         if self.curr_tok_is(TokenType.STRING_PART_START):
             if (str_lit := self.parse_string_parts()) is None:
                 return None
@@ -1318,11 +1325,11 @@ class Parser:
             str_lit.concats.append(str_next)
         return str_lit
 
-    def parse_string_literal(self):
+    def parse_string_literal(self) -> StringLiteral:
         'string token must be current token'
         return StringLiteral(self.curr_tok)
 
-    def parse_literal(self):
+    def parse_literal(self) -> Token:
         'returns the current token'
         return self.curr_tok
 
@@ -1520,7 +1527,7 @@ class Parser:
             self.peek_tok.position if not curr else self.curr_tok.position,
             self.peek_tok.end_position if not curr else self.curr_tok.end_position
         ))
-    def peek_error(self, token: TokenType):
+    def peek_error(self, token: TokenType | Literal['IDENTIFIER']):
         self.errors.append(Error(
             "UNEXPECTED TOKEN",
             f"Expected next token to be {token}, got '{self.peek_tok}' instead",
@@ -1729,8 +1736,8 @@ class Parser:
                 msg += f"\n\tgot '{self.peek_tok}' instead"
         elif added:
             added = []
-            for token in self.error_context(exprs):
-                msg += f" '{token}',"
+            for tok in self.error_context(exprs):
+                msg += f" '{tok}',"
             msg += "'STRING_PART_MID'"
         else:
             for token in self.expected_prefix[:-1]:
