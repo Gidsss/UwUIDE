@@ -1,8 +1,16 @@
+from abc import abstractmethod
 from src.lexer import Token
 
 ### BASE CLASS
-# for type checking
+class Production: pass # to avoid undefined Production error in type hint
 class Production:
+    @abstractmethod
+    def string(self, indent = 0) -> str: pass
+    @abstractmethod
+    def header(self) -> str: pass
+    @abstractmethod
+    def child_nodes(self) -> None | dict[str, Production | Token]: pass
+
     pass
 # For Productions that have operands
 class Expression(Production):
