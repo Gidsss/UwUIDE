@@ -162,7 +162,7 @@ class UniqueTokenType:
 class Token:
     'A class for representing tokens in a lexer'
 
-    def __init__(self, lexeme: str, token: TokenType, position: tuple[int, int], end_position: tuple[int, int]):
+    def __init__(self, lexeme: str = "", token: TokenType = TokenType.EOF, position: tuple[int, int] = (0, 0), end_position: tuple[int, int] = (0, 0)):
         self._lexeme = lexeme
         self._token = token
         self._position = position
