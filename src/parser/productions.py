@@ -11,38 +11,39 @@ class Production:
     @abstractmethod
     def child_nodes(self) -> None | dict[str, Production | Token]: pass
 
+class Statement(Production):
+    'for productions that can be in blocks'
     pass
-# For Productions that have operands
-class Expression(Production):
+
+class Value(Production):
+    'for productions that evaluate to a value'
     pass
-# For Productions that are considered a single value
-# eg. identifier, identifier[2], "string", ident.property
-#     fnCall(), "string | fmt | !"
-class Unit(Production):
+class Expression(Value):
+    '''
+    for values that have operands
+    eg. id + id, id - id, fn_call() * id, id[1] / id
+    '''
     pass
-# For Units that can: contain other Productions, and/or be subsliced
-# eg. arrays, string fmts, and string literals
+class Unit(Value):
+    '''
+    for values that don't have operands
+    eg. identifier, identifier[2], "string", ident.property
+    fnCall(), "string | fmt | !"
+    '''
+    pass
+
 class Iterable(Unit):
+    '''
+    for Units that can: contain other Productions, and/or be subsliced
+    eg. arrays, string fmts, and string literals
+    '''
     pass
-# For Units that are identifiers
-# eg. identifiers, identifier[2], fnCall(), ident.property
 class IdentifierProds(Unit):
+    '''
+    for Units that are identifiers
+    eg. identifiers, identifier[2], fnCall(), ident.property
+    '''
     pass
-'''
-All productions must have these methods:
-1. string(self, indent = 0)
-
-2. header(self) -> str
-    - returns the string representation of the production
-    - it can be a title or the value of the production itself
-    - titles are for class productions
-    - values are for atomic productions
-
-3. child_nodes(self) -> None | dict[str, Production]
-    - returns None if atomic (aka leaf)
-        - the value of the atomic production is in the header() method
-    - returns a dict of key:val where key is the title of the child and val is the production
-'''
 
 def sprint(*val, indent = 0):
     'return string with optional identation'
