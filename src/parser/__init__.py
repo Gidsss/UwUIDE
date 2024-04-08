@@ -2,4 +2,5 @@
 from .parser import Parser
 from .productions import *
 from .error_handler import *
+from .production_types import *
 
