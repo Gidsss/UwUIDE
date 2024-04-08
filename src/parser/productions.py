@@ -55,30 +55,30 @@ def sprintln(*val, indent = 0):
 ### EXPRESSION PRODUCTIONS
 class PrefixExpression(Expression):
     def __init__(self):
-        self.op = None
-        self.right = None
+        self.op: Token = Token()
+        self.right: Value = Value()
 
-    def header(self):
+    def header(self) -> str:
         return self.string()
-    def child_nodes(self) -> None | dict[str, Production]:
+    def child_nodes(self) -> None | dict[str, Production | Token]:
         return None
 
-    def string(self, _ = 1):
+    def string(self, indent = 1) -> str:
         return sprint(self.op.string(), self.right.string())
     def __len__(self):
         return 1
 
 class InfixExpression(Expression):
     def __init__(self):
-        self.left = None
-        self.op = None
-        self.right = None
+        self.left: Value = Value()
+        self.op: Token = Token()
+        self.right: Value = Value()
     def header(self):
         return ""
-    def child_nodes(self) -> None | dict[str, Production]:
+    def child_nodes(self) -> None | dict[str, Production | Token]:
         return {"left":self.left, "op":self.op, "right":self.right}
 
-    def string(self, indent = 1):
+    def string(self, indent = 1) -> str:
         res = "\n"
         res += sprintln("(", indent=indent)
         res += sprintln(self.left.string(indent+1), indent=indent+1)
@@ -92,14 +92,14 @@ class InfixExpression(Expression):
 
 class PostfixExpression(Expression):
     def __init__(self):
-        self.left = None
-        self.op = None
+        self.left: Value = Value()
+        self.op: Token = Token()
     def header(self):
         return self.string()
-    def child_nodes(self) -> None | dict[str, Production]:
+    def child_nodes(self) -> None | dict[str, Production | Token]:
         return None
 
-    def string(self, _ = 1):
+    def string(self, indent = 1) -> str:
         return sprint(self.left.string(), self.op.string(), indent=0)
     def __len__(self):
         return 1
@@ -111,27 +111,50 @@ class StringLiteral(Iterable):
         self.concats: list[StringFmt | Input | StringLiteral] = []
     def header(self):
         return self.string()
-    def child_nodes(self) -> None | dict[str, Production]:
+    def child_nodes(self) -> None | dict[str, Production | Token]:
         return None
-    def string(self, indent = 0):
+    def string(self, indent = 0) -> str:
         return sprintln(self.val.string(indent=indent), *[c.string(indent=indent) for c in self.concats])
+    def __len__(self):
+        return 1
+
+class Input(Iterable):
+    def __init__(self):
+        self.expr: Value | Token = Value()
+        self.concats: list[StringFmt | Input | StringLiteral] = []
+
+    def header(self):
+        return "input:"
+
+    def child_nodes(self) -> None | dict[str, Production | Token]:
+        return {"expr":self.expr, **{f"concat_{i+1}":c for i,c in enumerate(self.concats)}}
+
+    def string(self, indent = 0) -> str:
+        res = sprintln("input:", indent=0)
+        res += sprintln("expr:", self.expr.string(indent=indent+1), indent=indent+1)
+        if self.concats:
+            res += sprintln("concats:", indent=indent+1)
+            for c in self.concats:
+                res += sprintln(c.string(indent=indent+2), indent=indent+2)
+        return res
+
     def __len__(self):
         return 1
 
 class StringFmt(Iterable):
     def __init__(self):
-        self.start = None
-        self.mid = []
-        self.exprs = []
-        self.end = None
+        self.start: Token = Token()
+        self.mid: list[Token] = []
+        self.exprs: list[Value | Token] = []
+        self.end: Token = Token()
         self.concats: list[StringFmt | Input | StringLiteral] = []
 
     def header(self):
         return "string fmt:"
-    def child_nodes(self) -> None | dict[str, Production]:
+    def child_nodes(self) -> None | dict[str, Production | Token]:
         return {"start":self.start, **{f"mid_{i+1}":m for i,m in enumerate(self.mid_expr_iter())}, "end":self.end, **{f"concat_{i+1}":c for i,c in enumerate(self.concats)}}
 
-    def string(self, indent = 0):
+    def string(self, indent = 0) -> str:
         res = sprintln("string fmt:", indent=0)
         res += sprintln(self.start.string(), indent=indent+1)
         for val in self.mid_expr_iter():
@@ -162,14 +185,14 @@ class StringFmt(Iterable):
 
 class ArrayLiteral(Iterable):
     def __init__(self):
-        self.elements = []
+        self.elements: list[Value] = []
 
     def header(self):
         return "array literal:"
-    def child_nodes(self) -> None | dict[str, Production]:
+    def child_nodes(self) -> None | dict[str, Production | Token]:
         return {f"item_{i+1}":e for i,e in enumerate(self.elements)}
 
-    def string(self, indent = 0):
+    def string(self, indent = 0) -> str:
         res = sprintln("array literal:", indent=0)
         for e in self.elements:
             res += sprintln(e.string(indent+1), indent=indent+1)
@@ -181,15 +204,15 @@ class ArrayLiteral(Iterable):
 
 class FnCall(IdentifierProds):
     def __init__(self):
-        self.id = None
-        self.args = []
+        self.id: Token = Token()
+        self.args: list[Value] = []
 
     def header(self):
         return sprint("call:", self.id.string(),indent=0)
-    def child_nodes(self) -> None | dict[str, Production]:
+    def child_nodes(self) -> None | dict[str, Production | Token]:
         return {**{f"arg_{i+1}":a for i,a in enumerate(self.args)}}
 
-    def string(self, indent = 1):
+    def string(self, indent = 1) -> str:
         res = sprintln("call:", self.id.string(),indent=0)
         for a in self.args:
             res += sprintln(a.string(indent=indent+1), indent=indent+1)
@@ -204,16 +227,16 @@ class IndexedIdentifier(IdentifierProds):
     - FnCall:            fn()[i]
     '''
     def __init__(self):
-        self.id: Token | FnCall = None
-        self.index: list = []
+        self.id: Token | FnCall = Token()
+        self.index: list[Value] = []
 
     def header(self):
         return self.string()
 
-    def child_nodes(self) -> None | dict[str, Production]:
+    def child_nodes(self) -> None | dict[str, Production | Token]:
         return None
 
-    def string(self, _ = 0):
+    def string(self, indent = 0) -> str:
         ret = sprint("indexed id:", self.id.string())
         if self.index:
             ret += f", indices: {', '.join([i.string() for i in self.index])}"
@@ -221,15 +244,15 @@ class IndexedIdentifier(IdentifierProds):
 
 class ClassConstructor(IdentifierProds):
     def __init__(self):
-        self.id = None
-        self.args = []
+        self.id: Token = Token()
+        self.args: list[Value] = []
 
     def header(self):
         return sprint("constructor:", self.id.string(),indent=0)
-    def child_nodes(self) -> None | dict[str, Production]:
+    def child_nodes(self) -> None | dict[str, Production | Token]:
         return {**{f"arg_{i+1}":a for i,a in enumerate(self.args)}}
 
-    def string(self, indent = 1):
+    def string(self, indent = 1) -> str:
         res = sprintln("constructor:", self.id.string(),indent=0)
         for a in self.args:
             res += sprintln(a.string(indent=indent+1), indent=indent+1)
@@ -242,6 +265,8 @@ class ClassAccessor(IdentifierProds):
     id can be:
     - token:    ident.property, Cwass.property
     - FnCall:   fn().property
+    - indexed:  ident[index].property
+    - ClassAccessor: ident.accessed.property
     can access:
     - token:         ident.property, Cwass.property
     - FnCall:        ident.method(), Cwass.method()
@@ -249,15 +274,15 @@ class ClassAccessor(IdentifierProds):
     - ClassAccessor: ident.property.property, Cwass.property.method()
     '''
     def __init__(self):
-        self.id: Token | FnCall = None
-        self.accessed: Token | FnCall | IndexedIdentifier | ClassAccessor = None
+        self.id: Token | FnCall | IndexedIdentifier | ClassAccessor = Token()
+        self.accessed: Token | FnCall | IndexedIdentifier | ClassAccessor = Token()
 
     def header(self):
         return self.id.string()
-    def child_nodes(self) -> None | dict[str, Production]:
+    def child_nodes(self) -> None | dict[str, Production | Token]:
         return {"accessed":self.accessed}
 
-    def string(self, indent = 0):
+    def string(self, indent = 0) -> str:
         ret = sprintln(self.id.string())
         ret += sprint("accessed:", self.accessed.string(indent+1), indent=indent+1)
         return ret
@@ -265,17 +290,17 @@ class ClassAccessor(IdentifierProds):
         return 1
 
 
-### GENERAL STATEMENT PRODUCTIONS ###
-class ReturnStatement(Production):
+### BLOCK STATEMENT PRODUCTIONS
+class ReturnStatement(Statement):
     def __init__(self):
-        self.expr = None
+        self.expr: Value = Value()
 
     def header(self):
         return "return"
-    def child_nodes(self) -> None | dict[str, Production]:
+    def child_nodes(self) -> None | dict[str, Production | Token]:
         return {"val":self.expr}
 
-    def string(self, indent = 0):
+    def string(self, indent = 0) -> str:
         res = sprintln("return", indent=indent)
         if self.expr:
             res += sprintln(self.expr.string(indent+1), indent=indent+1)
@@ -284,106 +309,19 @@ class ReturnStatement(Production):
     def __len__(self):
         return 1
 
-class ArrayDeclaration(Production):
+class Declaration(Statement):
     def __init__(self):
-        self.id: Token = None
-        self.dtype = None
-        self.value = None
-        self.is_const: bool = False
-
-    def header(self):
-        return f"declare{' constant' if self.is_const else ''} array: {self.id.string()}"
-    def child_nodes(self) -> None | dict[str, Production]:
-        return {"dtype":self.dtype, "value":self.value}
-
-    def string(self, indent = 0):
-        res = sprintln("declare array:", self.id.string(indent), indent=indent)
-        res += sprintln("type:", self.dtype.string(), indent=indent+1)
-        if self.is_const:
-            res += sprintln("constant", indent=indent+1)
-        if self.value:
-            res += sprintln("value:", self.value.string(indent+1), indent=indent+1)
-        return res
-
-    def compute_len(self):
-        def compute_lengths(array, depth):
-            if isinstance(array, ArrayLiteral):
-                # initialize with zero value so self.length[depth]
-                # is not an out of bounds error
-                if depth >= len(self.length):
-                    self.length.append(0)
-
-                # get length of largest element in current dimension
-                self.length[depth] = max(self.length[depth], len(array.elements))
-
-                # go through each element since elements
-                # might not have the same depth
-                for elem in array.elements:
-                    compute_lengths(elem, depth + 1)
-
-        compute_lengths(self.value, 0)
-
-class IdStatement(Production):
-    def __init__(self):
-        self.id: Token = None
-
-    def header(self):
-        return self.string()
-    def child_nodes(self) -> None | dict[str, Production]:
-        return None
-
-    def string(self, indent = 0):
-        return sprintln(self.id.string(indent), indent=indent)
-
-class UnaryStatement(Production):
-    def __init__(self):
-        self.id: Token = None
-        self.op: Token = None
-
-    def header(self):
-        return self.string()
-
-    def child_nodes(self) -> None | dict[str, Production]:
-        return None
-
-    def string(self, indent = 0):
-        return sprintln("unary:", self.id.string(indent) + self.op.string(), indent=indent)
-
-
-class Assignment(Production):
-    def __init__(self):
-        self.id: Token | ClassAccessor = None
-        self.value = None
-
-    def header(self):
-        return f"assign: {self.id.header()}"
-    def child_nodes(self) -> None | dict[str, Production]:
-        res: dict = {}
-        if isinstance(self.id, ClassAccessor):
-            res["accessed"] = self.id.accessed
-        res["value"] = self.value
-        return res
-
-    def string(self, indent = 0):
-        res = sprintln("assign:", self.id.string(indent), indent=indent)
-        res += sprintln("value:", self.value.string(indent+1), indent=indent+1)
-        return res
-    def __len__(self):
-        return 1
-
-class Declaration(Production):
-    def __init__(self):
-        self.id: Token = None
-        self.dtype: Token = None
-        self.value = None
+        self.id: Token = Token()
+        self.dtype: Token = Token() 
+        self.value: Value = Value()
         self.is_const: bool = False
 
     def header(self):
         return f"declare {'constant' if self.is_const else 'variable'}: {self.id.string()}"
-    def child_nodes(self) -> None | dict[str, Production]:
+    def child_nodes(self) -> None | dict[str, Production | Token]:
         return {"dtype":self.dtype, "value":self.value}
 
-    def string(self, indent = 0):
+    def string(self, indent = 0) -> str:
         res = sprintln("declare:", self.id.string(indent), indent=indent)
         res += sprintln("type:", self.dtype.string(indent+1), indent=indent+1)
         if self.is_const:
@@ -392,73 +330,75 @@ class Declaration(Production):
             res += sprintln("value:", self.value.string(indent+1), indent=indent+1)
         return res
 
-class Print(Production):
+class ArrayDeclaration(Statement):
     def __init__(self):
-        self.values = []
+        self.id: Token = Token()
+        self.dtype: Token = Token()
+        self.value: Value = Value()
+        self.is_const: bool = False
+
+    def header(self):
+        return f"declare{' constant' if self.is_const else ''} array: {self.id.string()}"
+    def child_nodes(self) -> None | dict[str, Production | Token]:
+        return {"dtype":self.dtype, "value":self.value}
+
+    def string(self, indent = 0) -> str:
+        res = sprintln("declare array:", self.id.string(indent), indent=indent)
+        res += sprintln("type:", self.dtype.string(), indent=indent+1)
+        if self.is_const:
+            res += sprintln("constant", indent=indent+1)
+        if self.value:
+            res += sprintln("value:", self.value.string(indent+1), indent=indent+1)
+        return res
+
+class Assignment(Statement):
+    def __init__(self):
+        self.id: Token | IndexedIdentifier | ClassAccessor = Token() 
+        self.value: Value = Value()
+
+    def header(self):
+        return f"assign: {self.id.header()}"
+    def child_nodes(self) -> None | dict[str, Production | Token]:
+        res: dict = {}
+        if isinstance(self.id, ClassAccessor):
+            res["accessed"] = self.id.accessed
+        res["value"] = self.value
+        return res
+
+    def string(self, indent = 0) -> str:
+        res = sprintln("assign:", self.id.string(indent), indent=indent)
+        res += sprintln("value:", self.value.string(indent+1), indent=indent+1)
+        return res
+    def __len__(self):
+        return 1
+
+class Print(Statement):
+    def __init__(self):
+        self.values: list[Value] = []
 
     def header(self):
         return "print:"
-    def child_nodes(self) -> None | dict[str, Production]:
+    def child_nodes(self) -> None | dict[str, Production | Token]:
         if self.values:
             return {**{f"val_{i+1}":v for i,v in enumerate(self.values)}}
         return None
 
-    def string(self, indent = 0):
+    def string(self, indent = 0) -> str:
         res = sprintln("print:", indent=indent)
         for v in self.values:
             res += sprintln(v.string(), indent=indent+1)
         return res
 
-class Input(Iterable):
+class IfStatement(Statement):
     def __init__(self):
-        self.expr = None
-        self.concats: list[StringFmt | Input | StringLiteral] = []
-
-    def header(self):
-        return "input:"
-
-    def child_nodes(self) -> None | dict[str, Production]:
-        return {"expr":self.expr, **{f"concat_{i+1}":c for i,c in enumerate(self.concats)}}
-
-    def string(self, indent = 0):
-        res = sprintln("input:", indent=0)
-        res += sprintln("expr:", self.expr.string(indent=indent+1), indent=indent+1)
-        if self.concats:
-            res += sprintln("concats:", indent=indent+1)
-            for c in self.concats:
-                res += sprintln(c.string(indent=indent+2), indent=indent+2)
-        return res
-
-    def __len__(self):
-        return 1
-
-
-class Parameter(Production):
-    def __init__(self):
-        self.id = None
-        self.dtype = None
-
-    def header(self):
-        return f"id: {self.id.string()}, dtype: {self.dtype.string()}"
-    def child_nodes(self) -> None | dict[str, Production]:
-        return None
-
-    def string(self, indent = 0):
-        res = sprintln("param:", self.id.string(), indent=0)
-        res += sprintln("dtype:", self.dtype.string(), indent=indent+1)
-        return res
-
-### BLOCK STATEMENT PRODUCTIONS
-class IfStatement(Production):
-    def __init__(self):
-        self.condition: Expression = None
-        self.then: BlockStatement = None
+        self.condition: Value = Value()
+        self.then: BlockStatement = BlockStatement()
         self.else_if: list[ElseIfStatement] = []
-        self.else_block: BlockStatement = None
+        self.else_block: BlockStatement = BlockStatement()
 
     def header(self):
         return "if statement:"
-    def child_nodes(self) -> None | dict[str, Production]:
+    def child_nodes(self) -> None | dict[str, Production | Token]:
         ret = {"condition": self.condition, "then": self.then}
         if self.else_if:
             ret.update(**{f"else if {i+1}":e for i,e in enumerate(self.else_if)})
@@ -466,7 +406,7 @@ class IfStatement(Production):
             ret["else"] = self.else_block
         return ret
 
-    def string(self, indent = 0):
+    def string(self, indent = 0) -> str:
         res = sprintln("if statement:", indent=indent)
         res += sprintln("condition:", self.condition.string(), indent=indent+1)
         res += sprintln("then:", indent=indent+1)
@@ -477,54 +417,58 @@ class IfStatement(Production):
             res += self.else_block.string(indent+1)
         return res
 
-class ElseIfStatement(Production):
+class ElseIfStatement(Statement):
     def __init__(self):
-        self.condition: Expression = None
-        self.then: BlockStatement = None
+        self.condition: Value = Value()
+        self.then: BlockStatement = BlockStatement()
 
     def header(self):
         return "else if statement:"
-    def child_nodes(self) -> None | dict[str, Production]:
+    def child_nodes(self) -> None | dict[str, Production | Token]:
         return {"condition":self.condition, "then":self.then}
 
-    def string(self, indent = 0):
+    def string(self, indent = 0) -> str:
         res = sprintln("else if statement:", indent=indent)
         res += sprintln("condition:", self.condition.string(), indent=indent+1)
         res += sprintln("then:", indent=indent+1)
         res += self.then.string(indent+2)
         return res
 
-class WhileLoop(Production):
+class WhileLoop(Statement):
     def __init__(self):
-        self.condition: Expression = None
-        self.body: BlockStatement = None
+        self.condition: Value = Value()
+        self.body: BlockStatement = BlockStatement()
         self.is_do = False
 
     def header(self):
         return f"{'do' if self.is_do else ''} while statement:"
-    def child_nodes(self) -> None | dict[str, Production]:
+    def child_nodes(self) -> None | dict[str, Production | Token]:
         return {"condition":self.condition, "body":self.body}
 
-    def string(self, indent = 0):
+    def string(self, indent = 0) -> str:
         res = sprintln(f"{f'do' if self.is_do else ''} while statement:", indent=indent)
         res += sprintln("condition:", self.condition.string(), indent=indent+1)
         res += sprintln("body:", indent=indent+1)
         res += self.body.string(indent+2)
         return res
 
-class ForLoop(Production):
+class ForLoop(Statement):
     def __init__(self):
-        self.init: Token | Assignment | Declaration | ArrayDeclaration | IdentifierProds = None # can be declaration or just an ident
-        self.condition: Expression = None
-        self.update: Expression = None
-        self.body: BlockStatement = None
+        self.init: (
+            Token |  FnCall | IndexedIdentifier
+            | ClassAccessor
+            | Assignment | Declaration | ArrayDeclaration
+        ) = Token()
+        self.condition: Value = Value()
+        self.update: Value = Value()
+        self.body: BlockStatement = BlockStatement()
 
     def header(self):
         return "for loop:"
-    def child_nodes(self) -> None | dict[str, Production]:
+    def child_nodes(self) -> None | dict[str, Production | Token]:
         return {"init":self.init, "condition":self.condition, "update":self.update, "body":self.body}
 
-    def string(self, indent = 0):
+    def string(self, indent = 0) -> str:
         res = sprintln("for statement:", indent=indent)
         res += sprintln("init:", self.init.string(), indent=indent+1)
         res += sprintln("condition:", self.condition.string(), indent=indent+1)
@@ -533,23 +477,38 @@ class ForLoop(Production):
         res += self.body.string(indent+2)
         return res
 
+class Parameter(Production):
+    def __init__(self):
+        self.id: Token = Token()
+        self.dtype: Token = Token()
+
+    def header(self):
+        return f"id: {self.id.string()}, dtype: {self.dtype.string()}"
+    def child_nodes(self) -> None | dict[str, Production | Token]:
+        return None
+
+    def string(self, indent = 0) -> str:
+        res = sprintln("param:", self.id.string(), indent=0)
+        res += sprintln("dtype:", self.dtype.string(), indent=indent+1)
+        return res
+
 class Function(Production):
     def __init__(self):
-        self.id = None
-        self.rtype = None
+        self.id: Token = Token()
+        self.rtype: Token = Token()
         self.params: list[Parameter] = []
-        self.body = None
+        self.body: BlockStatement = BlockStatement()
 
     def header(self):
         return f"function: {self.id.string()}"
-    def child_nodes(self) -> None | dict[str, Production]:
-        ret = {"rtype":self.rtype}
+    def child_nodes(self) -> None | dict[str, Production | Token]:
+        ret: dict[str, Production | Token] = {"rtype":self.rtype}
         if self.params:
             ret.update(**{f"param_{i+1}":p for i,p in enumerate(self.params)})
         ret["body"] = self.body
         return ret
 
-    def string(self, indent = 0):
+    def string(self, indent = 0) -> str:
         res = sprintln("function:", self.id.string(), indent=indent)
         res += sprintln("rtype:", self.rtype.string(), indent=indent+1)
         if self.params:
@@ -564,14 +523,14 @@ class Function(Production):
 
 class Class(Production):
     def __init__(self):
-        self.id: Token = None
+        self.id: Token = Token()
         self.params: list[Parameter] = []
         self.properties: list[Declaration | ArrayDeclaration] = []
         self.methods: list[Function] = []
 
     def header(self):
         return f"class: {self.id.string()}"
-    def child_nodes(self) -> None | dict[str, Production]:
+    def child_nodes(self) -> None | dict[str, Production | Token]:
         ret = {}
         if self.params:
             ret.update(**{f"param_{i+1}":p for i,p in enumerate(self.params)})
@@ -581,7 +540,7 @@ class Class(Production):
             ret.update(**{f"method_{i+1}":m for i,m in enumerate(self.methods)})
         return ret
 
-    def string(self, indent = 0):
+    def string(self, indent = 0) -> str:
         res = sprintln("class:", self.id.string(), indent=indent)
         if self.params:
             res += sprintln("parameters:", indent=indent+1)
@@ -603,12 +562,12 @@ class BlockStatement(Production):
 
     def header(self):
         return "block"
-    def child_nodes(self) -> None | dict[str, Production]:
+    def child_nodes(self) -> None | dict[str, Production | Token]:
         if self.statements:
             return {**{f"statement {i+1}":s for i,s in enumerate(self.statements)}}
         return None
 
-    def string(self, indent = 0):
+    def string(self, indent = 0) -> str:
         res = sprintln("block:", indent=indent)
         for s in self.statements:
             res += s.string(indent+1)
@@ -617,10 +576,10 @@ class BlockStatement(Production):
 class Program(Production):
     'the root node of the syntax tree'
     def __init__(self):
-        self.mainuwu = None
-        self.globals: list = []
-        self.functions: list = []
-        self.classes: list = []
+        self.mainuwu: Function | None = None
+        self.globals: list[Declaration | ArrayDeclaration] = []
+        self.functions: list[Function] = []
+        self.classes: list[Class] = []
 
     def mainuwu_string(self, indent = 0):
         if not self.mainuwu:
