@@ -86,6 +86,8 @@ class Array_UWU:
         return len(self.val)
     def __str__(self):
         return str(self.val)
+    def __repr__(self):
+        return repr(self.val)
 
     # operator overloading
     def __eq__(self, other):
@@ -126,25 +128,24 @@ class Array_UWU:
         return item in self.val
     def append(self, item):
         expect_type_is_in(item, self.valid_array_elems(),
-                               msg=f"OwO... that ain't an Array!")
+                               msg=f"OwO... you can't append with that!")
         self.val.append(item)
     def remove(self, item):
         self.val.remove(item)
     def extend(self, other: list | Self):
         expect_type_is_in(other, self.valid_operands(),
-                               msg=f"OwO... that ain't an Array!")
+                               msg=f"OwO... you can't extend with that!")
         self.val.extend(other)
 
     ## UTILS
     def valid_array_elems(self) -> list[type]:
-        return [str, String_UWU, int, float, bool, Array_UWU]
+        return [str, String_UWU, int, float, bool, list, Array_UWU]
     def valid_operands(self) -> list[type]:
         return [list, Array_UWU]
 
 class TypeError(Exception):
     pass
 def expect_type_is_in(actual, expecteds: list[type], msg: str):
-    for expected in expecteds:
-        if not isinstance(actual, expected):
-            raise TypeError(f"{msg}\nExpected any in {expecteds} !!\nGot {type(actual)} !!!")
+    if type(actual) not in expecteds:
+        raise TypeError(f"{msg}\nExpected any in {expecteds} !!\nGot {type(actual)} !!!")
     return True
