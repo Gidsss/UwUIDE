@@ -24,6 +24,10 @@ class TokenType(Enum):
         return self.token
     def string(self, indent = 1):
         return self.__str__()
+    def flat_string(self, indent = 1):
+        return self.__str__()
+    def python_string(self, indent = 1):
+        return self.__str__()
     def header(self):
         return self.token
 
@@ -172,7 +176,13 @@ class Token:
         return self._lexeme
     def __str__(self):
         return self._lexeme
-    def string(self, indent = 1):
+
+    ### For Production interface
+    def string(self, indent = 1) -> str:
+        return self._lexeme
+    def flat_string(self) -> str:
+        return self._lexeme
+    def python_string(self, indent = 1) -> str:
         return self._lexeme
     def header(self):
         return self._lexeme
