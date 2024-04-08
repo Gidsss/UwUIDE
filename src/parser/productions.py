@@ -1,50 +1,7 @@
-from abc import abstractmethod
+from src.parser.production_types import *
 from src.lexer import Token
 
-### BASE CLASS
-class Production: pass # to avoid undefined Production error in type hint
-class Production:
-    @abstractmethod
-    def string(self, indent = 0) -> str: pass
-    @abstractmethod
-    def header(self) -> str: pass
-    @abstractmethod
-    def child_nodes(self) -> None | dict[str, Production | Token]: pass
-
-class Statement(Production):
-    'for productions that can be in blocks'
-    pass
-
-class Value(Production):
-    'for productions that evaluate to a value'
-    pass
-class Expression(Value):
-    '''
-    for values that have operands
-    eg. id + id, id - id, fn_call() * id, id[1] / id
-    '''
-    pass
-class Unit(Value):
-    '''
-    for values that don't have operands
-    eg. identifier, identifier[2], "string", ident.property
-    fnCall(), "string | fmt | !"
-    '''
-    pass
-
-class Iterable(Unit):
-    '''
-    for Units that can: contain other Productions, and/or be subsliced
-    eg. arrays, string fmts, and string literals
-    '''
-    pass
-class IdentifierProds(Unit):
-    '''
-    for Units that are identifiers
-    eg. identifiers, identifier[2], fnCall(), ident.property
-    '''
-    pass
-
+### UTILS
 def sprint(*val, indent = 0):
     'return string with optional identation'
     return "    " * indent + " ".join(val)
@@ -573,7 +530,7 @@ class BlockStatement(Production):
             res += s.string(indent+1)
         return res
 
-class Program(Production):
+class Program:
     'the root node of the syntax tree'
     def __init__(self):
         self.mainuwu: Function | None = None
