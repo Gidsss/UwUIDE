@@ -80,17 +80,9 @@ class MemberAnalyzer:
         else:
             local_defs[param.id.string()] = (param.id, GlobalType.LOCAL_DEF)
 
-    def analyze_args(self, args: list[Production], local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+    def analyze_args(self, args: list[Value], local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         for arg in args:
-            match arg:
-                case Expression():
-                    self.analyze_expression(arg, local_defs)
-                case IdentifierProds():
-                    self.analyze_ident_prods(arg, local_defs)
-                case Iterable():
-                    self.analyze_iterable(arg, local_defs)
-                case Token():
-                    self.expect_defined_token(arg, local_defs)
+            self.analyze_value(arg, local_defs)
 
     def analyze_body(self, body: BlockStatement, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         '''
@@ -120,29 +112,13 @@ class MemberAnalyzer:
     ## IN BODY ANALYZERS
     def analyze_print(self, print_stmt: Print, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         for val in print_stmt.values:
-            match val:
-                case Expression():
-                    self.analyze_expression(val, local_defs)
-                case IdentifierProds():
-                    self.analyze_ident_prods(val, local_defs)
-                case Iterable():
-                    self.analyze_iterable(val, local_defs)
-                case Token():
-                    self.expect_defined_token(val, local_defs)
+            self.analyze_value(val, local_defs)
 
     def analyze_input(self, input_stmt: Input, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
-        match input_stmt.expr:
-            case Expression():
-                self.analyze_expression(input_stmt.expr, local_defs)
-            case IdentifierProds():
-                self.analyze_ident_prods(input_stmt.expr, local_defs)
-            case Iterable():
-                self.analyze_iterable(input_stmt.expr, local_defs)
-            case Token():
-                self.expect_defined_token(input_stmt.expr, local_defs)
+        self.analyze_value(input_stmt.expr, local_defs)
 
     def analyze_if(self, if_stmt: IfStatement | ElseIfStatement, local_defs: dict[str, tuple[Token, GlobalType]], else_if: bool = False) -> None:
-        self.analyze_expression(if_stmt.condition, local_defs)
+        self.analyze_value(if_stmt.condition, local_defs)
         self.analyze_body(if_stmt.then, local_defs.copy())
         if else_if: return
         assert isinstance(if_stmt, IfStatement)
@@ -153,15 +129,7 @@ class MemberAnalyzer:
 
     def analyze_declaration(self, decl: Declaration | ArrayDeclaration, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         self.expect_unique_token(decl.id, local_defs)
-        match decl.value:
-            case Expression():
-                self.analyze_expression(decl.value, local_defs)
-            case IdentifierProds():
-                self.analyze_ident_prods(decl.value, local_defs)
-            case Iterable():
-                self.analyze_iterable(decl.value, local_defs)
-            case Token():
-                self.expect_defined_token(decl.value, local_defs)
+        self.analyze_value(decl.value, local_defs)
 
     def analyze_assignment(self, assign: Assignment, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         match assign.id:
@@ -171,18 +139,10 @@ class MemberAnalyzer:
                 self.analyze_ident_prods(assign.id, local_defs)
             case _:
                 raise ValueError(f"Unknown assignment left hand side: {assign.id}")
-        match assign.value:
-            case Expression():
-                self.analyze_expression(assign.value, local_defs)
-            case IdentifierProds():
-                self.analyze_ident_prods(assign.value, local_defs)
-            case Iterable():
-                self.analyze_iterable(assign.value, local_defs)
-            case Token():
-                self.expect_defined_token(assign.value, local_defs)
+        self.analyze_value(assign.value, local_defs)
 
     def analyze_while_loop(self, while_loop: WhileLoop, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
-        self.analyze_expression(while_loop.condition, local_defs)
+        self.analyze_value(while_loop.condition, local_defs)
         self.analyze_body(while_loop.body, local_defs.copy())
 
     def analyze_for_loop(self, for_loop: ForLoop, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
@@ -200,24 +160,26 @@ class MemberAnalyzer:
                 self.analyze_ident_prods(for_loop.init, local_defs)
             case _:
                 raise ValueError(f"Unknown for loop init: {for_loop.init}")
-        self.analyze_expression(for_loop.condition, local_defs)
-        self.analyze_expression(for_loop.update, local_defs)
+        self.analyze_value(for_loop.condition, local_defs)
+        self.analyze_value(for_loop.update, local_defs)
         self.analyze_body(for_loop.body, local_defs.copy())
 
     def analyze_return(self, ret: ReturnStatement, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
-        match ret.expr:
-            case Token():
-                self.expect_defined_token(ret.expr, local_defs)
-            case Expression():
-                self.analyze_expression(ret.expr, local_defs)
-            case IdentifierProds():
-                self.analyze_ident_prods(ret.expr, local_defs)
-            case Iterable():
-                self.analyze_iterable(ret.expr, local_defs)
-            case _:
-                raise ValueError(f"Unknown return expression: {ret.expr}")
+        self.analyze_value(ret.expr, local_defs)
 
     ## OTHER ANALYZERS
+    def analyze_value(self, value: Value | Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        match value:
+            case Token():
+                self.expect_defined_token(value, local_defs)
+            case Expression():
+                self.analyze_expression(value, local_defs)
+            case IdentifierProds():
+                self.analyze_ident_prods(value, local_defs)
+            case Iterable():
+                self.analyze_iterable(value, local_defs)
+            case _:
+                raise ValueError(f"Unknown value: {value}")
     def analyze_ident_prods(self, ident_prod: IdentifierProds, local_defs: dict[str, tuple[Token, GlobalType]],
                             access_depth: int = 1) -> None:
         match ident_prod:
@@ -290,69 +252,21 @@ class MemberAnalyzer:
         use analyze_iterable instead
         '''
         for elem in array_literal.elements:
-            match elem:
-                case Token():
-                    self.expect_defined_token(elem, local_defs)
-                case Expression():
-                    self.analyze_expression(elem, local_defs)
-                case IdentifierProds():
-                    self.analyze_ident_prods(elem, local_defs)
-                case Iterable():
-                    self.analyze_iterable(elem, local_defs)
-                case _:
-                    raise ValueError(f"Unknown array element: {elem}")
+            self.analyze_value(elem, local_defs)
     
-    def analyze_array_indices(self, index_list: list[Production], local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+    def analyze_array_indices(self, index_list: list[Value], local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         for idx in index_list:
-            match idx:
-                case Expression():
-                    self.analyze_expression(idx, local_defs)
-                case IdentifierProds():
-                    self.analyze_ident_prods(idx, local_defs)
-                case Token():
-                    self.expect_defined_token(idx, local_defs)
+            self.analyze_value(idx, local_defs)
     
     def analyze_expression(self, expr: Expression, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         match expr:
             case PrefixExpression():
-                match expr.right:
-                    case Expression():
-                        self.analyze_expression(expr.right, local_defs)
-                    case Iterable():
-                        self.analyze_iterable(expr.right, local_defs)
-                    case IdentifierProds():
-                        self.analyze_ident_prods(expr.right, local_defs)
-                    case Token():
-                        self.expect_defined_token(expr.right, local_defs)
+                self.analyze_value(expr.right, local_defs)
             case PostfixExpression():
-                match expr.left:
-                    case Expression():
-                        self.analyze_expression(expr.left, local_defs)
-                    case Iterable():
-                        self.analyze_iterable(expr.left, local_defs)
-                    case IdentifierProds():
-                        self.analyze_ident_prods(expr.left, local_defs)
-                    case Token():
-                        self.expect_defined_token(expr.left, local_defs)
+                self.analyze_value(expr.left, local_defs)
             case InfixExpression():
-                match expr.left:
-                    case Expression():
-                        self.analyze_expression(expr.left, local_defs)
-                    case Iterable():
-                        self.analyze_iterable(expr.left, local_defs)
-                    case IdentifierProds():
-                        self.analyze_ident_prods(expr.left, local_defs)
-                    case Token():
-                        self.expect_defined_token(expr.left, local_defs)
-                match expr.right:
-                    case Expression():
-                        self.analyze_expression(expr.right, local_defs)
-                    case Iterable():
-                        self.analyze_iterable(expr.right, local_defs)
-                    case IdentifierProds():
-                        self.analyze_ident_prods(expr.right, local_defs)
-                    case Token():
-                        self.expect_defined_token(expr.right, local_defs)
+                self.analyze_value(expr.left, local_defs)
+                self.analyze_value(expr.right, local_defs)
             case _:
                 raise ValueError(f"Unknown expression: {expr}")
 
@@ -362,13 +276,7 @@ class MemberAnalyzer:
         use analyze_iterable instead
         '''
         for expr in string_fmt.exprs:
-            match expr:
-                case Expression():
-                    self.analyze_expression(expr, local_defs)
-                case IdentifierProds():
-                    self.analyze_ident_prods(expr, local_defs)
-                case Token():
-                    self.expect_defined_token(expr, local_defs)
+            self.analyze_value(expr, local_defs)
 
         for concat in string_fmt.concats:
             match concat:
