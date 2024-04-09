@@ -1,3 +1,4 @@
+from lexer.token import TokenType
 from src.parser.production_types import *
 from src.lexer import Token
 
@@ -504,10 +505,15 @@ class Class(Production):
                 res += method.string(indent+2)
         return res
 
-    def member_signatures(self) -> list[str]:
-        properties = [f"{self.id.string()}.{p.id.string()}" for p in self.properties]
-        methods = [f"{self.id.string()}.{m.id.string()}" for m in self.methods]
-        return properties + methods
+    def member_signatures(self) -> dict[str, TokenType]:
+        ret: dict[str, TokenType] = {}
+        for p in self.params:
+            ret[f"{self.id.string()}.{p.id.string()}"] = p.dtype.token
+        for p in self.properties:
+            ret[f"{self.id.string()}.{p.id.string()}"] = p.dtype.token
+        for m in self.methods:
+            ret[f"{self.id.string()}.{m.id.string()}"] = m.rtype.token
+        return ret
 
 class BlockStatement(Production):
     def __init__(self):
