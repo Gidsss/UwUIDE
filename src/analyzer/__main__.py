@@ -1,4 +1,4 @@
-# from .type_checker import TypeChecker
+from .type_checker import TypeChecker
 from .error_handler import ErrorSrc
 from .analyzer import MemberAnalyzer
 from .class_analyzer import ClassAnalyzer
@@ -8,36 +8,36 @@ from src.parser.error_handler import ErrorSrc as parErrorSrc
 
 if __name__ == "__main__":
     sc = """
-    gwobaw areallylongname-kun-dono = 3.14~
-    cwass Hololive(a-chan) [[
-        b-chan~
-        b-chan~
-        fwunc init-chan(a-chan) [[
-            b = inpwt(a[1].a() + a || b || "hello | b | world")~
-            b()~
-        ]]
-    ]]
+    >.< gwobaw areallylongname-kun-dono = 3.14~
+    >.< cwass Hololive(a-chan) [[
+    >.<     b-chan~
+    >.<     b-chan~
+    >.<     fwunc init-chan(a-chan) [[
+    >.<         b = inpwt(a[1].a() + a || b || "hello | b | world")~
+    >.<         b()~
+    >.<     ]]
+    >.< ]]
     fwunc mainuwu-san() [[
-        wetuwn(1)~
+        a-chan = 1.0~
     ]]
-    fwunc sum-chan(a-chan) [[
-        iwf (fax || cap) [[
-            a = "a"&"b | b() | b"~
-        ]] ewse iwf (fax + cap) [[
-            b-chan = 1~
-            b = 1~
-        ]] ewse iwf (fax - cap) [[
-            b = 1~
-        ]] ewse [[
-            d = 1~
-        ]]
-        fow(i-chan[]=1~i<10~i+1) [[
-            pwint(a)~
-        ]]
-        pwint(i)~
-        a.a[1].b[b] = 1~
-        wetuwn({b})~
-    ]]
+    >.< fwunc sum-chan(a-chan) [[
+    >.<     iwf (fax || cap) [[
+    >.<         a = "a"&"b | b() | b"~
+    >.<     ]] ewse iwf (fax + cap) [[
+    >.<         b-chan = 1~
+    >.<         b = 1~
+    >.<     ]] ewse iwf (fax - cap) [[
+    >.<         b = 1~
+    >.<     ]] ewse [[
+    >.<         d = 1~
+    >.<     ]]
+    >.<     fow(i-chan[]=1~i<10~i+1) [[
+    >.<         pwint(a)~
+    >.<     ]]
+    >.<     pwint(i)~
+    >.<     a.a[1].b[b] = 1~
+    >.<     wetuwn({b})~
+    >.< ]]
     """
     source: list[str] = [line if line else '\n' for line in sc.split("\n")]
     max_digit_length = len(str(len(source)))
@@ -76,8 +76,8 @@ if __name__ == "__main__":
                 print(err)
         exit(1)
 
-    # tc = TypeChecker(p.program)
-    # if tc.errors:
-    #     for err in tc.errors:
-    #         print(err)
-    #     exit(1)
+    tc = TypeChecker(p.program)
+    if tc.errors:
+        for err in tc.errors:
+            print(err)
+        exit(1)
