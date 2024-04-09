@@ -504,6 +504,11 @@ class Class(Production):
                 res += method.string(indent+2)
         return res
 
+    def member_signatures(self) -> list[str]:
+        properties = [f"{self.id.string()}.{p.id.string()}" for p in self.properties]
+        methods = [f"{self.id.string()}.{m.id.string()}" for m in self.methods]
+        return properties + methods
+
 class BlockStatement(Production):
     def __init__(self):
         self.statements = []
