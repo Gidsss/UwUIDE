@@ -71,7 +71,7 @@ class ClassAnalyzer:
             self.errors.append(DuplicateDefinitionError(
                 *local_defs[param.id.string()],
                 param.id,
-                GlobalType.CLASS_PROPERTY,
+                GlobalType.LOCAL_CLASS_ID,
             ))
         else:
             local_defs[param.id.string()] = (param.id, GlobalType.CLASS_PROPERTY)
@@ -106,6 +106,8 @@ class ClassAnalyzer:
                     self.analyze_for_loop(stmt, local_defs.copy())
                 case ReturnStatement():
                     self.analyze_return(stmt, local_defs)
+                case FnCall():
+                    self.analyze_ident_prods(stmt, local_defs)
                 case _:
                     raise ValueError(f"Unknown statement: {stmt}")
 
@@ -226,13 +228,10 @@ class ClassAnalyzer:
                     case Token():
                         self.expect_defined_token(ident_prod.id, local_defs)
                     case FnCall():
-                        self.analyze_ident_prods(ident_prod.id, local_defs)
+                        self.analyze_fn_call(ident_prod.id, local_defs)
                 self.analyze_array_indices(ident_prod.index, local_defs)
             case FnCall():
-                match ident_prod.id:
-                    case Token():
-                        self.expect_defined_token(ident_prod.id, local_defs)
-                self.analyze_args(ident_prod.args, local_defs)
+                self.analyze_fn_call(ident_prod, local_defs)
             case ClassConstructor():
                 self.analyze_args(ident_prod.args, local_defs)
             case ClassAccessor():
@@ -241,7 +240,7 @@ class ClassAnalyzer:
                         case Token():
                             self.expect_defined_token(ident_prod.id, local_defs)
                         case FnCall():
-                            self.analyze_ident_prods(ident_prod.id, local_defs)
+                            self.analyze_fn_call(ident_prod.id, local_defs)
                 match ident_prod.accessed:
                     case FnCall():
                         self.analyze_args(ident_prod.accessed.args, local_defs)
@@ -251,6 +250,16 @@ class ClassAnalyzer:
                         self.analyze_ident_prods(ident_prod.accessed, local_defs, access_depth=access_depth+1)
             case _:
                 raise ValueError(f"Unknown identifier production: {ident_prod}")
+
+    def analyze_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        if fn_call.id.string() in local_defs and local_defs[fn_call.id.string()][1] == GlobalType.FUNCTION:
+            pass
+        else:
+            self.errors.append(UndefinedError(
+                fn_call.id,
+                GlobalType.FUNCTION,
+            ))
+        self.analyze_args(fn_call.args, local_defs)
 
     def analyze_iterable(self, collection: Iterable, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         '''
@@ -371,6 +380,7 @@ class ClassAnalyzer:
                 else:
                     self.errors.append(UndefinedError(
                         token,
+                        GlobalType.IDENTIFIER,
                     ))
             case _:
                 raise ValueError(f"Unknown token: {token}")
@@ -385,9 +395,9 @@ class ClassAnalyzer:
                     self.errors.append(DuplicateDefinitionError(
                         *local_defs[token.string()],
                         token,
-                        GlobalType.LOCAL_DEF,
+                        GlobalType.IDENTIFIER,
                     ))
                 else:
-                    local_defs[token.string()] = (token, GlobalType.LOCAL_DEF)
+                    local_defs[token.string()] = (token, GlobalType.IDENTIFIER)
             case _:
                 raise ValueError(f"Unknown token: {token}")
