@@ -505,15 +505,15 @@ class Class(Production):
                 res += method.string(indent+2)
         return res
 
-    def member_signatures(self) -> dict[str, TokenType]:
-        ret: dict[str, TokenType] = {}
-        for p in self.params:
-            ret[f"{self.id.string()}.{p.id.string()}"] = p.dtype.token
-        for p in self.properties:
-            ret[f"{self.id.string()}.{p.id.string()}"] = p.dtype.token
-        for m in self.methods:
-            ret[f"{self.id.string()}.{m.id.string()}"] = m.rtype.token
-        return ret
+    # def member_signatures(self) -> dict[str, tuple[Token, GlobalType]]:
+    #     ret: dict[str, tuple[Token, GlobalType]] = {}
+    #     for p in self.params:
+    #         ret[f"{self.id.string()}.{p.id.string()}"] = p.dtype, GlobalType.CLASS_PROPERTY
+    #     for p in self.properties:
+    #         ret[f"{self.id.string()}.{p.id.string()}"] = p.dtype, GlobalType.CLASS_PROPERTY
+    #     for m in self.methods:
+    #         ret[f"{self.id.string()}.{m.id.string()}"] = m.rtype, GlobalType.CLASS_METHOD
+    #     return ret
 
 class BlockStatement(Production):
     def __init__(self):
