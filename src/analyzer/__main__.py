@@ -9,6 +9,11 @@ if __name__ == "__main__":
     sc = """
     gwobaw areallylongname-kun-dono = 3.14~
     cwass Hololive(a-chan) [[
+        b-chan~
+        b-chan~
+        fwunc init-chan(a-chan) [[
+            b = inpwt(a[1].a() + a || b || "hello | b | world")~
+        ]]
         fwunc init-chan(a-chan) [[
             b = inpwt(a[1].a() + a || b || "hello | b | world")~
         ]]
