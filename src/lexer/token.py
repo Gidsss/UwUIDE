@@ -114,6 +114,8 @@ class TokenType(Enum):
     WHITESPACE = ("WHITESPACE", "all")
     EOF = ("EOF", "all")
 
+    MIXED_ARRAY = ("MIXED_ARRAY", "all")
+
 class UniqueTokenType:
     """
     A class for generating unique token types.
