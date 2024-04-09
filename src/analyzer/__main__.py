@@ -1,3 +1,4 @@
+# from .type_checker import TypeChecker
 from .error_handler import ErrorSrc
 from .analyzer import MemberAnalyzer
 from .class_analyzer import ClassAnalyzer
@@ -13,9 +14,7 @@ if __name__ == "__main__":
         b-chan~
         fwunc init-chan(a-chan) [[
             b = inpwt(a[1].a() + a || b || "hello | b | world")~
-        ]]
-        fwunc init-chan(a-chan) [[
-            b = inpwt(a[1].a() + a || b || "hello | b | world")~
+            b()~
         ]]
     ]]
     fwunc mainuwu-san() [[
@@ -23,7 +22,7 @@ if __name__ == "__main__":
     ]]
     fwunc sum-chan(a-chan) [[
         iwf (fax || cap) [[
-            a = "a"&"b | b | b"~
+            a = "a"&"b | b() | b"~
         ]] ewse iwf (fax + cap) [[
             b-chan = 1~
             b = 1~
@@ -75,3 +74,10 @@ if __name__ == "__main__":
         if ca.errors:
             for err in ca.errors:
                 print(err)
+        exit(1)
+
+    # tc = TypeChecker(p.program)
+    # if tc.errors:
+    #     for err in tc.errors:
+    #         print(err)
+    #     exit(1)
