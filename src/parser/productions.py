@@ -1,4 +1,4 @@
-from lexer.token import TokenType
+from src.lexer.token import TokenType
 from src.parser.production_types import *
 from src.lexer import Token
 
