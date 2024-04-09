@@ -13,6 +13,8 @@ class GlobalType(Enum):
     FUNCTION = "FUNCTION"
     CLASS = "CLASS"
     LOCAL_DEF = "LOCAL_DEF"
+    CLASS_PROPERTY = "CLASS_PROPERTY"
+    CLASS_METHOD = "CLASS_METHOD"
 
 class ErrorSrc:
     src = [""]
