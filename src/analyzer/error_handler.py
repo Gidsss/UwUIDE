@@ -34,7 +34,7 @@ class DuplicateDefinitionError:
         og_range = 1 if self.original.end_position is None else self.original.end_position[1] - self.original.position[1] + 1
         error_range = 1 if self.duplicate.end_position is None else self.duplicate.end_position[1] - self.duplicate.position[1] + 1
 
-        msg = f"Duplicate global: {self.duplicate}\n"
+        msg = f"Duplicate {self.original_type}: {self.duplicate}\n"
         msg += border
         msg += f"\t{' ' * max_pad} | \t"
         msg += Styled.sprintln(
