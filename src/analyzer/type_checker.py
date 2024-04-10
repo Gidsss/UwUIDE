@@ -8,7 +8,6 @@ from src.analyzer.error_handler import *
 from src.lexer.token import Token, UniqueTokenType
 from src.parser.productions import *
 
-
 class TypeChecker:
     def __init__(self, program: Program):
         self.program = program
@@ -49,11 +48,11 @@ class TypeChecker:
         # for cwass in self.program.classes: self.check_class(cwass)
 
     def check_function(self, func: Function, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
-        self.check_body(func.body, local_defs.copy())
+        self.check_body(func.body, func.rtype, local_defs.copy())
 
-    def check_body(self, body: BlockStatement, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+    def check_body(self, body: BlockStatement, return_type: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        'make sure you pass in a copy of local_defs when calling this'
         for statement in body.statements:
-            print(statement)
             match statement:
                 case Print():
                     raise NotImplementedError
@@ -62,7 +61,7 @@ class TypeChecker:
                 case Declaration() | ArrayDeclaration():
                     self.check_declaration(statement, local_defs)
                 case Assignment():
-                    raise NotImplementedError
+                    self.check_assignment(statement, local_defs)
                 case IfStatement():
                     raise NotImplementedError
                 case WhileLoop():
@@ -70,11 +69,16 @@ class TypeChecker:
                 case ForLoop():
                     raise NotImplementedError
                 case ReturnStatement():
-                    raise NotImplementedError
+                    self.check_return(statement, return_type, local_defs.copy())
                 case FnCall():
                     raise NotImplementedError
                 case _:
                     raise ValueError(f"Unknown statement: {statement}")
+
+    def check_return(self, ret: ReturnStatement, return_type: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        actual_type = self.evaluate_value(ret.expr, local_defs)
+        if actual_type != return_type.token:
+            print(f"ERROR: {return_type} != {actual_type}")
 
     def check_declaration(self, decl: Declaration | ArrayDeclaration, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         self.check_value(decl.value, decl.dtype, local_defs)
