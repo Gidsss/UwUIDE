@@ -55,25 +55,64 @@ class TypeChecker:
         for statement in body.statements:
             match statement:
                 case Print():
-                    raise NotImplementedError
+                    self.check_print(statement, local_defs)
                 case Input():
-                    raise NotImplementedError
+                    self.check_input(statement, local_defs)
                 case Declaration() | ArrayDeclaration():
                     self.check_declaration(statement, local_defs)
                 case Assignment():
                     self.check_assignment(statement, local_defs)
                 case IfStatement():
-                    raise NotImplementedError
+                    self.check_if(statement, return_type, local_defs.copy())
                 case WhileLoop():
-                    raise NotImplementedError
+                    self.check_while_loop(statement, return_type, local_defs.copy())
                 case ForLoop():
-                    raise NotImplementedError
+                    self.check_for_loop(statement, return_type, local_defs.copy())
                 case ReturnStatement():
                     self.check_return(statement, return_type, local_defs.copy())
                 case FnCall():
-                    raise NotImplementedError
+                    self.check_fn_call(statement, local_defs)
                 case _:
                     raise ValueError(f"Unknown statement: {statement}")
+
+    def check_print(self, print: Print, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        for val in print.values:
+            self.evaluate_value(val, local_defs)
+
+    def check_input(self, input: Input, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        self.evaluate_value(input.expr, local_defs)
+
+    def check_if(self, if_stmt: IfStatement | ElseIfStatement, return_type: Token, local_defs: dict[str, tuple[Token, GlobalType]], else_if=False) -> None:
+        self.evaluate_value(if_stmt.condition, local_defs)
+        self.check_body(if_stmt.then, return_type, local_defs.copy())
+        if else_if: return
+        assert isinstance(if_stmt, IfStatement)
+        for elif_stmt in if_stmt.else_if:
+            self.check_if(elif_stmt, return_type, local_defs, else_if=True)
+        if if_stmt.else_block:
+            self.check_body(if_stmt.else_block, return_type, local_defs.copy())
+
+    def check_while_loop(self, while_loop: WhileLoop, return_type: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        self.evaluate_value(while_loop.condition, local_defs)
+        self.check_body(while_loop.body, return_type, local_defs.copy())
+
+    def check_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        for arg in fn_call.args:
+            self.evaluate_value(arg, local_defs)
+
+    def check_for_loop(self, for_loop: ForLoop, return_type: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        match for_loop.init:
+            case Declaration() | ArrayDeclaration():
+                self.check_declaration(for_loop.init, local_defs)
+            case Assignment():
+                self.check_assignment(for_loop.init, local_defs)
+            case Token():
+                self.evaluate_value(for_loop.init, local_defs)
+            case IdentifierProds():
+                raise NotImplementedError
+        self.evaluate_value(for_loop.condition, local_defs)
+        self.evaluate_value(for_loop.update, local_defs)
+        self.check_body(for_loop.body, return_type, local_defs.copy())
 
     def check_return(self, ret: ReturnStatement, return_type: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         actual_type = self.evaluate_value(ret.expr, local_defs)
