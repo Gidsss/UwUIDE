@@ -60,6 +60,11 @@ class TokenType(Enum):
     SENPAI = ("senpai", "data_type")  # string
     SAN = ("san", "data_type")  # void
     DONO = ("dono", "dono")  # constant
+    CHAN_ARR = ("chan[]", "data_type")  # int[]
+    KUN_ARR = ("kun[]", "data_type")  # float[]
+    SAMA_ARR = ("sama[]", "data_type")  # boolean[]
+    SENPAI_ARR = ("senpai[]", "data_type")  # string[]
+    SAN_ARR = ("san[]", "data_type")  # void[]
 
     # LITERALS
     NUWW = ("nuww", "nuww")
@@ -188,6 +193,20 @@ class Token:
         return self._lexeme
     def header(self):
         return self._lexeme
+
+    def to_arr(self):
+        self._lexeme += "[]"
+        match self.token:
+            case TokenType.CHAN:
+                self._token = TokenType.CHAN_ARR
+            case TokenType.KUN:
+                self._token = TokenType.KUN_ARR
+            case TokenType.SAMA:
+                self._token = TokenType.SAMA_ARR
+            case TokenType.SAN:
+                self._token = TokenType.SAN_ARR
+            case TokenType.SENPAI:
+                self._token = TokenType.SENPAI_ARR
 
 
     @property
