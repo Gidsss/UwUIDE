@@ -132,8 +132,8 @@ class MemberAnalyzer:
             self.analyze_body(if_stmt.else_block, local_defs.copy())
 
     def analyze_declaration(self, decl: Declaration | ArrayDeclaration, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
-        self.expect_unique_token(decl.id, local_defs)
         self.analyze_value(decl.value, local_defs)
+        self.expect_unique_token(decl.id, local_defs)
 
     def analyze_assignment(self, assign: Assignment, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         match assign.id:
@@ -183,7 +183,7 @@ class MemberAnalyzer:
             case Iterable():
                 self.analyze_iterable(value, local_defs)
             case _:
-                raise ValueError(f"Unknown value: {value}")
+                if value.string() != None: raise ValueError(f"Unknown value: {value.string()}")
     def analyze_ident_prods(self, ident_prod: IdentifierProds, local_defs: dict[str, tuple[Token, GlobalType]],
                             access_depth: int = 1) -> None:
         match ident_prod:
