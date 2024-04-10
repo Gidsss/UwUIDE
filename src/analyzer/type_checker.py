@@ -79,20 +79,32 @@ class TypeChecker:
     def check_declaration(self, decl: Declaration | ArrayDeclaration, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         expected_type = decl.dtype
         actual_type = self.evaluate_value(decl.value)
+    def check_value(self, value: Value, expected_type: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         match expected_type.token:
-            case TokenType.CHAN | TokenType.KUN:
-                match actual_type:
-                    case TokenType.CHAN | TokenType.KUN: print(f"OK: {expected_type.string()} == {actual_type.string()}")
-                    case _: print(f"ERROR: {expected_type.string()} != {actual_type.string()}")
-            case TokenType.SAMA:
-                match actual_type:
-                    case TokenType.SAMA: print(f"OK: {expected_type.string()} == {actual_type.string()}")
-                    case _: print(f"ERROR: {expected_type.string()} != {actual_type.string()}")
+            case TokenType.CHAN | TokenType.KUN | TokenType.SAMA:
+                expected_types = [TokenType.CHAN, TokenType.KUN, TokenType.SAMA, TokenType.NUWW]
+                actual_type = self.evaluate_value(value, local_defs)
+                if actual_type not in expected_types:
+                    print(f"ERROR: {expected_type} != {actual_type}")
             case TokenType.SENPAI:
-                match actual_type:
-                    case TokenType.SENPAI: print(f"OK: {expected_type.string()} == {actual_type.string()}")
-                    case _: print(f"ERROR: {expected_type.string()} != {actual_type.string()}")
-            case TokenType.SAN: print(f"OK: {expected_type.string()} == {actual_type.string()}")
+                expected_types = [TokenType.SENPAI, TokenType.NUWW]
+                actual_type = self.evaluate_value(value, local_defs)
+                if actual_type not in expected_types:
+                    print(f"ERROR: {expected_type} != {actual_type}")
+            case TokenType.CHAN_ARR:
+                expected_types = [TokenType.CHAN_ARR, TokenType.NUWW]
+                actual_type = self.evaluate_value(value, local_defs)
+                if actual_type not in expected_types:
+                    print(f"ERROR: {expected_type} != {actual_type}")
+            case UniqueTokenType():
+                match value:
+                    case ClassConstructor():
+                        if value.id.string() != expected_type.string():
+                            print(f"ERROR: {expected_type} != {value.id.string()}")
+                        for arg in value.args:
+                            self.evaluate_value(arg, local_defs)
+                    case _:
+                        print(f"ERROR: {expected_type} != {self.evaluate_value(value, local_defs)}")
 
     def evaluate_value(self, value: Value | Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
         match value:
