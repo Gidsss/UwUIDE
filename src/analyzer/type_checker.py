@@ -77,8 +77,13 @@ class TypeChecker:
                     raise ValueError(f"Unknown statement: {statement}")
 
     def check_declaration(self, decl: Declaration | ArrayDeclaration, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
-        expected_type = decl.dtype
-        actual_type = self.evaluate_value(decl.value)
+        self.check_value(decl.value, decl.dtype, local_defs)
+        local_defs[decl.id.string()] = (decl.dtype, GlobalType.IDENTIFIER)
+
+    def check_assignment(self, assign: Assignment, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        expected_type = local_defs[assign.id.string()][0]
+        self.check_value(assign.value, expected_type, local_defs)
+
     def check_value(self, value: Value, expected_type: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         match expected_type.token:
             case TokenType.CHAN | TokenType.KUN | TokenType.SAMA:
