@@ -9,16 +9,19 @@ from src.parser.error_handler import ErrorSrc as parErrorSrc
 if __name__ == "__main__":
     sc = """
     >.< gwobaw areallylongname-kun-dono = 3.14~
-    >.< cwass Hololive(a-chan) [[
-    >.<     b-chan~
-    >.<     b-chan~
-    >.<     fwunc init-chan(a-chan) [[
-    >.<         b = inpwt(a[1].a() + a || b || "hello | b | world")~
-    >.<         b()~
-    >.<     ]]
-    >.< ]]
+    cwass Hololive(a-chan) [[
+        b-chan~
+        fwunc init-chan(c-chan) [[
+            b = inpwt(a[1].a() + a || b || "hello | b | world")~
+        ]]
+    ]]
     fwunc mainuwu-san() [[
-        a-chan = 1.0~
+        a-chan[]~
+        b-Hololive = Hololive(-a++ + a > 10)~
+        >.< a(-b++ + b > 10)~
+    ]]
+    fwunc a-chan() [[
+        b-chan~
     ]]
     >.< fwunc sum-chan(a-chan) [[
     >.<     iwf (fax || cap) [[
@@ -67,6 +70,7 @@ if __name__ == "__main__":
     if ma.errors:
         for err in ma.errors:
             print(err)
+        exit(1)
 
     assert p.program
     for cwass in p.program.classes:
@@ -74,7 +78,7 @@ if __name__ == "__main__":
         if ca.errors:
             for err in ca.errors:
                 print(err)
-        exit(1)
+            exit(1)
 
     tc = TypeChecker(p.program)
     if tc.errors:
