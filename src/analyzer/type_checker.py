@@ -117,6 +117,18 @@ class TypeChecker:
             case UniqueTokenType(): return self.global_defs[token.string()][0].token
             case _: raise ValueError(f"Unknown token: {token}")
 
+    def math_operands(self) -> list[TokenType]:
+        return [TokenType.CHAN, TokenType.KUN, TokenType.SAMA, TokenType.NUWW]
+    def math_operators(self) -> list[TokenType]:
+        return [TokenType.ADDITION_SIGN, TokenType.DASH, TokenType.MULTIPLICATION_SIGN,
+                TokenType.DIVISION_SIGN, TokenType.MODULO_SIGN]
+    def comparison_operators(self) -> list[TokenType]:
+        return [TokenType.LESS_THAN_SIGN, TokenType.GREATER_THAN_SIGN,
+                TokenType.LESS_THAN_OR_EQUAL_SIGN, TokenType.GREATER_THAN_OR_EQUAL_SIGN]
+    def equality_operators(self) -> list[TokenType]:
+        return [TokenType.EQUALITY_OPERATOR, TokenType.INEQUALITY_OPERATOR,
+                TokenType.AND_OPERATOR, TokenType.OR_OPERATOR]
+
     ### REFERENCE FROM ANALYZER
     # def analyze_class(self, cwass: Class) -> None:
     #     local_defs: dict[str, tuple[Token, GlobalType]] = self.global_names.copy()
