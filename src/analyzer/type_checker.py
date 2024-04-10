@@ -107,14 +107,14 @@ class TypeChecker:
             case _:
                 raise ValueError(f"Unknown value: {value}")
 
-    def evaluate_token(self, token: Token) -> TokenType:
+    def evaluate_token(self, token: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
         match token.token:
             case TokenType.STRING_LITERAL: return TokenType.SENPAI
             case TokenType.INT_LITERAL: return TokenType.CHAN
             case TokenType.FLOAT_LITERAL: return TokenType.KUN
             case TokenType.FAX | TokenType.CAP: return TokenType.SAMA
             case TokenType.NUWW: return TokenType.SAN
-            case UniqueTokenType(): return self.global_defs[token.string()][0].token
+            case UniqueTokenType(): return local_defs[token.string()][0].token
             case _: raise ValueError(f"Unknown token: {token}")
 
     def math_operands(self) -> list[TokenType]:
