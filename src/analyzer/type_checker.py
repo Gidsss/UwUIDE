@@ -94,18 +94,20 @@ class TypeChecker:
                     case _: print(f"ERROR: {expected_type.string()} != {actual_type.string()}")
             case TokenType.SAN: print(f"OK: {expected_type.string()} == {actual_type.string()}")
 
-    def evaluate_value(self, value: Value | Token) -> TokenType:
+    def evaluate_value(self, value: Value | Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
         match value:
             case Token():
-                return self.evaluate_token(value)
+                return self.evaluate_token(value, local_defs)
             case Expression():
-                raise NotImplementedError
+                return self.evaluate_expression(value, local_defs)
             case IdentifierProds():
                 raise NotImplementedError
             case Iterable():
                 raise NotImplementedError
             case _:
-                raise ValueError(f"Unknown value: {value}")
+                if value.string() != None: raise ValueError(f"Unknown value: {value.string()}")
+                return TokenType.NUWW
+
     def evaluate_expression(self, expr: Expression, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
         match expr:
             case PrefixExpression():
