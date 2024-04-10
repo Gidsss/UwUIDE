@@ -106,6 +106,43 @@ class TypeChecker:
                 raise NotImplementedError
             case _:
                 raise ValueError(f"Unknown value: {value}")
+    def evaluate_expression(self, expr: Expression, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
+        match expr:
+            case PrefixExpression():
+                right = self.evaluate_value(expr.right, local_defs)
+                if not right in self.math_operands():
+                    print(f"ERROR: {right} cannot be negative")
+                return right
+            case InfixExpression():
+                left = self.evaluate_value(expr.left, local_defs)
+                right = self.evaluate_value(expr.right, local_defs)
+
+                if expr.op.token in self.math_operators():
+                    if not (left in self.math_operands() and right in self.math_operands()):
+                        tab_newline = '\n\t' # cuz \ is now allowed in f-strings
+                        print(f"ERROR: {left} {expr.op} {right}{tab_newline}"+
+                            f"{f'{left} is not a math operand{tab_newline}' if left not in self.math_operands() else ''}"+
+                            f"{f'{right} is not a math operand' if right not in self.math_operands() else ''}")
+                    if left == TokenType.KUN or right == TokenType.KUN:
+                        return TokenType.KUN
+                    else:
+                        return TokenType.CHAN
+                elif expr.op.token in self.comparison_operators():
+                    if not (left in self.math_operands() and right in self.math_operands()):
+                        print(f"ERROR: {left} {expr.op} {right}\n\t"+
+                              f"{left if left not in self.math_operands() else right} is not a comparison operand")
+                    return TokenType.SAMA
+                elif expr.op.token in self.equality_operators():
+                    return TokenType.SAMA
+                else:
+                    raise ValueError(f"Unknown operator: {expr.op}")
+            case PostfixExpression():
+                left = self.evaluate_value(expr.left, local_defs)
+                if not(left in self.math_operands()):
+                    print(f"ERROR: {left} cannot be incremented or decremented")
+                return left
+            case _:
+                raise ValueError(f"Unknown expression: {expr}")
 
     def evaluate_token(self, token: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
         match token.token:
