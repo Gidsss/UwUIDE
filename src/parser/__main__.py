@@ -5,7 +5,10 @@ from .error_handler import ErrorSrc
 if __name__ == "__main__":
     sc = """
     fwunc mainuwu-san() [[
-        a = "s"&"b | b | b"~
+        a-senpai[] = 1.0 > 1 + 1~
+    ]]
+    fwunc sums-chan[](nums-chan[]) [[
+        pwint(1)~
     ]]
     """
 

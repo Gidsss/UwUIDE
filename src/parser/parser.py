@@ -292,8 +292,8 @@ class Parser:
         if self.expect_peek(TokenType.OPEN_BRACKET):
             ad = ArrayDeclaration()
             ad.id, ad.dtype = d.id, d.dtype
+            ad.dtype.to_arr()
             d = ad
-            d.dtype.lexeme += "[]"
             if not self.expect_peek(TokenType.CLOSE_BRACKET):
                 self.unclosed_bracket_error(self.peek_tok)
                 self.advance(2)
@@ -420,7 +420,7 @@ class Parser:
                 self.unclosed_bracket_error(self.peek_tok)
                 self.advance(2)
                 return None
-            func.rtype.lexeme += "[]"
+            func.rtype.to_arr()
 
         if res := self.parse_params(main=main):
             func.params = res
@@ -531,8 +531,8 @@ class Parser:
                 if self.expect_peek(TokenType.OPEN_BRACKET):
                     ad = ArrayDeclaration()
                     ad.id, ad.dtype = param.id, param.dtype
+                    param.dtype.to_arr()
                     param = ad
-                    param.dtype.lexeme += "[]"
                     if not self.expect_peek(TokenType.CLOSE_BRACKET):
                         self.unclosed_bracket_error(self.peek_tok)
                         self.advance(2)
