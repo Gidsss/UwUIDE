@@ -164,9 +164,9 @@ class TypeChecker:
             case Expression():
                 return self.evaluate_expression(value, local_defs)
             case IdentifierProds():
-                raise NotImplementedError
+                return self.evaluate_ident_prods(value, local_defs)
             case Iterable():
-                raise NotImplementedError
+                return self.evaluate_iterable(value, local_defs)
             case _:
                 if value.string() != None: raise ValueError(f"Unknown value: {value.string()}")
                 return TokenType.NUWW
@@ -233,6 +233,35 @@ class TypeChecker:
 
     def check_and_evaluate_class_accessor(self, accessor: ClassAccessor, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
         raise NotImplementedError
+
+    def evaluate_iterable(self, collection: Iterable, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
+        match collection:
+            case ArrayLiteral():
+                units_type = self.expect_homogenous(collection, local_defs)
+                for val in collection.elements:
+                    self.evaluate_value(val, local_defs)
+                return units_type.to_arr_type()
+            case StringFmt():
+                for val in collection.exprs:
+                    self.evaluate_value(val, local_defs)
+                for concat in collection.concats:
+                    self.evaluate_iterable(concat, local_defs)
+                return TokenType.SENPAI
+            case Input():
+                self.evaluate_value(collection.expr, local_defs)
+                for concat in collection.concats:
+                    self.evaluate_iterable(concat, local_defs)
+                return TokenType.SENPAI
+            case StringLiteral():
+                for concat in collection.concats:
+                    self.evaluate_iterable(concat, local_defs)
+                return TokenType.SENPAI
+            case _:
+                raise ValueError(f"Unknown collection: {collection}")
+
+    def evaluate_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
+        return local_defs[fn_call.id.string()][0].token
+
     def evaluate_token(self, token: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
         match token.token:
             case TokenType.STRING_LITERAL: return TokenType.SENPAI
@@ -243,6 +272,7 @@ class TypeChecker:
             case UniqueTokenType(): return local_defs[token.string()][0].token
             case _: raise ValueError(f"Unknown token: {token}")
 
+    ## HELPER METHODS FOR OPERATORS AND OPERANDS
     def math_operands(self) -> list[TokenType]:
         return [TokenType.CHAN, TokenType.KUN, TokenType.SAMA, TokenType.NUWW]
     def math_operators(self) -> list[TokenType]:
@@ -254,6 +284,27 @@ class TypeChecker:
     def equality_operators(self) -> list[TokenType]:
         return [TokenType.EQUALITY_OPERATOR, TokenType.INEQUALITY_OPERATOR,
                 TokenType.AND_OPERATOR, TokenType.OR_OPERATOR]
+    
+    ## HELPER METHODS FOR EVALUATING ARRAYS
+    def expect_homogenous(self, arr: ArrayLiteral, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
+        flat_arr = self.flatten_array(arr.elements)
+        types: set[TokenType] = set()
+        for val in flat_arr:
+            match val:
+                case Token():
+                    types.add(self.evaluate_token(val, local_defs))
+                case Expression():
+                    types.add(self.evaluate_expression(val, local_defs))
+                case IdentifierProds():
+                    types.add(self.evaluate_ident_prods(val, local_defs))
+                case Iterable():
+                    types.add(self.evaluate_iterable(val, local_defs))
+                case _:
+                    raise ValueError(f"Unknown array value type: {val.flat_string()}")
+        if len(types) > 1:
+            print(f"ERROR: expected homogenous types: {arr.flat_string()}\n\tgot {[t.token for t in types]}")
+            return TokenType.NUWW
+        return types.pop()
 
     def flatten_array(self, arr: list[Value]) -> list[Value]:
         res = []
