@@ -217,9 +217,12 @@ class TypeChecker:
                     self.evaluate_value(idx, local_defs)
                 match ident_prod.id:
                     case Token():
-                        return self.evaluate_token(ident_prod.id, local_defs)
+                        arr_type = self.evaluate_token(ident_prod.id, local_defs)
                     case FnCall():
-                        return self.evaluate_fn_call(ident_prod.id, local_defs)
+                        arr_type = self.evaluate_fn_call(ident_prod.id, local_defs)
+                    case _:
+                        raise ValueError(f"Unknown identifier production for indexed identifier: {ident_prod}")
+                return arr_type.to_unit_type()
             case FnCall():
                 return self.evaluate_fn_call(ident_prod, local_defs)
             case ClassConstructor():
