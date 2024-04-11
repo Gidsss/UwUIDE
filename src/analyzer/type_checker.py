@@ -63,13 +63,13 @@ class TypeChecker:
                 case Assignment():
                     self.check_assignment(statement, local_defs)
                 case IfStatement():
-                    self.check_if(statement, return_type, local_defs.copy())
+                    self.check_if(statement, return_type, local_defs)
                 case WhileLoop():
-                    self.check_while_loop(statement, return_type, local_defs.copy())
+                    self.check_while_loop(statement, return_type, local_defs)
                 case ForLoop():
                     self.check_for_loop(statement, return_type, local_defs.copy())
                 case ReturnStatement():
-                    self.check_return(statement, return_type, local_defs.copy())
+                    self.check_return(statement, return_type, local_defs)
                 case FnCall():
                     self.check_fn_call(statement, local_defs)
                 case _:
@@ -101,6 +101,7 @@ class TypeChecker:
             self.evaluate_value(arg, local_defs)
 
     def check_for_loop(self, for_loop: ForLoop, return_type: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        'pass in a copy of local defs when calling this'
         match for_loop.init:
             case Declaration() | ArrayDeclaration():
                 self.check_declaration(for_loop.init, local_defs)
@@ -109,7 +110,7 @@ class TypeChecker:
             case Token():
                 self.evaluate_value(for_loop.init, local_defs)
             case IdentifierProds():
-                raise NotImplementedError
+                self.evaluate_value(for_loop.init, local_defs)
         self.evaluate_value(for_loop.condition, local_defs)
         self.evaluate_value(for_loop.update, local_defs)
         self.check_body(for_loop.body, return_type, local_defs.copy())
@@ -173,7 +174,7 @@ class TypeChecker:
             case PrefixExpression():
                 right = self.evaluate_value(expr.right, local_defs)
                 if not right in self.math_operands():
-                    print(f"ERROR: {right} cannot be negative")
+                    print(f"ERROR: {expr.right.flat_string()} ({right}) cannot be negative")
                 return right
             case InfixExpression():
                 left = self.evaluate_value(expr.left, local_defs)
@@ -182,17 +183,18 @@ class TypeChecker:
                 if expr.op.token in self.math_operators():
                     if not (left in self.math_operands() and right in self.math_operands()):
                         tab_newline = '\n\t' # cuz \ is now allowed in f-strings
-                        print(f"ERROR: {left} {expr.op} {right}{tab_newline}"+
-                            f"{f'{left} is not a math operand{tab_newline}' if left not in self.math_operands() else ''}"+
-                            f"{f'{right} is not a math operand' if right not in self.math_operands() else ''}")
+                        print(f"ERROR: {expr.left.string()} ({left}) {expr.op} {expr.right.string()} ({right}){tab_newline}"+
+                            f"{f'{expr.left.flat_string()} ({left}) is not a math operand{tab_newline}' if left not in self.math_operands() else ''}"+
+                            f"{f'{expr.right.flat_string()} ({right}) is not a math operand' if right not in self.math_operands() else ''}")
                     if left == TokenType.KUN or right == TokenType.KUN:
                         return TokenType.KUN
                     else:
                         return TokenType.CHAN
                 elif expr.op.token in self.comparison_operators():
                     if not (left in self.math_operands() and right in self.math_operands()):
-                        print(f"ERROR: {left} {expr.op} {right}\n\t"+
-                              f"{left if left not in self.math_operands() else right} is not a comparison operand")
+                        print(f"ERROR: {expr.left.flat_string()} ({left}) {expr.op} {expr.right.flat_string()} ({right})\n\t"+
+                              f"{expr.left.flat_string() if left not in self.math_operands() else expr.right.flat_string()}"+
+                              f"({left if left not in self.math_operands() else right}) is not a comparison operand")
                     return TokenType.SAMA
                 elif expr.op.token in self.equality_operators():
                     return TokenType.SAMA
@@ -201,7 +203,7 @@ class TypeChecker:
             case PostfixExpression():
                 left = self.evaluate_value(expr.left, local_defs)
                 if not(left in self.math_operands()):
-                    print(f"ERROR: {left} cannot be incremented or decremented")
+                    print(f"ERROR: {expr.left.flat_string()} ({left}) cannot be incremented or decremented")
                 return left
             case _:
                 raise ValueError(f"Unknown expression: {expr}")
