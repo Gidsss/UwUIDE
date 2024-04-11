@@ -34,6 +34,21 @@ class TokenType(Enum):
     def __format__(self, format_spec):
         return str.__format__(str(self), format_spec)
 
+    def to_arr_type(self) -> "TokenType":
+        match self:
+            case TokenType.CHAN:
+                return TokenType.CHAN_ARR
+            case TokenType.KUN:
+                return TokenType.KUN_ARR
+            case TokenType.SAMA:
+                return TokenType.SAMA_ARR
+            case TokenType.SAN:
+                return TokenType.SAN_ARR
+            case TokenType.SENPAI:
+                return TokenType.SENPAI_ARR
+            case _:
+                return self
+
     # GENERAL KEYWORDS
     MAINUWU = ("mainuwu", "mainuwu")
     FWUNC = ("fwunc", "whitespace")
