@@ -52,6 +52,21 @@ class TokenType(Enum):
             case _:
                 return self
 
+    def to_unit_type(self) -> "TokenType":
+        match self:
+            case TokenType.CHAN_ARR:
+                return TokenType.CHAN
+            case TokenType.KUN_ARR:
+                return TokenType.KUN
+            case TokenType.SAMA_ARR:
+                return TokenType.SAMA
+            case TokenType.SAN_ARR:
+                return TokenType.SAN
+            case TokenType.SENPAI_ARR:
+                return TokenType.SENPAI
+            case _:
+                return self
+
     # GENERAL KEYWORDS
     MAINUWU = ("mainuwu", "mainuwu")
     FWUNC = ("fwunc", "whitespace")
@@ -243,6 +258,19 @@ class Token:
             case TokenType.SENPAI:
                 self._token = TokenType.SENPAI_ARR
 
+    def to_unit(self):
+        self._lexeme = self._lexeme[:-2]
+        match self.token:
+            case TokenType.CHAN_ARR:
+                self._token = TokenType.CHAN
+            case TokenType.KUN_ARR:
+                self._token = TokenType.KUN
+            case TokenType.SAMA_ARR:
+                self._token = TokenType.SAMA
+            case TokenType.SAN_ARR:
+                self._token = TokenType.SAN
+            case TokenType.SENPAI_ARR:
+                self._token = TokenType.SENPAI
 
     @property
     def lexeme(self) -> str:
