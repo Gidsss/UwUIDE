@@ -1356,7 +1356,7 @@ class Parser:
     # getting prefix and infix functions
     def get_prefix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
-            token_type = "IDENTIFIER" if token_type.token.startswith("IDENTIFIER") else "CWASS_ID"
+            token_type = "IDENTIFIER" if token_type.unique_type.startswith("IDENTIFIER") else "CWASS_ID"
         try:
             tmp = self.prefix_parse_fns[token_type]
             return tmp
@@ -1364,7 +1364,7 @@ class Parser:
             return None
     def get_prefix_special_parse_fn(self, token_type: str | TokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
-            token_type = "IDENTIFIER" if token_type.token.startswith("IDENTIFIER") else "CWASS_ID"
+            token_type = "IDENTIFIER" if token_type.unique_type.startswith("IDENTIFIER") else "CWASS_ID"
         try:
             tmp = self.prefix_special_parse_fns[token_type]
             return tmp
@@ -1372,7 +1372,7 @@ class Parser:
             return None
     def get_infix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
-            token_type = "IDENTIFIER" if token_type.token.startswith("IDENTIFIER") else "CWASS_ID"
+            token_type = "IDENTIFIER" if token_type.unique_type.startswith("IDENTIFIER") else "CWASS_ID"
         try:
             tmp = self.infix_parse_fns[token_type]
             return tmp
@@ -1380,7 +1380,7 @@ class Parser:
             return None
     def get_infix_special_parse_fn(self, token_type: str | TokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
-            token_type = "IDENTIFIER" if token_type.token.startswith("IDENTIFIER") else "CWASS_ID"
+            token_type = "IDENTIFIER" if token_type.unique_type.startswith("IDENTIFIER") else "CWASS_ID"
         try:
             tmp = self.infix_special_parse_fns[token_type]
             return tmp
@@ -1388,7 +1388,7 @@ class Parser:
             return None
     def get_postfix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
-            token_type = "IDENTIFIER" if token_type.token.startswith("IDENTIFIER") else "CWASS_ID"
+            token_type = "IDENTIFIER" if token_type.unique_type.startswith("IDENTIFIER") else "CWASS_ID"
         try:
             tmp = self.postfix_parse_fns[token_type]
             return tmp
@@ -1396,7 +1396,7 @@ class Parser:
             return None
     def get_in_block_parse_fn(self, token_type: str | TokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
-            token_type = "IDENTIFIER" if token_type.token.startswith("IDENTIFIER") else "CWASS_ID"
+            token_type = "IDENTIFIER" if token_type.unique_type.startswith("IDENTIFIER") else "CWASS_ID"
         try:
             tmp = self.in_block_parse_fns[token_type]
             return tmp
@@ -1409,7 +1409,7 @@ class Parser:
         '''
         checks if the next token is an identifier.
         '''
-        if self.curr_tok.token.token.startswith("IDENTIFIER"):
+        if self.curr_tok.token.unique_type.startswith("IDENTIFIER"):
             return True
         else:
             return False
@@ -1417,7 +1417,7 @@ class Parser:
         '''
         checks if the next token is an identifier.
         '''
-        if self.curr_tok.token.token.startswith("CWASS"):
+        if self.curr_tok.token.unique_type.startswith("CWASS"):
             return True
         else:
             return False
@@ -1427,7 +1427,7 @@ class Parser:
         '''
         checks if the next token is an identifier.
         '''
-        if self.curr_tok.token.token.startswith("IDENTIFIER"):
+        if self.curr_tok.token.unique_type.startswith("IDENTIFIER"):
             return True
         else:
             return False
@@ -1435,7 +1435,7 @@ class Parser:
         '''
         checks if the next token is an identifier.
         '''
-        if self.curr_tok.token.token.startswith("CWASS"):
+        if self.curr_tok.token.unique_type.startswith("CWASS"):
             return True
         else:
             return False
@@ -1456,7 +1456,7 @@ class Parser:
         advances the cursor if it is.
         cursor won't advance if not.
         '''
-        if self.peek_tok.token.token.startswith("IDENTIFIER"):
+        if self.peek_tok.token.unique_type.startswith("IDENTIFIER"):
             self.advance()
             return True
         else:
@@ -1467,7 +1467,7 @@ class Parser:
         advances the cursor if it is.
         cursor won't advance if not.
         '''
-        if self.peek_tok.token.token.startswith("CWASS"):
+        if self.peek_tok.token.unique_type.startswith("CWASS"):
             self.advance()
             return True
         else:
