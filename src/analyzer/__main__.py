@@ -17,32 +17,16 @@ if __name__ == "__main__":
     ]]
     fwunc mainuwu-san() [[
         a-chan[] = {"1", "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
-        b-chan[] = {{{{1}}}, "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
-        c-senpai~
-        d-Hololive = Hololive(-a++ + a + c > 10)~
+        b-chan[] = {{{{sum()}}}, "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
+        c-Hololive = sum()~
+        >.< c-senpai~
+        >.< d-Hololive = Hololive(-a++ + a + c > 10)~
         >.< a(-b++ + b + c > 10)~
     ]]
-    fwunc a-chan() [[
-        b-chan~
+    fwunc sum-Hololive(a-chan) [[
+        b-Hololive = Hololive("1")~
+        wetuwn(b)~
     ]]
-    >.< fwunc sum-chan(a-chan) [[
-    >.<     iwf (fax || cap) [[
-    >.<         a = "a"&"b | b() | b"~
-    >.<     ]] ewse iwf (fax + cap) [[
-    >.<         b-chan = 1~
-    >.<         b = 1~
-    >.<     ]] ewse iwf (fax - cap) [[
-    >.<         b = 1~
-    >.<     ]] ewse [[
-    >.<         d = 1~
-    >.<     ]]
-    >.<     fow(i-chan[]=1~i<10~i+1) [[
-    >.<         pwint(a)~
-    >.<     ]]
-    >.<     pwint(i)~
-    >.<     a.a[1].b[b] = 1~
-    >.<     wetuwn({b})~
-    >.< ]]
     """
     source: list[str] = [line if line else '\n' for line in sc.split("\n")]
     max_digit_length = len(str(len(source)))
