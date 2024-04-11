@@ -27,18 +27,18 @@ class TypeChecker:
         any duplicates will be appended to error
         '''
         for global_dec in self.program.globals:
-            self.global_defs[global_dec.id.string()] = (global_dec.id, GlobalType.IDENTIFIER)
+            self.global_defs[global_dec.id.string()] = (global_dec.dtype, GlobalType.IDENTIFIER)
         for func in self.program.functions:
-            self.global_defs[func.id.string()] = (func.id, GlobalType.FUNCTION)
+            self.global_defs[func.id.string()] = (func.rtype, GlobalType.FUNCTION)
             self.function_param_types[func.id.string()] = [param.dtype for param in func.params]
         for cwass in self.program.classes:
             self.global_defs[cwass.id.string()] = (cwass.id, GlobalType.CLASS)
             for param in cwass.params:
-                self.class_signatures[f"{cwass.id.string()}.{param.id.string()}"] = (param.id, GlobalType.CLASS_PROPERTY)
+                self.class_signatures[f"{cwass.id.string()}.{param.id.string()}"] = (param.dtype, GlobalType.CLASS_PROPERTY)
             for prop in cwass.properties:
-                self.global_defs[f"{cwass.id.string()}.{prop.id.string()}"] = (prop.id, GlobalType.CLASS_PROPERTY)
+                self.global_defs[f"{cwass.id.string()}.{prop.id.string()}"] = (prop.dtype, GlobalType.CLASS_PROPERTY)
             for method in cwass.methods:
-                self.global_defs[f"{cwass.id.string()}.{method.id.string()}"] = (method.id, GlobalType.CLASS_METHOD)
+                self.global_defs[f"{cwass.id.string()}.{method.id.string()}"] = (method.rtype, GlobalType.CLASS_METHOD)
                 self.class_method_param_types[f"{cwass.id.string()}.{method.id.string()}"] = [param.dtype for param in method.params]
 
     def check_program(self) -> None:
