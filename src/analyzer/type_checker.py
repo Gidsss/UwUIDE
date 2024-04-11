@@ -43,12 +43,19 @@ class TypeChecker:
 
     def check_program(self) -> None:
         assert self.program.mainuwu
-        self.check_function(self.program.mainuwu, self.global_defs)
+        self.check_function(self.program.mainuwu, self.global_defs.copy())
         for func in self.program.functions: self.check_function(func, self.global_defs)
         # for cwass in self.program.classes: self.check_class(cwass)
 
     def check_function(self, func: Function, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        'make sure you pass in a copy of local_defs when calling this'
+        self.compile_params(func.params, local_defs)
         self.check_body(func.body, func.rtype, local_defs.copy())
+
+    def compile_params(self, params: list[Parameter], local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        'make sure you pass in a copy of local_defs when calling this'
+        for param in params:
+            local_defs[param.id.string()] = (param.dtype, GlobalType.IDENTIFIER)
 
     def check_body(self, body: BlockStatement, return_type: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         'make sure you pass in a copy of local_defs when calling this'
