@@ -11,6 +11,9 @@ class TokenType(Enum):
     @property
     def token(self):
         return self._token
+    @property
+    def unique_type(self):
+        return self._token
 
     @property
     def delim_id(self):
@@ -150,11 +153,12 @@ class UniqueTokenType:
     CWASS = "CWASS"
 
     def __init__(self, lexeme: str, token: str):
+        self._token = lexeme
         if token == self.ID:
-            self._token = self.identifier_dict.setdefault(lexeme, f"IDENTIFIER_{len(self.identifier_dict) + 1}")
+            self._type = self.identifier_dict.setdefault(lexeme, f"IDENTIFIER_{len(self.identifier_dict) + 1}")
             self._delim_id = "id"
         elif token == self.CWASS:
-            self._token = self.cwass_dict.setdefault(lexeme, f"CWASS_{len(self.cwass_dict) + 1}")
+            self._type = self.cwass_dict.setdefault(lexeme, f"CWASS_{len(self.cwass_dict) + 1}")
             self._delim_id = "cwass"
         self._expected_delims = DELIMS[self.delim_id]
 
@@ -166,6 +170,11 @@ class UniqueTokenType:
     @property
     def token(self):
         return self._token
+
+    @property
+    def unique_type(self):
+        """The lexeme property."""
+        return self._type
 
     @property
     def delim_id(self):
@@ -183,6 +192,17 @@ class UniqueTokenType:
 
     def string(self, indent = 1):
         return self.__str__()
+    def flat_string(self):
+        return self.__str__()
+    def python_string(self):
+        return self.__str__()
+    def header(self):
+        return self.__str__()
+    def __repr__(self):
+        return self.token
+
+    def to_arr_type(self):
+        return self.token
 
 
 class Token:
