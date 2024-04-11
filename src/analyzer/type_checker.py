@@ -210,6 +210,29 @@ class TypeChecker:
             case _:
                 raise ValueError(f"Unknown expression: {expr}")
 
+    def evaluate_ident_prods(self, ident_prod: IdentifierProds, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
+        match ident_prod:
+            case IndexedIdentifier():
+                for idx in ident_prod.index:
+                    self.evaluate_value(idx, local_defs)
+                match ident_prod.id:
+                    case Token():
+                        return self.evaluate_token(ident_prod.id, local_defs)
+                    case FnCall():
+                        return self.evaluate_fn_call(ident_prod.id, local_defs)
+            case FnCall():
+                return self.evaluate_fn_call(ident_prod, local_defs)
+            case ClassConstructor():
+                for arg in ident_prod.args:
+                    self.evaluate_value(arg, local_defs)
+                return ident_prod.id.token
+            case ClassAccessor():
+                return self.check_and_evaluate_class_accessor(ident_prod, local_defs)
+            case _:
+                raise ValueError(f"Unknown identifier production: {ident_prod}")
+
+    def check_and_evaluate_class_accessor(self, accessor: ClassAccessor, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
+        raise NotImplementedError
     def evaluate_token(self, token: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
         match token.token:
             case TokenType.STRING_LITERAL: return TokenType.SENPAI
