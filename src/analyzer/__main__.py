@@ -16,9 +16,11 @@ if __name__ == "__main__":
         ]]
     ]]
     fwunc mainuwu-san() [[
-        a-chan[]~
-        b-Hololive = Hololive(-a++ + a > 10)~
-        >.< a(-b++ + b > 10)~
+        a-chan[] = {"1", "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
+        b-chan[] = {{{{1}}}, "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
+        c-senpai~
+        d-Hololive = Hololive(-a++ + a + c > 10)~
+        >.< a(-b++ + b + c > 10)~
     ]]
     fwunc a-chan() [[
         b-chan~
