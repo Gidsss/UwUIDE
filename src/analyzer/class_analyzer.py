@@ -3,12 +3,12 @@ from src.analyzer.error_handler import DuplicateDefinitionError, GlobalType, Und
 from src.parser.productions import *
 
 class ClassAnalyzer:
-    def __init__(self, cwass: Class) -> None:
+    def __init__(self, cwass: Class, global_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         self.cwass: Class = cwass
         self.errors = []
         self.warnings = []
 
-        self.class_members: dict[str, tuple[Token, GlobalType]] = {}
+        self.class_members: dict[str, tuple[Token, GlobalType]] = global_defs.copy()
         self.compile_class_members()
         self.analyze_program()
 
