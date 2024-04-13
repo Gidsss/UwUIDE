@@ -9,23 +9,33 @@ from src.parser.error_handler import ErrorSrc as parErrorSrc
 if __name__ == "__main__":
     sc = """
     gwobaw areallylongname-kun-dono = 3.14~
+    cwass Hololive2(a-chan) [[
+        b-chan~
+        fwunc init-chan(c-chan) [[
+            b = inpwt(a[1].a() + a || b || "hello | b | world")~
+            sum(a, b)~
+        ]]
+    ]]
     cwass Hololive(a-chan) [[
         b-chan~
         fwunc init-chan(c-chan) [[
             b = inpwt(a[1].a() + a || b || "hello | b | world")~
+            sum(a, b)~
+            d-Hololive2 = Hololive2("2")~
         ]]
     ]]
     fwunc mainuwu-san() [[
-        a-Hololive = Hololive(2)~
-        b-Hololive = Hololive(3)~
-        c-senpai = a.b.init()~
-        d-chan[] = {{{{sum("2")}}}, "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
-        e-chan[] = {{{{a[1]}}}, "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
-        f-Hololive = sum()~
-        sum("-1++ + 1 + 1 > 10", 2)~
+        >.< a-Hololive = Hololive(2)~
+        >.< b-Hololive = Hololive(3)~
+        >.< c-senpai = a.b.init()~
+        >.< d-chan[] = {{{{sum("2")}}}, "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
+        >.< e-chan[] = {{{{a[1]}}}, "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
+        >.< f-Hololive = sum()~
+        >.< sum("-1++ + 1 + 1 > 10", 2)~
+        wetuwn(nuww)~
     ]]
     fwunc sum-chan(a-chan) [[
-        b-senpai[] = {Hololive(-a++ + a + a > 10)}~
+        >.< b-senpai[] = {Hololive(-a++ + a + a > 10)}~
         wetuwn(fax)~
     ]]
     """
@@ -61,7 +71,7 @@ if __name__ == "__main__":
 
     assert p.program
     for cwass in p.program.classes:
-        ca = ClassAnalyzer(cwass)
+        ca = ClassAnalyzer(cwass, ma.global_names)
         if ca.errors:
             for err in ca.errors:
                 print(err)
