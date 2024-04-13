@@ -332,21 +332,21 @@ class TypeChecker:
                 res.append(item)
         return res
 
-    def is_similar_type(self, type1: str, type2: str) -> bool:
+    def is_similar_type(self, actual_type: str, expected_type: str) -> bool:
         'determines if two types are similar'
-        if (type1 == type2 
+        if (actual_type == expected_type 
             # nuww is an ok val for any type
-            or "san" in [type1, type2]
-            # all types can be converted to bool
-            or "sama" in [type1, type2]
+            or actual_type == "san"
             ): return True
 
-        assert type1 != type2
-        match type1:
+        assert actual_type != expected_type
+        match expected_type:
             # num types are convertible between each other
             case "chan" | "kun":
-                match type2:
-                    case "chan" | "kun": return True
+                match actual_type:
+                    case "chan" | "kun" | "sama": return True
                     case _: return False
+            # all types are convertible to bool
+            case "sama": return True
             # every other type needs exact match
             case _: return False
