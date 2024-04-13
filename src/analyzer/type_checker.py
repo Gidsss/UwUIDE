@@ -128,7 +128,7 @@ class TypeChecker:
 
     def check_return(self, ret: ReturnStatement, return_type: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         actual_type = self.evaluate_value(ret.expr, local_defs)
-        if actual_type.string() != return_type.string():
+        if not self.is_similar_type(actual_type.flat_string(), return_type.flat_string()):
             print(f"ERROR: expected return type: {return_type}\n\tgot: {actual_type}")
 
     def check_declaration(self, decl: Declaration | ArrayDeclaration, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
@@ -141,20 +141,9 @@ class TypeChecker:
 
     def check_value(self, value: Value, expected_type: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         match expected_type.token:
-            case TokenType.CHAN | TokenType.KUN | TokenType.SAMA:
-                expected_types = [TokenType.CHAN, TokenType.KUN, TokenType.SAMA, TokenType.NUWW]
+            case TokenType():
                 actual_type = self.evaluate_value(value, local_defs)
-                if actual_type not in expected_types:
-                    print(f"ERROR: {expected_type} != {actual_type}")
-            case TokenType.SENPAI:
-                expected_types = [TokenType.SENPAI, TokenType.NUWW]
-                actual_type = self.evaluate_value(value, local_defs)
-                if actual_type not in expected_types:
-                    print(f"ERROR: {expected_type} != {actual_type}")
-            case TokenType.CHAN_ARR:
-                expected_types = [TokenType.CHAN_ARR, TokenType.NUWW]
-                actual_type = self.evaluate_value(value, local_defs)
-                if actual_type not in expected_types:
+                if not self.is_similar_type(actual_type.flat_string(), expected_type.flat_string()):
                     print(f"ERROR: {expected_type} != {actual_type}")
             case UniqueTokenType():
                 match value:
@@ -330,3 +319,22 @@ class TypeChecker:
             else:
                 res.append(item)
         return res
+
+    def is_similar_type(self, type1: str, type2: str) -> bool:
+        'determines if two types are similar'
+        if (type1 == type2 
+            # nuww is an ok val for any type
+            or "san" in [type1, type2]
+            # all types can be converted to bool
+            or "sama" in [type1, type2]
+            ): return True
+
+        assert type1 != type2
+        match type1:
+            # num types are convertible between each other
+            case "chan" | "kun":
+                match type2:
+                    case "chan" | "kun": return True
+                    case _: return False
+            # every other type needs exact match
+            case _: return False
