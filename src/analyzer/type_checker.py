@@ -169,7 +169,7 @@ class TypeChecker:
                 return self.evaluate_iterable(value, local_defs)
             case _:
                 if value.string() != None: raise ValueError(f"Unknown value: {value.string()}")
-                return TokenType.NUWW
+                return TokenType.SAN
 
     def evaluate_expression(self, expr: Expression, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
         match expr:
@@ -240,8 +240,8 @@ class TypeChecker:
     def evaluate_iterable(self, collection: Iterable, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
         match collection:
             case ArrayLiteral():
-                units_type = self.expect_homogenous(collection, local_defs)
-                for val in collection.elements:
+                flat_arr, units_type = self.expect_homogenous(collection, local_defs)
+                for val in flat_arr:
                     self.evaluate_value(val, local_defs)
                 return units_type.to_arr_type()
             case StringFmt():
@@ -277,7 +277,7 @@ class TypeChecker:
 
     ## HELPER METHODS FOR OPERATORS AND OPERANDS
     def math_operands(self) -> list[TokenType]:
-        return [TokenType.CHAN, TokenType.KUN, TokenType.SAMA, TokenType.NUWW]
+        return [TokenType.CHAN, TokenType.KUN, TokenType.SAMA, TokenType.SAN]
     def math_operators(self) -> list[TokenType]:
         return [TokenType.ADDITION_SIGN, TokenType.DASH, TokenType.MULTIPLICATION_SIGN,
                 TokenType.DIVISION_SIGN, TokenType.MODULO_SIGN]
@@ -289,7 +289,7 @@ class TypeChecker:
                 TokenType.AND_OPERATOR, TokenType.OR_OPERATOR]
     
     ## HELPER METHODS FOR EVALUATING ARRAYS
-    def expect_homogenous(self, arr: ArrayLiteral, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
+    def expect_homogenous(self, arr: ArrayLiteral, local_defs: dict[str, tuple[Token, GlobalType]]) -> tuple[list[Value], TokenType]:
         flat_arr = self.flatten_array(arr.elements)
         types: set[TokenType] = set()
         for val in flat_arr:
@@ -306,8 +306,8 @@ class TypeChecker:
                     raise ValueError(f"Unknown array value type: {val.flat_string()}")
         if len(types) > 1:
             print(f"ERROR: expected homogenous types: {arr.flat_string()}\n\tgot {[t.token for t in types]}")
-            return TokenType.NUWW
-        return types.pop()
+            return [], TokenType.SAN
+        return flat_arr, types.pop()
 
     def flatten_array(self, arr: list[Value]) -> list[Value]:
         res = []
