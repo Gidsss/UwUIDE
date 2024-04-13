@@ -108,7 +108,7 @@ class MemberAnalyzer:
                     self.analyze_for_loop(stmt, local_defs.copy())
                 case ReturnStatement():
                     self.analyze_return(stmt, local_defs)
-                case FnCall():
+                case IdentifierProds():
                     self.analyze_ident_prods(stmt, local_defs)
                 case _:
                     raise ValueError(f"Unknown statement: {stmt}")
@@ -185,7 +185,7 @@ class MemberAnalyzer:
             case _:
                 if value.string() != None: raise ValueError(f"Unknown value: {value.string()}")
     def analyze_ident_prods(self, ident_prod: IdentifierProds, local_defs: dict[str, tuple[Token, GlobalType]],
-                            access_depth: int = 1) -> None:
+                            access_depth: int = 0) -> None:
         match ident_prod:
             case IndexedIdentifier():
                 match ident_prod.id:
@@ -199,7 +199,7 @@ class MemberAnalyzer:
             case ClassConstructor():
                 self.analyze_args(ident_prod.args, local_defs)
             case ClassAccessor():
-                if access_depth > 0:
+                if access_depth == 0:
                     match ident_prod.id:
                         case Token():
                             self.expect_defined_token(ident_prod.id, local_defs)
@@ -207,7 +207,8 @@ class MemberAnalyzer:
                             self.analyze_fn_call(ident_prod.id, local_defs)
                 match ident_prod.accessed:
                     case FnCall():
-                        self.analyze_fn_call(ident_prod.accessed, local_defs)
+                        for arg in ident_prod.accessed.args:
+                            self.analyze_value(arg, local_defs)
                     case IndexedIdentifier():
                         self.analyze_array_indices(ident_prod.accessed.index, local_defs)
                     case ClassAccessor():
