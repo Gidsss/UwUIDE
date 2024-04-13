@@ -313,6 +313,26 @@ class TypeChecker:
             case _:
                 raise ValueError(f"Unknown class accessor: {accessor}")
 
+    def extract_id(self, accessor: ClassAccessor) -> str:
+        'gets the very first id of a class accessor'
+        match accessor.id:
+            case Token():
+                return accessor.id.flat_string()
+            case FnCall():
+                return accessor.id.id.flat_string()
+            case IndexedIdentifier():
+                match accessor.id.id:
+                    case Token():
+                        return accessor.id.id.flat_string()
+                    case FnCall():
+                        return accessor.id.id.id.flat_string()
+                    case _:
+                        raise ValueError(f"Unknown class accessor: {accessor}")
+            case ClassAccessor():
+                return self.extract_id(accessor.id)
+            case _:
+                raise ValueError(f"Unknown class accessor: {accessor}")
+
     def evaluate_iterable(self, collection: Iterable, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
         match collection:
             case ArrayLiteral():
