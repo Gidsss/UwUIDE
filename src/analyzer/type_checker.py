@@ -149,7 +149,7 @@ class TypeChecker:
                 actual_type = self.evaluate_value(value, local_defs)
                 if not self.is_similar_type(actual_type.flat_string(), expected_type.flat_string()):
                     print(f"ERROR: expected type: {expected_type}\n\t"
-                          f"got: {actual_type} -> {value.string()}")
+                          f"got: {actual_type} -> {value.flat_string()}")
             case UniqueTokenType():
                 match value:
                     case ClassConstructor():
@@ -243,15 +243,31 @@ class TypeChecker:
                 raise ValueError(f"Unknown identifier production: {ident_prod}")
 
     def check_and_evaluate_class_accessor(self, accessor: ClassAccessor, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
-        if not (res := local_defs.get(accessor.id.flat_string())):
-            print(f"ERROR: '{accessor.id.flat_string()}' is not a class\n\t"
-                  f"tried to use as class: {accessor.flat_string()}")
-            return TokenType.SAN
-        class_type, _ = res
+        # check that the accessor is of type class
+        id = self.extract_id(accessor)
+        match accessor.id:
+            case Token() | FnCall() | ClassAccessor():
+                if not (res := local_defs.get(id)) or res[1] != GlobalType.CLASS:
+                    print(f"ERROR: '{accessor.id.flat_string()}' is not a class\n\t"
+                        f"tried to use as class: {accessor.flat_string()}"
+                        f"\n\t'{id}' is {res[1]} of type {res[0]}" if res else "")
+                    return TokenType.SAN
+                class_type = res[0]
+            case IndexedIdentifier():
+                class_type = local_defs[id][0]
+                if not class_type.token.is_arr_type():
+                    print(f"ERROR: '{accessor.id.flat_string()}' is not a valid access\n\t"
+                          f"'{id}' is type {class_type}, not an array")
+                    print(f"ERROR: '{accessor.id.flat_string()}' is not a class\n\t"
+                          f"tried to use as class: {accessor.flat_string()}\n\t"
+                          f"{id} is type {class_type}")
+            case _: raise ValueError(f"Unknown class accessor: {accessor}")
+
+        class_type = class_type.to_unit_type()
         match accessor.accessed:
             case Token():
                 accessed = accessor.accessed
-                member_signature = f"{class_type}.{accessed.flat_string()}"
+                member_signature = f"{class_type.flat_string()}.{accessed.flat_string()}"
                 if not (res := self.class_signatures.get(member_signature)):
                     print(f"ERROR: '{accessed.flat_string()}' is not a property of class '{class_type}'")
                     return TokenType.SAN
@@ -263,7 +279,7 @@ class TypeChecker:
                 return return_type.token
             case FnCall():
                 accessed = accessor.accessed.id
-                member_signature = f"{class_type}.{accessed.flat_string()}"
+                member_signature = f"{class_type.flat_string()}.{accessed.flat_string()}"
                 if not (res := self.class_signatures.get(member_signature)):
                     print(f"ERROR: '{accessed.flat_string()}' is not a method of class '{class_type}'")
                     return TokenType.SAN
@@ -277,7 +293,7 @@ class TypeChecker:
                 accessed = accessor.accessed.id
                 match accessed:
                     case Token():
-                        member_signature = f"{class_type}.{accessed.flat_string()}"
+                        member_signature = f"{class_type.flat_string()}.{accessed.flat_string()}"
                         if not (res := self.class_signatures.get(member_signature)):
                             print(f"ERROR: '{accessed.flat_string()}' is not a property of class '{class_type}'")
                             return TokenType.SAN
@@ -292,7 +308,7 @@ class TypeChecker:
                             return TokenType.SAN
                         return return_type.token
                     case FnCall():
-                        member_signature = f"{class_type}.{accessed.id.flat_string()}"
+                        member_signature = f"{class_type.flat_string()}.{accessed.id.flat_string()}"
                         if not (res := self.class_signatures.get(member_signature)):
                             print(f"ERROR: '{accessed.flat_string()}' is not a method of class '{class_type}'")
                             return TokenType.SAN
