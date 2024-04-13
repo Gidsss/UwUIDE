@@ -222,6 +222,10 @@ class TypeChecker:
                         arr_type = self.evaluate_fn_call(ident_prod.id, local_defs)
                     case _:
                         raise ValueError(f"Unknown identifier production for indexed identifier: {ident_prod}")
+                if not arr_type.is_arr_type():
+                    print(f"ERROR: '{ident_prod.flat_string()}' is not a valid access\n\t"
+                          f"'{ident_prod.id.flat_string()}' is type {arr_type}, not an array")
+                    return TokenType.SAN
                 return arr_type.to_unit_type()
             case FnCall():
                 return self.evaluate_fn_call(ident_prod, local_defs)
