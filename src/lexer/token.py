@@ -269,6 +269,8 @@ class Token:
                 self._token = TokenType.SAN_ARR
             case TokenType.SENPAI:
                 self._token = TokenType.SENPAI_ARR
+            case UniqueTokenType():
+                self._token = self.token.to_arr_type()
 
     def is_arr_type(self):
         return self.token.is_arr_type()
