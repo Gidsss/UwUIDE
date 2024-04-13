@@ -17,6 +17,8 @@ if __name__ == "__main__":
     ]]
     fwunc mainuwu-san() [[
         a-Hololive = Hololive(2)~
+        b-Hololive = Hololive(3)~
+        c-senpai = a.b.init()~
         >.< b-chan[] = {{{{sum("2")}}}, "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
         >.< c-chan[] = {{{{a[1]}}}, "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
         >.< d-Hololive = sum()~
