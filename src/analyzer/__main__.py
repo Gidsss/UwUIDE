@@ -8,7 +8,7 @@ from src.parser.error_handler import ErrorSrc as parErrorSrc
 
 if __name__ == "__main__":
     sc = """
-    >.< gwobaw areallylongname-kun-dono = 3.14~
+    gwobaw areallylongname-kun-dono = 3.14~
     cwass Hololive(a-chan) [[
         b-chan~
         fwunc init-chan(c-chan) [[
@@ -19,9 +19,9 @@ if __name__ == "__main__":
         a-Hololive = Hololive(2)~
         b-Hololive = Hololive(3)~
         c-senpai = a.b.init()~
-        >.< b-chan[] = {{{{sum("2")}}}, "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
-        >.< c-chan[] = {{{{a[1]}}}, "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
-        >.< d-Hololive = sum()~
+        d-chan[] = {{{{sum("2")}}}, "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
+        e-chan[] = {{{{a[1]}}}, "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
+        f-Hololive = sum()~
         sum("-1++ + 1 + 1 > 10", 2)~
     ]]
     fwunc sum-chan(a-chan) [[

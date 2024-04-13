@@ -144,7 +144,8 @@ class TypeChecker:
             case TokenType():
                 actual_type = self.evaluate_value(value, local_defs)
                 if not self.is_similar_type(actual_type.flat_string(), expected_type.flat_string()):
-                    print(f"ERROR: expected type: {expected_type}\n\tgot: {actual_type}")
+                    print(f"ERROR: expected type: {expected_type}\n\t"
+                          f"got: {actual_type} -> {value.string()}")
             case UniqueTokenType():
                 match value:
                     case ClassConstructor():
