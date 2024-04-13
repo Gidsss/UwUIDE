@@ -154,8 +154,9 @@ class TypeChecker:
                             self.evaluate_value(arg, local_defs)
                     case _:
                         actual_type = self.evaluate_value(value, local_defs)
-                        if actual_type.string() != expected_type.string():
-                            print(f"ERROR: {expected_type} != {actual_type}")
+                        if not self.is_similar_type(actual_type.flat_string(), expected_type.flat_string()):
+                            print(f"ERROR: expected type: {expected_type}\n\t"
+                                  f"got: {actual_type} -> {value.string()}")
 
     def evaluate_value(self, value: Value | Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
         match value:
