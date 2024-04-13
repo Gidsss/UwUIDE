@@ -5,7 +5,8 @@ from .error_handler import ErrorSrc
 if __name__ == "__main__":
     sc = """
     fwunc mainuwu-san() [[
-        a-senpai[] = 1.0 > 1 + 1~
+        b = a+a.init()~
+        a.init()~
     ]]
     fwunc sums-chan[](nums-chan[]) [[
         pwint(1)~
