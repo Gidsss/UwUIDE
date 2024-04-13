@@ -232,7 +232,7 @@ class ClassAccessor(IdentifierProds):
         return {"accessed":self.accessed}
 
     def string(self, indent = 0) -> str:
-        return self.flat_string()
+        return sprintln("call:", self.flat_string(), indent=indent)
     def flat_string(self) -> str:
         return f"{self.id.flat_string()}.{self.accessed.flat_string()}"
     def __len__(self):
