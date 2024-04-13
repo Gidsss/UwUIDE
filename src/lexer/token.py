@@ -51,6 +51,12 @@ class TokenType(Enum):
                 return TokenType.SENPAI_ARR
             case _:
                 return self
+    def is_arr_type(self):
+        match self:
+            case TokenType.CHAN_ARR | TokenType.KUN_ARR | TokenType.SAMA_ARR | TokenType.SAN_ARR | TokenType.SENPAI_ARR:
+                return True
+            case _:
+                return False
 
     def to_unit_type(self) -> "TokenType":
         match self:
@@ -219,6 +225,8 @@ class UniqueTokenType:
     def to_arr_type(self):
         self._token += "[]"
         return self
+    def is_arr_type(self):
+        return self.token.endswith("[]")
 
 
 class Token:
@@ -258,6 +266,9 @@ class Token:
                 self._token = TokenType.SAN_ARR
             case TokenType.SENPAI:
                 self._token = TokenType.SENPAI_ARR
+
+    def is_arr_type(self):
+        return self.token.is_arr_type()
 
     def to_unit(self):
         self._lexeme = self._lexeme[:-2]
