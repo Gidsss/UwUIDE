@@ -18,6 +18,7 @@ class TypeChecker:
         self.class_signatures: dict[str, tuple[Token, GlobalType]] = {}
         self.class_method_param_types: dict[str, list[Token]] = {}
         self.function_param_types: dict[str, list[Token]] = {}
+        self.class_param_types: dict[str, list[Token]] = {}
         self.compile_global_types()
         self.check_program()
 
@@ -33,6 +34,7 @@ class TypeChecker:
             self.function_param_types[func.id.string()] = [param.dtype for param in func.params]
         for cwass in self.program.classes:
             self.global_defs[cwass.id.string()] = (cwass.id, GlobalType.CLASS)
+            self.class_param_types[cwass.id.string()] = [param.dtype for param in cwass.params]
             for param in cwass.params:
                 self.class_signatures[f"{cwass.id.string()}.{param.id.string()}"] = (param.dtype, GlobalType.CLASS_PROPERTY)
             for prop in cwass.properties:
@@ -82,7 +84,7 @@ class TypeChecker:
                 case ReturnStatement():
                     self.check_return(statement, return_type, local_defs)
                 case FnCall():
-                    self.check_fn_call(statement, local_defs)
+                    self.evaluate_fn_call(statement, local_defs)
                 case _:
                     raise ValueError(f"Unknown statement: {statement}")
 
@@ -144,8 +146,7 @@ class TypeChecker:
             case UniqueTokenType():
                 match value:
                     case ClassConstructor():
-                        if value.id.string() != expected_type.string():
-                            print(f"ERROR: {expected_type} != {value.id.string()}")
+                        self.check_class_constructor(value, local_defs)
                         for arg in value.args:
                             self.evaluate_value(arg, local_defs)
                     case _:
@@ -222,8 +223,7 @@ class TypeChecker:
             case FnCall():
                 return self.evaluate_fn_call(ident_prod, local_defs)
             case ClassConstructor():
-                for arg in ident_prod.args:
-                    self.evaluate_value(arg, local_defs)
+                self.check_class_constructor(ident_prod, local_defs)
                 return ident_prod.id.token
             case ClassAccessor():
                 return self.check_and_evaluate_class_accessor(ident_prod, local_defs)
@@ -258,24 +258,24 @@ class TypeChecker:
             case _:
                 raise ValueError(f"Unknown collection: {collection}")
 
-    def check_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
-        expected_types = self.function_param_types[fn_call.id.string()]
-        for arg, arg_type in zip(fn_call.args, expected_types):
-            actual_type = self.evaluate_value(arg, local_defs)
-            if not self.is_similar_type(actual_type.flat_string(), arg_type.flat_string()):
-                print(f"ERROR: wrong param type:\n\texpected: {arg_type.flat_string()}\n\tgot: {actual_type.flat_string()} -> {arg.flat_string()}")
-
     def evaluate_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
         expected_types = self.function_param_types[fn_call.id.string()]
         if len(fn_call.args) != len(expected_types):
             print(f"ERROR: wrong number of args for fn {fn_call.id.string()}: expected {len(expected_types)}, got {len(fn_call.args)}")
-
         for arg, arg_type in zip(fn_call.args, expected_types):
             actual_type = self.evaluate_value(arg, local_defs)
             if not self.is_similar_type(actual_type.flat_string(), arg_type.flat_string()):
                 print(f"ERROR: wrong param type for fn {fn_call.id.string()}\n\texpected: {arg_type.flat_string()}\n\tgot: {actual_type.flat_string()} -> {arg.flat_string()}")
-
         return local_defs[fn_call.id.string()][0].token
+
+    def check_class_constructor(self, class_constructor: ClassConstructor, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        expected_types = self.class_param_types[class_constructor.id.string()]
+        if len(expected_types) != len(class_constructor.args):
+            print(f"ERROR: wrong number of args for class {class_constructor.id.string()}: expected {len(expected_types)}, got {len(class_constructor.args)}")
+        for arg, arg_type in zip(class_constructor.args, expected_types):
+            actual_type = self.evaluate_value(arg, local_defs)
+            if not self.is_similar_type(actual_type.flat_string(), arg_type.flat_string()):
+                print(f"ERROR: wrong param type for class {class_constructor.id.string()}\n\texpected: {arg_type.flat_string()}\n\tgot: {actual_type.flat_string()} -> {arg.flat_string()}")
 
     def evaluate_token(self, token: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
         match token.token:
