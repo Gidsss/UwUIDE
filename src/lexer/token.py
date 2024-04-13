@@ -1,6 +1,6 @@
 from constants.constants import DELIMS
 from enum import Enum
-
+from copy import copy, deepcopy
 
 class TokenType(Enum):
     def __init__(self, token: str, delim_id: str):
@@ -257,7 +257,7 @@ class Token:
         return self._lexeme
 
     def to_arr(self):
-        self._lexeme += "[]"
+        self._lexeme += "[]" if not self._lexeme.endswith("[]") else ""
         match self.token:
             case TokenType.CHAN:
                 self._token = TokenType.CHAN_ARR
@@ -275,19 +275,23 @@ class Token:
     def is_arr_type(self):
         return self.token.is_arr_type()
 
-    def to_unit(self):
-        self._lexeme = self._lexeme[:-2]
-        match self.token:
+    def to_unit_type(self):
+        ret = deepcopy(self)
+        ret._lexeme = self._lexeme[:-2] if self._lexeme.endswith("[]") else self._lexeme
+        match ret.token:
             case TokenType.CHAN_ARR:
-                self._token = TokenType.CHAN
+                ret._token = TokenType.CHAN
             case TokenType.KUN_ARR:
-                self._token = TokenType.KUN
+                ret._token = TokenType.KUN
             case TokenType.SAMA_ARR:
-                self._token = TokenType.SAMA
+                ret._token = TokenType.SAMA
             case TokenType.SAN_ARR:
-                self._token = TokenType.SAN
+                ret._token = TokenType.SAN
             case TokenType.SENPAI_ARR:
-                self._token = TokenType.SENPAI
+                ret._token = TokenType.SENPAI
+            case UniqueTokenType():
+                ret._token = ret._token.to_unit_type()
+        return ret
 
     @property
     def lexeme(self) -> str:
