@@ -36,21 +36,25 @@ class TypeChecker:
             for param in cwass.params:
                 self.class_signatures[f"{cwass.id.string()}.{param.id.string()}"] = (param.dtype, GlobalType.CLASS_PROPERTY)
             for prop in cwass.properties:
-                self.global_defs[f"{cwass.id.string()}.{prop.id.string()}"] = (prop.dtype, GlobalType.CLASS_PROPERTY)
+                self.class_signatures[f"{cwass.id.string()}.{prop.id.string()}"] = (prop.dtype, GlobalType.CLASS_PROPERTY)
             for method in cwass.methods:
-                self.global_defs[f"{cwass.id.string()}.{method.id.string()}"] = (method.rtype, GlobalType.CLASS_METHOD)
+                self.class_signatures[f"{cwass.id.string()}.{method.id.string()}"] = (method.rtype, GlobalType.CLASS_METHOD)
                 self.class_method_param_types[f"{cwass.id.string()}.{method.id.string()}"] = [param.dtype for param in method.params]
 
     def check_program(self) -> None:
         assert self.program.mainuwu
         self.check_function(self.program.mainuwu, self.global_defs.copy())
         for func in self.program.functions: self.check_function(func, self.global_defs)
-        # for cwass in self.program.classes: self.check_class(cwass)
+        # for cwass in self.program.classes: self.check_class(cwass, self.global_defs.copy())
 
     def check_function(self, func: Function, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         'make sure you pass in a copy of local_defs when calling this'
         self.compile_params(func.params, local_defs)
         self.check_body(func.body, func.rtype, local_defs.copy())
+
+    def check_class(self, cwass: Class, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        'make sure you pass in a copy of local_defs when calling this'
+        raise NotImplementedError
 
     def compile_params(self, params: list[Parameter], local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         'make sure you pass in a copy of local_defs when calling this'

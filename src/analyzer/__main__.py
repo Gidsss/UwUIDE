@@ -16,15 +16,15 @@ if __name__ == "__main__":
         ]]
     ]]
     fwunc mainuwu-san() [[
-        a-senpai[] = {"1", "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
-        b-chan[] = {{{{sum()}}}, "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
+        a-chan = fax~
+        b-chan[] = {{{{sum("2")}}}, "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
         c-chan[] = {{{{a[1]}}}, "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
         d-Hololive = sum()~
-        sum(-b++ + b + c > 10)~
+        sum(-1++ + 1 + 1 > 10)~
     ]]
-    fwunc sum-Hololive(a-chan) [[
-        b-Hololive = Hololive(-a++ + a + a > 10)~
-        wetuwn(b)~
+    fwunc sum-chan(a-chan) [[
+        b-senpai[] = {Hololive(-a++ + a + a > 10)}~
+        wetuwn(fax)~
     ]]
     """
     source: list[str] = [line if line else '\n' for line in sc.split("\n")]
