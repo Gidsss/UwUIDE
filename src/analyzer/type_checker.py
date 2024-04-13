@@ -47,7 +47,7 @@ class TypeChecker:
         assert self.program.mainuwu
         self.check_function(self.program.mainuwu, self.global_defs.copy())
         for func in self.program.functions: self.check_function(func, self.global_defs)
-        # for cwass in self.program.classes: self.check_class(cwass, self.global_defs.copy())
+        for cwass in self.program.classes: self.check_class(cwass, self.global_defs.copy())
 
     def check_function(self, func: Function, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         'make sure you pass in a copy of local_defs when calling this'
@@ -56,7 +56,11 @@ class TypeChecker:
 
     def check_class(self, cwass: Class, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         'make sure you pass in a copy of local_defs when calling this'
-        raise NotImplementedError
+        self.compile_params(cwass.params, local_defs)
+        for prop in cwass.properties:
+            self.check_declaration(prop, local_defs)
+        for method in cwass.methods:
+            self.check_function(method, local_defs)
 
     def compile_params(self, params: list[Parameter], local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         'make sure you pass in a copy of local_defs when calling this'
