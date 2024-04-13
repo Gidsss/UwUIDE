@@ -85,6 +85,8 @@ class TypeChecker:
                     self.check_return(statement, return_type, local_defs)
                 case FnCall():
                     self.evaluate_fn_call(statement, local_defs)
+                case ClassAccessor():
+                    self.check_and_evaluate_class_accessor(statement, local_defs)
                 case _:
                     raise ValueError(f"Unknown statement: {statement}")
 
@@ -142,7 +144,7 @@ class TypeChecker:
             case TokenType():
                 actual_type = self.evaluate_value(value, local_defs)
                 if not self.is_similar_type(actual_type.flat_string(), expected_type.flat_string()):
-                    print(f"ERROR: {expected_type} != {actual_type}")
+                    print(f"ERROR: expected type: {expected_type}\n\tgot: {actual_type}")
             case UniqueTokenType():
                 match value:
                     case ClassConstructor():
@@ -231,7 +233,75 @@ class TypeChecker:
                 raise ValueError(f"Unknown identifier production: {ident_prod}")
 
     def check_and_evaluate_class_accessor(self, accessor: ClassAccessor, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
-        raise NotImplementedError
+        if not (res := local_defs.get(accessor.id.flat_string())):
+            print(f"ERROR: '{accessor.id.flat_string()}' is not a class\n\t"
+                  f"tried to use as class: {accessor.flat_string()}")
+            return TokenType.SAN
+        class_type, _ = res
+        match accessor.accessed:
+            case Token():
+                accessed = accessor.accessed
+                member_signature = f"{class_type}.{accessed.flat_string()}"
+                if not (res := self.class_signatures.get(member_signature)):
+                    print(f"ERROR: '{accessed.flat_string()}' is not a property of class '{class_type}'")
+                    return TokenType.SAN
+                return_type, member_type = res
+                if member_type != GlobalType.CLASS_PROPERTY:
+                    print(f"ERROR: {accessed.flat_string()} is not a property of class'{class_type}'\n\t"
+                          f"{accessed.flat_string()} is a {member_type}")
+                    return TokenType.SAN
+                return return_type.token
+            case FnCall():
+                accessed = accessor.accessed.id
+                member_signature = f"{class_type}.{accessed.flat_string()}"
+                if not (res := self.class_signatures.get(member_signature)):
+                    print(f"ERROR: '{accessed.flat_string()}' is not a method of class '{class_type}'")
+                    return TokenType.SAN
+                return_type, member_type = res
+                if member_type != GlobalType.CLASS_METHOD:
+                    print(f"ERROR: {accessed.flat_string()} is not a method of class '{class_type}'\n\t"
+                          f"{accessed.flat_string()} is a {member_type}")
+                    return TokenType.SAN
+                return return_type.token
+            case IndexedIdentifier():
+                accessed = accessor.accessed.id
+                match accessed:
+                    case Token():
+                        member_signature = f"{class_type}.{accessed.flat_string()}"
+                        if not (res := self.class_signatures.get(member_signature)):
+                            print(f"ERROR: '{accessed.flat_string()}' is not a property of class '{class_type}'")
+                            return TokenType.SAN
+                        return_type, member_type = res
+                        if member_type != GlobalType.CLASS_PROPERTY:
+                            print(f"ERROR: {accessed.flat_string()} is not a property of class'{class_type}'\n\t"
+                                  f"{accessed.flat_string()} is a {member_type}")
+                            return TokenType.SAN
+                        if not return_type.is_arr_type():
+                            print(f"ERROR: '{member_signature}' is not an array"
+                                  f"\n\t'{member_signature}' is a {return_type}")
+                            return TokenType.SAN
+                        return return_type.token
+                    case FnCall():
+                        member_signature = f"{class_type}.{accessed.id.flat_string()}"
+                        if not (res := self.class_signatures.get(member_signature)):
+                            print(f"ERROR: '{accessed.flat_string()}' is not a method of class '{class_type}'")
+                            return TokenType.SAN
+                        return_type, member_type = res
+                        if member_type != GlobalType.CLASS_METHOD:
+                            print(f"ERROR: {accessed.flat_string()} is not a method of class '{class_type}'\n\t"
+                                  f"{accessed.flat_string()} is a {member_type}")
+                            return TokenType.SAN
+                        if not return_type.is_arr_type():
+                            print(f"ERROR: '{member_signature}()' does not return an array\n\t"
+                                  f"'{member_signature}()' returns {return_type}")
+                            return TokenType.SAN
+                        return return_type.token
+                    case _:
+                        raise ValueError(f"Unknown class accessor: {accessor}")
+            case ClassAccessor():
+                return self.check_and_evaluate_class_accessor(accessor.accessed, local_defs)
+            case _:
+                raise ValueError(f"Unknown class accessor: {accessor}")
 
     def evaluate_iterable(self, collection: Iterable, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
         match collection:
