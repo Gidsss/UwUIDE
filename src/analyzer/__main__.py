@@ -16,11 +16,11 @@ if __name__ == "__main__":
         ]]
     ]]
     fwunc mainuwu-san() [[
-        a-chan = fax~
-        b-chan[] = {{{{sum("2")}}}, "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
-        c-chan[] = {{{{a[1]}}}, "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
-        d-Hololive = sum()~
-        sum(-1++ + 1 + 1 > 10)~
+        a-Hololive = Hololive(2)~
+        >.< b-chan[] = {{{{sum("2")}}}, "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
+        >.< c-chan[] = {{{{a[1]}}}, "2", "f|3+3|", inpwt("4"), "5", {"6", {"1"}}}~
+        >.< d-Hololive = sum()~
+        sum("-1++ + 1 + 1 > 10", 2)~
     ]]
     fwunc sum-chan(a-chan) [[
         b-senpai[] = {Hololive(-a++ + a + a > 10)}~
