@@ -107,10 +107,6 @@ class TypeChecker:
         self.evaluate_value(while_loop.condition, local_defs)
         self.check_body(while_loop.body, return_type, local_defs.copy())
 
-    def check_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
-        for arg in fn_call.args:
-            self.evaluate_value(arg, local_defs)
-
     def check_for_loop(self, for_loop: ForLoop, return_type: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         'pass in a copy of local defs when calling this'
         match for_loop.init:
@@ -262,7 +258,23 @@ class TypeChecker:
             case _:
                 raise ValueError(f"Unknown collection: {collection}")
 
+    def check_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        expected_types = self.function_param_types[fn_call.id.string()]
+        for arg, arg_type in zip(fn_call.args, expected_types):
+            actual_type = self.evaluate_value(arg, local_defs)
+            if not self.is_similar_type(actual_type.flat_string(), arg_type.flat_string()):
+                print(f"ERROR: wrong param type:\n\texpected: {arg_type.flat_string()}\n\tgot: {actual_type.flat_string()} -> {arg.flat_string()}")
+
     def evaluate_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
+        expected_types = self.function_param_types[fn_call.id.string()]
+        if len(fn_call.args) != len(expected_types):
+            print(f"ERROR: wrong number of args for fn {fn_call.id.string()}: expected {len(expected_types)}, got {len(fn_call.args)}")
+
+        for arg, arg_type in zip(fn_call.args, expected_types):
+            actual_type = self.evaluate_value(arg, local_defs)
+            if not self.is_similar_type(actual_type.flat_string(), arg_type.flat_string()):
+                print(f"ERROR: wrong param type for fn {fn_call.id.string()}\n\texpected: {arg_type.flat_string()}\n\tgot: {actual_type.flat_string()} -> {arg.flat_string()}")
+
         return local_defs[fn_call.id.string()][0].token
 
     def evaluate_token(self, token: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
