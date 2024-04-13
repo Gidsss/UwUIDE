@@ -217,7 +217,8 @@ class UniqueTokenType:
         return self.token
 
     def to_arr_type(self):
-        return self.token
+        self._token += "[]"
+        return self
 
 
 class Token:
