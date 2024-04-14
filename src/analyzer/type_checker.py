@@ -42,6 +42,33 @@ class TypeChecker:
             for method in cwass.methods:
                 self.class_signatures[f"{cwass.id.string()}.{method.id.string()}"] = (method.rtype, GlobalType.CLASS_METHOD)
                 self.class_method_param_types[f"{cwass.id.string()}.{method.id.string()}"] = [param.dtype for param in method.params]
+        self.compile_std_types()
+
+    def compile_std_types(self):
+        self.class_signatures.update(
+            {
+                'senpai.len': (Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
+                'senpai.reversed': (Token('senpai', TokenType.SENPAI), GlobalType.CLASS_METHOD),
+                'senpai.has': (Token('sama', TokenType.SAMA), GlobalType.CLASS_METHOD),
+                'senpai.upper': (Token('senpai', TokenType.SENPAI), GlobalType.CLASS_METHOD),
+                'senpai.lower': (Token('senpai', TokenType.SENPAI), GlobalType.CLASS_METHOD),
+
+                'array_type.len': (Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
+                'array_type.reverse': (Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
+            },
+        )
+        self.class_method_param_types.update(
+            {
+                'senpai.len': [],
+                'senpai.reversed': [],
+                'senpai.has': [Token('senpai', TokenType.SENPAI)],
+                'senpai.upper': [],
+                'senpai.lower': [],
+
+                'array_type.len': [],
+                'array_type.reverse': [],
+            }
+        )
 
     def check_program(self) -> None:
         assert self.program.mainuwu

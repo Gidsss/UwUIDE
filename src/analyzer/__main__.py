@@ -18,10 +18,12 @@ if __name__ == "__main__":
     ]]
     cwass Hololive(a-chan) [[
         b-chan = sum(1)~
-        fwunc init-chan(c-chan) [[
-            b = inpwt(a[1] + a || b || "hello | b | world")~
-            sum(a, b)~
-            d-Hololive2 = Hololive2("2")~
+        c-senpai = ""~
+        fwunc init-chan(d-chan) [[
+            j-senpai[]~
+            c = j.len()~
+            c = j[1].has(1,2,3)~
+            e-Hololive2 = Hololive2("2")~
         ]]
     ]]
     fwunc mainuwu-san() [[
