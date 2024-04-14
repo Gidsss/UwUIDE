@@ -9,25 +9,22 @@ from src.parser.error_handler import ErrorSrc as parErrorSrc
 if __name__ == "__main__":
     sc = """
     gwobaw areallylongname-kun-dono = 3.14~
-    cwass Hololive2(a-chan) [[
-        b-chan~
-        fwunc init-chan(c-chan) [[
-            b = inpwt(sum[1].a() + a || b || "hello | b | world")~
-            sum(a, b)~
-        ]]
-    ]]
     cwass Hololive(a-chan) [[
-        b-chan = sum(1)~
+        b-chan~
         c-senpai-dono = ""~
+        e-Hololive = Hololive(2)~
         fwunc init-chan(d-chan) [[
             j-senpai[]~
             c = j.len()~
             c = j[1].has(1,2,3)~
-            e-Hololive2 = Hololive2("2")~
         ]]
     ]]
     fwunc mainuwu-san() [[
-        j-senpai[]~
+        a-Hololive = Hololive(2)~
+        i-senpai-dono = 0~
+        fow(i=0~ i > 10~ i + 1) [[
+            pwint(i)~
+        ]]
         wetuwn(nuww)~
     ]]
     fwunc sum-Hololive[](a-chan) [[
