@@ -13,7 +13,7 @@ class TypeChecker:
         self.program = program
         self.errors = []
 
-        # maps global names to their type's token and GlobalType for error message
+        # maps global names to their type's token, whether it's a constant, and GlobalType for error message
         self.global_defs: dict[str, tuple[Token, bool, GlobalType]] = {}
         self.class_signatures: dict[str, tuple[Token, bool, GlobalType]] = {}
         self.class_method_param_types: dict[str, list[Token]] = {}
