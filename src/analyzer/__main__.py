@@ -18,7 +18,7 @@ if __name__ == "__main__":
     ]]
     cwass Hololive(a-chan) [[
         b-chan = sum(1)~
-        c-senpai = ""~
+        c-senpai-dono = ""~
         fwunc init-chan(d-chan) [[
             j-senpai[]~
             c = j.len()~
