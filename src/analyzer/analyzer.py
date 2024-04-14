@@ -57,22 +57,24 @@ class MemberAnalyzer:
             else:
                 self.global_names[cwass.id.string()] = (cwass.id, GlobalType.CLASS)
 
-    def analyze_function(self, fn: Function, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+    def analyze_function(self, fn: Function, local_defs: dict[str, tuple[Token, GlobalType]],
+                         *,
+                         cwass=False) -> None:
         'make sure you pass in a copy of local_defs when calling this'
         for p in fn.params:
-            self.analyze_param(p, local_defs)
+            self.analyze_param(p, local_defs, cwass=cwass)
         assert isinstance(fn.body, BlockStatement)
-        self.analyze_body(fn.body, local_defs)
+        self.analyze_body(fn.body, local_defs.copy(), cwass=cwass)
 
     def analyze_class(self, cwass: Class) -> None:
         local_defs: dict[str, tuple[Token, GlobalType]] = self.global_names.copy()
         self.compile_class_methods(cwass, local_defs)
         for p in cwass.params:
-            self.analyze_param(p, local_defs)
+            self.analyze_param(p, local_defs, cwass=True)
         for prop in cwass.properties:
-            self.analyze_declaration(prop, local_defs)
+            self.analyze_declaration(prop, local_defs, cwass=True)
         for method in cwass.methods:
-            self.analyze_function(method, local_defs.copy())
+            self.analyze_function(method, local_defs.copy(), cwass=True)
 
     def compile_class_methods(self, cwass: Class, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         for method in cwass.methods:
@@ -85,13 +87,15 @@ class MemberAnalyzer:
             else:
                 local_defs[f"{cwass.id.flat_string()}.{method.id.string()}"] = (method.id, GlobalType.CLASS_METHOD)
 
-    def analyze_param(self, param: Parameter, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+    def analyze_param(self, param: Parameter, local_defs: dict[str, tuple[Token, GlobalType]],
+                      *,
+                      cwass=False) -> None:
         assert isinstance(param.id, Token)
         if param.id.string() in local_defs:
             self.errors.append(DuplicateDefinitionError(
                 *local_defs[param.id.string()],
                 param.id,
-                GlobalType.IDENTIFIER,
+                GlobalType.IDENTIFIER if not cwass else GlobalType.CLASS_PROPERTY,
             ))
         else:
             local_defs[param.id.string()] = (param.id, GlobalType.IDENTIFIER)
@@ -100,7 +104,9 @@ class MemberAnalyzer:
         for arg in args:
             self.analyze_value(arg, local_defs)
 
-    def analyze_body(self, body: BlockStatement, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+    def analyze_body(self, body: BlockStatement, local_defs: dict[str, tuple[Token, GlobalType]],
+                     *,
+                     cwass=False) -> None:
         '''
         when you're calling analyze_body(), make sure to pass in a copy of local_defs
         '''
@@ -111,7 +117,7 @@ class MemberAnalyzer:
                 case Input():
                     self.analyze_input(stmt, local_defs)
                 case Declaration() | ArrayDeclaration():
-                    self.analyze_declaration(stmt, local_defs)
+                    self.analyze_declaration(stmt, local_defs, cwass=cwass, in_body=True)
                 case Assignment():
                     self.analyze_assignment(stmt, local_defs)
                 case IfStatement():
@@ -145,8 +151,13 @@ class MemberAnalyzer:
         if if_stmt.else_block:
             self.analyze_body(if_stmt.else_block, local_defs.copy())
 
-    def analyze_declaration(self, decl: Declaration | ArrayDeclaration, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
-        self.expect_unique_token(decl.id, local_defs)
+    def analyze_declaration(self, decl: Declaration | ArrayDeclaration, local_defs: dict[str, tuple[Token, GlobalType]],
+                            *,
+                            cwass=False, in_body=False) -> None:
+        self.expect_unique_token(decl.id,
+                                 GlobalType.IDENTIFIER if not cwass else (
+                                 GlobalType.CLASS_PROPERTY if not in_body else GlobalType.LOCAL_CLASS_ID),
+                                 local_defs)
         match decl.dtype.token:
             case TokenType():
                 pass
@@ -344,42 +355,25 @@ class MemberAnalyzer:
                 else:
                     self.errors.append(UndefinedError(
                         token,
-                        GlobalType.IDENTIFIER,
+                        global_type,
                     ))
             case _:
                 raise ValueError(f"Unknown token: {token}")
-    def expect_unique_token(self, token: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+    def expect_unique_token(self, token: Token, global_type: GlobalType, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         '''
         checks whether the token is not yet defined in the scope
         if already defined (duplicate), appends to errors
         '''
         match token.token:
             case UniqueTokenType():
-                if token.string() in local_defs and local_defs[token.string()][1] == GlobalType.IDENTIFIER:
+                if token.string() in local_defs and local_defs[token.string()][1] in (
+                    GlobalType.IDENTIFIER, GlobalType.CLASS_PROPERTY, GlobalType.LOCAL_CLASS_ID):
                     self.errors.append(DuplicateDefinitionError(
                         *local_defs[token.string()],
                         token,
-                        GlobalType.IDENTIFIER,
+                        global_type,
                     ))
                 else:
-                    local_defs[token.string()] = (token, GlobalType.IDENTIFIER)
-            case _:
-                raise ValueError(f"Unknown token: {token}")
-    def expect_defined_class(self, token: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
-        '''
-        checks whether the token is defined in the scope
-        if not, appends to errors
-        '''
-        match token.token:
-            case TokenType.STRING_LITERAL | TokenType.INT_LITERAL | TokenType.FLOAT_LITERAL | TokenType.FAX | TokenType.CAP | TokenType.NUWW:
-                pass
-            case UniqueTokenType():
-                if token.string() in local_defs:
-                    pass
-                else:
-                    self.errors.append(UndefinedError(
-                        token,
-                        GlobalType.CLASS,
-                    ))
+                    local_defs[token.string()] = (token, global_type)
             case _:
                 raise ValueError(f"Unknown token: {token}")
