@@ -1,7 +1,6 @@
 from .type_checker import TypeChecker
 from .error_handler import ErrorSrc
 from .analyzer import MemberAnalyzer
-from .class_analyzer import ClassAnalyzer
 from src.lexer import Lexer
 from src.parser import Parser
 from src.parser.error_handler import ErrorSrc as parErrorSrc
@@ -11,7 +10,12 @@ if __name__ == "__main__":
     cwass Hololive2(a-chan) [[
         c-senpai-dono = ""~
         e-Hololive = Hololive(2)~
-        fwunc init-chan(d-chan) [[
+        fwunc sum-chan(d-chan) [[
+            j-senpai[]~
+            c = j.len()~
+            c = j[1].has(1,2,3)~
+        ]]
+        fwunc sum-chan(d-chan) [[
             j-senpai[]~
             c = j.len()~
             c = j[1].has(1,2,3)~
@@ -24,6 +28,9 @@ if __name__ == "__main__":
             pwint(i)~
         ]]
         wetuwn(nuww)~
+    ]]
+    fwunc sum-chan(d-chan) [[
+        wetuwn(d)~
     ]]
     """
     source: list[str] = [line if line else '\n' for line in sc.split("\n")]
@@ -55,14 +62,7 @@ if __name__ == "__main__":
         for err in ma.errors:
             print(err)
         exit(1)
-
     assert p.program
-    for cwass in p.program.classes:
-        ca = ClassAnalyzer(cwass, ma.global_names)
-        if ca.errors:
-            for err in ca.errors:
-                print(err)
-            exit(1)
 
     tc = TypeChecker(p.program)
     if tc.errors:

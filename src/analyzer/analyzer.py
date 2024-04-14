@@ -17,9 +17,11 @@ class MemberAnalyzer:
 
     def analyze_program(self) -> None:
         assert self.program.mainuwu
-        self.analyze_function(self.program.mainuwu)
+        self.analyze_function(self.program.mainuwu, self.global_names.copy())
         for func in self.program.functions:
-            self.analyze_function(func)
+            self.analyze_function(func, self.global_names.copy())
+        for cwass in self.program.classes:
+            self.analyze_class(cwass)
 
     def compile_global_names(self) -> None:
         '''
@@ -55,8 +57,8 @@ class MemberAnalyzer:
             else:
                 self.global_names[cwass.id.string()] = (cwass.id, GlobalType.CLASS)
 
-    def analyze_function(self, fn: Function) -> None:
-        local_defs: dict[str, tuple[Token, GlobalType]] = self.global_names.copy()
+    def analyze_function(self, fn: Function, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        'make sure you pass in a copy of local_defs when calling this'
         for p in fn.params:
             self.analyze_param(p, local_defs)
         assert isinstance(fn.body, BlockStatement)
@@ -64,12 +66,24 @@ class MemberAnalyzer:
 
     def analyze_class(self, cwass: Class) -> None:
         local_defs: dict[str, tuple[Token, GlobalType]] = self.global_names.copy()
+        self.compile_class_methods(cwass, local_defs)
         for p in cwass.params:
             self.analyze_param(p, local_defs)
         for prop in cwass.properties:
             self.analyze_declaration(prop, local_defs)
         for method in cwass.methods:
-            self.analyze_function(method)
+            self.analyze_function(method, local_defs.copy())
+
+    def compile_class_methods(self, cwass: Class, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        for method in cwass.methods:
+            if f"{cwass.id.flat_string()}.{method.id.string()}" in local_defs:
+                self.errors.append(DuplicateDefinitionError(
+                    *local_defs[f"{cwass.id.flat_string()}.{method.id.string()}"],
+                    method.id,
+                    GlobalType.CLASS_METHOD,
+                ))
+            else:
+                local_defs[f"{cwass.id.flat_string()}.{method.id.string()}"] = (method.id, GlobalType.CLASS_METHOD)
 
     def analyze_param(self, param: Parameter, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         assert isinstance(param.id, Token)
@@ -132,13 +146,20 @@ class MemberAnalyzer:
             self.analyze_body(if_stmt.else_block, local_defs.copy())
 
     def analyze_declaration(self, decl: Declaration | ArrayDeclaration, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
-        self.analyze_value(decl.value, local_defs)
         self.expect_unique_token(decl.id, local_defs)
+        match decl.dtype.token:
+            case TokenType():
+                pass
+            case UniqueTokenType():
+                self.expect_defined_token(decl.dtype, GlobalType.CLASS, local_defs)
+            case _:
+                raise ValueError(f"Unknown dtype: {decl.dtype}")
+        self.analyze_value(decl.value, local_defs)
 
     def analyze_assignment(self, assign: Assignment, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         match assign.id:
             case Token():
-                self.expect_defined_token(assign.id, local_defs)
+                self.expect_defined_token(assign.id, GlobalType.IDENTIFIER, local_defs)
             case IdentifierProds():
                 self.analyze_ident_prods(assign.id, local_defs)
             case _:
@@ -159,7 +180,7 @@ class MemberAnalyzer:
             case Declaration() | ArrayDeclaration():
                 self.analyze_declaration(for_loop.init, local_defs)
             case Token():
-                self.expect_defined_token(for_loop.init, local_defs)
+                self.expect_defined_token(for_loop.init, GlobalType.IDENTIFIER, local_defs)
             case IdentifierProds():
                 self.analyze_ident_prods(for_loop.init, local_defs)
             case _:
@@ -175,7 +196,7 @@ class MemberAnalyzer:
     def analyze_value(self, value: Value | Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         match value:
             case Token():
-                self.expect_defined_token(value, local_defs)
+                self.expect_defined_token(value, GlobalType.IDENTIFIER, local_defs)
             case Expression():
                 self.analyze_expression(value, local_defs)
             case IdentifierProds():
@@ -190,7 +211,7 @@ class MemberAnalyzer:
             case IndexedIdentifier():
                 match ident_prod.id:
                     case Token():
-                        self.expect_defined_token(ident_prod.id, local_defs)
+                        self.expect_defined_token(ident_prod.id, GlobalType.IDENTIFIER, local_defs)
                     case FnCall():
                         self.analyze_fn_call(ident_prod.id, local_defs)
                 self.analyze_array_indices(ident_prod.index, local_defs)
@@ -202,7 +223,7 @@ class MemberAnalyzer:
                 if access_depth == 0:
                     match ident_prod.id:
                         case Token():
-                            self.expect_defined_token(ident_prod.id, local_defs)
+                            self.expect_defined_token(ident_prod.id, GlobalType.IDENTIFIER, local_defs)
                         case FnCall():
                             self.analyze_fn_call(ident_prod.id, local_defs)
                 match ident_prod.accessed:
@@ -309,7 +330,7 @@ class MemberAnalyzer:
 
 
     ## HELPER METHODS
-    def expect_defined_token(self, token: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+    def expect_defined_token(self, token: Token, global_type: GlobalType, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         '''
         checks whether the token is defined in the scope
         if not, appends to errors
