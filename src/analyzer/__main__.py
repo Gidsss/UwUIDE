@@ -11,6 +11,7 @@ if __name__ == "__main__":
         c-senpai-dono = ""~
         e-Hololive = Hololive(2)~
         fwunc sum-chan(d-chan) [[
+            c-chan = 10~
             j-senpai[]~
             c = j.len()~
             c = j[1].has(1,2,3)~
