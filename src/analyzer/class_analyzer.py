@@ -219,7 +219,7 @@ class ClassAnalyzer:
             case Iterable():
                 self.analyze_iterable(value, local_defs)
             case _:
-                raise ValueError(f"Unknown value: {value}")
+                if value.string() != None: raise ValueError(f"Unknown value: {value.string()}")
     def analyze_ident_prods(self, ident_prod: IdentifierProds, local_defs: dict[str, tuple[Token, GlobalType]],
                             access_depth: int = 1) -> None:
         match ident_prod:
