@@ -167,7 +167,9 @@ class TypeChecker:
         local_defs[decl.id.string()] = (decl.dtype, decl.is_const, GlobalType.IDENTIFIER)
 
     def check_assignment(self, assign: Assignment, local_defs: dict[str, tuple[Token, bool, GlobalType]]) -> None:
-        expected_type = local_defs[assign.id.string()][0]
+        expected_type, is_const, _ = local_defs[assign.id.string()]
+        if is_const:
+            print(f"ERROR: cannot assign to constant: {assign.id.string()}")
         self.check_value(assign.value, expected_type, local_defs)
 
     def check_value(self, value: Value, expected_type: Token, local_defs: dict[str, tuple[Token, bool, GlobalType]]) -> None:
