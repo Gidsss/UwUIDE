@@ -122,21 +122,8 @@ class Array_UWU:
     ## BUILTIN METHODS
     def len(self) -> int:
         return self.__len__()
-    def reversed(self) -> Self:
-        return type(self)(self.val[::-1])
-    def has(self, item: str) -> bool:
-        return item in self.val
-    def append(self, item):
-        expect_type_is_in(item, self.valid_array_elems(),
-                               msg=f"OwO... you can't append with that!")
-        self.val.append(item)
-    def remove(self, item):
-        if item in self.val:
-            self.val.remove(item)
-    def extend(self, other: list | Self):
-        expect_type_is_in(other, self.valid_operands(),
-                               msg=f"OwO... you can't extend with that!")
-        self.val.extend(other)
+    def reverse(self) -> None:
+        self.val = self.val[::-1]
 
     ## UTILS
     def valid_array_elems(self) -> list[type]:
