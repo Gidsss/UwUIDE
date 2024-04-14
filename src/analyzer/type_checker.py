@@ -274,12 +274,20 @@ class TypeChecker:
         id = self.extract_id(accessor)
         match accessor.id:
             case Token() | FnCall() | ClassAccessor():
-                if not (res := local_defs.get(id)) or res[1] != GlobalType.CLASS:
+                res = local_defs.get(id)
+                if res:
+                    if (not res[0].token.is_arr_type()
+                        and not res[0].token == TokenType.SENPAI
+                        and res[1] != GlobalType.CLASS):
+                        print(f"ERROR: '{accessor.id.flat_string()}' is not a class\n\t"
+                            f"tried to use as class: {accessor.flat_string()}\n\t"
+                            f"{id} is type {res[0]}")
+                    class_type = res[0]
+                else:
                     print(f"ERROR: '{accessor.id.flat_string()}' is not a class\n\t"
                         f"tried to use as class: {accessor.flat_string()}"
                         f"\n\t'{id}' is {res[1]} of type {res[0]}" if res else "")
                     return TokenType.SAN
-                class_type = res[0]
             case IndexedIdentifier():
                 class_type = local_defs[id][0]
                 if not class_type.token.is_arr_type():
@@ -288,9 +296,9 @@ class TypeChecker:
                     print(f"ERROR: '{accessor.id.flat_string()}' is not a class\n\t"
                           f"tried to use as class: {accessor.flat_string()}\n\t"
                           f"{id} is type {class_type}")
+                class_type = class_type.to_unit_type()
             case _: raise ValueError(f"Unknown class accessor: {accessor}")
 
-        class_type = class_type.to_unit_type()
         match accessor.accessed:
             case Token():
                 accessed = accessor.accessed
@@ -306,16 +314,7 @@ class TypeChecker:
                 return return_type.token
             case FnCall():
                 accessed = accessor.accessed.id
-                member_signature = f"{class_type.flat_string()}.{accessed.flat_string()}"
-                if not (res := self.class_signatures.get(member_signature)):
-                    print(f"ERROR: '{accessed.flat_string()}' is not a method of class '{class_type}'")
-                    return TokenType.SAN
-                return_type, member_type = res
-                if member_type != GlobalType.CLASS_METHOD:
-                    print(f"ERROR: {accessed.flat_string()} is not a method of class '{class_type}'\n\t"
-                          f"{accessed.flat_string()} is a {member_type}")
-                    return TokenType.SAN
-                return return_type.token
+                return self.evaluate_method_call(class_type, accessor.accessed, local_defs)
             case IndexedIdentifier():
                 accessed = accessor.accessed.id
                 match accessed:
@@ -335,20 +334,7 @@ class TypeChecker:
                             return TokenType.SAN
                         return return_type.token
                     case FnCall():
-                        member_signature = f"{class_type.flat_string()}.{accessed.id.flat_string()}"
-                        if not (res := self.class_signatures.get(member_signature)):
-                            print(f"ERROR: '{accessed.flat_string()}' is not a method of class '{class_type}'")
-                            return TokenType.SAN
-                        return_type, member_type = res
-                        if member_type != GlobalType.CLASS_METHOD:
-                            print(f"ERROR: {accessed.flat_string()} is not a method of class '{class_type}'\n\t"
-                                  f"{accessed.flat_string()} is a {member_type}")
-                            return TokenType.SAN
-                        if not return_type.is_arr_type():
-                            print(f"ERROR: '{member_signature}()' does not return an array\n\t"
-                                  f"'{member_signature}()' returns {return_type}")
-                            return TokenType.SAN
-                        return return_type.token
+                        return self.evaluate_method_call(class_type, accessed, local_defs)
                     case _:
                         raise ValueError(f"Unknown class accessor: {accessor}")
             case ClassAccessor():
@@ -401,14 +387,35 @@ class TypeChecker:
             case _:
                 raise ValueError(f"Unknown collection: {collection}")
 
-    def evaluate_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
-        expected_types = self.function_param_types[fn_call.id.string()]
+    def evaluate_method_call(self, class_id: Token, fn_call: FnCall, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
+        class_id_str = class_id.flat_string() if not class_id.token.is_arr_type() else 'array_type'
+        if (res := self.class_signatures.get(f"{class_id_str}.{fn_call.id.flat_string()}")) is None:
+            print(f"ERROR: '{fn_call.id.flat_string()}' is not a method of class '{class_id.flat_string()}'")
+            return TokenType.SAN
+        return_type, member_type = res
+        if member_type != GlobalType.CLASS_METHOD:
+            print(f"ERROR: {fn_call.id.flat_string()} is not a method of class '{class_id.flat_string()}'\n\t"
+                f"{fn_call.id.flat_string()} is a {member_type}")
+            return TokenType.SAN
+
+        expected_types = self.class_method_param_types[f"{class_id_str}.{fn_call.id.flat_string()}"]
         if len(fn_call.args) != len(expected_types):
-            print(f"ERROR: wrong number of args for fn {fn_call.id.string()}: expected {len(expected_types)}, got {len(fn_call.args)}")
+            print(f"ERROR: wrong number of args for method '{class_id.flat_string()}.{fn_call.id.string()}': expected {len(expected_types)}, got {len(fn_call.args)}")
         for arg, arg_type in zip(fn_call.args, expected_types):
             actual_type = self.evaluate_value(arg, local_defs)
             if not self.is_similar_type(actual_type.flat_string(), arg_type.flat_string()):
-                print(f"ERROR: wrong param type for fn {fn_call.id.string()}\n\texpected: {arg_type.flat_string()}\n\tgot: {actual_type.flat_string()} -> {arg.flat_string()}")
+                print(f"ERROR: wrong param type for method '{class_id.flat_string()}.{fn_call.id.string()}'\n\texpected: {arg_type.flat_string()}\n\tgot: {actual_type.flat_string()} -> {arg.flat_string()}")
+
+        return return_type.token
+
+    def evaluate_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Token, GlobalType]]) -> TokenType:
+        expected_types = self.function_param_types[fn_call.id.string()]
+        if len(fn_call.args) != len(expected_types):
+            print(f"ERROR: wrong number of args for fn '{fn_call.id.string()}': expected {len(expected_types)}, got {len(fn_call.args)}")
+        for arg, arg_type in zip(fn_call.args, expected_types):
+            actual_type = self.evaluate_value(arg, local_defs)
+            if not self.is_similar_type(actual_type.flat_string(), arg_type.flat_string()):
+                print(f"ERROR: wrong param type for fn '{fn_call.id.string()}'\n\texpected: {arg_type.flat_string()}\n\tgot: {actual_type.flat_string()} -> {arg.flat_string()}")
         return local_defs[fn_call.id.string()][0].token
 
     def check_class_constructor(self, class_constructor: ClassConstructor, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
@@ -462,7 +469,7 @@ class TypeChecker:
         if len(types) > 1:
             print(f"ERROR: expected homogenous types: {arr.flat_string()}\n\tgot {[t.token for t in types]}")
             return [], TokenType.SAN
-        return flat_arr, types.pop()
+        return flat_arr, types.pop() if types else TokenType.SAN
 
     def flatten_array(self, arr: list[Value]) -> list[Value]:
         res = []
