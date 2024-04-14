@@ -162,7 +162,7 @@ class TypeChecker:
                         raise ValueError(f"Unknown token: {for_loop.init}")
             case IdentifierProds():
                 self.evaluate_ident_prods(for_loop.init, local_defs)
-                _, is_const = self.extract_last_accessed(for_loop.init, local_defs)
+                _, is_const = self.extract_last_id(for_loop.init, local_defs)
 
         if is_const:
             print(f"ERROR: can't modify constant '{for_loop.init.id.flat_string()}' in for loop")
@@ -181,7 +181,7 @@ class TypeChecker:
         local_defs[decl.id.flat_string()] = (decl.dtype, decl.is_const, GlobalType.IDENTIFIER)
 
     def check_assignment(self, assign: Assignment, local_defs: dict[str, tuple[Token, bool, GlobalType]]) -> None:
-        expected_type, is_const = self.extract_last_accessed(assign.id, local_defs)
+        expected_type, is_const = self.extract_last_id(assign.id, local_defs)
         if is_const:
             print(f"ERROR: cannot assign to constant: {assign.id.flat_string()}")
             return
@@ -233,10 +233,10 @@ class TypeChecker:
 
                 if expr.op.token in self.math_operators():
                     if not (left in self.math_operands() and right in self.math_operands()):
-                        tab_newline = '\n\t' # cuz \ is now allowed in f-strings
-                        print(f"ERROR: {expr.left.flat_string()} ({left}) {expr.op} {expr.right.flat_string()} ({right}){tab_newline}"+
-                            f"{f'{expr.left.flat_string()} ({left}) is not a math operand{tab_newline}' if left not in self.math_operands() else ''}"+
-                            f"{f'{expr.right.flat_string()} ({right}) is not a math operand' if right not in self.math_operands() else ''}")
+                        tab_newline = '\n\t' # cuz \ is not allowed in f-strings
+                        print(f"ERROR: {expr.left.flat_string()} ({left}) {expr.op} {expr.right.flat_string()} ({right})"
+                            f"{f'{tab_newline}{expr.left.flat_string()} ({left}) is not a math operand' if left not in self.math_operands() else ''}"
+                            f"{f'{tab_newline}{expr.right.flat_string()} ({expr.right.flat_string()} ({right}) is not a math operand' if right not in self.math_operands() else ''}")
                     if left == TokenType.KUN or right == TokenType.KUN:
                         return TokenType.KUN
                     else:
@@ -518,7 +518,7 @@ class TypeChecker:
             case _:
                 raise ValueError(f"Unknown class accessor: {accessor}")
 
-    def extract_last_accessed(self, val: Token | FnCall | IndexedIdentifier | ClassAccessor, local_defs: dict[str, tuple[Token, bool, GlobalType]]) -> tuple[Token, bool]:
+    def extract_last_id(self, val: Token | FnCall | IndexedIdentifier | ClassAccessor, local_defs: dict[str, tuple[Token, bool, GlobalType]]) -> tuple[Token, bool]:
         match val:
             case Token():
                 return local_defs[val.flat_string()][0:2]

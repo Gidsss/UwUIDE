@@ -21,7 +21,7 @@ if __name__ == "__main__":
     ]]
     fwunc mainuwu-san() [[
         a-Hololive = Hololive(2)~
-        i-senpai-dono = 0~
+        i-senpai-dono = ""~
         fow(i=0~ i > 10~ i + 1) [[
             pwint(i)~
         ]]
