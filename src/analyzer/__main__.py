@@ -8,9 +8,7 @@ from src.parser.error_handler import ErrorSrc as parErrorSrc
 
 if __name__ == "__main__":
     sc = """
-    gwobaw areallylongname-kun-dono = 3.14~
-    cwass Hololive(a-chan) [[
-        b-chan~
+    cwass Hololive2(a-chan) [[
         c-senpai-dono = ""~
         e-Hololive = Hololive(2)~
         fwunc init-chan(d-chan) [[
@@ -20,15 +18,12 @@ if __name__ == "__main__":
         ]]
     ]]
     fwunc mainuwu-san() [[
-        a-Hololive = Hololive(2)~
+        >.< e-Hololive = Hololive(2)~
         i-senpai-dono = ""~
         fow(i=0~ i > 10~ i + 1) [[
             pwint(i)~
         ]]
         wetuwn(nuww)~
-    ]]
-    fwunc sum-Hololive[](a-chan) [[
-        wetuwn({Hololive(1)})~
     ]]
     """
     source: list[str] = [line if line else '\n' for line in sc.split("\n")]
