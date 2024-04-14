@@ -27,6 +27,7 @@ if __name__ == "__main__":
         ]]
     ]]
     fwunc mainuwu-san() [[
+        j-senpai[]~
         wetuwn(nuww)~
     ]]
     fwunc sum-Hololive[](a-chan) [[
