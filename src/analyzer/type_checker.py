@@ -501,3 +501,64 @@ class TypeChecker:
             case "sama": return True
             # every other type needs exact match
             case _: return False
+
+    ## HELPER METHODS TO EXTRACT TYPES
+    def extract_id(self, accessor: Token | FnCall | IndexedIdentifier | ClassAccessor) -> str:
+        'gets the very first id of a class accessor'
+        match accessor:
+            case Token():
+                return accessor.flat_string()
+            case FnCall():
+                return accessor.id.flat_string()
+            case IndexedIdentifier():
+                match accessor.id:
+                    case Token():
+                        return accessor.id.flat_string()
+                    case FnCall():
+                        return accessor.id.id.flat_string()
+                    case _:
+                        raise ValueError(f"Unknown class accessor: {accessor}")
+            case ClassAccessor():
+                return self.extract_id(accessor.id)
+            case _:
+                raise ValueError(f"Unknown class accessor: {accessor}")
+
+    def extract_last_accessed(self, val: Token | FnCall | IndexedIdentifier | ClassAccessor, local_defs: dict[str, tuple[Token, bool, GlobalType]]) -> tuple[Token, bool]:
+        match val:
+            case Token():
+                return local_defs[val.flat_string()][0:2]
+            case FnCall():
+                return local_defs[val.id.flat_string()][0:2]
+            case IndexedIdentifier():
+                match val.id:
+                    case Token():
+                        return local_defs[val.id.flat_string()][0:2]
+                    case FnCall():
+                        return local_defs[val.id.id.flat_string()][0:2]
+                    case _:
+                        raise ValueError(f"Unknown class accessor: {val}")
+            case ClassAccessor():
+                class_type = local_defs[val.id.flat_string()][0]
+                val_tmp = val
+                while isinstance(val_tmp, ClassAccessor):
+                    print(val_tmp.flat_string())
+                    match val_tmp.accessed:
+                        case Token():
+                            return self.class_signatures[f"{class_type.flat_string()}.{val_tmp.accessed.flat_string()}"][0:2]
+                        case FnCall():
+                            return self.class_signatures[f"{class_type.flat_string()}.{val_tmp.accessed.id.flat_string()}"][0:2]
+                        case IndexedIdentifier():
+                            match val_tmp.accessed.id:
+                                case Token():
+                                    return self.class_signatures[f"{class_type.flat_string()}.{val_tmp.accessed.id.flat_string()}"][0:2]
+                                case FnCall():
+                                    return self.class_signatures[f"{class_type.flat_string()}.{val_tmp.accessed.id.id.flat_string()}"][0:2]
+                                case _:
+                                    raise ValueError(f"Unknown class accessor: {val}")
+                        case ClassAccessor():
+                            val_tmp = val_tmp.accessed
+                        case _:
+                            raise ValueError(f"Unknown class accessor: {val}")
+                raise Exception("should not reach here")
+            case _:
+                raise ValueError(f"Unknown class accessor: {val}")
