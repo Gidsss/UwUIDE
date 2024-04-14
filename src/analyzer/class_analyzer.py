@@ -13,6 +13,11 @@ class ClassAnalyzer:
         self.analyze_program()
 
     def analyze_program(self) -> None:
+        local_defs: dict[str, tuple[Token, GlobalType]] = self.class_members.copy()
+        for p in self.cwass.params:
+            self.analyze_param(p, local_defs)
+        for prop in self.cwass.properties:
+            self.analyze_declaration(prop, local_defs)
         for method in self.cwass.methods:
             self.analyze_method(method)
 
@@ -55,15 +60,6 @@ class ClassAnalyzer:
             self.analyze_param(p, local_defs)
         assert isinstance(fn.body, BlockStatement)
         self.analyze_body(fn.body, local_defs)
-
-    def analyze_class(self, cwass: Class) -> None:
-        local_defs: dict[str, tuple[Token, GlobalType]] = self.class_members.copy()
-        for p in cwass.params:
-            self.analyze_param(p, local_defs)
-        for prop in cwass.properties:
-            self.analyze_declaration(prop, local_defs)
-        for method in cwass.methods:
-            self.analyze_method(method)
 
     def analyze_param(self, param: Parameter, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         assert isinstance(param.id, Token)
@@ -233,7 +229,7 @@ class ClassAnalyzer:
             case FnCall():
                 self.analyze_fn_call(ident_prod, local_defs)
             case ClassConstructor():
-                self.analyze_args(ident_prod.args, local_defs)
+                self.analyze_class_constructor(ident_prod, local_defs)
             case ClassAccessor():
                 if access_depth > 0:
                     match ident_prod.id:
@@ -260,6 +256,16 @@ class ClassAnalyzer:
                 GlobalType.FUNCTION,
             ))
         self.analyze_args(fn_call.args, local_defs)
+
+    def analyze_class_constructor(self, class_constructor: ClassConstructor, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        if class_constructor.id.flat_string() in local_defs and local_defs[class_constructor.id.flat_string()][1] == GlobalType.CLASS:
+            pass
+        else:
+            self.errors.append(UndefinedError(
+                class_constructor.id,
+                GlobalType.CLASS,
+            ))
+        self.analyze_args(class_constructor.args, local_defs)
 
     def analyze_iterable(self, collection: Iterable, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         '''

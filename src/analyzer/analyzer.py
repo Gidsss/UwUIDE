@@ -197,7 +197,7 @@ class MemberAnalyzer:
             case FnCall():
                 self.analyze_fn_call(ident_prod, local_defs)
             case ClassConstructor():
-                self.analyze_args(ident_prod.args, local_defs)
+                self.analyze_class_constructor(ident_prod, local_defs)
             case ClassAccessor():
                 if access_depth == 0:
                     match ident_prod.id:
@@ -225,6 +225,16 @@ class MemberAnalyzer:
                 GlobalType.FUNCTION,
             ))
         self.analyze_args(fn_call.args, local_defs)
+
+    def analyze_class_constructor(self, class_constructor: ClassConstructor, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        if class_constructor.id.flat_string() in local_defs and local_defs[class_constructor.id.flat_string()][1] == GlobalType.CLASS:
+            pass
+        else:
+            self.errors.append(UndefinedError(
+                class_constructor.id,
+                GlobalType.CLASS,
+            ))
+        self.analyze_args(class_constructor.args, local_defs)
 
     def analyze_iterable(self, collection: Iterable, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         '''
@@ -332,5 +342,23 @@ class MemberAnalyzer:
                     ))
                 else:
                     local_defs[token.string()] = (token, GlobalType.IDENTIFIER)
+            case _:
+                raise ValueError(f"Unknown token: {token}")
+    def expect_defined_class(self, token: Token, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+        '''
+        checks whether the token is defined in the scope
+        if not, appends to errors
+        '''
+        match token.token:
+            case TokenType.STRING_LITERAL | TokenType.INT_LITERAL | TokenType.FLOAT_LITERAL | TokenType.FAX | TokenType.CAP | TokenType.NUWW:
+                pass
+            case UniqueTokenType():
+                if token.string() in local_defs:
+                    pass
+                else:
+                    self.errors.append(UndefinedError(
+                        token,
+                        GlobalType.CLASS,
+                    ))
             case _:
                 raise ValueError(f"Unknown token: {token}")
