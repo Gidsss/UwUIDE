@@ -184,7 +184,14 @@ class TypeChecker:
     def check_return(self, ret: ReturnStatement, return_type: Token, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> None:
         actual_type = self.evaluate_value(ret.expr, local_defs)
         if not self.is_similar_type(actual_type.flat_string(), return_type.flat_string()):
-            print(f"ERROR: expected return type: {return_type}\n\tgot: {actual_type}")
+            self.errors.append(
+                ReturnTypeMismatchError(
+                    expected=return_type,
+                    return_stmt = ret,
+                    actual_type=actual_type,
+                    expected_msg=f"Expected return type: '{return_type}'",
+                )
+            )
 
     def check_declaration(self, decl: Declaration | ArrayDeclaration, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> None:
         self.check_value(decl.value, decl.dtype, local_defs)

@@ -120,3 +120,42 @@ class GenericTwoTokenError:
         msg += border
 
         return msg
+
+class ReturnTypeMismatchError:
+    def __init__(self, expected: Token, return_stmt: ReturnStatement, actual_type: TokenType, expected_msg: str) -> None:
+        self.expected = expected
+        self.return_stmt = return_stmt
+        self.actual_type = actual_type
+        self.expected_msg = expected_msg
+
+    def __str__(self):
+        expected_index = str(self.expected.position[0] + 1)
+        max_pad = max(len(expected_index), 3)
+        expected_pad = len(ErrorSrc.src[self.expected.position[0]]) + max_pad + 3
+        actual_pad = 17 + len(self.return_stmt.expr.flat_string()) + max_pad
+        border = f"\t{'_' * max(expected_pad, actual_pad)}\n"
+
+        msg = f"Return Type Mismatch: expected '{self.expected.flat_string()}' but got '{self.actual_type.flat_string()}'\n"
+        msg += border
+
+        msg += f"\t{' ' * max_pad} | \t"
+        msg += Styled.sprintln(
+            self.expected_msg,
+            color=AnsiColor.RED
+        )
+        msg += f"\t{expected_index:{max_pad}} | {ErrorSrc.src[self.expected.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | {' ' * self.expected.position[1]}{'^' * (len(self.expected.flat_string()))}\n"
+        msg += f"\t{' ' * max_pad} | {'_' * (self.expected.position[1])}|\n"
+        msg += f"\t{' ' * max_pad} | |\n"
+
+        msg += f"\t{' ' * max_pad} | |\t"
+        msg += Styled.sprintln(
+            f"Value below evaluates to type: '{self.actual_type.flat_string()}'",
+            color=AnsiColor.RED
+        )
+        msg += f"\t{'ret':{max_pad}} | |    wetuwn({self.return_stmt.expr.flat_string()})~\n"
+        msg += f"\t{' ' * max_pad} | |{' ' * 11}{'^' * (len(self.return_stmt.expr.flat_string()))}\n"
+        msg += f"\t{' ' * max_pad} | |{'_' * 11}|\n"
+
+        msg += border
+        return msg
