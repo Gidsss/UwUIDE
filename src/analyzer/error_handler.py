@@ -159,3 +159,38 @@ class ReturnTypeMismatchError:
 
         msg += border
         return msg
+
+class TypeMismatchError:
+    def __init__(self, expected: Token, actual_val: Value, actual_type: TokenType) -> None:
+        self.expected = expected
+        self.actual_val = actual_val
+        self.actual_type = actual_type
+
+    def __str__(self):
+        index_str = str(self.expected.position[0] + 1)
+        max_pad = max(len(index_str), 3)
+        border = f"\t{'_' * (len(ErrorSrc.src[self.expected.position[0]]) + len(str(self.expected.position[0] + 1)) + max_pad)}\n"
+
+        msg = f"Type Mismatch: expected '{self.expected.flat_string()}' but got '{self.actual_type.flat_string()}'\n"
+        msg += border
+
+        msg += f"\t{' ' * max_pad} | \t"
+        msg += Styled.sprintln(
+            f"Expected type defined here",
+            color=AnsiColor.RED
+        )
+        msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.expected.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | {' ' * self.expected.position[1]}{'^' * (len(self.expected.flat_string()))}\n"
+        msg += f"\t{' ' * max_pad} | {'_' * (self.expected.position[1])}|\n"
+
+        msg += f"\t{' ' * max_pad} | |\t"
+        msg += Styled.sprintln(
+            f"Tried to assign a value that evaluates to type: '{self.actual_type.flat_string()}'",
+            color=AnsiColor.RED
+        )
+        msg += f"\t{'rhs':{max_pad}} | |    {self.actual_val.flat_string()}\n"
+        msg += f"\t{' ' * max_pad} | |{' ' * 4}{'^' * (len(self.actual_val.flat_string()))}\n"
+        msg += f"\t{' ' * max_pad} | |{'_' * 4}|\n"
+
+        msg += border
+        return msg
