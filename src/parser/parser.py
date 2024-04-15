@@ -306,6 +306,7 @@ class Parser:
                 self.advance(2)
                 return None
             d.is_const = True
+            d.dono_token = self.curr_tok
 
         # uninitialized
         if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):

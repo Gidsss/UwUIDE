@@ -260,6 +260,7 @@ class Declaration(Statement):
         self.dtype: Token = Token() 
         self.value: Value = Value()
         self.is_const: bool = False
+        self.dono_token: Token = Token()
 
     def header(self):
         return f"declare {'constant' if self.is_const else 'variable'}: {self.id.string()}"
@@ -281,6 +282,7 @@ class ArrayDeclaration(Statement):
         self.dtype: Token = Token()
         self.value: Value = Value()
         self.is_const: bool = False
+        self.dono_token: Token = Token()
 
     def header(self):
         return f"declare{' constant' if self.is_const else ''} array: {self.id.string()}"
