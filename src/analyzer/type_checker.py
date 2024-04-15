@@ -162,9 +162,20 @@ class TypeChecker:
                         raise ValueError(f"Unknown token: {for_loop.init}")
             case IdentifierProds():
                 self.evaluate_ident_prods(for_loop.init, local_defs)
-            print(f"ERROR: can't modify constant '{for_loop.init.id.flat_string()}' in for loop")
                 _, dono_token = self.extract_last_id(for_loop.init, local_defs)
+
         if dono_token:
+            token = self.extract_id(for_loop.init.id)
+            defined_here = local_defs[token.flat_string()][0]
+            self.errors.append(
+                GenericTwoTokenError(
+                    token = token,
+                    defined_token = dono_token,
+                    header = f"Constant in for loop initializer: {token.flat_string()}",
+                    token_msg = "Tried to use constant in a for loop initializer",
+                    defined_msg = "Declared as constant here",
+                )
+            )
 
         self.evaluate_value(for_loop.condition, local_defs)
         self.evaluate_value(for_loop.update, local_defs)
@@ -179,10 +190,19 @@ class TypeChecker:
         self.check_value(decl.value, decl.dtype, local_defs)
         local_defs[decl.id.flat_string()] = (decl.dtype, decl.dono_token, GlobalType.IDENTIFIER)
 
-            print(f"ERROR: cannot assign to constant: {assign.id.flat_string()}")
     def check_assignment(self, assign: Assignment, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> None:
         expected_type, dono_token = self.extract_last_id(assign.id, local_defs)
         if dono_token:
+            token = self.extract_id(assign.id)
+            self.errors.append(
+                GenericTwoTokenError(
+                    token = token,
+                    defined_token = dono_token,
+                    header = f"Reassigning constant: {token.flat_string()}",
+                    token_msg = "Tried to reassign here",
+                    defined_msg = "Declared as constant here",
+                )
+            )
             return
         self.check_value(assign.value, expected_type, local_defs)
 

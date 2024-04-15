@@ -1,5 +1,5 @@
 from enum import Enum
-from src.parser.productions import ClassAccessor, FnCall, IndexedIdentifier, Value
+from src.parser.productions import ClassAccessor, FnCall, IndexedIdentifier, ReturnStatement, Value
 from src.lexer.token import Token, TokenType
 from src.style import AnsiColor, Styled
 
@@ -77,4 +77,46 @@ class UndefinedError:
         msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.token.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.token.position[1]}{'^' * (error_range)}\n"
         msg += border
+        return msg
+
+class GenericTwoTokenError:
+    'errors that include two tokens'
+    def __init__(self, token: Token, defined_token: Token,
+                 header: str, token_msg: str, defined_msg: str):
+        self.token = token
+        self.defined_token = defined_token
+        self.header = header
+        self.msg = token_msg
+        self.defined_msg = defined_msg
+
+    def __str__(self):
+        index_str = str(self.token.position[0] + 1)
+        defined_index = str(self.defined_token.position[0] + 1)
+        max_pad = max(len(index_str), len(defined_index))
+        border = f"\t{'_' * (len(ErrorSrc.src[self.token.position[0]]) + len(str(self.token.position[0] + 1)) + max_pad)}\n"
+        defined_range = 1 if self.defined_token.end_position is None else self.defined_token.end_position[1] - self.defined_token.position[1] + 1
+        error_range = 1 if self.token.end_position is None else self.token.end_position[1] - self.token.position[1] + 1
+
+        msg = f"{self.header}\n"
+        msg += border
+        msg += f"\t{' ' * max_pad} | \t"
+        msg += Styled.sprintln(
+            self.defined_msg,
+            color=AnsiColor.RED
+        )
+        msg += f"\t{defined_index:{max_pad}} | {ErrorSrc.src[self.defined_token.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | {' ' * self.defined_token.position[1]}{'^' * (defined_range)}\n"
+        msg += f"\t{' ' * max_pad} | {'_' * (self.defined_token.position[1])}|\n"
+        msg += f"\t{' ' * max_pad} | |\n"
+
+        msg += f"\t{' ' * max_pad} | |\t"
+        msg += Styled.sprintln(
+            self.msg,
+            color=AnsiColor.RED
+        )
+        msg += f"\t{index_str:{max_pad}} | |{ErrorSrc.src[self.token.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | |{' ' * self.token.position[1]}{'^' * (error_range)}\n"
+        msg += f"\t{' ' * max_pad} | |{'_' * (self.token.position[1])}|\n"
+        msg += border
+
         return msg
