@@ -218,8 +218,13 @@ class TypeChecker:
             case TokenType():
                 actual_type = self.evaluate_value(value, local_defs)
                 if not self.is_similar_type(actual_type.flat_string(), expected_type.flat_string()):
-                    print(f"ERROR: expected type: {expected_type}\n\t"
-                          f"got: {actual_type} -> {value.flat_string()}")
+                    self.errors.append(
+                        TypeMismatchError(
+                            expected=expected_type,
+                            actual_val=value,
+                            actual_type=actual_type,
+                        )
+                    )
             case UniqueTokenType():
                 match value:
                     case ClassConstructor():
@@ -229,8 +234,13 @@ class TypeChecker:
                     case _:
                         actual_type = self.evaluate_value(value, local_defs)
                         if not self.is_similar_type(actual_type.flat_string(), expected_type.flat_string()):
-                            print(f"ERROR: expected type: {expected_type}\n\t"
-                                  f"got: {actual_type} -> {value.flat_string()}")
+                            self.errors.append(
+                                TypeMismatchError(
+                                    expected=expected_type,
+                                    actual_val=value,
+                                    actual_type=actual_type,
+                                )
+                            )
 
     def evaluate_value(self, value: Value | Token, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> TokenType:
         match value:
