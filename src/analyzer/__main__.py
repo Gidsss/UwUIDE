@@ -9,13 +9,7 @@ if __name__ == "__main__":
     sc = """
     cwass Hololive2(a-chan) [[
         c-senpai-dono = ""~
-        e-Hololive = Hololive(2)~
-        fwunc sum-chan(d-chan) [[
-            c-chan = 10~
-            j-senpai[]~
-            c = j.len()~
-            c = j[1].has(1,2,3)~
-        ]]
+        e-Hololive2 = Hololive2(2)~
         fwunc sum-chan(d-chan) [[
             j-senpai[]~
             c = j.len()~
@@ -23,15 +17,16 @@ if __name__ == "__main__":
         ]]
     ]]
     fwunc mainuwu-san() [[
-        >.< e-Hololive = Hololive(2)~
-        i-senpai-dono = ""~
+        e-Hololive2 = 10+10~
+        i-senpai-dono = 10+10*10/10%10~
+        i = 10~
         fow(i=0~ i > 10~ i + 1) [[
             pwint(i)~
         ]]
         wetuwn(nuww)~
     ]]
-    fwunc sum-chan(d-chan) [[
-        wetuwn(d)~
+    fwunc sum-senpai(d-chan) [[
+        wetuwn("d" || 1 + 2+ 3 *5*4/7 >= 10 && fax)~
     ]]
     """
     source: list[str] = [line if line else '\n' for line in sc.split("\n")]
