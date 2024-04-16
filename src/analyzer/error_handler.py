@@ -224,8 +224,8 @@ class PrePostFixOperandError:
             msg += f"\t{def_index:{max_pad}} | {ErrorSrc.src[self.val_definition.position[0]]}\n"
             msg += f"\t{' ' * max_pad} | {' ' * self.val_definition.position[1]}{'^' * (len(self.val_definition.flat_string()))}\n"
             msg += f"\t{' ' * max_pad} | {'_' * (self.val_definition.position[1])}|\n"
-            msg += f"\t{' ' * max_pad} | |\t"
 
+        msg += f"\t{' ' * max_pad} | " f"{'|' if self.val_definition else ''}" "\t"
         msg += Styled.sprintln(
             f"Value below evaluates to type: '{self.val_type.flat_string()}'",
             color=AnsiColor.RED
@@ -240,12 +240,14 @@ class PrePostFixOperandError:
 class InfixOperandError:
     def __init__(self, op: Token, left: tuple[Value, Token|None], 
                  right: tuple[Value, Token|None],
-                 left_type: TokenType|None, right_type: TokenType|None) -> None:
+                 left_type: TokenType|None, right_type: TokenType|None,
+                 header: str) -> None:
         self.op = op
         self.left, self.left_definition = left
         self.right, self.right_definition = right
         self.left_type = left_type
         self.right_type = right_type
+        self.header = header
 
     def __str__(self):
         op_str = str(self.op.position[0] + 1)
@@ -258,7 +260,7 @@ class InfixOperandError:
         border = f"\t{'_' * (max_len + max_pad)}"
 
         q = "'" # because f-strings lmao
-        msg = (f"Non-Math Infix Operand: "
+        msg = (self.header +
                f'{(q + self.left.flat_string() + q + " ") if self.left_type else ""}'
                f'{(q + self.right.flat_string() + q) if self.right_type else ""}'
                "\n")
