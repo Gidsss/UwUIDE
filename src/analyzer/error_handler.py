@@ -93,7 +93,8 @@ class GenericTwoTokenError:
         index_str = str(self.token.position[0] + 1)
         defined_index = str(self.defined_token.position[0] + 1)
         max_pad = max(len(index_str), len(defined_index))
-        border = f"\t{'_' * (len(ErrorSrc.src[self.token.position[0]]) + len(str(self.token.position[0] + 1)) + max_pad)}\n"
+        max_len = len(max(ErrorSrc.src[self.token.position[0]], ErrorSrc.src[self.defined_token.position[0]], key=len))
+        border = f"\t{'_' * (max_len + max_pad + 4)}\n"
         defined_range = 1 if self.defined_token.end_position is None else self.defined_token.end_position[1] - self.defined_token.position[1] + 1
         error_range = 1 if self.token.end_position is None else self.token.end_position[1] - self.token.position[1] + 1
 
@@ -192,5 +193,40 @@ class TypeMismatchError:
         msg += f"\t{' ' * max_pad} | |{' ' * 4}{'^' * (len(self.actual_val.flat_string()))}\n"
         msg += f"\t{' ' * max_pad} | |{'_' * 4}|\n"
 
+        msg += border
+        return msg
+
+class PrefixOperandError:
+    def __init__(self, negative_op: Token, val: Value, val_definition: Token, val_type: TokenType) -> None:
+        self.negative_op = negative_op
+        self.val = val
+        self.val_definition = val_definition
+        self.val_type = val_type
+
+    def __str__(self):
+        op_index = str(self.negative_op.position[0] + 1)
+        def_index = str(self.val_definition.position[0] + 1)
+        max_pad = max(len(op_index), len(def_index))
+        border = f"\t{'_' * (len(self.val.flat_string()) + 7 + max_pad)}\n"
+        msg = f"Negative Non-Math Operand: '{self.val.flat_string()}'\n"
+        msg += border
+
+        msg += f"\t{' ' * max_pad} | \t"
+        msg += Styled.sprintln(
+            f"Expected type defined here",
+            color=AnsiColor.RED
+        )
+        msg += f"\t{def_index:{max_pad}} | {ErrorSrc.src[self.val_definition.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | {' ' * self.val_definition.position[1]}{'^' * (len(self.val_definition.flat_string()))}\n"
+        msg += f"\t{' ' * max_pad} | {'_' * (self.val_definition.position[1])}|\n"
+        msg += f"\t{' ' * max_pad} | |\t"
+
+        msg += Styled.sprintln(
+            f"Value below evaluates to type: '{self.val_type.flat_string()}'",
+            color=AnsiColor.RED
+        )
+        msg += f"\t{op_index:{max_pad}} | |  -{self.val.flat_string()}\n"
+        msg += f"\t{' ' * max_pad} | |{' ' * 3}{'^' * (len(self.val.flat_string()))}\n"
+        msg += f"\t{' ' * max_pad} | |{'_' * 3}|\n"
         msg += border
         return msg
