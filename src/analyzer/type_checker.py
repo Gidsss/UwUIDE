@@ -14,8 +14,8 @@ class TypeChecker:
         self.errors = []
 
         # maps global names to their type's token, the constant token, and GlobalType for error messages
-        self.global_defs: dict[str, tuple[Token, Token|None, GlobalType]] = {}
-        self.class_signatures: dict[str, tuple[Token, Token|None, GlobalType]] = {}
+        self.global_defs: dict[str, tuple[Token, Token, GlobalType]] = {}
+        self.class_signatures: dict[str, tuple[Token, Token, GlobalType]] = {}
         self.class_method_param_types: dict[str, list[Token]] = {}
         self.function_param_types: dict[str, list[Token]] = {}
         self.class_param_types: dict[str, list[Token]] = {}
@@ -30,31 +30,31 @@ class TypeChecker:
         for global_dec in self.program.globals:
             self.global_defs[global_dec.id.flat_string()] = (global_dec.dtype, global_dec.dono_token, GlobalType.IDENTIFIER)
         for func in self.program.functions:
-            self.global_defs[func.id.flat_string()] = (func.rtype, None, GlobalType.FUNCTION)
+            self.global_defs[func.id.flat_string()] = (func.rtype, Token(), GlobalType.FUNCTION)
             self.function_param_types[func.id.flat_string()] = [param.dtype for param in func.params]
         for cwass in self.program.classes:
-            self.global_defs[cwass.id.flat_string()] = (cwass.id, None, GlobalType.CLASS)
+            self.global_defs[cwass.id.flat_string()] = (cwass.id, Token(), GlobalType.CLASS)
             self.class_param_types[cwass.id.flat_string()] = [param.dtype for param in cwass.params]
             for param in cwass.params:
-                self.class_signatures[f"{cwass.id.flat_string()}.{param.id.flat_string()}"] = (param.dtype, None, GlobalType.CLASS_PROPERTY)
+                self.class_signatures[f"{cwass.id.flat_string()}.{param.id.flat_string()}"] = (param.dtype, Token(), GlobalType.CLASS_PROPERTY)
             for prop in cwass.properties:
                 self.class_signatures[f"{cwass.id.flat_string()}.{prop.id.flat_string()}"] = (prop.dtype, prop.dono_token, GlobalType.CLASS_PROPERTY)
             for method in cwass.methods:
-                self.class_signatures[f"{cwass.id.flat_string()}.{method.id.flat_string()}"] = (method.rtype, None, GlobalType.CLASS_METHOD)
+                self.class_signatures[f"{cwass.id.flat_string()}.{method.id.flat_string()}"] = (method.rtype, Token(), GlobalType.CLASS_METHOD)
                 self.class_method_param_types[f"{cwass.id.flat_string()}.{method.id.flat_string()}"] = [param.dtype for param in method.params]
         self.compile_std_types()
 
     def compile_std_types(self):
         self.class_signatures.update(
             {
-                'senpai.len': (Token('chan', TokenType.CHAN), None, GlobalType.CLASS_METHOD),
-                'senpai.reversed': (Token('senpai', TokenType.SENPAI), None, GlobalType.CLASS_METHOD),
-                'senpai.has': (Token('sama', TokenType.SAMA), None, GlobalType.CLASS_METHOD),
-                'senpai.upper': (Token('senpai', TokenType.SENPAI), None, GlobalType.CLASS_METHOD),
-                'senpai.lower': (Token('senpai', TokenType.SENPAI), None, GlobalType.CLASS_METHOD),
+                'senpai.len': (Token('chan', TokenType.CHAN), Token(), GlobalType.CLASS_METHOD),
+                'senpai.reversed': (Token('senpai', TokenType.SENPAI), Token(), GlobalType.CLASS_METHOD),
+                'senpai.has': (Token('sama', TokenType.SAMA), Token(), GlobalType.CLASS_METHOD),
+                'senpai.upper': (Token('senpai', TokenType.SENPAI), Token(), GlobalType.CLASS_METHOD),
+                'senpai.lower': (Token('senpai', TokenType.SENPAI), Token(), GlobalType.CLASS_METHOD),
 
-                'array_type.len': (Token('chan', TokenType.CHAN), None, GlobalType.CLASS_METHOD),
-                'array_type.reverse': (Token('san', TokenType.SAN), None, GlobalType.CLASS_METHOD),
+                'array_type.len': (Token('chan', TokenType.CHAN), Token(), GlobalType.CLASS_METHOD),
+                'array_type.reverse': (Token('san', TokenType.SAN), Token(), GlobalType.CLASS_METHOD),
             },
         )
         self.class_method_param_types.update(
@@ -76,12 +76,12 @@ class TypeChecker:
         for func in self.program.functions: self.check_function(func, self.global_defs)
         for cwass in self.program.classes: self.check_class(cwass, self.global_defs.copy())
 
-    def check_function(self, func: Function, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> None:
+    def check_function(self, func: Function, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
         'make sure you pass in a copy of local_defs when calling this'
         self.compile_params(func.params, local_defs)
         self.check_body(func.body, func.rtype, local_defs.copy())
 
-    def check_class(self, cwass: Class, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> None:
+    def check_class(self, cwass: Class, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
         'make sure you pass in a copy of local_defs when calling this'
         self.compile_params(cwass.params, local_defs)
         for prop in cwass.properties:
@@ -89,12 +89,12 @@ class TypeChecker:
         for method in cwass.methods:
             self.check_function(method, local_defs)
 
-    def compile_params(self, params: list[Parameter], local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> None:
+    def compile_params(self, params: list[Parameter], local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
         'make sure you pass in a copy of local_defs when calling this'
         for param in params:
-            local_defs[param.id.flat_string()] = (param.dtype, None, GlobalType.IDENTIFIER)
+            local_defs[param.id.flat_string()] = (param.dtype, Token(), GlobalType.IDENTIFIER)
 
-    def check_body(self, body: BlockStatement, return_type: Token, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> None:
+    def check_body(self, body: BlockStatement, return_type: Token, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
         'make sure you pass in a copy of local_defs when calling this'
         for statement in body.statements:
             match statement:
@@ -121,14 +121,14 @@ class TypeChecker:
                 case _:
                     raise ValueError(f"Unknown statement: {statement}")
 
-    def check_print(self, print: Print, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> None:
+    def check_print(self, print: Print, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
         for val in print.values:
             self.evaluate_value(val, local_defs)
 
-    def check_input(self, input: Input, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> None:
+    def check_input(self, input: Input, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
         self.evaluate_value(input.expr, local_defs)
 
-    def check_if(self, if_stmt: IfStatement | ElseIfStatement, return_type: Token, local_defs: dict[str, tuple[Token, Token|None, GlobalType]], else_if=False) -> None:
+    def check_if(self, if_stmt: IfStatement | ElseIfStatement, return_type: Token, local_defs: dict[str, tuple[Token, Token, GlobalType]], else_if=False) -> None:
         self.evaluate_value(if_stmt.condition, local_defs)
         self.check_body(if_stmt.then, return_type, local_defs.copy())
         if else_if: return
@@ -138,11 +138,11 @@ class TypeChecker:
         if if_stmt.else_block:
             self.check_body(if_stmt.else_block, return_type, local_defs.copy())
 
-    def check_while_loop(self, while_loop: WhileLoop, return_type: Token, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> None:
+    def check_while_loop(self, while_loop: WhileLoop, return_type: Token, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
         self.evaluate_value(while_loop.condition, local_defs)
         self.check_body(while_loop.body, return_type, local_defs.copy())
 
-    def check_for_loop(self, for_loop: ForLoop, return_type: Token, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> None:
+    def check_for_loop(self, for_loop: ForLoop, return_type: Token, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
         'pass in a copy of local defs when calling this'
         match for_loop.init:
             case Declaration() | ArrayDeclaration():
@@ -155,7 +155,7 @@ class TypeChecker:
                 self.evaluate_token(for_loop.init, local_defs)
                 match for_loop.init.token:
                     case Token():
-                        dono_token = False
+                        dono_token = Token()
                     case UniqueTokenType():
                         _, dono_token, _ = local_defs[for_loop.init.flat_string()]
                     case _:
@@ -164,9 +164,8 @@ class TypeChecker:
                 self.evaluate_ident_prods(for_loop.init, local_defs)
                 _, dono_token = self.extract_last_id(for_loop.init, local_defs)
 
-        if dono_token:
+        if dono_token.exists():
             token = self.extract_id(for_loop.init.id)
-            defined_here = local_defs[token.flat_string()][0]
             self.errors.append(
                 GenericTwoTokenError(
                     token = token,
@@ -181,7 +180,7 @@ class TypeChecker:
         self.evaluate_value(for_loop.update, local_defs)
         self.check_body(for_loop.body, return_type, local_defs.copy())
 
-    def check_return(self, ret: ReturnStatement, return_type: Token, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> None:
+    def check_return(self, ret: ReturnStatement, return_type: Token, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
         actual_type = self.evaluate_value(ret.expr, local_defs)
         if not self.is_similar_type(actual_type.flat_string(), return_type.flat_string()):
             self.errors.append(
@@ -193,13 +192,13 @@ class TypeChecker:
                 )
             )
 
-    def check_declaration(self, decl: Declaration | ArrayDeclaration, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> None:
+    def check_declaration(self, decl: Declaration | ArrayDeclaration, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
         self.check_value(decl.value, decl.dtype, local_defs)
         local_defs[decl.id.flat_string()] = (decl.dtype, decl.dono_token, GlobalType.IDENTIFIER)
 
-    def check_assignment(self, assign: Assignment, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> None:
+    def check_assignment(self, assign: Assignment, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
         expected_type, dono_token = self.extract_last_id(assign.id, local_defs)
-        if dono_token:
+        if dono_token.exists():
             token = self.extract_id(assign.id)
             self.errors.append(
                 GenericTwoTokenError(
@@ -213,7 +212,7 @@ class TypeChecker:
             return
         self.check_value(assign.value, expected_type, local_defs)
 
-    def check_value(self, value: Value, expected_type: Token, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> None:
+    def check_value(self, value: Value, expected_type: Token, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
         match expected_type.token:
             case TokenType():
                 actual_type = self.evaluate_value(value, local_defs)
@@ -242,7 +241,7 @@ class TypeChecker:
                                 )
                             )
 
-    def evaluate_value(self, value: Value | Token, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> TokenType:
+    def evaluate_value(self, value: Value | Token, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> TokenType:
         match value:
             case Token():
                 return self.evaluate_token(value, local_defs)
@@ -256,7 +255,7 @@ class TypeChecker:
                 if value.flat_string() != None: raise ValueError(f"Unknown value: {value.flat_string()}")
                 return TokenType.SAN
 
-    def evaluate_expression(self, expr: Expression, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> TokenType:
+    def evaluate_expression(self, expr: Expression, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> TokenType:
         match expr:
             case PrefixExpression():
                 right = self.evaluate_value(expr.right, local_defs)
@@ -341,7 +340,7 @@ class TypeChecker:
             case _:
                 raise ValueError(f"Unknown expression: {expr}")
 
-    def evaluate_ident_prods(self, ident_prod: IdentifierProds, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> TokenType:
+    def evaluate_ident_prods(self, ident_prod: IdentifierProds, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> TokenType:
         match ident_prod:
             case IndexedIdentifier():
                 for idx in ident_prod.index:
@@ -368,7 +367,7 @@ class TypeChecker:
             case _:
                 raise ValueError(f"Unknown identifier production: {ident_prod}")
 
-    def check_and_evaluate_class_accessor(self, accessor: ClassAccessor, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> TokenType:
+    def check_and_evaluate_class_accessor(self, accessor: ClassAccessor, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> TokenType:
         # check that the accessor is of type class
         id = self.extract_id(accessor).flat_string()
         match accessor.id:
@@ -440,7 +439,7 @@ class TypeChecker:
             case _:
                 raise ValueError(f"Unknown class accessor: {accessor}")
 
-    def evaluate_iterable(self, collection: Iterable, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> TokenType:
+    def evaluate_iterable(self, collection: Iterable, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> TokenType:
         match collection:
             case ArrayLiteral():
                 flat_arr, units_type = self.expect_homogenous(collection, local_defs)
@@ -465,7 +464,7 @@ class TypeChecker:
             case _:
                 raise ValueError(f"Unknown collection: {collection}")
 
-    def evaluate_method_call(self, class_id: Token, fn_call: FnCall, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> TokenType:
+    def evaluate_method_call(self, class_id: Token, fn_call: FnCall, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> TokenType:
         class_id_str = class_id.flat_string() if not class_id.token.is_arr_type() else 'array_type'
         if (res := self.class_signatures.get(f"{class_id_str}.{fn_call.id.flat_string()}")) is None:
             print(f"ERROR: '{fn_call.id.flat_string()}' is not a method of class '{class_id.flat_string()}'")
@@ -486,7 +485,7 @@ class TypeChecker:
 
         return return_type.token
 
-    def evaluate_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> TokenType:
+    def evaluate_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> TokenType:
         expected_types = self.function_param_types[fn_call.id.flat_string()]
         if len(fn_call.args) != len(expected_types):
             print(f"ERROR: wrong number of args for fn '{fn_call.id.flat_string()}': expected {len(expected_types)}, got {len(fn_call.args)}")
@@ -496,7 +495,7 @@ class TypeChecker:
                 print(f"ERROR: wrong param type for fn '{fn_call.id.flat_string()}'\n\texpected: {arg_type.flat_string()}\n\tgot: {actual_type.flat_string()} -> {arg.flat_string()}")
         return local_defs[fn_call.id.flat_string()][0].token
 
-    def check_class_constructor(self, class_constructor: ClassConstructor, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> None:
+    def check_class_constructor(self, class_constructor: ClassConstructor, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
         expected_types = self.class_param_types[class_constructor.id.flat_string()]
         if len(expected_types) != len(class_constructor.args):
             print(f"ERROR: wrong number of args for class {class_constructor.id.flat_string()}: expected {len(expected_types)}, got {len(class_constructor.args)}")
@@ -505,7 +504,7 @@ class TypeChecker:
             if not self.is_similar_type(actual_type.flat_string(), arg_type.flat_string()):
                 print(f"ERROR: wrong param type for class {class_constructor.id.flat_string()}\n\texpected: {arg_type.flat_string()}\n\tgot: {actual_type.flat_string()} -> {arg.flat_string()}")
 
-    def evaluate_token(self, token: Token, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> TokenType:
+    def evaluate_token(self, token: Token, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> TokenType:
         match token.token:
             case TokenType.STRING_LITERAL: return TokenType.SENPAI
             case TokenType.INT_LITERAL: return TokenType.CHAN
@@ -529,7 +528,7 @@ class TypeChecker:
                 TokenType.AND_OPERATOR, TokenType.OR_OPERATOR]
     
     ## HELPER METHODS FOR EVALUATING ARRAYS
-    def expect_homogenous(self, arr: ArrayLiteral, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> tuple[list[Value], TokenType]:
+    def expect_homogenous(self, arr: ArrayLiteral, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> tuple[list[Value], TokenType]:
         flat_arr = self.flatten_array(arr.elements)
         types: set[TokenType] = set()
         for val in flat_arr:
@@ -600,7 +599,7 @@ class TypeChecker:
             case _:
                 raise ValueError(f"Unknown class accessor: {accessor}")
 
-    def extract_last_id(self, val: Token | FnCall | IndexedIdentifier | ClassAccessor, local_defs: dict[str, tuple[Token, Token|None, GlobalType]]) -> tuple[Token, Token|None]:
+    def extract_last_id(self, val: Token | FnCall | IndexedIdentifier | ClassAccessor, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> tuple[Token, Token]:
         match val:
             case Token():
                 return local_defs[val.flat_string()][0:2]
