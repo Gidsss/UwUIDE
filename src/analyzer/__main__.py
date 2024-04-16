@@ -17,8 +17,9 @@ if __name__ == "__main__":
         ]]
     ]]
     fwunc mainuwu-san() [[
-        e-Hololive2 = 10+10~
-        i-senpai-dono = 10+10*10/10%10~
+        >.< e-Hololive2 = 10+10~
+        longname-senpai~
+        i-chan-dono = longname+longname+-longname~
         i = 10~
         fow(i=0~ i > 10~ i + 1) [[
             pwint(i)~
