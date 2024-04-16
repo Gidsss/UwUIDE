@@ -72,6 +72,10 @@ class TokenType(Enum):
                 return TokenType.SENPAI
             case _:
                 return self
+    def is_unique_type(self):
+        return False
+    def exists(self) -> bool:
+        return self != TokenType.EOF
 
     # GENERAL KEYWORDS
     MAINUWU = ("mainuwu", "mainuwu")
@@ -230,6 +234,10 @@ class UniqueTokenType:
         return self
     def is_arr_type(self):
         return self.token.endswith("[]")
+    def is_unique_type(self):
+        return True
+    def exists(self) -> bool:
+        return True
 
 
 class Token:
@@ -292,6 +300,11 @@ class Token:
             case UniqueTokenType():
                 ret._token = ret._token.to_unit_type()
         return ret
+
+    def is_unique_type(self):
+        return self.token.is_unique_type()
+    def exists(self) -> bool:
+        return self.token.exists()
 
     @property
     def lexeme(self) -> str:
