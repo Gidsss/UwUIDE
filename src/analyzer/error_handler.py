@@ -230,3 +230,81 @@ class PrefixOperandError:
         msg += f"\t{' ' * max_pad} | |{'_' * 3}|\n"
         msg += border
         return msg
+
+class InfixOperandError:
+    def __init__(self, op: Token, left: tuple[Value, Token|None], 
+                 right: tuple[Value, Token|None],
+                 left_type: TokenType|None, right_type: TokenType|None) -> None:
+        self.op = op
+        self.left, self.left_definition = left
+        self.right, self.right_definition = right
+        self.left_type = left_type
+        self.right_type = right_type
+
+    def __str__(self):
+        op_str = str(self.op.position[0] + 1)
+        expr_len = len(self.left.flat_string()) + len(self.op.flat_string()) + len(self.right.flat_string())
+        left_def_len = len(ErrorSrc.src[self.left_definition.position[0]]) if self.left_definition else 0
+        right_def_len = len(ErrorSrc.src[self.right_definition.position[0]]) if self.right_definition else 0
+        max_len = max(expr_len, left_def_len, right_def_len)
+        max_pad = max(len(op_str), len(str(self.left_definition.position[0])) if self.left_definition else 0,
+                      len(str(self.right_definition.position[0])) if self.right_definition else 0)
+        border = f"\t{'_' * (max_len + 3 + max_pad)}"
+
+        q = "'" # because f-strings lmao
+        msg = (f"Non-Math Infix Operand: "
+               f'{(q + self.left.flat_string() + q + " ") if self.left_type else ""}'
+               f'{(q + self.right.flat_string() + q) if self.right_type else ""}'
+               "\n")
+        msg += border
+        if self.left_definition:
+            lhs_index = str(self.left_definition.position[0] + 1)
+            msg += f"\n\t{' ' * max_pad} | \t"
+            msg += Styled.sprintln(
+                f"Left hand side defined here",
+                color=AnsiColor.RED
+            )
+            msg += f"\t{lhs_index:{max_pad}} | {ErrorSrc.src[self.left_definition.position[0]]}\n"
+            msg += f"\t{' ' * max_pad} | {' ' * self.left_definition.position[1]}{'^' * (len(self.left_definition.flat_string()))}\n"
+            msg += f"\t{' ' * max_pad} | {'_' * (self.left_definition.position[1])}|\n"
+            msg += f"\t{' ' * max_pad} | |"
+        if self.left_type:
+            msg += f"\n\t{' ' * max_pad} | "f"{'|' if self.left_definition else ''}""\t"
+            msg += Styled.sprintln(
+                f"Value below evaluates to type: '{self.left_type.flat_string()}'",
+                color=AnsiColor.RED
+            )
+            msg += f"\t{op_str:{max_pad}} | " f"{'|' if self.left_definition else ''}" f"  {self.left.flat_string()}{self.op.flat_string()}{self.right.flat_string()}\n"
+            msg += f"\t{' ' * max_pad} | " f"{'|' if self.left_definition else ''}" f"  {'^' * (len(self.left.flat_string()))}"
+            if self.left_definition:
+                msg += f"\n\t{' ' * max_pad} | |__|\n"
+            else:
+                msg += '\n'
+        if self.left_type and self.right_type:
+            msg += f"\t{' ' * max_pad} |"
+        if self.right_definition:
+            rhs_index = str(self.right_definition.position[0] + 1)
+            msg += f"\n\t{' ' * max_pad} | \t"
+            msg += Styled.sprintln(
+                f"Right hand side defined here",
+                color=AnsiColor.RED
+            )
+            msg += f"\t{rhs_index:{max_pad}} | {ErrorSrc.src[self.right_definition.position[0]]}\n"
+            msg += f"\t{' ' * max_pad} | {' ' * self.right_definition.position[1]}{'^' * (len(self.right_definition.flat_string()))}\n"
+            msg += f"\t{' ' * max_pad} | {'_' * (self.right_definition.position[1])}|\n"
+            msg += f"\t{' ' * max_pad} | |"
+        if self.right_type:
+            msg += f"\n\t{' ' * max_pad} | " f"{'|' if self.right_definition else ''}" "\t"
+            msg += Styled.sprintln(
+                f"Value below evaluates to type: '{self.right_type.flat_string()}'",
+                color=AnsiColor.RED
+            )
+            msg += f"\t{op_str:{max_pad}} | " f"{'|' if self.right_definition else ''}" f"  {self.left.flat_string()}{self.op.flat_string()}{self.right.flat_string()}\n"
+            msg += f"\t{' ' * max_pad} | " f"{'|' if self.right_definition else ''}" f"  {' ' * (len(self.left.flat_string()) + len(self.op.flat_string()))}{'^' * (len(self.right.flat_string()))}"
+            if self.right_definition:
+                msg += f"\n\t{' ' * max_pad} | |__"f"{'_' * (1+len(self.left.flat_string()))}|\n"
+            else:
+                msg += '\n'
+        msg += border + '\n'
+        return msg
+
