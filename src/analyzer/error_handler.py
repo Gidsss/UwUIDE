@@ -196,38 +196,44 @@ class TypeMismatchError:
         msg += border
         return msg
 
-class PrefixOperandError:
-    def __init__(self, negative_op: Token, val: Value, val_definition: Token, val_type: TokenType) -> None:
-        self.negative_op = negative_op
+class PrePostFixOperandError:
+    def __init__(self, op: Token, val: Value, val_definition: Token|None, val_type: TokenType, header: str, postfix=False) -> None:
+        self.op = op
         self.val = val
         self.val_definition = val_definition
         self.val_type = val_type
+        self.header = header
+        self.postfix = postfix
 
     def __str__(self):
-        op_index = str(self.negative_op.position[0] + 1)
-        def_index = str(self.val_definition.position[0] + 1)
+        op_index = str(self.op.position[0] + 1)
+        def_index = str(self.val_definition.position[0] if self.val_definition else 0 + 1)
         max_pad = max(len(op_index), len(def_index))
-        border = f"\t{'_' * (len(self.val.flat_string()) + 7 + max_pad)}\n"
-        msg = f"Negative Non-Math Operand: '{self.val.flat_string()}'\n"
+        max_len = max(len(ErrorSrc.src[self.val_definition.position[0]]) if self.val_definition else 0 + max_pad + 3, len(self.val.flat_string()) + 7 + max_pad)
+        border = f"\t{'_' * max_len}\n"
+
+        msg = f"Non-Math {f'Prefix' if not self.postfix else 'Postfix'} Operator: f'{self.val.flat_string()}'\n"
         msg += border
 
-        msg += f"\t{' ' * max_pad} | \t"
-        msg += Styled.sprintln(
-            f"Expected type defined here",
-            color=AnsiColor.RED
-        )
-        msg += f"\t{def_index:{max_pad}} | {ErrorSrc.src[self.val_definition.position[0]]}\n"
-        msg += f"\t{' ' * max_pad} | {' ' * self.val_definition.position[1]}{'^' * (len(self.val_definition.flat_string()))}\n"
-        msg += f"\t{' ' * max_pad} | {'_' * (self.val_definition.position[1])}|\n"
-        msg += f"\t{' ' * max_pad} | |\t"
+        if self.val_definition:
+            msg += f"\t{' ' * max_pad} | \t"
+            msg += Styled.sprintln(
+                f"Expected type defined here",
+                color=AnsiColor.RED
+            )
+            msg += f"\t{def_index:{max_pad}} | {ErrorSrc.src[self.val_definition.position[0]]}\n"
+            msg += f"\t{' ' * max_pad} | {' ' * self.val_definition.position[1]}{'^' * (len(self.val_definition.flat_string()))}\n"
+            msg += f"\t{' ' * max_pad} | {'_' * (self.val_definition.position[1])}|\n"
+            msg += f"\t{' ' * max_pad} | |\t"
 
         msg += Styled.sprintln(
             f"Value below evaluates to type: '{self.val_type.flat_string()}'",
             color=AnsiColor.RED
         )
-        msg += f"\t{op_index:{max_pad}} | |  -{self.val.flat_string()}\n"
-        msg += f"\t{' ' * max_pad} | |{' ' * 3}{'^' * (len(self.val.flat_string()))}\n"
-        msg += f"\t{' ' * max_pad} | |{'_' * 3}|\n"
+        msg += f"\t{op_index:{max_pad}} | " f"{'|' if self.val_definition else ''}" f"  {self.op.flat_string() if not self.postfix else ''}{self.val.flat_string()}{self.op.flat_string() if self.postfix else ''}\n"
+        msg += f"\t{' ' * max_pad} | " f"{'|' if self.val_definition else ''}" f"{' ' * (3 if not self.postfix else 2)}{'^' * (len(self.val.flat_string()))}\n"
+        if self.val_definition:
+            msg += f"\t{' ' * max_pad} | |{'_' * (3 if not self.postfix else 2)}|\n"
         msg += border
         return msg
 
@@ -243,13 +249,13 @@ class InfixOperandError:
 
     def __str__(self):
         op_str = str(self.op.position[0] + 1)
-        expr_len = len(self.left.flat_string()) + len(self.op.flat_string()) + len(self.right.flat_string())
-        left_def_len = len(ErrorSrc.src[self.left_definition.position[0]]) if self.left_definition else 0
-        right_def_len = len(ErrorSrc.src[self.right_definition.position[0]]) if self.right_definition else 0
+        expr_len = 5 + len(self.left.flat_string()) + len(self.op.flat_string()) + len(self.right.flat_string())
+        left_def_len = (3 + len(ErrorSrc.src[self.left_definition.position[0]])) if self.left_definition else 0
+        right_def_len = (3 + len(ErrorSrc.src[self.right_definition.position[0]])) if self.right_definition else 0
         max_len = max(expr_len, left_def_len, right_def_len)
         max_pad = max(len(op_str), len(str(self.left_definition.position[0])) if self.left_definition else 0,
                       len(str(self.right_definition.position[0])) if self.right_definition else 0)
-        border = f"\t{'_' * (max_len + 3 + max_pad)}"
+        border = f"\t{'_' * (max_len + max_pad)}"
 
         q = "'" # because f-strings lmao
         msg = (f"Non-Math Infix Operand: "
@@ -307,4 +313,3 @@ class InfixOperandError:
                 msg += '\n'
         msg += border + '\n'
         return msg
-

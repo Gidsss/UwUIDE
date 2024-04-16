@@ -260,13 +260,17 @@ class TypeChecker:
         match expr:
             case PrefixExpression():
                 right = self.evaluate_value(expr.right, local_defs)
-                if not right in self.math_operands():
+                if right not in self.math_operands():
+                    definition = None
+                    if isinstance(expr.right, Token) and isinstance(expr.right.token, UniqueTokenType):
+                        definition = local_defs[expr.right.flat_string()][0]
                     self.errors.append(
-                        PrefixOperandError(
-                            expr.op,
-                            expr.right,
-                            local_defs[expr.right.flat_string()][0],
-                            right,
+                        PrePostFixOperandError(
+                            header=f"Non-Math Prefix Operand: '{expr.right.flat_string()}'",
+                            op=expr.op,
+                            val=expr.right,
+                            val_definition=definition,
+                            val_type=right,
                         )
                     )
                 return right
@@ -306,8 +310,20 @@ class TypeChecker:
                     raise ValueError(f"Unknown operator: {expr.op}")
             case PostfixExpression():
                 left = self.evaluate_value(expr.left, local_defs)
-                if not(left in self.math_operands()):
-                    print(f"ERROR: {expr.left.flat_string()} ({left}) cannot be incremented or decremented")
+                if left not in self.math_operands():
+                        definition = None
+                        if isinstance(expr.left, Token) and isinstance(expr.left.token, UniqueTokenType):
+                            definition = local_defs[expr.left.flat_string()][0]
+                        self.errors.append(
+                            PrePostFixOperandError(
+                                header=f"Non-Math Postfix Operand: '{expr.left.flat_string()}'",
+                                op=expr.op,
+                                val=expr.left,
+                                val_definition=definition,
+                                val_type=left,
+                                postfix=True,
+                            )
+                        )
                 return left
             case _:
                 raise ValueError(f"Unknown expression: {expr}")
