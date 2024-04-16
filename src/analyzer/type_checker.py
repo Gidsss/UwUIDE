@@ -276,10 +276,20 @@ class TypeChecker:
 
                 if expr.op.token in self.math_operators():
                     if not (left in self.math_operands() and right in self.math_operands()):
-                        tab_newline = '\n\t' # cuz \ is not allowed in f-strings
-                        print(f"ERROR: {expr.left.flat_string()} ({left}) {expr.op} {expr.right.flat_string()} ({right})"
-                            f"{f'{tab_newline}{expr.left.flat_string()} ({left}) is not a math operand' if left not in self.math_operands() else ''}"
-                            f"{f'{tab_newline}{expr.right.flat_string()} ({expr.right.flat_string()} ({right}) is not a math operand' if right not in self.math_operands() else ''}")
+                        left_definition, right_definition = None, None
+                        if isinstance(expr.left, Token) and isinstance(expr.left.token, UniqueTokenType):
+                            left_definition = local_defs[expr.left.flat_string()][0]
+                        if isinstance(expr.right, Token) and isinstance(expr.right.token, UniqueTokenType):
+                            right_definition = local_defs[expr.right.flat_string()][0]
+                        self.errors.append(
+                            InfixOperandError(
+                                expr.op,
+                                (expr.left, left_definition),
+                                (expr.right, right_definition),
+                                left if left not in self.math_operands() else None,
+                                right if right not in self.math_operands() else None,
+                            )
+                        )
                     if left == TokenType.KUN or right == TokenType.KUN:
                         return TokenType.KUN
                     else:
