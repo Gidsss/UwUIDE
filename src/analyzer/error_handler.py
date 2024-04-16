@@ -315,3 +315,40 @@ class InfixOperandError:
                 msg += '\n'
         msg += border + '\n'
         return msg
+
+class ArrayAccessError:
+    def __init__(self, token: Token, type_definition: Token, token_type: TokenType) -> None:
+        self.token = token
+        self.type_definition = type_definition
+        self.token_type = token_type
+
+    def __str__(self):
+        tok_index = str(self.token.position[0] + 1)
+        def_index = str(self.type_definition.position[0] + 1)
+        max_pad = max(len(tok_index), len(def_index))
+        max_len = max(len(ErrorSrc.src[self.token.position[0]]), len(ErrorSrc.src[self.type_definition.position[0]]))
+        border = f"\t{'_' * (max_len + 3 + max_pad)}\n"
+
+        msg = f"Invalid Access:\n"
+        msg += border
+        msg += f"\t{' ' * max_pad} | \t"
+        msg += Styled.sprintln(
+            f"Actual type defined here",
+            color=AnsiColor.RED
+        )
+        msg += f"\t{def_index:{max_pad}} | {ErrorSrc.src[self.type_definition.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | {' ' * self.type_definition.position[1]}{'^' * (len(self.type_definition.flat_string()))}\n"
+        msg += f"\t{' ' * max_pad} | {'_' * (self.type_definition.position[1])}|\n"
+
+        msg += f"\t{' ' * max_pad} | |\n"
+        msg += f"\t{' ' * max_pad} | |\t"
+        msg += Styled.sprintln(
+            f"Tried to access a non iterable of type: '{self.token_type}'",
+            color=AnsiColor.RED
+        )
+        msg += f"\t{tok_index:{max_pad}} | |{ErrorSrc.src[self.token.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | |{' ' * self.token.position[1]}{'^' * (len(self.token.flat_string()))}\n"
+        msg += f"\t{' ' * max_pad} | |{'_' * (self.token.position[1])}|\n"
+
+        msg += border
+        return msg

@@ -352,9 +352,16 @@ class TypeChecker:
                         arr_type = self.evaluate_fn_call(ident_prod.id, local_defs)
                     case _:
                         raise ValueError(f"Unknown identifier production for indexed identifier: {ident_prod}")
-                if not arr_type.is_arr_type():
-                    print(f"ERROR: '{ident_prod.flat_string()}' is not a valid access\n\t"
-                          f"'{ident_prod.id.flat_string()}' is type {arr_type}, not an array")
+                if not self.is_accessible(arr_type):
+                    token = self.extract_id(ident_prod.id)
+                    type_definition = local_defs[token.flat_string()][0]
+                    self.errors.append(
+                        ArrayAccessError(
+                            token=token,
+                            type_definition=type_definition,
+                            token_type=arr_type,
+                        )
+                    )
                     return TokenType.SAN
                 return arr_type.to_unit_type()
             case FnCall():
@@ -375,9 +382,8 @@ class TypeChecker:
                 res = local_defs.get(id)
                 if res:
                     class_type, _, member_type = res
-                    if (not class_type.token.is_arr_type()
-                        and not class_type.token == TokenType.SENPAI
-                        and member_type != GlobalType.CLASS):
+                    if (not self.is_accessible(class_type.token)
+                        and class_type.is_unique_type()):
                         print(f"ERROR: '{accessor.id.flat_string()}' is not a class\n\t"
                             f"tried to use as class: {accessor.flat_string()}\n\t"
                             f"{id} is {member_type} of type {class_type}")
@@ -387,12 +393,20 @@ class TypeChecker:
                     return TokenType.SAN
             case IndexedIdentifier():
                 class_type, _, _ = local_defs[id]
-                if not class_type.token.is_arr_type():
-                    print(f"ERROR: '{accessor.id.flat_string()}' is not a valid access\n\t"
-                          f"'{id}' is type {class_type}, not an array")
-                    print(f"ERROR: '{accessor.id.flat_string()}' is not a class\n\t"
-                          f"tried to use as class: {accessor.flat_string()}\n\t"
-                          f"{id} is type {class_type}")
+                if not self.is_accessible(class_type.token):
+                    token = self.extract_id(accessor.id)
+                    type_definition = local_defs[token.flat_string()][0]
+                    self.errors.append(
+                        ArrayAccessError(
+                            token=token,
+                            type_definition=type_definition,
+                            token_type=class_type.token,
+                        )
+                    )
+                    if not class_type.is_unique_type():
+                        print(f"ERROR: '{accessor.id.flat_string()}' is not a class\n\t"
+                              f"tried to use as class: {accessor.flat_string()}\n\t"
+                              f"{id} is type {class_type}")
                 class_type = class_type.to_unit_type()
             case _: raise ValueError(f"Unknown class accessor: {accessor}")
 
@@ -425,9 +439,16 @@ class TypeChecker:
                             print(f"ERROR: {accessed.flat_string()} is not a property of class'{class_type}'\n\t"
                                   f"{accessed.flat_string()} is a {member_type}")
                             return TokenType.SAN
-                        if not return_type.is_arr_type():
-                            print(f"ERROR: '{member_signature}' is not an array"
-                                  f"\n\t'{member_signature}' is a {return_type}")
+                        if not self.is_accessible(return_type.token):
+                            token = self.extract_id(accessed)
+                            type_definition = self.class_signatures[member_signature][0]
+                            self.errors.append(
+                                ArrayAccessError(
+                                    token=token,
+                                    type_definition=type_definition,
+                                    token_type=return_type.token,
+                                )
+                            )
                             return TokenType.SAN
                         return return_type.token
                     case FnCall():
@@ -577,6 +598,10 @@ class TypeChecker:
             case "sama": return True
             # every other type needs exact match
             case _: return False
+
+    def is_accessible(self, actual_type: TokenType) -> bool:
+        'determines if a type is accessable'
+        return actual_type.is_arr_type() or actual_type == TokenType.SENPAI
 
     ## HELPER METHODS TO EXTRACT TYPES
     def extract_id(self, accessor: Token | FnCall | IndexedIdentifier | ClassAccessor) -> Token:
