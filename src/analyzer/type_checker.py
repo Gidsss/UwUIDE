@@ -287,11 +287,12 @@ class TypeChecker:
                             right_definition = local_defs[expr.right.flat_string()][0]
                         self.errors.append(
                             InfixOperandError(
-                                expr.op,
-                                (expr.left, left_definition),
-                                (expr.right, right_definition),
-                                left if left not in self.math_operands() else None,
-                                right if right not in self.math_operands() else None,
+                                header="Non-Math Infix Operand",
+                                op=expr.op,
+                                left=(expr.left, left_definition),
+                                right=(expr.right, right_definition),
+                                left_type=left if left not in self.math_operands() else None,
+                                right_type=right if right not in self.math_operands() else None,
                             )
                         )
                     if left == TokenType.KUN or right == TokenType.KUN:
@@ -300,9 +301,21 @@ class TypeChecker:
                         return TokenType.CHAN
                 elif expr.op.token in self.comparison_operators():
                     if not (left in self.math_operands() and right in self.math_operands()):
-                        print(f"ERROR: {expr.left.flat_string()} ({left}) {expr.op} {expr.right.flat_string()} ({right})\n\t"+
-                              f"{expr.left.flat_string() if left not in self.math_operands() else expr.right.flat_string()}"+
-                              f"({left if left not in self.math_operands() else right}) is not a comparison operand")
+                        left_definition, right_definition = None, None
+                        if isinstance(expr.left, Token) and isinstance(expr.left.token, UniqueTokenType):
+                            left_definition = local_defs[expr.left.flat_string()][0]
+                        if isinstance(expr.right, Token) and isinstance(expr.right.token, UniqueTokenType):
+                            right_definition = local_defs[expr.right.flat_string()][0]
+                        self.errors.append(
+                            InfixOperandError(
+                                header="Non-Comparison Infix Operand: ",
+                                op=expr.op,
+                                left=(expr.left, left_definition),
+                                right=(expr.right, right_definition),
+                                left_type=left if left not in self.math_operands() else None,
+                                right_type=right if right not in self.math_operands() else None,
+                            )
+                        )
                     return TokenType.SAMA
                 elif expr.op.token in self.equality_operators():
                     return TokenType.SAMA
