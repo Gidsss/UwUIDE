@@ -261,7 +261,14 @@ class TypeChecker:
             case PrefixExpression():
                 right = self.evaluate_value(expr.right, local_defs)
                 if not right in self.math_operands():
-                    print(f"ERROR: {expr.right.flat_string()} ({right}) cannot be negative")
+                    self.errors.append(
+                        PrefixOperandError(
+                            expr.op,
+                            expr.right,
+                            local_defs[expr.right.flat_string()][0],
+                            right,
+                        )
+                    )
                 return right
             case InfixExpression():
                 left = self.evaluate_value(expr.left, local_defs)
