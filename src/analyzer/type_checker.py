@@ -418,12 +418,24 @@ class TypeChecker:
                 accessed = accessor.accessed
                 member_signature = f"{class_type.flat_string()}.{accessed.flat_string()}"
                 if not (res := self.class_signatures.get(member_signature)):
-                    print(f"ERROR: '{accessed.flat_string()}' is not a property of class '{class_type}'")
+                    self.errors.append(
+                        UndefinedClassMember(
+                            class_type.flat_string(),
+                            accessed,
+                            GlobalType.CLASS_PROPERTY,
+                        )
+                    )
                     return TokenType.SAN
                 return_type, _, member_type = res
                 if member_type != GlobalType.CLASS_PROPERTY:
-                    print(f"ERROR: {accessed.flat_string()} is not a property of class'{class_type}'\n\t"
-                          f"{accessed.flat_string()} is a {member_type}")
+                    self.errors.append(
+                        UndefinedClassMember(
+                            class_type.flat_string(),
+                            accessed,
+                            GlobalType.CLASS_PROPERTY,
+                            actual_definition=(return_type, member_type),
+                        )
+                    )
                     return TokenType.SAN
                 return return_type.token
             case FnCall():
@@ -435,12 +447,24 @@ class TypeChecker:
                     case Token():
                         member_signature = f"{class_type.flat_string()}.{accessed.flat_string()}"
                         if not (res := self.class_signatures.get(member_signature)):
-                            print(f"ERROR: '{accessed.flat_string()}' is not a property of class '{class_type}'")
+                            self.errors.append(
+                                UndefinedClassMember(
+                                    class_type.flat_string(),
+                                    accessed,
+                                    GlobalType.CLASS_PROPERTY,
+                                )
+                            )
                             return TokenType.SAN
                         return_type, _, member_type = res
                         if member_type != GlobalType.CLASS_PROPERTY:
-                            print(f"ERROR: {accessed.flat_string()} is not a property of class'{class_type}'\n\t"
-                                  f"{accessed.flat_string()} is a {member_type}")
+                            self.errors.append(
+                                UndefinedClassMember(
+                                    class_type.flat_string(),
+                                    accessed,
+                                    GlobalType.CLASS_PROPERTY,
+                                    actual_definition=(return_type, member_type),
+                                )
+                            )
                             return TokenType.SAN
                         if not self.is_accessible(return_type.token):
                             token = self.extract_id(accessed)
@@ -492,12 +516,24 @@ class TypeChecker:
     def evaluate_method_call(self, class_id: Token, fn_call: FnCall, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> TokenType:
         class_id_str = class_id.flat_string() if not class_id.token.is_arr_type() else 'array_type'
         if (res := self.class_signatures.get(f"{class_id_str}.{fn_call.id.flat_string()}")) is None:
-            print(f"ERROR: '{fn_call.id.flat_string()}' is not a method of class '{class_id.flat_string()}'")
+            self.errors.append(
+                UndefinedClassMember(
+                    class_id.flat_string(),
+                    fn_call.id,
+                    GlobalType.CLASS_METHOD,
+                )
+            )
             return TokenType.SAN
         return_type, _, member_type = res
         if member_type != GlobalType.CLASS_METHOD:
-            print(f"ERROR: {fn_call.id.flat_string()} is not a method of class '{class_id.flat_string()}'\n\t"
-                f"{fn_call.id.flat_string()} is a {member_type}")
+            self.errors.append(
+                UndefinedClassMember(
+                    class_id.flat_string(),
+                    fn_call.id,
+                    GlobalType.CLASS_METHOD,
+                    actual_definition=(return_type, member_type),
+                )
+            )
             return TokenType.SAN
 
         expected_types = self.class_method_param_types[f"{class_id_str}.{fn_call.id.flat_string()}"]
