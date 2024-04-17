@@ -19,7 +19,7 @@ if __name__ == "__main__":
     fwunc mainuwu-san() [[
         >.< e-Hololive2 = 10+10~
         longname-chan~
-        f-Hololive2 = Hololive2(2)~
+        f-Hololive2 = Hololive2(2,1,2,3,4)~
         longname = f.e[1]~
         longname = f.e()~
         longname = f.sum~

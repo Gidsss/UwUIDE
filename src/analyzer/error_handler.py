@@ -451,7 +451,7 @@ class MismatchedCallArgType:
         id_index = str(self.id.position[0] + 1)
         def_index = str(self.id_definition.position[0] + 1)
         max_pad = max(len(id_index), len(def_index))
-        border = f"\t{'_' * (max_pad + 4 + max([len(arg.flat_string()) for arg in self.args]))}\n"
+        border = f"\t{'_' * (max_pad + 4 + max([len(arg.flat_string()) for arg in self.args] + [len(ErrorSrc.src[self.id.position[0]]), len(ErrorSrc.src[self.id_definition.position[0]])]))}\n"
 
         msg = f"Call arg type mismatch:\n"
         msg += border
@@ -477,7 +477,7 @@ class MismatchedCallArgType:
         msg += f"\t{' ' * max_pad} |\t"
 
         msg += Styled.sprintln(
-            f"'{self.call_str}()' {self.global_type} expects {len(self.expected_types)} arguments"+
+            f"'{self.call_str}()' {self.global_type} expects {len(self.expected_types)} {'argument' if len(self.expected_types) == 1 else 'arguments'}"+
             (f" but was called with {len(self.args)}" if len(self.expected_types) != len(self.actual_types) else ""),
             color=AnsiColor.CYAN
         )
