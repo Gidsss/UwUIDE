@@ -19,14 +19,13 @@ if __name__ == "__main__":
     fwunc mainuwu-san() [[
         >.< e-Hololive2 = 10+10~
         longname-chan~
-        i-chan-dono = longname<longname>-longname++~
         f-Hololive2 = Hololive2(2)~
         longname = f.e[1]~
+        longname = f.e()~
+        longname = f.sum~
+        longname = f.undefined~
+        longname = f.undefined()~
         longname = longname[1].a~
-        i = 10~
-        fow(i=0~ i > 10~ i + 1) [[
-            pwint(i)~
-        ]]
         wetuwn(nuww)~
     ]]
     fwunc sum-senpai(d-chan) [[
