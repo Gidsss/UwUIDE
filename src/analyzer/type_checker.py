@@ -187,7 +187,6 @@ class TypeChecker:
                     expected=return_type,
                     return_stmt = ret,
                     actual_type=actual_type,
-                    expected_msg=f"Expected return type: '{return_type}'",
                 )
             )
 
