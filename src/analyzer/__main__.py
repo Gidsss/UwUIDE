@@ -10,7 +10,7 @@ if __name__ == "__main__":
     cwass Hololive2(a-chan) [[
         c-senpai-dono = ""~
         e-Hololive2 = Hololive2(2)~
-        fwunc sum-chan(d-chan) [[
+        fwunc sum-chan(d-chan, k-senpai, f-sama, g-chan, h-chan, i-chan, l-chan) [[
             j-senpai[]~
             c = j.len()~
             c = j[1].has(1,2,3)~
@@ -26,11 +26,13 @@ if __name__ == "__main__":
         longname = f.undefined~
         longname = f.undefined()~
         longname = longname[1].a~
-        tooMuch-senpai~
+        tooMuch-senpai[] = {"1", {"2"}, {{"3"}}, {{{4}}}}~
         tooLess-senpai~
         correct-senpai~
         tooLess = sum("2","3", 1+1-1*1/1%1)~
         tooMuch = sum("2","3", 1+1-1*1/1%1, "2", "2", "2", 1, 2, 3)~
+        tooLess = f.sum("2","3", 1+1-1*1/1%1)~
+        tooMuch = f.sum("2","3", 1+1-1*1/1%1, "2", "2", "2", 1, 2, 3)~
         correct = sum(2,"3", 1+1-1*1/1%1, 2, 2, 2, 2)~
         wetuwn(nuww)~
     ]]

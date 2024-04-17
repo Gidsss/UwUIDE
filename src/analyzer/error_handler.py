@@ -1,6 +1,6 @@
 from enum import Enum
 import re
-from src.parser.productions import ReturnStatement, Value
+from src.parser.productions import ArrayLiteral, ReturnStatement, Value
 from src.lexer.token import Token, TokenType
 from src.style import AnsiColor, Styled
 
@@ -519,3 +519,47 @@ class MismatchedCallArgType:
                     )
         msg += border
         return msg
+
+class HeterogeneousArrayError:
+    def __init__(self, arr: ArrayLiteral, vals: list[Value], types: list[TokenType]):
+        self.arr = arr
+        self.vals = vals
+        self.types = types
+
+    def __str__(self):
+        max_pad = 3
+        max_len = max(len(val.flat_string()) for val in self.vals)
+        border = f"\t{'_' * (max_len + 3 + max_pad)}\n"
+
+        msg = f"Heterogeneous Array:\n"
+        msg += border
+        msg += f"\t{' ' * max_pad} | \t"
+        msg += Styled.sprintln(
+            f"Array contains {len(set(self.types))} unit types: {', '.join([t.token for t in set(self.types)])}",
+            color=AnsiColor.RED
+        )
+        msg += f"\t{' ' * max_pad} | {self.arr.flat_string()}\n"
+
+        msg += f"\t{' ' * max_pad} |\n"
+        curr_type = None
+        max_type_pad = max(len(dtype.token) for dtype in set(self.types))
+        for val, dtype in zip(self.vals, self.types):
+            msg += f"\t{' ' * max_pad} |\t"
+            if curr_type is None:
+                curr_type = dtype
+                msg += Styled.sprint(
+                    f"{dtype.token:{max_type_pad}}",
+                    color=AnsiColor.RED
+                )
+            elif curr_type != dtype:
+                curr_type = dtype
+                msg += Styled.sprint(
+                    f"{dtype.token:{max_type_pad}}",
+                    color=AnsiColor.RED
+                )
+            msg += Styled.sprintln(
+                f"\t{val.flat_string():{max_type_pad}}",
+            )
+        msg += border
+        return msg
+
