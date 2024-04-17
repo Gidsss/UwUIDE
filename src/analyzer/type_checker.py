@@ -536,34 +536,37 @@ class TypeChecker:
             )
             return TokenType.SAN
 
-        expected_types = self.class_method_param_types[f"{class_id_str}.{fn_call.id.flat_string()}"]
-        if len(fn_call.args) != len(expected_types):
-            print(f"ERROR: wrong number of args for method '{class_id.flat_string()}.{fn_call.id.flat_string()}': expected {len(expected_types)}, got {len(fn_call.args)}")
-        for arg, arg_type in zip(fn_call.args, expected_types):
-            actual_type = self.evaluate_value(arg, local_defs)
-            if not self.is_similar_type(actual_type.flat_string(), arg_type.flat_string()):
-                print(f"ERROR: wrong param type for method '{class_id.flat_string()}.{fn_call.id.flat_string()}'\n\texpected: {arg_type.flat_string()}\n\tgot: {actual_type.flat_string()} -> {arg.flat_string()}")
-
+        method_signature = f"{class_id_str}.{fn_call.id.flat_string()}"
+        expected_types = self.class_method_param_types[method_signature]
+        self.check_call_args(GlobalType.CLASS_METHOD, method_signature, fn_call.id,
+                             fn_call.args, expected_types, local_defs)
         return return_type.token
+
+    def check_call_args(self, global_type: GlobalType, call_str: str, id: Token, call_args: list[Value], expected_types: list[Token], local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
+        actual_types = [self.evaluate_value(arg, local_defs) for arg in call_args]
+        matches = [self.is_similar_type(actual.flat_string(), expected.flat_string()) for actual, expected in zip(actual_types, expected_types)]
+        if not all(matches):
+            self.errors.append(
+                MismatchedCallArgType(
+                    global_type=global_type,
+                    call_str=call_str,
+                    id=id,
+                    id_definition=local_defs[id.flat_string()][0],
+                    expected_types=expected_types,
+                    args=call_args,
+                    actual_types=actual_types,
+                    matches=matches
+                )
+            )
 
     def evaluate_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> TokenType:
         expected_types = self.function_param_types[fn_call.id.flat_string()]
-        if len(fn_call.args) != len(expected_types):
-            print(f"ERROR: wrong number of args for fn '{fn_call.id.flat_string()}': expected {len(expected_types)}, got {len(fn_call.args)}")
-        for arg, arg_type in zip(fn_call.args, expected_types):
-            actual_type = self.evaluate_value(arg, local_defs)
-            if not self.is_similar_type(actual_type.flat_string(), arg_type.flat_string()):
-                print(f"ERROR: wrong param type for fn '{fn_call.id.flat_string()}'\n\texpected: {arg_type.flat_string()}\n\tgot: {actual_type.flat_string()} -> {arg.flat_string()}")
+        self.check_call_args(GlobalType.FUNCTION, fn_call.id.flat_string(), fn_call.id, fn_call.args, expected_types, local_defs)
         return local_defs[fn_call.id.flat_string()][0].token
 
     def check_class_constructor(self, class_constructor: ClassConstructor, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
         expected_types = self.class_param_types[class_constructor.id.flat_string()]
-        if len(expected_types) != len(class_constructor.args):
-            print(f"ERROR: wrong number of args for class {class_constructor.id.flat_string()}: expected {len(expected_types)}, got {len(class_constructor.args)}")
-        for arg, arg_type in zip(class_constructor.args, expected_types):
-            actual_type = self.evaluate_value(arg, local_defs)
-            if not self.is_similar_type(actual_type.flat_string(), arg_type.flat_string()):
-                print(f"ERROR: wrong param type for class {class_constructor.id.flat_string()}\n\texpected: {arg_type.flat_string()}\n\tgot: {actual_type.flat_string()} -> {arg.flat_string()}")
+        self.check_call_args(GlobalType.CLASS, class_constructor.id.flat_string(), class_constructor.id, class_constructor.args, expected_types, local_defs)
 
     def evaluate_token(self, token: Token, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> TokenType:
         match token.token:

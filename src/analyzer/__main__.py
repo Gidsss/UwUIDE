@@ -26,10 +26,16 @@ if __name__ == "__main__":
         longname = f.undefined~
         longname = f.undefined()~
         longname = longname[1].a~
+        tooMuch-senpai~
+        tooLess-senpai~
+        correct-senpai~
+        tooLess = sum("2","3", 1+1-1*1/1%1)~
+        tooMuch = sum("2","3", 1+1-1*1/1%1, "2", "2", "2", 1, 2, 3)~
+        correct = sum(2,"3", 1+1-1*1/1%1, 2, 2, 2, 2)~
         wetuwn(nuww)~
     ]]
-    fwunc sum-senpai(d-chan) [[
-        wetuwn("d" || 1 + 2+ 3 *5*4/7 >= 10 && fax)~
+    fwunc sum-senpai(d-chan, e-senpai, f-sama, g-chan, h-chan, i-chan, j-chan) [[
+        wetuwn("d")~
     ]]
     """
     source: list[str] = [line if line else '\n' for line in sc.split("\n")]
