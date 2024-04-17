@@ -1,5 +1,4 @@
 from enum import Enum
-import re
 from src.parser.productions import ArrayLiteral, ReturnStatement, Value
 from src.lexer.token import Token, TokenType
 from src.style import AnsiColor, Styled
@@ -80,15 +79,14 @@ class UndefinedError:
         msg += border
         return msg
 
-class GenericTwoTokenError:
+class ReassignedConstantError:
     'errors that include two tokens'
     def __init__(self, token: Token, defined_token: Token,
-                 header: str, token_msg: str, defined_msg: str):
+                 header: str, token_msg: str):
         self.token = token
         self.defined_token = defined_token
         self.header = header
         self.msg = token_msg
-        self.defined_msg = defined_msg
 
     def __str__(self):
         index_str = str(self.token.position[0] + 1)
@@ -103,7 +101,7 @@ class GenericTwoTokenError:
         msg += border
         msg += f"\t{' ' * max_pad} | \t"
         msg += Styled.sprintln(
-            self.defined_msg,
+            "Defined as constant here",
             color=AnsiColor.RED
         )
         msg += f"\t{defined_index:{max_pad}} | {ErrorSrc.src[self.defined_token.position[0]]}\n"
@@ -163,17 +161,18 @@ class ReturnTypeMismatchError:
         return msg
 
 class TypeMismatchError:
-    def __init__(self, expected: Token, actual_val: Value, actual_type: TokenType) -> None:
+    def __init__(self, expected: Token, actual_val: Value, actual_type: TokenType, assignment: bool) -> None:
         self.expected = expected
         self.actual_val = actual_val
         self.actual_type = actual_type
+        self.assignment = assignment # if false, its an assignment, if true, its a declaration
 
     def __str__(self):
         index_str = str(self.expected.position[0] + 1)
         max_pad = max(len(index_str), 3)
         border = f"\t{'_' * (len(ErrorSrc.src[self.expected.position[0]]) + len(str(self.expected.position[0] + 1)) + max_pad)}\n"
 
-        msg = f"Type Mismatch: expected '{self.expected.flat_string()}' but got '{self.actual_type.flat_string()}'\n"
+        msg = f"{'Assignment' if self.assignment else 'Declaration'} Type Mismatch: expected '{self.expected.flat_string()}' but got '{self.actual_type.flat_string()}'\n"
         msg += border
 
         msg += f"\t{' ' * max_pad} | \t"
@@ -261,7 +260,7 @@ class InfixOperandError:
         border = f"\t{'_' * (max_len + max_pad)}"
 
         q = "'" # because f-strings lmao
-        msg = (self.header +
+        msg = (self.header + ': '
                f'{(q + self.left.flat_string() + q + " ") if self.left_type else ""}'
                f'{(q + self.right.flat_string() + q) if self.right_type else ""}'
                "\n")
@@ -528,7 +527,7 @@ class HeterogeneousArrayError:
 
     def __str__(self):
         max_pad = 3
-        max_len = max(len(val.flat_string()) for val in self.vals)
+        max_len = len(self.arr.flat_string())
         border = f"\t{'_' * (max_len + 3 + max_pad)}\n"
 
         msg = f"Heterogeneous Array:\n"
