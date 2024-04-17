@@ -9,6 +9,18 @@ class AnsiColor(Enum):
     WHITE = '\033[97m'
     RESET = '\033[0m'
 
+    @staticmethod
+    def colors_iter():
+        '''
+        Yields colors in order. This loops back to first color after last color.
+        This is intended to be used with next(), not in a loop.
+        '''
+        colors = [AnsiColor.RED, AnsiColor.GREEN, AnsiColor.YELLOW, AnsiColor.BLUE, AnsiColor.MAGENTA, AnsiColor.CYAN]
+        while True:
+            for color in colors:
+                yield color
+
+
 class Styled:
     @staticmethod
     def print(*msgs, color: AnsiColor = AnsiColor.RESET, sep = ' ', end = '\n'):

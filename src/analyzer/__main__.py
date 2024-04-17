@@ -27,7 +27,7 @@ if __name__ == "__main__":
         longname = f.undefined~
         longname = f.undefined()~
         longname = longname[1].a~
-        tooMuch-senpai[] = {"1", {"2"}, {{"3"}}, {{{4}}}}~
+        tooMuch-senpai[] = {"1", {fax}, {{Hololive2(2)}}, {{{4}}}}~
         tooLess-senpai~
         correct-senpai~
         tooLess = sum("2","3", 1+1-1*1/1%1)~
