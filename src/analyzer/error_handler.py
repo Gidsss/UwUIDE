@@ -542,19 +542,20 @@ class HeterogeneousArrayError:
         msg += f"\t{' ' * max_pad} |\n"
         curr_type = None
         max_type_pad = max(len(dtype.token) for dtype in set(self.types))
+        colors = AnsiColor.colors_iter()
         for val, dtype in zip(self.vals, self.types):
             msg += f"\t{' ' * max_pad} |\t"
             if curr_type is None:
                 curr_type = dtype
                 msg += Styled.sprint(
                     f"{dtype.token:{max_type_pad}}",
-                    color=AnsiColor.RED
+                    color=next(colors)
                 )
             elif curr_type != dtype:
                 curr_type = dtype
                 msg += Styled.sprint(
                     f"{dtype.token:{max_type_pad}}",
-                    color=AnsiColor.RED
+                    color=next(colors)
                 )
             msg += Styled.sprintln(
                 f"\t{val.flat_string():{max_type_pad}}",
