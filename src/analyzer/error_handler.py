@@ -40,7 +40,7 @@ class DuplicateDefinitionError:
         msg += f"\t{' ' * max_pad} | \t"
         msg += Styled.sprintln(
             f'Original {self.original_type} definition',
-            color=AnsiColor.RED)
+            color=AnsiColor.GREEN)
         msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.original.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.original.position[1]}{'^' * (og_range)}\n"
         msg += f"\t{' ' * max_pad} | {'_' * (self.original.position[1])}|\n"
@@ -102,7 +102,7 @@ class ReassignedConstantError:
         msg += f"\t{' ' * max_pad} | \t"
         msg += Styled.sprintln(
             "Defined as constant here",
-            color=AnsiColor.RED
+            color=AnsiColor.GREEN
         )
         msg += f"\t{defined_index:{max_pad}} | {ErrorSrc.src[self.defined_token.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.defined_token.position[1]}{'^' * (defined_range)}\n"
@@ -122,11 +122,10 @@ class ReassignedConstantError:
         return msg
 
 class ReturnTypeMismatchError:
-    def __init__(self, expected: Token, return_stmt: ReturnStatement, actual_type: TokenType, expected_msg: str) -> None:
+    def __init__(self, expected: Token, return_stmt: ReturnStatement, actual_type: TokenType) -> None:
         self.expected = expected
         self.return_stmt = return_stmt
         self.actual_type = actual_type
-        self.expected_msg = expected_msg
 
     def __str__(self):
         expected_index = str(self.expected.position[0] + 1)
@@ -140,8 +139,8 @@ class ReturnTypeMismatchError:
 
         msg += f"\t{' ' * max_pad} | \t"
         msg += Styled.sprintln(
-            self.expected_msg,
-            color=AnsiColor.RED
+            f"Expected return type: '{self.expected}'",
+            color=AnsiColor.GREEN,
         )
         msg += f"\t{expected_index:{max_pad}} | {ErrorSrc.src[self.expected.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.expected.position[1]}{'^' * (len(self.expected.flat_string()))}\n"
@@ -178,7 +177,7 @@ class TypeMismatchError:
         msg += f"\t{' ' * max_pad} | \t"
         msg += Styled.sprintln(
             f"Expected type defined here",
-            color=AnsiColor.RED
+            color=AnsiColor.GREEN,
         )
         msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.expected.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.expected.position[1]}{'^' * (len(self.expected.flat_string()))}\n"
@@ -219,7 +218,7 @@ class PrePostFixOperandError:
             msg += f"\t{' ' * max_pad} | \t"
             msg += Styled.sprintln(
                 f"Expected type defined here",
-                color=AnsiColor.RED
+                color=AnsiColor.GREEN,
             )
             msg += f"\t{def_index:{max_pad}} | {ErrorSrc.src[self.val_definition.position[0]]}\n"
             msg += f"\t{' ' * max_pad} | {' ' * self.val_definition.position[1]}{'^' * (len(self.val_definition.flat_string()))}\n"
@@ -270,7 +269,7 @@ class InfixOperandError:
             msg += f"\n\t{' ' * max_pad} | \t"
             msg += Styled.sprintln(
                 f"Left hand side defined here",
-                color=AnsiColor.RED
+                color=AnsiColor.GREEN,
             )
             msg += f"\t{lhs_index:{max_pad}} | {ErrorSrc.src[self.left_definition.position[0]]}\n"
             msg += f"\t{' ' * max_pad} | {' ' * self.left_definition.position[1]}{'^' * (len(self.left_definition.flat_string()))}\n"
@@ -295,7 +294,7 @@ class InfixOperandError:
             msg += f"\n\t{' ' * max_pad} | \t"
             msg += Styled.sprintln(
                 f"Right hand side defined here",
-                color=AnsiColor.RED
+                color=AnsiColor.GREEN,
             )
             msg += f"\t{rhs_index:{max_pad}} | {ErrorSrc.src[self.right_definition.position[0]]}\n"
             msg += f"\t{' ' * max_pad} | {' ' * self.right_definition.position[1]}{'^' * (len(self.right_definition.flat_string()))}\n"
@@ -335,7 +334,7 @@ class NonIterableIndexingError:
         msg += f"\t{' ' * max_pad} | \t"
         msg += Styled.sprintln(
             f"Actual type defined here",
-            color=AnsiColor.RED
+            color=AnsiColor.GREEN,
         )
         msg += f"\t{def_index:{max_pad}} | {ErrorSrc.src[self.type_definition.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.type_definition.position[1]}{'^' * (len(self.type_definition.flat_string()))}\n"
@@ -373,7 +372,7 @@ class NonClassAccessError:
             msg += f"\t{' ' * max_pad} | \t"
             msg += Styled.sprintln(
                 f"Actual type defined here",
-                color=AnsiColor.RED
+                color=AnsiColor.GREEN,
             )
             msg += f"\t{def_index:{max_pad}} | {ErrorSrc.src[self.id_definition.position[0]]}\n"
             msg += f"\t{' ' * max_pad} | {' ' * self.id_definition.position[1]}{'^' * (len(self.id_definition.flat_string()))}\n"
@@ -414,7 +413,7 @@ class UndefinedClassMember:
             msg += f"\t{' ' * max_pad} |\t"
             msg += Styled.sprintln(
                 f"'{self.property.flat_string()}' is a {self.actual_type} of '{self.cwass}' defined here",
-                color=AnsiColor.RED
+                color=AnsiColor.GREEN,
             )
             msg += f"\t{str(self.actual_definition.position[0] + 1):{max_pad}} | {ErrorSrc.src[self.actual_definition.position[0]]}\n"
             msg += f"\t{' ' * max_pad} | {' ' * self.actual_definition.position[1]}{'^' * (len(self.actual_definition.flat_string()))}\n"
@@ -457,7 +456,7 @@ class MismatchedCallArgType:
         msg += f"\t{' ' * max_pad} |\t"
         msg += Styled.sprintln(
             f"'{self.call_str}()' {self.global_type} defined here",
-            color=AnsiColor.RED
+            color=AnsiColor.GREEN,
         )
         msg += f"\t{def_index:{max_pad}} | {ErrorSrc.src[self.id_definition.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.id_definition.position[1]}{'^' * (len(self.id_definition.flat_string()))}\n"
@@ -537,7 +536,7 @@ class HeterogeneousArrayError:
             f"Array contains {len(set(self.types))} unit types: {', '.join([t.token for t in set(self.types)])}",
             color=AnsiColor.RED
         )
-        msg += f"\t{' ' * max_pad} | {self.arr.flat_string()}\n"
+        msg += f"\t{' ' * max_pad} | \t{self.arr.flat_string()}\n"
 
         msg += f"\t{' ' * max_pad} |\n"
         curr_type = None
