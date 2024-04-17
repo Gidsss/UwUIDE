@@ -167,12 +167,11 @@ class TypeChecker:
         if dono_token.exists():
             token = self.extract_id(for_loop.init.id)
             self.errors.append(
-                GenericTwoTokenError(
+                ReassignedConstantError(
                     token = token,
                     defined_token = dono_token,
                     header = f"Constant in for loop initializer: {token.flat_string()}",
                     token_msg = "Tried to use constant in a for loop initializer",
-                    defined_msg = "Declared as constant here",
                 )
             )
 
@@ -201,18 +200,18 @@ class TypeChecker:
         if dono_token.exists():
             token = self.extract_id(assign.id)
             self.errors.append(
-                GenericTwoTokenError(
+                ReassignedConstantError(
                     token = token,
                     defined_token = dono_token,
                     header = f"Reassigning constant: {token.flat_string()}",
                     token_msg = "Tried to reassign here",
-                    defined_msg = "Declared as constant here",
                 )
             )
             return
-        self.check_value(assign.value, expected_type, local_defs)
+        self.check_value(assign.value, expected_type, local_defs, assignment=True)
 
-    def check_value(self, value: Value, expected_type: Token, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
+    def check_value(self, value: Value, expected_type: Token, local_defs: dict[str, tuple[Token, Token, GlobalType]], assignment: bool = False) -> None:
+        'if `assignment` is true, its an assignment. if false, its a declaration'
         match expected_type.token:
             case TokenType():
                 actual_type = self.evaluate_value(value, local_defs)
@@ -222,6 +221,7 @@ class TypeChecker:
                             expected=expected_type,
                             actual_val=value,
                             actual_type=actual_type,
+                            assignment=assignment,
                         )
                     )
             case UniqueTokenType():
@@ -238,6 +238,7 @@ class TypeChecker:
                                     expected=expected_type,
                                     actual_val=value,
                                     actual_type=actual_type,
+                                    assignment=assignment,
                                 )
                             )
 
