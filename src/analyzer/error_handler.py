@@ -212,7 +212,7 @@ class PrePostFixOperandError:
         max_len = max(len(ErrorSrc.src[self.val_definition.position[0]]) if self.val_definition else 0 + max_pad + 3, len(self.val.flat_string()) + 7 + max_pad)
         border = f"\t{'_' * max_len}\n"
 
-        msg = f"Non-Math {f'Prefix' if not self.postfix else 'Postfix'} Operator: f'{self.val.flat_string()}'\n"
+        msg = f"Non-Math {'Prefix' if not self.postfix else 'Postfix'} Operator: '{self.val.flat_string()}'\n"
         msg += border
 
         if self.val_definition:
@@ -316,11 +316,12 @@ class InfixOperandError:
         msg += border + '\n'
         return msg
 
-class ArrayAccessError:
-    def __init__(self, token: Token, type_definition: Token, token_type: TokenType) -> None:
+class NonIterableIndexingError:
+    def __init__(self, token: Token, type_definition: Token, token_type: TokenType, usage: str) -> None:
         self.token = token
         self.type_definition = type_definition
         self.token_type = token_type
+        self.usage = usage
 
     def __str__(self):
         tok_index = str(self.token.position[0] + 1)
@@ -329,7 +330,7 @@ class ArrayAccessError:
         max_len = max(len(ErrorSrc.src[self.token.position[0]]), len(ErrorSrc.src[self.type_definition.position[0]]))
         border = f"\t{'_' * (max_len + 3 + max_pad)}\n"
 
-        msg = f"Invalid Access:\n"
+        msg = f"Non Iterable Indexing: '{self.usage}'\n"
         msg += border
         msg += f"\t{' ' * max_pad} | \t"
         msg += Styled.sprintln(
@@ -343,7 +344,7 @@ class ArrayAccessError:
         msg += f"\t{' ' * max_pad} | |\n"
         msg += f"\t{' ' * max_pad} | |\t"
         msg += Styled.sprintln(
-            f"Tried to access a non iterable of type: '{self.token_type}'",
+            f"Tried to index into a non iterable of type: '{self.token_type}'",
             color=AnsiColor.RED
         )
         msg += f"\t{tok_index:{max_pad}} | |{ErrorSrc.src[self.token.position[0]]}\n"
@@ -352,3 +353,45 @@ class ArrayAccessError:
 
         msg += border
         return msg
+
+class NonClassAccessError:
+    def __init__(self, id: Token, id_definition: Token|None, usage: str) -> None:
+        self.id = id
+        self.id_definition = id_definition
+        self.usage = usage
+
+    def __str__(self):
+        id_index = str(self.id.position[0] + 1)
+        def_index = str(self.id_definition.position[0] + 1) if self.id_definition else "0"
+        max_pad = max(len(id_index), len(def_index))
+        max_len = max(len(ErrorSrc.src[self.id.position[0]]), len(ErrorSrc.src[self.id_definition.position[0]]) if self.id_definition else 0)
+        border = f"\t{'_' * (max_len + 4 + max_pad)}\n"
+
+        msg = f"Non Class Access: '{self.usage}'\n"
+        msg += border
+        if self.id_definition:
+            msg += f"\t{' ' * max_pad} | \t"
+            msg += Styled.sprintln(
+                f"Actual type defined here",
+                color=AnsiColor.RED
+            )
+            msg += f"\t{def_index:{max_pad}} | {ErrorSrc.src[self.id_definition.position[0]]}\n"
+            msg += f"\t{' ' * max_pad} | {' ' * self.id_definition.position[1]}{'^' * (len(self.id_definition.flat_string()))}\n"
+            msg += f"\t{' ' * max_pad} | {'_' * (self.id_definition.position[1])}|\n"
+
+            msg += f"\t{' ' * max_pad} | |\n"
+
+        msg += f"\t{' ' * max_pad} | " f"{'|' if self.id_definition else ''}" "\t"
+        msg += Styled.sprintln(
+            f"Tried to do an access using a non class" f" of type: '{self.id_definition.token}'" if self.id_definition else "",
+            color=AnsiColor.RED
+        )
+
+        msg += f"\t{id_index:{max_pad}} | " f"{'|' if self.id_definition else ' '}" f"{ErrorSrc.src[self.id.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | " f"{'|' if self.id_definition else ' '}" f"{' ' * self.id.position[1]}{'^' * (len(self.id.flat_string()))}\n"
+        if self.id_definition:
+            msg += f"\t{' ' * max_pad} | |{'_' * (self.id.position[1])}|\n"
+
+        msg += border
+        return msg
+
