@@ -356,10 +356,11 @@ class TypeChecker:
                     token = self.extract_id(ident_prod.id)
                     type_definition = local_defs[token.flat_string()][0]
                     self.errors.append(
-                        ArrayAccessError(
+                        NonIterableIndexingError(
                             token=token,
                             type_definition=type_definition,
                             token_type=arr_type,
+                            usage=ident_prod.flat_string(),
                         )
                     )
                     return TokenType.SAN
@@ -379,34 +380,36 @@ class TypeChecker:
         id = self.extract_id(accessor).flat_string()
         match accessor.id:
             case Token() | FnCall() | ClassAccessor():
-                res = local_defs.get(id)
-                if res:
-                    class_type, _, member_type = res
-                    if (not self.is_accessible(class_type.token)
-                        and class_type.is_unique_type()):
-                        print(f"ERROR: '{accessor.id.flat_string()}' is not a class\n\t"
-                            f"tried to use as class: {accessor.flat_string()}\n\t"
-                            f"{id} is {member_type} of type {class_type}")
-                else:
-                    print(f"ERROR: '{accessor.id.flat_string()}' is not a class\n\t"
-                        f"tried to use as class: {accessor.flat_string()}")
-                    return TokenType.SAN
+                class_type, _, _ = local_defs[id]
+                if not class_type.is_unique_type():
+                    self.errors.append(
+                        NonClassAccessError(
+                            id=self.extract_id(accessor),
+                            id_definition=class_type,
+                            usage=accessor.flat_string(),
+                        )
+                    )
             case IndexedIdentifier():
                 class_type, _, _ = local_defs[id]
                 if not self.is_accessible(class_type.token):
                     token = self.extract_id(accessor.id)
                     type_definition = local_defs[token.flat_string()][0]
                     self.errors.append(
-                        ArrayAccessError(
+                        NonIterableIndexingError(
                             token=token,
                             type_definition=type_definition,
                             token_type=class_type.token,
+                            usage=accessor.id.flat_string(),
                         )
                     )
-                    if not class_type.is_unique_type():
-                        print(f"ERROR: '{accessor.id.flat_string()}' is not a class\n\t"
-                              f"tried to use as class: {accessor.flat_string()}\n\t"
-                              f"{id} is type {class_type}")
+                if not class_type.is_unique_type():
+                    self.errors.append(
+                        NonClassAccessError(
+                            id=self.extract_id(accessor),
+                            id_definition=class_type,
+                            usage=accessor.flat_string(),
+                        )
+                    )
                 class_type = class_type.to_unit_type()
             case _: raise ValueError(f"Unknown class accessor: {accessor}")
 
@@ -443,10 +446,11 @@ class TypeChecker:
                             token = self.extract_id(accessed)
                             type_definition = self.class_signatures[member_signature][0]
                             self.errors.append(
-                                ArrayAccessError(
+                                NonIterableIndexingError(
                                     token=token,
                                     type_definition=type_definition,
                                     token_type=return_type.token,
+                                    usage=accessed.flat_string(),
                                 )
                             )
                             return TokenType.SAN
