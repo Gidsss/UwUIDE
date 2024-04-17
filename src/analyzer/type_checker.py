@@ -494,7 +494,7 @@ class TypeChecker:
                 flat_arr, units_type = self.expect_homogenous(collection, local_defs)
                 for val in flat_arr:
                     self.evaluate_value(val, local_defs)
-                return units_type.to_arr_type()
+                return units_type.to_arr_type() if units_type != TokenType.SAN else TokenType.SAN
             case StringFmt():
                 for val in collection.exprs:
                     self.evaluate_value(val, local_defs)
@@ -594,21 +594,23 @@ class TypeChecker:
     ## HELPER METHODS FOR EVALUATING ARRAYS
     def expect_homogenous(self, arr: ArrayLiteral, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> tuple[list[Value], TokenType]:
         flat_arr = self.flatten_array(arr.elements)
-        types: set[TokenType] = set()
+        types: list[TokenType] = []
         for val in flat_arr:
             match val:
                 case Token():
-                    types.add(self.evaluate_token(val, local_defs))
+                    types.append(self.evaluate_token(val, local_defs))
                 case Expression():
-                    types.add(self.evaluate_expression(val, local_defs))
+                    types.append(self.evaluate_expression(val, local_defs))
                 case IdentifierProds():
-                    types.add(self.evaluate_ident_prods(val, local_defs))
+                    types.append(self.evaluate_ident_prods(val, local_defs))
                 case Iterable():
-                    types.add(self.evaluate_iterable(val, local_defs))
+                    types.append(self.evaluate_iterable(val, local_defs))
                 case _:
                     raise ValueError(f"Unknown array value type: {val.flat_string()}")
-        if len(types) > 1:
-            print(f"ERROR: expected homogenous types: {arr.flat_string()}\n\tgot {[t.token for t in types]}")
+        if len(set(types)) > 1:
+            self.errors.append(
+                HeterogeneousArrayError(arr, flat_arr, types)
+            )
             return [], TokenType.SAN
         return flat_arr, types.pop() if types else TokenType.SAN
 
