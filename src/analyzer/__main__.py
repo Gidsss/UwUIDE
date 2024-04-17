@@ -18,7 +18,8 @@ if __name__ == "__main__":
     ]]
     fwunc mainuwu-san() [[
         >.< e-Hololive2 = 10+10~
-        longname-chan~
+        longname-chan = "1"~
+        longname = "2"~
         f-Hololive2 = Hololive2(2,1,2,3,4)~
         longname = f.e[1]~
         longname = f.e()~
@@ -33,8 +34,14 @@ if __name__ == "__main__":
         tooMuch = sum("2","3", 1+1-1*1/1%1, "2", "2", "2", 1, 2, 3)~
         tooLess = f.sum("2","3", 1+1-1*1/1%1)~
         tooMuch = f.sum("2","3", 1+1-1*1/1%1, "2", "2", "2", 1, 2, 3)~
-        correct = sum(2,"3", 1+1-1*1/1%1, 2, 2, 2, 2)~
-        wetuwn(nuww)~
+        correct = sum(2,3, 1+1-1*1/1%1, 2, 2, 2, 2)~
+
+        i-chan-dono=tooMuch - tooLess~
+        i = 1~
+        fow(i=0~ i<10~ i+1) [[
+            pwint(i)~
+        ]]
+        wetuwn(fax)~
     ]]
     fwunc sum-senpai(d-chan, e-senpai, f-sama, g-chan, h-chan, i-chan, j-chan) [[
         wetuwn("d")~
