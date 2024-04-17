@@ -162,7 +162,7 @@ class MemberAnalyzer:
             case TokenType():
                 pass
             case UniqueTokenType():
-                self.expect_defined_token(decl.dtype, GlobalType.CLASS, local_defs)
+                self.expect_defined_token(decl.dtype.to_unit_type(), GlobalType.CLASS, local_defs)
             case _:
                 raise ValueError(f"Unknown dtype: {decl.dtype}")
         self.analyze_value(decl.value, local_defs)
