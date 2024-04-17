@@ -1,5 +1,5 @@
 from enum import Enum
-from src.parser.productions import ClassAccessor, FnCall, IndexedIdentifier, ReturnStatement, Value
+from src.parser.productions import ReturnStatement, Value
 from src.lexer.token import Token, TokenType
 from src.style import AnsiColor, Styled
 
@@ -10,12 +10,12 @@ class GlobalType(Enum):
         return self._name
     def __repr__(self):
         return self._name
-    IDENTIFIER = "IDENTIFIER"
-    FUNCTION = "FUNCTION"
-    CLASS = "CLASS"
-    CLASS_PROPERTY = "CLASS_PROPERTY"
-    CLASS_METHOD = "CLASS_METHOD"
-    LOCAL_CLASS_ID = "LOCAL_CLASS_ID"
+    IDENTIFIER = "identifier"
+    FUNCTION = "function"
+    CLASS = "class"
+    CLASS_PROPERTY = "class property"
+    CLASS_METHOD = "class method"
+    LOCAL_CLASS_ID = "local class identifier"
 
 class ErrorSrc:
     src = [""]
@@ -395,3 +395,40 @@ class NonClassAccessError:
         msg += border
         return msg
 
+class UndefinedClassMember:
+    def __init__(self, cwass: str, property: Token, member_type: GlobalType,
+                 actual_definition: tuple[Token|None, GlobalType|None]=(None, None)) -> None:
+        self.cwass = cwass
+        self.property = property
+        self.member_type = member_type
+        self.actual_definition, self.actual_type = actual_definition
+
+    def __str__(self):
+        property_index = str(self.property.position[0] + 1)
+        max_pad = len(property_index)
+        border = f"\t{'_' * (max_pad + 4 + len(ErrorSrc.src[self.property.position[0]]))}\n"
+
+        msg = f"Undefined {self.member_type} of '{self.cwass}': '{self.property.flat_string()}'\n"
+        msg += border
+        if self.actual_type and self.actual_definition:
+            msg += f"\t{' ' * max_pad} |\t"
+            msg += Styled.sprintln(
+                f"'{self.property.flat_string()}' is a {self.actual_type} of '{self.cwass}' defined here",
+                color=AnsiColor.RED
+            )
+            msg += f"\t{str(self.actual_definition.position[0] + 1):{max_pad}} | {ErrorSrc.src[self.actual_definition.position[0]]}\n"
+            msg += f"\t{' ' * max_pad} | {' ' * self.actual_definition.position[1]}{'^' * (len(self.actual_definition.flat_string()))}\n"
+            msg += f"\t{' ' * max_pad} | {'_' * (self.actual_definition.position[1])}|\n"
+            msg += f"\t{' ' * max_pad} | |\n"
+
+        msg += f"\t{' ' * max_pad} | " f"{'|' if self.actual_type else ''}" "\t"
+        msg += Styled.sprintln(
+            f"'{self.property.flat_string()}' is not a {self.member_type} of '{self.cwass}'",
+            color=AnsiColor.RED
+        )
+        msg += f"\t{property_index:{max_pad}} | " f"{'|' if self.actual_type else ''}" f"{ErrorSrc.src[self.property.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | " f"{'|' if self.actual_type else ''}" f"{' ' * self.property.position[1]}{'^' * (len(self.property.flat_string()))}\n"
+        if self.actual_type and self.actual_definition:
+            msg += f"\t{' ' * max_pad} | |{'_' * (self.property.position[1])}|\n"
+        msg += border
+        return msg
