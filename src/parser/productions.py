@@ -439,14 +439,14 @@ class IfStatement(Statement):
         return res
 
     def python_string(self, indent=0) -> str:
-        res = f"if {self.condition.python_string()}:"
+        res = sprintln(f"if {self.condition.python_string()}:", indent=0)
         res += self.then.python_string(indent+1)
         for e in self.else_if:
             res += e.python_string(indent)
-        if self.else_block:
-            res += sprintln("else:", indent=indent+1)
-            res += self.else_block.python_string(indent+1)
-        return sprintln(res, indent=indent)
+        if self.else_block.statements:
+            res += sprintln("else:", indent=indent)
+            res += self.else_block.python_string(indent)
+        return sprint(res, indent=indent)
 
 class ElseIfStatement(Statement):
     def __init__(self):
@@ -466,9 +466,9 @@ class ElseIfStatement(Statement):
         return res
 
     def python_string(self, indent=0) -> str:
-        res = f"elif {self.condition.python_string()}:"
+        res = sprintln(f"elif {self.condition.python_string()}:", indent=0)
         res += self.then.python_string(indent+1)
-        return sprintln(res, indent=indent)
+        return sprint(res, indent=indent)
 
 class WhileLoop(Statement):
     def __init__(self):
@@ -491,18 +491,14 @@ class WhileLoop(Statement):
     def python_string(self, indent=0) -> str:
         res = ""
         if self.is_do:
-            res += self.body.python_string(indent)
-        res += f"while {self.condition.python_string()}:"
+            res = self.body.python_string(indent)
+        res += sprintln(f"while {self.condition.python_string()}:", indent=(indent if self.is_do else 0))
         res += self.body.python_string(indent+1)
-        return sprintln(res, indent=indent)
+        return res
 
 class ForLoop(Statement):
     def __init__(self):
-        self.init: (
-            Token |  FnCall | IndexedIdentifier
-            | ClassAccessor
-            | Assignment | Declaration | ArrayDeclaration
-        ) = Token()
+        self.init: Declaration | ArrayDeclaration = Declaration()
         self.condition: Value = Value()
         self.update: Value = Value()
         self.body: BlockStatement = BlockStatement()
@@ -522,11 +518,11 @@ class ForLoop(Statement):
         return res
 
     def python_string(self, indent=0) -> str:
-        res = sprintln(self.init.python_string(), indent=indent)
-        res += sprintln(f"while {self.condition.python_string()}:")
-        res += self.body.python_string(indent+1)
-        res += sprintln(self.update.python_string(), indent=indent+1)
-        return sprintln(res, indent=indent)
+        res = self.init.python_string(indent=indent+1)
+        res += sprintln(f"while {self.condition.python_string()}:", indent=indent+1)
+        res += self.body.python_string(indent+2)
+        res += sprintln(f"{self.init.id.python_string()} = {self.update.python_string()}", indent=indent+2)
+        return res
 
 class Parameter(Production):
     def __init__(self):
@@ -619,11 +615,12 @@ class Class(Production):
 
     def python_string(self, indent=0) -> str:
         res = sprintln(f"class {self.id.python_string()}:", indent=indent)
-        res += sprintln(f"def __init__(self, {', '.join([p.python_string() for p in self.params])}):", indent=indent+1)
-        for param in self.params:
-            res += sprintln(f"self.{param.id.python_string()}: {param.dtype.python_string()} = {param.dtype.python_string()}({param.id.python_string()})", indent=indent+2)
-        for prop in self.properties:
-            res += prop.python_string(indent+2, cwass=True)
+        if self.params or self.properties:
+            res += sprintln(f"def __init__(self, {', '.join([p.python_string() for p in self.params])}):", indent=indent+1)
+            for param in self.params:
+                res += sprintln(f"self.{param.id.python_string()}: {param.dtype.python_string()} = {param.dtype.python_string()}({param.id.python_string()})", indent=indent+2)
+            for prop in self.properties:
+                res += prop.python_string(indent+2, cwass=True)
         for method in self.methods:
             res += method.python_string(indent+1)
         return res
