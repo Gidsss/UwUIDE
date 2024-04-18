@@ -309,6 +309,7 @@ class Parser:
             d.dono_token = self.curr_tok
 
         # uninitialized
+        d.initialized = False
         if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
             if not self.expect_peek(TokenType.TERMINATOR):
                 expecteds =[TokenType.TERMINATOR, TokenType.ASSIGNMENT_OPERATOR] 
@@ -322,6 +323,7 @@ class Parser:
             return d
 
         # initialized
+        d.initialized = True
         self.advance()
         if self.curr_tok_is(TokenType.TERMINATOR):
             self.uninitialized_assignment_error(self.peek_tok)
