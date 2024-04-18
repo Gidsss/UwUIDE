@@ -217,7 +217,7 @@ class UniqueTokenType:
         return self.__str__()
     def flat_string(self):
         return self.__str__()
-    def python_string(self):
+    def python_string(self, indent = 1, cwass=False):
         return self.__str__()
 
     def header(self):
@@ -238,7 +238,8 @@ class UniqueTokenType:
     def exists(self) -> bool:
         return True
 
-
+# for keeping track of class properties
+class_properties: set[str] = set()
 class Token:
     'A class for representing tokens in a lexer'
 
@@ -258,8 +259,15 @@ class Token:
         return self._lexeme
     def flat_string(self) -> str:
         return self._lexeme
-    def python_string(self, indent = 1) -> str:
+    def python_string(self, indent = 1, cwass=False) -> str:
         match self.token:
+            case UniqueTokenType():
+                global class_properties
+                res = ""
+                if cwass and self.lexeme in class_properties:
+                    res = "self."
+                res += self.lexeme
+                return res
             case (TokenType.GWOBAW
                 | TokenType.DONO
                 | TokenType.DOUBLE_OPEN_BRACKET
