@@ -46,7 +46,13 @@ class InfixExpression(Expression):
     def flat_string(self) -> str:
         return f'({self.left.flat_string()} {self.op.flat_string()} {self.right.flat_string()})'
     def python_string(self, indent=0, cwass=False, **kwargs) -> str:
-        return f'({self.left.python_string(cwass=cwass)} {self.op.python_string(cwass=cwass)} {self.right.python_string(cwass=cwass)})'
+        lhs = self.left.python_string(cwass=cwass)
+        op = self.op.python_string(cwass=cwass)
+        rhs = self.right.python_string(cwass=cwass)
+        if self.op.token in [TokenType.AND_OPERATOR, TokenType.OR_OPERATOR]:
+            lhs = f"bool({lhs})"
+            rhs = f"bool({rhs})"
+        return f"({lhs} {op} {rhs})"
 
     def __len__(self):
         return 1
