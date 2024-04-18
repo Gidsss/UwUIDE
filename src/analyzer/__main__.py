@@ -7,44 +7,55 @@ from src.parser.error_handler import ErrorSrc as parErrorSrc
 
 if __name__ == "__main__":
     sc = """
+    cwass Hololive(a-chan) [[
+        fwunc sum-chan(one-chan, two-chan) [[
+            b-chan=1~
+            iwf (one == 1) [[
+                pwint(1)~
+                iwf (b == 2) [[
+                    b=b*2~
+                    pwint(2)~
+                    iwf (one == 1) [[
+                        pwint(1)~
+                    ]]
+                ]]
+            ]] ewse iwf (b == 2) [[
+                i-chan = 1~
+                do whiwe (i < 10) [[
+                    pwint(i, "inside")~
+                    i = i + 1~
+                ]]
+                pwint(2)~
+            ]] ewse [[
+                fow (i-chan=1~ i < 10~ i + 1) [[
+                    pwint(i)~
+                ]]
+                pwint(b)~
+            ]]
+            wetuwn(one + two)~
+        ]]
+    ]]
     cwass Hololive2(a-chan) [[
-        c-senpai-dono = ""~
-        e-Hololive2 = Hololive2(2)~
-        fwunc sum-chan(d-chan, k-senpai, f-sama, g-chan, h-chan, i-chan, l-chan) [[
-            j-senpai[]~
-            c = j.len()~
-            c = j[1].has(1,2,3)~
+        b-chan = a++~
+        fwunc sum-chan(one-chan, two-chan) [[
+            local-chan = 1~
+            b=1~
+            iwf (b == 2) [[ b=b*2||local&&b-2+a/b~ ]]
+            wetuwn(one + two)~
         ]]
     ]]
     fwunc mainuwu-san() [[
-        >.< e-Hololive2 = 10+10~
-        longname-chan = "1"~
-        longname = "2"~
-        f-Hololive2 = Hololive2(2,1,2,3,4)~
-        longname = f.e[1]~
-        longname = f.e()~
-        longname = f.sum~
-        longname = f.undefined~
-        longname = f.undefined()~
-        longname = longname[1].a~
-        tooMuch-senpai[] = {"1", {fax}, {{Hololive2(2)}}, {{{4}}}}~
-        tooLess-senpai~
-        correct-senpai~
-        tooLess = sum("2","3", 1+1-1*1/1%1)~
-        tooMuch = sum("2","3", 1+1-1*1/1%1, "2", "2", "2", 1, 2, 3)~
-        tooLess = f.sum("2","3", 1+1-1*1/1%1)~
-        tooMuch = f.sum("2","3", 1+1-1*1/1%1, "2", "2", "2", 1, 2, 3)~
-        correct = sum(2,3, 1+1-1*1/1%1, 2, 2, 2, 2)~
-
-        i-chan-dono=tooMuch - tooLess~
-        i = 1~
-        fow(i=0~ i<10~ i+1) [[
-            pwint(i)~
-        ]]
-        wetuwn(fax)~
+        array-chan[] = {1,2,3}~
+        string-senpai = "hello" & "world" & "!"~
+        input-senpai = inpwt(1) & inpwt(2)~
+        stringfmt-senpai = "hello | array | world" & "i am a concat in fmt"~
+        pwint(1)~
+        wetuwn(nuww)~
     ]]
-    fwunc sum-senpai(d-chan, e-senpai, f-sama, g-chan, h-chan, i-chan, j-chan) [[
-        wetuwn("d")~
+    fwunc sum-chan(one-chan, two-chan) [[
+        one = 1+1*1-1/1%1>1<1>=1<=1||1&&1~
+        two = 2~
+        wetuwn(one + two)~
     ]]
     """
     source: list[str] = [line if line else '\n' for line in sc.split("\n")]
@@ -83,3 +94,5 @@ if __name__ == "__main__":
         for err in tc.errors:
             print(err)
         exit(1)
+
+    print(p.program.python_string())
