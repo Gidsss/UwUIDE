@@ -4,6 +4,7 @@ __pycache__
 
 # package
 build
+dist
 uwu.egg-info
 .pytest_cache
 .vscode
