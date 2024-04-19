@@ -41,6 +41,16 @@ class TypeChecker:
         self.compile_std_types()
 
     def compile_std_types(self):
+        self.builtin_signatures: set[str] = {
+            'senpai.len',
+            'senpai.reversed',
+            'senpai.has',
+            'senpai.upper',
+            'senpai.lower',
+
+            'array_type.len',
+            'array_type.reverse',
+        }
         self.class_signatures.update(
             {
                 'senpai.len': (Token('chan', TokenType.CHAN), Token(), GlobalType.CLASS_METHOD),
@@ -65,7 +75,6 @@ class TypeChecker:
                 'array_type.reverse': [],
             }
         )
-        self.builtin_signatures: set[str] = set(self.class_signatures.keys())
 
     def check_program(self) -> None:
         assert self.program.mainuwu
