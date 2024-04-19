@@ -381,7 +381,7 @@ class TypeChecker:
         match accessor.id:
             case Token() | FnCall() | ClassAccessor():
                 class_type, _, _ = local_defs[id]
-                if not class_type.is_unique_type():
+                if not class_type.is_unique_type() and not self.is_accessible(class_type.token):
                     self.errors.append(
                         NonClassAccessError(
                             id=self.extract_id(accessor),
