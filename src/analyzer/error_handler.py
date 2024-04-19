@@ -48,9 +48,9 @@ class DuplicateDefinitionError:
 
         msg += f"\t{' ' * max_pad} | |\t"
         msg += Styled.sprintln(
-            f'tried to redefine as', ('another ' if self.duplicate_type == self.original_type else '') + self.duplicate_type.name,
+            f"tried to redefine as {('another ' if self.duplicate_type == self.original_type else '')} {self.duplicate_type}",
             color=AnsiColor.RED)
-        msg += f"\t{dupe_index} | |{ErrorSrc.src[self.duplicate.position[0]]}\n"
+        msg += f"\t{dupe_index:{max_pad}} | |{ErrorSrc.src[self.duplicate.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | |{' ' * self.duplicate.position[1]}{'^' * (error_range)}\n"
         msg += f"\t{' ' * max_pad} | |{'_' * (self.duplicate.position[1])}|\n"
         msg += border
@@ -119,7 +119,7 @@ class FunctionAssignmentError:
         msg += Styled.sprintln(
             f"'{self.original}()' is a function and cannot be assigned to",
             color=AnsiColor.RED)
-        msg += f"\t{assign_index} | |{ErrorSrc.src[self.assignment.position[0]]}\n"
+        msg += f"\t{assign_index:{max_pad}} | |{ErrorSrc.src[self.assignment.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | |{' ' * self.assignment.position[1]}{'^' * (error_range)}\n"
         msg += f"\t{' ' * max_pad} | |{'_' * (self.assignment.position[1])}|\n"
         msg += border
