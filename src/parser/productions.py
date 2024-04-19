@@ -411,6 +411,7 @@ class Assignment(Statement):
 
 class Print(Statement):
     def __init__(self):
+        self.print: Token = Token()
         self.values: list[Value] = []
 
     def header(self):
@@ -654,7 +655,7 @@ class Class(Production):
 
 class BlockStatement(Production):
     def __init__(self):
-        self.statements = []
+        self.statements: list[Statement] = []
 
     def header(self):
         return "block"
