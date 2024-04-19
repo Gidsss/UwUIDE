@@ -551,7 +551,7 @@ class TypeChecker:
                     global_type=global_type,
                     call_str=call_str,
                     id=id,
-                    id_definition=local_defs[call_str][0],
+                    id_definition=local_defs[call_str][0] if call_str not in self.class_signatures.keys() else None,
                     expected_types=expected_types,
                     args=call_args,
                     actual_types=actual_types,

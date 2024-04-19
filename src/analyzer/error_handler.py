@@ -501,7 +501,7 @@ class UndefinedClassMember:
         return msg
 
 class MismatchedCallArgType:
-    def __init__(self, global_type: GlobalType, call_str: str, id: Token, id_definition: Token,
+    def __init__(self, global_type: GlobalType, call_str: str, id: Token, id_definition: Token|None,
                  expected_types: list[Token], args: list[Value], actual_types: list[TokenType], matches: list[bool]
                  ) -> None:
         self.global_type = global_type
@@ -515,30 +515,33 @@ class MismatchedCallArgType:
 
     def __str__(self):
         id_index = str(self.id.position[0] + 1)
-        def_index = str(self.id_definition.position[0] + 1)
+        def_index = str(self.id_definition.position[0] + 1) if self.id_definition else ""
         max_pad = max(len(id_index), len(def_index))
-        border = f"\t{'_' * (max_pad + 4 + max([len(arg.flat_string()) for arg in self.args] + [len(ErrorSrc.src[self.id.position[0]]), len(ErrorSrc.src[self.id_definition.position[0]])]))}\n"
+        max_len = max([len(arg.flat_string()) for arg in self.args] + [len(ErrorSrc.src[self.id.position[0]]), len(ErrorSrc.src[self.id_definition.position[0]]) if self.id_definition else 0])
+        border = f"\t{'_' * (max_pad + 4 + max_len)}\n"
 
         msg = f"Call arg type mismatch:\n"
         msg += border
-        msg += f"\t{' ' * max_pad} |\t"
-        msg += Styled.sprintln(
-            f"'{self.call_str}()' {self.global_type} defined here",
-            color=AnsiColor.GREEN,
-        )
-        msg += f"\t{def_index:{max_pad}} | {ErrorSrc.src[self.id_definition.position[0]]}\n"
-        msg += f"\t{' ' * max_pad} | {' ' * self.id_definition.position[1]}{'^' * (len(self.id_definition.flat_string()))}\n"
-        msg += f"\t{' ' * max_pad} | {'_' * (self.id_definition.position[1])}|\n"
+        if self.id_definition:
+            msg += f"\t{' ' * max_pad} |\t"
+            msg += Styled.sprintln(
+                f"'{self.call_str}()' {self.global_type} defined here",
+                color=AnsiColor.GREEN,
+            )
+            msg += f"\t{def_index:{max_pad}} | {ErrorSrc.src[self.id_definition.position[0]]}\n"
+            msg += f"\t{' ' * max_pad} | {' ' * self.id_definition.position[1]}{'^' * (len(self.id_definition.flat_string()))}\n"
+            msg += f"\t{' ' * max_pad} | {'_' * (self.id_definition.position[1])}|\n"
 
-        msg += f"\t{' ' * max_pad} | |\n"
-        msg += f"\t{' ' * max_pad} | |\t"
+        msg += f"\t{' ' * max_pad} | {'|' if self.id_definition else ''}\n"
+        msg += f"\t{' ' * max_pad} | {'|' if self.id_definition else ''}\t"
         msg += Styled.sprintln(
             f"'{self.call_str}()' called here",
             color=AnsiColor.RED
         )
-        msg += f"\t{id_index:{max_pad}} | |{ErrorSrc.src[self.id.position[0]]}\n"
-        msg += f"\t{' ' * max_pad} | |{' ' * self.id.position[1]}{'^' * (len(self.id.flat_string()))}\n"
-        msg += f"\t{' ' * max_pad} | |{'_' * (self.id.position[1])}|\n"
+        msg += f"\t{id_index:{max_pad}} | {'|' if self.id_definition else ''}{ErrorSrc.src[self.id.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | {'|' if self.id_definition else ''}{' ' * self.id.position[1]}{'^' * (len(self.id.flat_string()))}\n"
+        if self.id_definition:
+            msg += f"\t{' ' * max_pad} | |{'_' * (self.id.position[1])}|\n"
         msg += f"\t{' ' * max_pad} |\n"
         msg += f"\t{' ' * max_pad} |\t"
 
@@ -547,7 +550,9 @@ class MismatchedCallArgType:
             (f" but was called with {len(self.args)}" if len(self.expected_types) != len(self.actual_types) else ""),
             color=AnsiColor.CYAN
         )
-        max_type_pad = max(len(expected.flat_string()) for expected in self.expected_types) + 4 + len(AnsiColor.RED.value)*2
+        max_type_pad = 4 + len(AnsiColor.RED.value)*2
+        if self.expected_types:
+            max_type_pad += max(len(expected.flat_string()) for expected in self.expected_types)
         msg += f"\t{' ' * max_pad} |\t"
         msg += f'{Styled.sprint("EXPECTED", color=AnsiColor.CYAN):{max_type_pad}} '
         msg += f'{Styled.sprint("ACTUAL", color=AnsiColor.CYAN):{max_type_pad+2}}'
