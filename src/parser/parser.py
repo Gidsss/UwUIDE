@@ -880,6 +880,7 @@ class Parser:
 
     def parse_print(self) -> Print | None:
         p = Print()
+        p.print = self.curr_tok
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
             self.advance()
