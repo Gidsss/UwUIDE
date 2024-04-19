@@ -468,7 +468,7 @@ class IfStatement(Statement):
             res += e.python_string(indent, cwass=cwass)
         if self.else_block.statements:
             res += sprintln("else:", indent=indent)
-            res += self.else_block.python_string(indent, cwass=cwass)
+            res += self.else_block.python_string(indent+1, cwass=cwass)
         return sprint(res, indent=indent)
 
 class ElseIfStatement(Statement):
@@ -541,10 +541,10 @@ class ForLoop(Statement):
         return res
 
     def python_string(self, indent=0, cwass=False) -> str:
-        res = self.init.python_string(indent=indent+1)
-        res += sprintln(f"while {self.condition.python_string(cwass=cwass)}:", indent=indent+1)
-        res += self.body.python_string(indent+2, cwass=cwass)
-        res += sprintln(f"{self.init.id.python_string(cwass=cwass)} = {self.update.python_string(cwass=cwass)}", indent=indent+2)
+        res = self.init.python_string(indent=indent)
+        res += sprintln(f"while {self.condition.python_string(cwass=cwass)}:", indent=indent)
+        res += self.body.python_string(indent+1, cwass=cwass)
+        res += sprintln(f"{self.init.id.python_string(cwass=cwass)} = {self.update.python_string(cwass=cwass)}", indent=indent+1)
         return res
 
 class Parameter(Production):
