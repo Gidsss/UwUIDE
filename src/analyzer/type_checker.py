@@ -1,8 +1,3 @@
-'''
-TODO:
-- add proper errors instead of printing
-'''
-
 from .error_handler import GlobalType
 from src.analyzer.error_handler import *
 from src.lexer.token import Token, UniqueTokenType
@@ -19,6 +14,7 @@ class TypeChecker:
         self.class_method_param_types: dict[str, list[Token]] = {}
         self.function_param_types: dict[str, list[Token]] = {}
         self.class_param_types: dict[str, list[Token]] = {}
+        self.return_list: list[TokenType] = []
         self.compile_global_types()
         self.check_program()
 
@@ -76,10 +72,13 @@ class TypeChecker:
         for func in self.program.functions: self.check_function(func, self.global_defs)
         for cwass in self.program.classes: self.check_class(cwass, self.global_defs.copy())
 
-    def check_function(self, func: Function, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
+    def check_function(self, func: Function, local_defs: dict[str, tuple[Token, Token, GlobalType]], cwass: str|None = None) -> None:
         'make sure you pass in a copy of local_defs when calling this'
         self.compile_params(func.params, local_defs)
         self.check_body(func.body, func.rtype, local_defs.copy())
+        if len(self.return_list) == 0 and func.rtype.flat_string() != 'san':
+            self.errors.append(NoReturnStatement(func, cwass=cwass))
+        self.return_list.clear()
 
     def check_class(self, cwass: Class, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
         'make sure you pass in a copy of local_defs when calling this'
@@ -87,7 +86,7 @@ class TypeChecker:
         for prop in cwass.properties:
             self.check_declaration(prop, local_defs)
         for method in cwass.methods:
-            self.check_function(method, local_defs)
+            self.check_function(method, local_defs, cwass=cwass.id.flat_string())
 
     def compile_params(self, params: list[Parameter], local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
         'make sure you pass in a copy of local_defs when calling this'
@@ -181,7 +180,7 @@ class TypeChecker:
 
     def check_return(self, ret: ReturnStatement, return_type: Token, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
         actual_type = self.evaluate_value(ret.expr, local_defs)
-        if not self.is_similar_type(actual_type.flat_string(), return_type.flat_string()):
+        if actual_type == TokenType.SAN and return_type.token != TokenType.SAN:
             self.errors.append(
                 ReturnTypeMismatchError(
                     expected=return_type,
@@ -189,6 +188,16 @@ class TypeChecker:
                     actual_type=actual_type,
                 )
             )
+            return
+        elif not self.is_similar_type(actual_type.flat_string(), return_type.flat_string()):
+            self.errors.append(
+                ReturnTypeMismatchError(
+                    expected=return_type,
+                    return_stmt = ret,
+                    actual_type=actual_type,
+                )
+            )
+        self.return_list.append(actual_type)
 
     def check_declaration(self, decl: Declaration | ArrayDeclaration, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
         self.check_value(decl.value, decl.dtype, local_defs)
