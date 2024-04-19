@@ -65,6 +65,7 @@ class TypeChecker:
                 'array_type.reverse': [],
             }
         )
+        self.builtin_signatures: set[str] = set(self.class_signatures.keys())
 
     def check_program(self) -> None:
         assert self.program.mainuwu
@@ -560,7 +561,7 @@ class TypeChecker:
                     global_type=global_type,
                     call_str=call_str,
                     id=id,
-                    id_definition=local_defs[call_str][0] if call_str not in self.class_signatures.keys() else None,
+                    id_definition=local_defs[call_str][0] if call_str not in self.builtin_signatures else None,
                     expected_types=expected_types,
                     args=call_args,
                     actual_types=actual_types,
