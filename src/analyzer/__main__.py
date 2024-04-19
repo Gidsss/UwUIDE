@@ -7,44 +7,20 @@ from src.parser.error_handler import ErrorSrc as parErrorSrc
 
 if __name__ == "__main__":
     sc = """
-    cwass Hololive2(a-chan) [[
-        c-senpai-dono = ""~
-        e-Hololive2 = Hololive2(2)~
-        fwunc sum-chan(d-chan, k-senpai, f-sama, g-chan, h-chan, i-chan, l-chan) [[
-            j-senpai[]~
-            c = j.len()~
-            c = j[1].has(1,2,3)~
-        ]]
-    ]]
     fwunc mainuwu-san() [[
-        >.< e-Hololive2 = 10+10~
-        longname-chan = "1"~
-        longname = "2"~
-        f-Hololive2 = Hololive2(2,1,2,3,4)~
-        longname = f.e[1]~
-        longname = f.e()~
-        longname = f.sum~
-        longname = f.undefined~
-        longname = f.undefined()~
-        longname = longname[1].a~
-        tooMuch-senpai[] = {"1", {fax}, {{Hololive2(2)}}, {{{4}}}}~
-        tooLess-senpai~
-        correct-senpai~
-        tooLess = sum("2","3", 1+1-1*1/1%1)~
-        tooMuch = sum("2","3", 1+1-1*1/1%1, "2", "2", "2", 1, 2, 3)~
-        tooLess = f.sum("2","3", 1+1-1*1/1%1)~
-        tooMuch = f.sum("2","3", 1+1-1*1/1%1, "2", "2", "2", 1, 2, 3)~
-        correct = sum(2,3, 1+1-1*1/1%1, 2, 2, 2, 2)~
-
-        i-chan-dono=tooMuch - tooLess~
-        i = 1~
-        fow(i=0~ i<10~ i+1) [[
-            pwint(i)~
+        num-chan = inpwt("Enter number to be squared: ")~
+        times-chan = inpwt("Enter number of times to square: ")~
+        iwf (num > 0) [[
+            fow(i-chan = 1~ i < times~ i + 1) [[
+                pwint(num)~
+                num = square(num)~
+            ]]
+        ]] ewse [[
+            pwint("Enter a positive number. '| num |' is not a positive number.")~
         ]]
-        wetuwn(fax)~
     ]]
-    fwunc sum-senpai(d-chan, e-senpai, f-sama, g-chan, h-chan, i-chan, j-chan) [[
-        wetuwn("d")~
+    fwunc square-chan(num-chan) [[
+        wetuwn(num*num)~
     ]]
     """
     source: list[str] = [line if line else '\n' for line in sc.split("\n")]
@@ -83,3 +59,5 @@ if __name__ == "__main__":
         for err in tc.errors:
             print(err)
         exit(1)
+
+    print(p.program.python_string())
