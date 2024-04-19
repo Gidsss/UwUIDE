@@ -1,4 +1,4 @@
-from src.lexer.token import TokenType
+from src.lexer.token import TokenType, class_properties
 from src.parser.production_types import *
 from src.lexer import Token
 
@@ -25,6 +25,8 @@ class PrefixExpression(Expression):
         return self.flat_string()
     def flat_string(self) -> str:
         return f"{self.op.flat_string()}{self.right.flat_string()}"
+    def python_string(self, indent=0, cwass=False) -> str:
+        return f"{self.op.python_string(cwass=cwass)}{self.right.python_string(cwass=cwass)}"
 
     def __len__(self):
         return 1
@@ -43,6 +45,14 @@ class InfixExpression(Expression):
         return self.flat_string()
     def flat_string(self) -> str:
         return f'({self.left.flat_string()} {self.op.flat_string()} {self.right.flat_string()})'
+    def python_string(self, indent=0, cwass=False) -> str:
+        lhs = self.left.python_string(cwass=cwass)
+        op = self.op.python_string(cwass=cwass)
+        rhs = self.right.python_string(cwass=cwass)
+        if self.op.token in [TokenType.AND_OPERATOR, TokenType.OR_OPERATOR]:
+            lhs = f"bool({lhs})"
+            rhs = f"bool({rhs})"
+        return f"({lhs} {op} {rhs})"
 
     def __len__(self):
         return 1
@@ -60,6 +70,9 @@ class PostfixExpression(Expression):
         return self.flat_string()
     def flat_string(self) -> str:
         return f"{self.left.flat_string()}{self.op.flat_string()}"
+    def python_string(self, indent=0, cwass=False) -> str:
+        return f"{self.left.python_string(cwass=cwass)}{self.op.python_string(cwass=cwass)}"
+
     def __len__(self):
         return 1
 
@@ -76,6 +89,12 @@ class StringLiteral(Iterable):
         return self.flat_string()
     def flat_string(self) -> str:
         return sprint(self.val.flat_string(), *[c.flat_string() for c in self.concats])
+    def python_string(self, indent=0, cwass=False) -> str:
+        res = self.val.python_string(cwass=cwass)
+        if self.concats:
+            res += ' + ' + ' + '.join(c.python_string(cwass=cwass) for c in self.concats)
+        return res
+
     def __len__(self):
         return 1
 
@@ -94,6 +113,11 @@ class Input(Iterable):
         return self.flat_string()
     def flat_string(self) -> str:
         return f"input({self.expr.flat_string()}) & {' & '.join(c.flat_string() for c in self.concats)}"
+    def python_string(self, indent=0, cwass=False) -> str:
+        res = f"input({self.expr.python_string(cwass=cwass)})"
+        if self.concats:
+            res += ' + ' + ' + '.join(c.python_string(cwass=cwass) for c in self.concats)
+        return res
 
     def __len__(self):
         return 1
@@ -115,6 +139,12 @@ class StringFmt(Iterable):
         return self.flat_string()
     def flat_string(self) -> str:
         return f"{self.start.flat_string()}{' '.join(m.flat_string() for m in self.mid_expr_iter())}{self.end.flat_string()}"
+    def python_string(self, indent=0, cwass=False) -> str:
+        res = f"{self.start.python_string(cwass=cwass)}{' '.join(m.python_string(cwass=cwass) for m in self.mid_expr())}{self.end.python_string(cwass=cwass)}"
+        if self.concats:
+            res += ' + ' + ' + '.join(c.python_string(cwass=cwass) for c in self.concats)
+        return res
+
     def mid_expr_iter(self):
         if self.exprs:
             yield self.exprs[0]
@@ -146,6 +176,9 @@ class ArrayLiteral(Iterable):
         return self.flat_string()
     def flat_string(self) -> str:
         return f"{{{', '.join(e.flat_string() for e in self.elements)}}}"
+    def python_string(self, indent=0, cwass=False) -> str:
+        return f"Array([{', '.join(e.python_string(cwass=cwass) for e in self.elements)}])"
+
     def __len__(self):
         return len(self.elements)
     def __iter__(self):
@@ -165,6 +198,9 @@ class FnCall(IdentifierProds):
         return self.flat_string(indent) + '\n'
     def flat_string(self, indent = 0) -> str:
         return sprint(f"{self.id.flat_string()}({', '.join(a.flat_string() for a in self.args)})", indent=indent)
+    def python_string(self, indent=0, cwass=False) -> str:
+        return sprint(f"{self.id.python_string(cwass=cwass)}({', '.join(a.python_string(cwass=cwass) for a in self.args)})", indent=indent)
+
     def __len__(self):
         return 1
 
@@ -191,6 +227,11 @@ class IndexedIdentifier(IdentifierProds):
         for index in self.index:
             res += f"[{index.flat_string()}]"
         return res
+    def python_string(self, indent=0, cwass=False) -> str:
+        res = self.id.python_string(cwass=cwass)
+        for index in self.index:
+            res += f"[{index.python_string(cwass=cwass)}]"
+        return res
 
 class ClassConstructor(IdentifierProds):
     def __init__(self):
@@ -206,6 +247,9 @@ class ClassConstructor(IdentifierProds):
         return self.flat_string()
     def flat_string(self) -> str:
         return f"{self.id.flat_string()}({', '.join(a.flat_string() for a in self.args)})"
+    def python_string(self, indent=0, cwass=False) -> str:
+        return f"{self.id.python_string(cwass=cwass)}({', '.join(a.python_string(cwass=cwass) for a in self.args)})"
+
     def __len__(self):
         return 1
 
@@ -235,6 +279,9 @@ class ClassAccessor(IdentifierProds):
         return sprintln("call:", self.flat_string(), indent=indent)
     def flat_string(self) -> str:
         return f"{self.id.flat_string()}.{self.accessed.flat_string()}"
+    def python_string(self, indent=0, cwass=False) -> str:
+        return f"{self.id.python_string(cwass=cwass)}.{self.accessed.python_string(cwass=cwass)}"
+
     def __len__(self):
         return 1
 
@@ -251,6 +298,8 @@ class ReturnStatement(Statement):
 
     def string(self, indent = 0) -> str:
         return sprintln("return", self.expr.string(indent), indent=indent)
+    def python_string(self, indent=0, cwass=False) -> str:
+        return sprintln("return", self.expr.python_string(indent, cwass=cwass), indent=indent)
     def __len__(self):
         return 1
 
@@ -261,6 +310,7 @@ class Declaration(Statement):
         self.value: Value = Value()
         self.is_const: bool = False
         self.dono_token: Token = Token()
+        self.initialized: bool = False
 
     def header(self):
         return f"declare {'constant' if self.is_const else 'variable'}: {self.id.string()}"
@@ -275,6 +325,23 @@ class Declaration(Statement):
         if self.value:
             res += sprintln("value:", self.value.flat_string(), indent=indent+1)
         return res
+    def python_string(self, indent=0, cwass=False) -> str:
+        res = ""
+        if cwass:
+            global class_properties
+            if self.id.python_string(cwass=cwass) in class_properties:
+                res = "self."
+        res += f"{self.id.python_string(cwass=cwass)}: {self.dtype.python_string(cwass=cwass)}"
+        if self.initialized:
+            if self.dtype.token == TokenType.CHAN:
+                # convert value to floats first then to int
+                # this for strings being float strings but passed as int
+                res += f" = {self.dtype.python_string(cwass=cwass)}(float({self.value.python_string(cwass=cwass)}))"
+            else:
+                res += f" = {self.dtype.python_string(cwass=cwass)}({self.value.python_string(cwass=cwass)})"
+        else:
+            res += f" = None"
+        return sprintln(res, indent=indent)
 
 class ArrayDeclaration(Statement):
     def __init__(self):
@@ -283,6 +350,7 @@ class ArrayDeclaration(Statement):
         self.value: Value = Value()
         self.is_const: bool = False
         self.dono_token: Token = Token()
+        self.initialized: bool = False
 
     def header(self):
         return f"declare{' constant' if self.is_const else ''} array: {self.id.string()}"
@@ -297,6 +365,19 @@ class ArrayDeclaration(Statement):
         if self.value:
             res += sprintln("value:", self.value.flat_string(), indent=indent+1)
         return res
+
+    def python_string(self, indent=0, cwass=False) -> str:
+        res = ""
+        if cwass:
+            global class_properties
+            if self.id.python_string(cwass=cwass) in class_properties:
+                res = "self."
+        res += f"{self.id.python_string(cwass=cwass)}: Array"
+        if self.initialized:
+            res += f" = {self.value.python_string(cwass=cwass)}"
+        else:
+            res += f" = None"
+        return sprintln(res, indent=indent)
 
 class Assignment(Statement):
     def __init__(self):
@@ -316,6 +397,15 @@ class Assignment(Statement):
         res = sprintln("assign:", self.id.flat_string(), indent=indent)
         res += sprintln("value:", self.value.flat_string(), indent=indent+1)
         return res
+    def python_string(self, indent=0, cwass=False) -> str:
+        res = ""
+        if cwass:
+            global class_properties
+            if self.id.python_string(cwass=cwass) in class_properties:
+                res = "self."
+        res += f"{self.id.python_string(cwass=cwass)} = {self.value.python_string(cwass=cwass)}"
+        return sprintln(res, indent=indent)
+
     def __len__(self):
         return 1
 
@@ -335,6 +425,13 @@ class Print(Statement):
         for v in self.values:
             res += sprintln(v.flat_string(), indent=indent+1)
         return res
+
+    def python_string(self, indent=0, cwass=False) -> str:
+        res = "print("
+        for v in self.values:
+            res += f"{v.python_string(cwass=cwass)}, "
+        res = res[:-2] + ")"
+        return sprintln(res, indent=indent)
 
 class IfStatement(Statement):
     def __init__(self):
@@ -364,6 +461,16 @@ class IfStatement(Statement):
             res += self.else_block.string(indent+1)
         return res
 
+    def python_string(self, indent=0, cwass=False) -> str:
+        res = sprintln(f"if {self.condition.python_string(cwass=cwass)}:", indent=0)
+        res += self.then.python_string(indent+1, cwass=cwass)
+        for e in self.else_if:
+            res += e.python_string(indent, cwass=cwass)
+        if self.else_block.statements:
+            res += sprintln("else:", indent=indent)
+            res += self.else_block.python_string(indent+1, cwass=cwass)
+        return sprint(res, indent=indent)
+
 class ElseIfStatement(Statement):
     def __init__(self):
         self.condition: Value = Value()
@@ -379,11 +486,12 @@ class ElseIfStatement(Statement):
         res += sprintln("condition:", self.condition.flat_string(), indent=indent+1)
         res += sprintln("then:", indent=indent+1)
         res += self.then.string(indent+2)
-        # res = sprintln("else if statement:", indent=indent)
-        # res += sprintln("condition:", self.condition.string(), indent=indent+1)
-        # res += sprintln("then:", indent=indent+1)
-        # res += self.then.string(indent+2)
         return res
+
+    def python_string(self, indent=0, cwass=False) -> str:
+        res = sprintln(f"elif {self.condition.python_string(cwass=cwass)}:", indent=0)
+        res += self.then.python_string(indent+1, cwass=cwass)
+        return sprint(res, indent=indent)
 
 class WhileLoop(Statement):
     def __init__(self):
@@ -403,13 +511,17 @@ class WhileLoop(Statement):
         res += self.body.string(indent+2)
         return res
 
+    def python_string(self, indent=0, cwass=False) -> str:
+        res = ""
+        if self.is_do:
+            res = self.body.python_string(indent, cwass=cwass)
+        res += sprintln(f"while {self.condition.python_string(cwass=cwass)}:", indent=(indent if self.is_do else 0))
+        res += self.body.python_string(indent+1, cwass=cwass)
+        return res
+
 class ForLoop(Statement):
     def __init__(self):
-        self.init: (
-            Token |  FnCall | IndexedIdentifier
-            | ClassAccessor
-            | Assignment | Declaration | ArrayDeclaration
-        ) = Token()
+        self.init: Declaration | ArrayDeclaration = Declaration()
         self.condition: Value = Value()
         self.update: Value = Value()
         self.body: BlockStatement = BlockStatement()
@@ -428,6 +540,13 @@ class ForLoop(Statement):
         res += self.body.string(indent+2)
         return res
 
+    def python_string(self, indent=0, cwass=False) -> str:
+        res = self.init.python_string(indent=indent)
+        res += sprintln(f"while {self.condition.python_string(cwass=cwass)}:", indent=indent)
+        res += self.body.python_string(indent+1, cwass=cwass)
+        res += sprintln(f"{self.init.id.python_string(cwass=cwass)} = {self.update.python_string(cwass=cwass)}", indent=indent+1)
+        return res
+
 class Parameter(Production):
     def __init__(self):
         self.id: Token = Token()
@@ -442,6 +561,9 @@ class Parameter(Production):
         res = sprintln("param:", self.id.flat_string(), indent=0)
         res += sprintln("dtype:", self.dtype.flat_string(), indent=indent+1)
         return res
+
+    def python_string(self, indent=0, cwass=False) -> str:
+        return sprint(f"{self.id.python_string(cwass=cwass)}: {self.dtype.python_string(cwass=cwass)}", indent=indent)
 
 class Function(Production):
     def __init__(self):
@@ -471,6 +593,13 @@ class Function(Production):
         res += sprintln("body:", indent=indent+1)
         res += self.body.string(indent+2)
         return res
+
+    def python_string(self, indent=0, cwass=False) -> str:
+        res = sprintln(f"def {self.id.python_string(cwass=cwass)}({', '.join([p.python_string(cwass=cwass) for p in self.params])}):", indent=0)
+        for param in self.params:
+            res += sprintln(f"{param.id.python_string(cwass=cwass)}: {param.dtype.python_string(cwass=cwass)} = {param.dtype.python_string(cwass=cwass)}({param.id.python_string(cwass=cwass)})", indent=indent+1)
+        res += self.body.python_string(indent+1, cwass=cwass)
+        return sprintln(res, indent=indent)
 
 class Class(Production):
     def __init__(self):
@@ -507,15 +636,21 @@ class Class(Production):
                 res += method.string(indent+2)
         return res
 
-    # def member_signatures(self) -> dict[str, tuple[Token, GlobalType]]:
-    #     ret: dict[str, tuple[Token, GlobalType]] = {}
-    #     for p in self.params:
-    #         ret[f"{self.id.string()}.{p.id.string()}"] = p.dtype, GlobalType.CLASS_PROPERTY
-    #     for p in self.properties:
-    #         ret[f"{self.id.string()}.{p.id.string()}"] = p.dtype, GlobalType.CLASS_PROPERTY
-    #     for m in self.methods:
-    #         ret[f"{self.id.string()}.{m.id.string()}"] = m.rtype, GlobalType.CLASS_METHOD
-    #     return ret
+    def python_string(self, indent=0, cwass=False) -> str:
+        global class_properties
+        res = sprintln(f"class {self.id.python_string(cwass=True)}:", indent=indent)
+        if self.params or self.properties:
+            res += sprintln(f"def __init__(self, {', '.join([p.python_string(cwass=cwass) for p in self.params])}):", indent=indent+1)
+            for param in self.params:
+                res += sprintln(f"self.{param.id.python_string(cwass=True)}: {param.dtype.python_string(cwass=True)} = {param.dtype.python_string(cwass=True)}({param.id.python_string(cwass=True)})", indent=indent+2)
+                class_properties.add(param.id.python_string(cwass=True))
+            for prop in self.properties:
+                res += sprintln(f"self.{prop.python_string(cwass=True)}", indent=indent+2)
+                class_properties.add(prop.id.python_string(cwass=True))
+        for method in self.methods:
+            res += method.python_string(indent+1, cwass=True)
+        class_properties.clear()
+        return res
 
 class BlockStatement(Production):
     def __init__(self):
@@ -532,6 +667,11 @@ class BlockStatement(Production):
         res = sprintln("block:", indent=indent)
         for s in self.statements:
             res += s.string(indent+1)
+        return res
+    def python_string(self, indent=0, cwass=False) -> str:
+        res = ""
+        for s in self.statements:
+            res += s.python_string(indent, cwass=cwass)
         return res
 
 class Program:
@@ -565,6 +705,20 @@ class Program:
         for c in self.classes:
             res += c.string(indent)
         return res + "\n"
+
+    def python_string(self, indent=0, cwass=False) -> str:
+        res = ""
+        for g in self.globals:
+            res += g.python_string(indent, cwass=cwass)
+        for c in self.classes:
+            res += c.python_string(indent, cwass=cwass)
+        for fn in self.functions:
+            res += fn.python_string(indent, cwass=cwass)
+        if self.mainuwu:
+            res += self.mainuwu.python_string(indent, cwass=cwass)
+        res += sprintln("if __name__ == '__main__':", indent=indent)
+        res += sprintln("main()", indent=indent+1)
+        return res
 
     def __str__(self):
         res = "MAINUWU:\n"
