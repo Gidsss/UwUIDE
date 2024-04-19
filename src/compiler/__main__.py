@@ -7,75 +7,20 @@ from .compiler import Compiler
 
 if __name__ == "__main__":
     sc = """
-    cwass Hololive(a-chan) [[
-        fwunc sum-chan(one-chan, two-chan) [[
-            b-chan=1~
-            iwf (one == 1) [[
-                pwint(1)~
-                iwf (two == 2) [[
-                    b=b*2~
-                    pwint(2)~
-                    iwf (one == 1) [[
-                        pwint(1)~
-                    ]]
-                ]]
-            ]] ewse iwf (two == 2) [[
-                i-chan = 1~
-                do whiwe (i < 10) [[
-                    pwint(i, "inside")~
-                    i = i + 1~
-                ]]
-                pwint(2)~
-            ]] ewse [[
-                fow (i-chan=1~ i < 10~ i + 1) [[
-                    pwint(i)~
-                ]]
-                pwint(b)~
-            ]]
-            wetuwn(one + two)~
-        ]]
-    ]]
-    cwass Hololive2(a-chan) [[
-        b-chan~
-        fwunc sum-chan(one-chan, two-chan) [[
-            b=1~
-            iwf (one == 1) [[
-                pwint(1)~
-                iwf (two == 2) [[
-                    b=b*2~
-                    pwint(2)~
-                    iwf (one == 1) [[
-                        pwint(1)~
-                    ]]
-                ]]
-            ]] ewse iwf (two == 2) [[
-                i-chan = 1~
-                do whiwe (i < 10) [[
-                    pwint(i, "inside")~
-                    i = i + 1~
-                ]]
-                pwint(2)~
-            ]] ewse [[
-                fow (i-chan=1~ i < 10~ i + 1) [[
-                    pwint(i)~
-                ]]
-                pwint(b)~
-            ]]
-            wetuwn(one + two)~
-        ]]
-    ]]
     fwunc mainuwu-san() [[
-        array-chan[] = {1,2,3}~
-        string-senpai = "hello" & "world" & "!"~
-        s-senpai = inpwt("input 1: ") & inpwt("input 2: ")~
-        stringfmt-senpai = "hello | array | world" & "i am a concat in fmt"~
-        pwint(array, string, s, stringfmt)~
-        wetuwn(nuww)~
+        num-chan = inpwt("Enter number to be squared: ")~
+        times-chan = inpwt("Enter number of times to square: ")~
+        iwf (num > 0) [[
+            fow(i-chan = 0~ i < times~ i + 1) [[
+                pwint(num)~
+                num = square(num)~
+            ]]
+        ]] ewse [[
+            pwint("Enter a positive number. '| num |' is not a positive number.")~
+        ]]
     ]]
-    fwunc sum-chan(one-chan, two-chan) [[
-        one = 1+1*1-1/1%1>1<1>=1<=1||1&&1~
-        two = 2~
-        wetuwn(one + two)~
+    fwunc square-chan(num-chan) [[
+        wetuwn(num*num)~
     ]]
     """
     source: list[str] = [line if line else '\n' for line in sc.split("\n")]
