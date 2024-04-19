@@ -637,7 +637,8 @@ class TypeChecker:
             # num types are convertible between each other
             case "chan" | "kun":
                 match actual_type:
-                    case "chan" | "kun" | "sama": return True
+                    # string can be converted to num, runtime error if cannot convert
+                    case "chan" | "kun" | "sama" | "senpai": return True
                     case _: return False
             # all types are convertible to bool
             case "sama": return True
