@@ -93,6 +93,15 @@ def analyzer(ct: ConsoleTools) -> None:
     print('Running analyzer package...')
     ct.run_subprocess([sys.executable, '-m'], 'src.analyzer')
 
+def compile(ct: ConsoleTools) -> None:
+    """
+    This function can run analyzer package.
+
+    uwu analyzer
+    """
+    print('Running compiler package...')
+    ct.run_subprocess([sys.executable, '-m'], 'src.compiler')
+
 # Run IDE
 def build(ct: ConsoleTools) -> None:      
     """
