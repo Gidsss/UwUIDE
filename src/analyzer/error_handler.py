@@ -92,36 +92,45 @@ class NonFunctionIdCall:
         return msg
 
 class FunctionAssignmentError:
-    def __init__(self, original: Token, assignment: Token):
+    def __init__(self, original: Token|None, assignment: Token, class_signature: str|None = None):
         self.original = original
         self.assignment = assignment
+        self.class_signature = class_signature
 
     def __str__(self):
-        index_str = str(self.original.position[0] + 1)
+        index_str = str(self.original.position[0] + 1) if self.original else ""
         assign_index = str(self.assignment.position[0] + 1)
         max_pad = max(len(index_str), len(assign_index))
-        border = f"\t{'_' * (len(ErrorSrc.src[self.original.position[0]]) + len(str(self.original.position[0] + 1)) + max_pad)}\n"
-        og_range = 1 if self.original.end_position is None else self.original.end_position[1] - self.original.position[1] + 1
+        max_len = max((len(ErrorSrc.src[self.original.position[0]] if self.original else ''), len(ErrorSrc.src[self.assignment.position[0]])))
+        border = f"\t{'_' * ( max_len + 4 + max_pad)}\n"
+        if self.original:
+            og_range = 1 if self.original.end_position is None else self.original.end_position[1] - self.original.position[1] + 1
+        else:
+            og_range = 0
         error_range = 1 if self.assignment.end_position is None else self.assignment.end_position[1] - self.assignment.position[1] + 1
+        global_type = 'function' if not self.class_signature else 'method'
+        name = f"{self.assignment}()" if not self.class_signature else f"{self.class_signature}()"
 
-        msg = f"Tried to assign a value to a function: {self.assignment}\n"
+        msg = f"Tried to assign a value to a {global_type}: {name}\n"
         msg += border
-        msg += f"\t{' ' * max_pad} | \t"
-        msg += Styled.sprintln(
-            f'Original function definition',
-            color=AnsiColor.GREEN)
-        msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.original.position[0]]}\n"
-        msg += f"\t{' ' * max_pad} | {' ' * self.original.position[1]}{'^' * (og_range)}\n"
-        msg += f"\t{' ' * max_pad} | {'_' * (self.original.position[1])}|\n"
-        msg += f"\t{' ' * max_pad} | |\n"
+        if self.original:
+            msg += f"\t{' ' * max_pad} | \t"
+            msg += Styled.sprintln(
+                f'Original {global_type} definition',
+                color=AnsiColor.GREEN)
+            msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.original.position[0]]}\n"
+            msg += f"\t{' ' * max_pad} | {' ' * self.original.position[1]}{'^' * (og_range)}\n"
+            msg += f"\t{' ' * max_pad} | {'_' * (self.original.position[1])}|\n"
+            msg += f"\t{' ' * max_pad} | |\n"
 
-        msg += f"\t{' ' * max_pad} | |\t"
+        msg += f"\t{' ' * max_pad} | {'|' if self.original else ''}\t"
         msg += Styled.sprintln(
-            f"'{self.original}()' is a function and cannot be assigned to",
+            f"'{name}' is a {global_type} and cannot be assigned to",
             color=AnsiColor.RED)
-        msg += f"\t{assign_index:{max_pad}} | |{ErrorSrc.src[self.assignment.position[0]]}\n"
-        msg += f"\t{' ' * max_pad} | |{' ' * self.assignment.position[1]}{'^' * (error_range)}\n"
-        msg += f"\t{' ' * max_pad} | |{'_' * (self.assignment.position[1])}|\n"
+        msg += f"\t{assign_index:{max_pad}} | {'|' if self.original else ''}{ErrorSrc.src[self.assignment.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | {'|' if self.original else ''}{' ' * self.assignment.position[1]}{'^' * (error_range)}\n"
+        if self.original:
+            msg += f"\t{' ' * max_pad} | |{'_' * (self.assignment.position[1])}|\n"
         msg += border
         return msg
 
