@@ -1,6 +1,6 @@
 from typing import Self
 
-class String_UWU:
+class String:
     def __init__(self, val: str):
         expect_type_is_in(val, self.stringable_types(),
                                msg=f"OwO... that ain't stringable!")
@@ -18,7 +18,7 @@ class String_UWU:
         'concatenates two strings'
         expect_type_is_in(other, self.valid_operands(),
                                msg=f"OwO... you can't add that!")
-        return String_UWU(self.val + str(other))
+        return String(self.val + str(other))
     def __eq__(self, other):
         expect_type_is_in(other, self.stringable_types(),
                                msg=f"OwO... you can't compare with that!")
@@ -72,11 +72,11 @@ class String_UWU:
 
     ## UTILS
     def stringable_types(self) -> list[type]:
-        return [str, String_UWU, int, float, bool, Array_UWU]
+        return [str, String, int, float, bool, Array]
     def valid_operands(self) -> list[type]:
-        return [str, String_UWU]
+        return [str, String]
 
-class Array_UWU:
+class Array:
     def __init__(self, vals: list):
         self.val: list = vals
 
@@ -127,9 +127,9 @@ class Array_UWU:
 
     ## UTILS
     def valid_array_elems(self) -> list[type]:
-        return [str, String_UWU, int, float, bool, list, Array_UWU]
+        return [str, String, int, float, bool, list, Array]
     def valid_operands(self) -> list[type]:
-        return [list, Array_UWU]
+        return [list, Array]
 
 class TypeError(Exception):
     pass
