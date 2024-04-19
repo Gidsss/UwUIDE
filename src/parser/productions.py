@@ -333,7 +333,12 @@ class Declaration(Statement):
                 res = "self."
         res += f"{self.id.python_string(cwass=cwass)}: {self.dtype.python_string(cwass=cwass)}"
         if self.initialized:
-            res += f" = {self.dtype.python_string(cwass=cwass)}({self.value.python_string(cwass=cwass)})"
+            if self.dtype.token == TokenType.CHAN:
+                # convert value to floats first then to int
+                # this for strings being float strings but passed as int
+                res += f" = {self.dtype.python_string(cwass=cwass)}(float({self.value.python_string(cwass=cwass)}))"
+            else:
+                res += f" = {self.dtype.python_string(cwass=cwass)}({self.value.python_string(cwass=cwass)})"
         else:
             res += f" = None"
         return sprintln(res, indent=indent)
