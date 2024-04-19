@@ -249,8 +249,12 @@ class MemberAnalyzer:
                 raise ValueError(f"Unknown identifier production: {ident_prod}")
 
     def analyze_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
-        if fn_call.id.string() in local_defs and local_defs[fn_call.id.string()][1] == GlobalType.FUNCTION:
-            pass
+        if fn_call.id.string() in local_defs:
+            if not local_defs[fn_call.id.string()][1] == GlobalType.FUNCTION:
+                self.errors.append(NonFunctionIdCall(
+                    local_defs[fn_call.id.string()][0],
+                    fn_call.id,
+                ))
         else:
             self.errors.append(UndefinedError(
                 fn_call.id,
