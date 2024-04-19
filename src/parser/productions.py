@@ -677,7 +677,7 @@ class BlockStatement(Production):
     def python_string(self, indent=0, cwass=False) -> str:
         res = ""
         for s in self.statements:
-            res += s.python_string(indent, cwass=cwass)
+            res += s.python_string(indent, cwass=cwass) + '\n'
         return res
 
 class Program:
