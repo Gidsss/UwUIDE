@@ -146,22 +146,22 @@ class TypeChecker:
         match for_loop.init:
             case Declaration() | ArrayDeclaration():
                 self.check_declaration(for_loop.init, local_defs)
-                _, dono_token, _ = local_defs[for_loop.init.id.flat_string()]
+                _, dono_token, global_type = local_defs[for_loop.init.id.flat_string()]
             case Assignment():
                 self.check_assignment(for_loop.init, local_defs)
-                _, dono_token, _ = local_defs[self.extract_id(for_loop.init.id).flat_string()]
+                _, dono_token, global_type = local_defs[self.extract_id(for_loop.init.id).flat_string()]
             case Token():
                 self.evaluate_token(for_loop.init, local_defs)
                 match for_loop.init.token:
                     case Token():
-                        dono_token = Token()
+                        dono_token, global_type = Token(), GlobalType.IDENTIFIER
                     case UniqueTokenType():
-                        _, dono_token, _ = local_defs[for_loop.init.flat_string()]
+                        _, dono_token, global_type = local_defs[for_loop.init.flat_string()]
                     case _:
                         raise ValueError(f"Unknown token: {for_loop.init}")
             case IdentifierProds():
                 self.evaluate_ident_prods(for_loop.init, local_defs)
-                _, dono_token = self.extract_last_id(for_loop.init, local_defs)
+                _, _, _, dono_token, global_type = self.extract_last_id(for_loop.init, local_defs)
 
         if dono_token.exists():
             token = self.extract_id(for_loop.init.id)
@@ -679,36 +679,40 @@ class TypeChecker:
             case _:
                 raise ValueError(f"Unknown class accessor: {accessor}")
 
-    def extract_last_id(self, val: Token | FnCall | IndexedIdentifier | ClassAccessor, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> tuple[Token, Token]:
+    def extract_last_id(self, val: Token | FnCall | IndexedIdentifier | ClassAccessor, local_defs: dict[str, tuple[Token, Token, GlobalType]]
+                        ) -> tuple[str, Token, Token, Token, GlobalType]:
         match val:
             case Token():
-                return local_defs[val.flat_string()][0:2]
+                return val.string(), val, *local_defs[val.flat_string()]
             case FnCall():
-                return local_defs[val.id.flat_string()][0:2]
+                return val.id.string(), val.id, *local_defs[val.id.flat_string()]
             case IndexedIdentifier():
                 match val.id:
                     case Token():
-                        return local_defs[val.id.flat_string()][0:2]
+                        return val.id.string(), val.id, *local_defs[val.id.flat_string()]
                     case FnCall():
-                        return local_defs[val.id.id.flat_string()][0:2]
+                        return val.id.id.string(), val.id.id, *local_defs[val.id.id.flat_string()]
                     case _:
                         raise ValueError(f"Unknown class accessor: {val}")
             case ClassAccessor():
                 class_type = local_defs[val.id.flat_string()][0]
                 val_tmp = val
                 while isinstance(val_tmp, ClassAccessor):
-                    print(val_tmp.flat_string())
                     match val_tmp.accessed:
                         case Token():
-                            return self.class_signatures[f"{class_type.flat_string()}.{val_tmp.accessed.flat_string()}"][0:2]
+                            accessed = f"{class_type.flat_string()}.{val_tmp.accessed.flat_string()}"
+                            return accessed, val_tmp.accessed, *self.class_signatures[accessed]
                         case FnCall():
-                            return self.class_signatures[f"{class_type.flat_string()}.{val_tmp.accessed.id.flat_string()}"][0:2]
+                            accessed =f"{class_type.flat_string()}.{val_tmp.accessed.id.flat_string()}" 
+                            return accessed, val_tmp.accessed.id, *self.class_signatures[accessed]
                         case IndexedIdentifier():
                             match val_tmp.accessed.id:
                                 case Token():
-                                    return self.class_signatures[f"{class_type.flat_string()}.{val_tmp.accessed.id.flat_string()}"][0:2]
+                                    accessed = f"{class_type.flat_string()}.{val_tmp.accessed.id.flat_string()}"
+                                    return accessed, val_tmp.accessed.id, *self.class_signatures[accessed]
                                 case FnCall():
-                                    return self.class_signatures[f"{class_type.flat_string()}.{val_tmp.accessed.id.id.flat_string()}"][0:2]
+                                    accessed = f"{class_type.flat_string()}.{val_tmp.accessed.id.id.flat_string()}"
+                                    return accessed, val_tmp.accessed.id.id, *self.class_signatures[accessed]
                                 case _:
                                     raise ValueError(f"Unknown class accessor: {val}")
                         case ClassAccessor():
