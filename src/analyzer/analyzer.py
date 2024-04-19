@@ -1,5 +1,5 @@
 from src.lexer.token import TokenType, UniqueTokenType
-from src.analyzer.error_handler import DuplicateDefinitionError, GlobalType, UndefinedError
+from src.analyzer.error_handler import DuplicateDefinitionError, FunctionAssignmentError, GlobalType, NonFunctionIdCall, UndefinedError
 from src.parser.productions import *
 
 class MemberAnalyzer:
@@ -355,7 +355,12 @@ class MemberAnalyzer:
                 pass
             case UniqueTokenType():
                 if token.string() in local_defs:
-                    pass
+                    if not local_defs[token.string()][1] in (
+                        GlobalType.IDENTIFIER, GlobalType.CLASS_PROPERTY, GlobalType.LOCAL_CLASS_ID, GlobalType.CLASS):
+                        self.errors.append(FunctionAssignmentError(
+                            local_defs[token.string()][0],
+                            token,
+                        ))
                 else:
                     self.errors.append(UndefinedError(
                         token,
@@ -370,8 +375,7 @@ class MemberAnalyzer:
         '''
         match token.token:
             case UniqueTokenType():
-                if token.string() in local_defs and local_defs[token.string()][1] in (
-                    GlobalType.IDENTIFIER, GlobalType.CLASS_PROPERTY, GlobalType.LOCAL_CLASS_ID):
+                if token.string() in local_defs:
                     self.errors.append(DuplicateDefinitionError(
                         *local_defs[token.string()],
                         token,

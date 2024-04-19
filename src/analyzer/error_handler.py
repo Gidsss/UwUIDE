@@ -91,6 +91,40 @@ class NonFunctionIdCall:
         msg += border
         return msg
 
+class FunctionAssignmentError:
+    def __init__(self, original: Token, assignment: Token):
+        self.original = original
+        self.assignment = assignment
+
+    def __str__(self):
+        index_str = str(self.original.position[0] + 1)
+        assign_index = str(self.assignment.position[0] + 1)
+        max_pad = max(len(index_str), len(assign_index))
+        border = f"\t{'_' * (len(ErrorSrc.src[self.original.position[0]]) + len(str(self.original.position[0] + 1)) + max_pad)}\n"
+        og_range = 1 if self.original.end_position is None else self.original.end_position[1] - self.original.position[1] + 1
+        error_range = 1 if self.assignment.end_position is None else self.assignment.end_position[1] - self.assignment.position[1] + 1
+
+        msg = f"Tried to assign a value to a function: {self.assignment}\n"
+        msg += border
+        msg += f"\t{' ' * max_pad} | \t"
+        msg += Styled.sprintln(
+            f'Original function definition',
+            color=AnsiColor.GREEN)
+        msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.original.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | {' ' * self.original.position[1]}{'^' * (og_range)}\n"
+        msg += f"\t{' ' * max_pad} | {'_' * (self.original.position[1])}|\n"
+        msg += f"\t{' ' * max_pad} | |\n"
+
+        msg += f"\t{' ' * max_pad} | |\t"
+        msg += Styled.sprintln(
+            f"'{self.original}()' is a function and cannot be assigned to",
+            color=AnsiColor.RED)
+        msg += f"\t{assign_index} | |{ErrorSrc.src[self.assignment.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | |{' ' * self.assignment.position[1]}{'^' * (error_range)}\n"
+        msg += f"\t{' ' * max_pad} | |{'_' * (self.assignment.position[1])}|\n"
+        msg += border
+        return msg
+
 class UndefinedError:
     def __init__(self, token: Token, gtype: GlobalType) -> None:
         self.token = token
