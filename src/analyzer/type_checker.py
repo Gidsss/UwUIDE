@@ -205,18 +205,32 @@ class TypeChecker:
         local_defs[decl.id.flat_string()] = (decl.dtype, decl.dono_token, GlobalType.IDENTIFIER)
 
     def check_assignment(self, assign: Assignment, local_defs: dict[str, tuple[Token, Token, GlobalType]]) -> None:
-        expected_type, dono_token = self.extract_last_id(assign.id, local_defs)
+        signature, token, expected_type, dono_token, global_type = self.extract_last_id(assign.id, local_defs)
+        try:
+            original_def = local_defs[signature][0]
+        except KeyError:
+            original_def = self.class_signatures[signature][0]
+            if signature in self.builtin_signatures:
+                original_def = None
         if dono_token.exists():
-            token = self.extract_id(assign.id)
+            signature = self.extract_id(assign.id)
             self.errors.append(
                 ReassignedConstantError(
-                    token = token,
+                    token = signature,
                     defined_token = dono_token,
-                    header = f"Reassigning constant: {token.flat_string()}",
+                    header = f"Reassigning constant: {signature.flat_string()}",
                     token_msg = "Tried to reassign here",
                 )
             )
             return
+        elif global_type in [GlobalType.FUNCTION, GlobalType.CLASS_METHOD]:
+            self.errors.append(
+                FunctionAssignmentError(
+                    original=original_def,
+                    assignment=token,
+                    class_signature=signature,
+                )
+            )
         self.check_value(assign.value, expected_type, local_defs, assignment=True)
 
     def check_value(self, value: Value, expected_type: Token, local_defs: dict[str, tuple[Token, Token, GlobalType]], assignment: bool = False) -> None:
