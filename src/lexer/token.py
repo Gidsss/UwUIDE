@@ -1,6 +1,6 @@
 from constants.constants import DELIMS
 from enum import Enum
-from copy import copy, deepcopy
+from copy import deepcopy
 
 class TokenType(Enum):
     def __init__(self, token: str, delim_id: str):
@@ -28,8 +28,6 @@ class TokenType(Enum):
     def string(self, indent = 1):
         return self.__str__()
     def flat_string(self, indent = 1):
-        return self.__str__()
-    def python_string(self, indent = 1):
         return self.__str__()
     def header(self):
         return self.token
@@ -219,8 +217,9 @@ class UniqueTokenType:
         return self.__str__()
     def flat_string(self):
         return self.__str__()
-    def python_string(self):
+    def python_string(self, indent = 1, cwass=False):
         return self.__str__()
+
     def header(self):
         return self.__str__()
     def __repr__(self):
@@ -239,7 +238,8 @@ class UniqueTokenType:
     def exists(self) -> bool:
         return True
 
-
+# for keeping track of class properties
+class_properties: set[str] = set()
 class Token:
     'A class for representing tokens in a lexer'
 
@@ -259,8 +259,119 @@ class Token:
         return self._lexeme
     def flat_string(self) -> str:
         return self._lexeme
-    def python_string(self, indent = 1) -> str:
-        return self._lexeme
+    def python_string(self, indent = 1, cwass=False) -> str:
+        match self.token:
+            case UniqueTokenType():
+                global class_properties
+                res = ""
+                if cwass and self.lexeme in class_properties:
+                    res = "self."
+                res += self.lexeme
+                return res
+            case (TokenType.GWOBAW
+                | TokenType.DONO
+                | TokenType.DOUBLE_OPEN_BRACKET
+                | TokenType.DOUBLE_CLOSE_BRACKET
+                | TokenType.TERMINATOR
+            ):
+                return ""
+            case (TokenType.INT_LITERAL
+                | TokenType.FLOAT_LITERAL
+                | TokenType.ASSIGNMENT_OPERATOR
+                | TokenType.ADDITION_SIGN
+                | TokenType.DASH
+                | TokenType.MULTIPLICATION_SIGN
+                | TokenType.DIVISION_SIGN
+                | TokenType.MODULO_SIGN
+                | TokenType.GREATER_THAN_SIGN
+                | TokenType.LESS_THAN_SIGN
+                | TokenType.GREATER_THAN_OR_EQUAL_SIGN
+                | TokenType.LESS_THAN_OR_EQUAL_SIGN
+                | TokenType.EQUALITY_OPERATOR
+                | TokenType.INEQUALITY_OPERATOR
+                | TokenType.OPEN_PAREN
+                | TokenType.CLOSE_PAREN
+                | TokenType.OPEN_BRACKET
+                | TokenType.CLOSE_BRACKET
+                | TokenType.COMMA
+                | TokenType.DOT_OP
+            ):
+                return self.lexeme
+            case TokenType.STRING_LITERAL:
+                return f"String({self.lexeme})"
+            case TokenType.MAINUWU:
+                return "main"
+            case TokenType.FWUNC:
+                return "def"
+            case TokenType.CWASS:
+                return "class"
+            case TokenType.INPWT:
+                return "input"
+            case TokenType.PWINT:
+                return "print"
+            case TokenType.WETUWN:
+                return "return"
+            case TokenType.FOW:
+                return "for"
+            case TokenType.WHIWE | TokenType.DO_WHIWE:
+                return "while"
+            case TokenType.IWF:
+                return "if"
+            case TokenType.EWSE:
+                return "else"
+            case TokenType.EWSE_IWF:
+                return "elif"
+            case TokenType.BWEAK:
+                return "break"
+            case TokenType.CHAN:
+                return "int"
+            case TokenType.CHAN_ARR:
+                return "Array"
+            case TokenType.KUN:
+                return "float"
+            case TokenType.KUN_ARR:
+                return "Array"
+            case TokenType.SAMA:
+                return "bool"
+            case TokenType.SAMA_ARR:
+                return "Array"
+            case TokenType.SAN:
+                return "NoneType"
+            case TokenType.SAN_ARR:
+                return "Array"
+            case TokenType.SENPAI:
+                return "String"
+            case TokenType.SENPAI_ARR:
+                return "Array"
+            case TokenType.NUWW:
+                return "None"
+            case TokenType.STRING_PART_START:
+                return f'String(f{self.lexeme[:-1]}{{'
+            case TokenType.STRING_PART_MID:
+                return f'}}{self.lexeme[1:-1]}{{'
+            case TokenType.STRING_PART_END:
+                return f'}}{self.lexeme[1:]})'
+            case TokenType.FAX:
+                return "True"
+            case TokenType.CAP:
+                return "False"
+            case TokenType.AND_OPERATOR:
+                return "and"
+            case TokenType.OR_OPERATOR:
+                return "or"
+            case TokenType.INCREMENT_OPERATOR:
+                return "+1"
+            case TokenType.DECREMENT_OPERATOR:
+                return "-1"
+            case TokenType.CONCATENATION_OPERATOR:
+                return "+"
+            case TokenType.OPEN_BRACE:
+                return "["
+            case TokenType.CLOSE_BRACE:
+                return "]"
+            case _:
+                return self.lexeme
+
     def header(self):
         return self._lexeme
 
