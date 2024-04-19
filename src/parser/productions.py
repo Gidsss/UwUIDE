@@ -280,7 +280,7 @@ class ClassAccessor(IdentifierProds):
     def flat_string(self) -> str:
         return f"{self.id.flat_string()}.{self.accessed.flat_string()}"
     def python_string(self, indent=0, cwass=False) -> str:
-        return f"{self.id.python_string(cwass=cwass)}.{self.accessed.python_string(cwass=cwass)}"
+        return sprint(f"{self.id.python_string(cwass=cwass)}.{self.accessed.python_string(cwass=cwass)}", indent=indent)
 
     def __len__(self):
         return 1
@@ -337,6 +337,8 @@ class Declaration(Statement):
                 # convert value to floats first then to int
                 # this for strings being float strings but passed as int
                 res += f" = {self.dtype.python_string(cwass=cwass)}(float({self.value.python_string(cwass=cwass)}))"
+            elif self.dtype.is_unique_type():
+                res += f" = {self.value.python_string(cwass=cwass)}"
             else:
                 res += f" = {self.dtype.python_string(cwass=cwass)}({self.value.python_string(cwass=cwass)})"
         else:
@@ -595,7 +597,10 @@ class Function(Production):
         return res
 
     def python_string(self, indent=0, cwass=False) -> str:
-        res = sprintln(f"def {self.id.python_string(cwass=cwass)}({', '.join([p.python_string(cwass=cwass) for p in self.params])}):", indent=0)
+        params_string = [p.python_string(cwass=cwass) for p in self.params]
+        if cwass:
+            params_string.insert(0, "self")
+        res = sprintln(f"def {self.id.python_string(cwass=cwass)}({', '.join(params_string)}):", indent=0)
         for param in self.params:
             res += sprintln(f"{param.id.python_string(cwass=cwass)}: {param.dtype.python_string(cwass=cwass)} = {param.dtype.python_string(cwass=cwass)}({param.id.python_string(cwass=cwass)})", indent=indent+1)
         res += self.body.python_string(indent+1, cwass=cwass)
