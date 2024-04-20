@@ -614,9 +614,13 @@ class TypeChecker:
         for arg, expected in zip(call_args, expected_types):
             match arg:
                 case Token():
-                    actual_def = local_defs[arg.flat_string()][0]
-                    actual = actual_def.dtype
-                    if not actual_def.initialized: actual = TokenType.SAN
+                    match arg.token:
+                        case UniqueTokenType():
+                            actual_def = local_defs[arg.flat_string()][0]
+                            actual = actual_def.dtype
+                            if not actual_def.initialized: actual = TokenType.SAN
+                        case TokenType():
+                            actual = self.evaluate_token(arg, local_defs)
                 case _:
                     actual = self.evaluate_value(arg, local_defs)
             actual_types.append(actual)
