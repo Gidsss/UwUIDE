@@ -275,18 +275,22 @@ class TypeChecker:
                                     assignment=assignment,
                                 )
                             )
-        # uninitialize identifiers if any errors occured in evaluating value
+        # (DECLARATION & ASSIGNMENT) uninitialize identifiers if any errors occured in evaluating value
         if self.expr_err_count > 0 and expected_type != TokenType.SAN:
             decl_new = deepcopy(decl)
             decl_new.initialized = False
             decl_new.value = Value()
             local_defs[decl_new.id.flat_string()] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
 
-        # initialize uninitialized identifiers
+        # (ASSIGNMENT) initialize uninitialized identifiers
         elif not decl.initialized and actual_type != TokenType.SAN:
             decl_new = deepcopy(decl)
             decl_new.initialized = True
             local_defs[decl_new.id.flat_string()] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
+
+        # (DECLARATION & ASSIGNMENT) initialize identifiers with assigned values
+        else:
+            local_defs[decl.id.flat_string()] = (decl, decl.dtype, GlobalType.IDENTIFIER)
 
         if assignment:
             assign.dtype = actual_type
