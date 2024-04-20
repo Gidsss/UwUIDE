@@ -241,9 +241,10 @@ class TypeChecker:
                     class_signature=signature,
                 )
             )
-        self.check_value(assign.value, decl.dtype, local_defs, assignment=True, decl=decl)
+        self.check_value(assign.value, decl.dtype, local_defs, assignment=True, decl=decl, assign=assign)
 
-    def check_value(self, value: Value, expected_type: Token, local_defs: dict[str, tuple[Declaration, Token, GlobalType]], assignment: bool = False, decl: Declaration = Declaration()) -> None:
+    def check_value(self, value: Value, expected_type: Token, local_defs: dict[str, tuple[Declaration, Token, GlobalType]],
+                    assignment: bool = False, decl: Declaration = Declaration(), assign: Assignment = Assignment()) -> None:
         'if `assignment` is true, its an assignment. if false, its a declaration'
         self.expr_err_count = 0
 
@@ -288,6 +289,8 @@ class TypeChecker:
                 decl_new = deepcopy(decl)
                 decl_new.initialized = True
                 local_defs[decl_new.id.flat_string()] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
+
+            assign.dtype = actual_type
         self.expr_err_count = 0
 
     def evaluate_value(self, value: Value | Token, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> TokenType:
