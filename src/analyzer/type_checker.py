@@ -258,10 +258,11 @@ class TypeChecker:
                 if not self.is_similar_type(actual_type_str, expected_type.flat_string()):
                     self.errors.append(
                         TypeMismatchError(
+                            title="Assignment" if assignment else "Declaration",
                             expected=expected_type,
                             actual_val=value,
                             actual_type=actual_type,
-                            assignment=assignment,
+                            context=assign if assignment else decl,
                         )
                     )
             case UniqueTokenType():
@@ -274,10 +275,11 @@ class TypeChecker:
                         if not self.is_similar_type(actual_type.flat_string(), expected_type.flat_string()):
                             self.errors.append(
                                 TypeMismatchError(
+                                    title="Assignment" if assignment else "Declaration",
                                     expected=expected_type,
                                     actual_val=value,
                                     actual_type=actual_type,
-                                    assignment=assignment,
+                                    context=assign if assignment else decl,
                                 )
                             )
         # (DECLARATION & ASSIGNMENT) uninitialize identifiers if any errors occured in evaluating value
