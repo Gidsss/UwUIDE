@@ -664,7 +664,7 @@ class Program:
     def python_string(self, indent=0, cwass=False) -> str:
         res = ""
         for g in self.globals:
-            res += g.python_string(indent, cwass=cwass)
+            res += sprintln(g.python_string(indent, cwass=cwass))
         for c in self.classes:
             res += c.python_string(indent, cwass=cwass)
         for fn in self.functions:
