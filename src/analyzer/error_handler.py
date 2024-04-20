@@ -345,7 +345,7 @@ class InfixOperandError:
             lhs_index = str(self.left_definition.position[0] + 1)
             msg += f"\n\t{' ' * max_pad} | \t"
             msg += Styled.sprintln(
-                f"Left hand side defined here",
+                f"Left value defined here",
                 color=AnsiColor.GREEN,
             )
             msg += f"\t{lhs_index:{max_pad}} | {ErrorSrc.src[self.left_definition.position[0]]}\n"
@@ -355,7 +355,7 @@ class InfixOperandError:
         if self.left_type:
             msg += f"\n\t{' ' * max_pad} | "f"{'|' if self.left_definition else ''}""\t"
             msg += Styled.sprintln(
-                f"Value below evaluates to type: '{self.left_type.flat_string()}'",
+                f"Left value evaluates to type: '{self.left_type.flat_string()}'",
                 color=AnsiColor.RED
             )
             msg += f"\t{op_str:{max_pad}} | " f"{'|' if self.left_definition else ''}" f"  {self.left.flat_string()}{self.op.flat_string()}{self.right.flat_string()}\n"
@@ -370,7 +370,7 @@ class InfixOperandError:
             rhs_index = str(self.right_definition.position[0] + 1)
             msg += f"\n\t{' ' * max_pad} | \t"
             msg += Styled.sprintln(
-                f"Right hand side defined here",
+                f"Right value defined here",
                 color=AnsiColor.GREEN,
             )
             msg += f"\t{rhs_index:{max_pad}} | {ErrorSrc.src[self.right_definition.position[0]]}\n"
@@ -380,7 +380,7 @@ class InfixOperandError:
         if self.right_type:
             msg += f"\n\t{' ' * max_pad} | " f"{'|' if self.right_definition else ''}" "\t"
             msg += Styled.sprintln(
-                f"Value below evaluates to type: '{self.right_type.flat_string()}'",
+                f"Right value evaluates to type: '{self.right_type.flat_string()}'",
                 color=AnsiColor.RED
             )
             msg += f"\t{op_str:{max_pad}} | " f"{'|' if self.right_definition else ''}" f"  {self.left.flat_string()}{self.op.flat_string()}{self.right.flat_string()}\n"
@@ -650,7 +650,7 @@ class NoReturnStatement:
         self.cwass = cwass
 
     def __str__(self):
-        last_stmt = self.final_statement(self.func.body) + 1
+        last_stmt = final_statement(self.func.body) + 1
         rtype_index_str = str(self.func.rtype.position[0] + 1)
         max_pad = max(len(rtype_index_str), 4)
         max_len = max(len(ErrorSrc.src[self.func.rtype.position[0]]), len(ErrorSrc.src[last_stmt-1]))
@@ -676,78 +676,76 @@ class NoReturnStatement:
         msg += f"\t{' ' * max_pad} |\t"
         msg += Styled.sprintln(
             f"Consider adding a return statement somewhere",
-            color=AnsiColor.GREEN
+            color=AnsiColor.CYAN
         )
         msg += f"\t{' ' * max_pad} |\t"
         msg += Styled.sprintln(
             f"like after the statement in line {last_stmt}",
-            color=AnsiColor.GREEN
+            color=AnsiColor.CYAN
         )
-        default_return = self.default_rtype(self.func.rtype.token)
+        default_return = default_rtype(self.func.rtype.token)
         msg += f"\t{last_stmt:<{max_pad}} |\t\t{ErrorSrc.src[last_stmt-1].strip()}\n"
         msg += f"\t{f'...n':<{max_pad}} |\t\twetuwn({default_return})~\n"
         msg += f"\t{' ' * max_pad} |\t\t^^^^^^^^^{'^' * len(default_return)}\n"
         msg += border
         return msg
 
-
-    def extract_id(self, accessor: Token | FnCall | IndexedIdentifier | ClassAccessor) -> Token:
-        'gets the very first id of a class accessor'
-        match accessor:
-            case Token():
-                return accessor
-            case FnCall():
-                return accessor.id
-            case IndexedIdentifier():
-                match accessor.id:
-                    case Token():
-                        return accessor.id
-                    case FnCall():
-                        return accessor.id.id
-                    case _:
-                        raise ValueError(f"Unknown class accessor: {accessor}")
-            case ClassAccessor():
-                return self.extract_id(accessor.id)
-            case _:
-                raise ValueError(f"Unknown class accessor: {accessor}")
-
-    def final_statement(self, body: BlockStatement) -> int:
-        stmt: Statement = body.statements[-1]
-        match stmt:
-            case Print():
-                return stmt.print.position[0]
-            case Declaration() | ArrayDeclaration():
-                return stmt.id.position[0]
-            case Assignment():
-                return self.extract_id(stmt.id).position[0]
-            case IfStatement():
-                if stmt.else_block.statements:
-                    return self.final_statement(stmt.else_block)
-                elif stmt.else_if:
-                    return self.final_statement(stmt.else_if[-1].then)
-                else:
-                    return self.final_statement(stmt.then)
-            case WhileLoop() | ForLoop():
-                return self.final_statement(stmt.body)
-            case _:
-                raise ValueError(f"Unknown statement: {stmt}")
-
-    def default_rtype(self, token: TokenType) -> str:
-        match token:
-            case UniqueTokenType():
-                if token.is_arr_type():
-                    return '{}'
-                else:
-                    return token.token + '()'
-            case TokenType.CHAN_ARR | TokenType.KUN_ARR | TokenType.SAMA_ARR | TokenType.SAN_ARR | TokenType.SENPAI_ARR:
+### HELPER FUNCTIONS FOR SUGGESTIONS
+def extract_id(accessor: Token | FnCall | IndexedIdentifier | ClassAccessor) -> Token:
+    'gets the very first id of a class accessor'
+    match accessor:
+        case Token():
+            return accessor
+        case FnCall():
+            return accessor.id
+        case IndexedIdentifier():
+            match accessor.id:
+                case Token():
+                    return accessor.id
+                case FnCall():
+                    return accessor.id.id
+                case _:
+                    raise ValueError(f"Unknown class accessor: {accessor}")
+        case ClassAccessor():
+            return extract_id(accessor.id)
+        case _:
+            raise ValueError(f"Unknown class accessor: {accessor}")
+def final_statement(body: BlockStatement) -> int:
+    stmt: Statement = body.statements[-1]
+    match stmt:
+        case Print():
+            return stmt.print.position[0]
+        case Declaration():
+            return stmt.id.position[0]
+        case Assignment():
+            return extract_id(stmt.id).position[0]
+        case IfStatement():
+            if stmt.else_block.statements:
+                return final_statement(stmt.else_block)
+            elif stmt.else_if:
+                return final_statement(stmt.else_if[-1].then)
+            else:
+                return final_statement(stmt.then)
+        case WhileLoop() | ForLoop():
+            return final_statement(stmt.body)
+        case _:
+            raise ValueError(f"Unknown statement: {stmt}")
+def default_rtype(token: TokenType) -> str:
+    match token:
+        case UniqueTokenType():
+            if token.is_arr_type():
                 return '{}'
-            case TokenType.CHAN:
-                return '0'
-            case TokenType.KUN:
-                return '0.0'
-            case TokenType.SAMA:
-                return 'cap'
-            case TokenType.SENPAI:
-                return '""'
-            case _:
-                raise ValueError(f"Unknown token: {token}")
+            else:
+                return token.token + '()'
+        case TokenType.CHAN_ARR | TokenType.KUN_ARR | TokenType.SAMA_ARR | TokenType.SAN_ARR | TokenType.SENPAI_ARR:
+            return '{}'
+        case TokenType.CHAN:
+            return '0'
+        case TokenType.KUN:
+            return '0.0'
+        case TokenType.SAMA:
+            return 'cap'
+        case TokenType.SENPAI:
+            return '""'
+        case _:
+            raise ValueError(f"Unknown token: {token}")
