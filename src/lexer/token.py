@@ -175,7 +175,7 @@ class UniqueTokenType:
     ID = "ID"
     CWASS = "CWASS"
 
-    def __init__(self, lexeme: str, token: str):
+    def __init__(self, lexeme: str = '', token: str = ''):
         self._token = lexeme
         if token == self.ID:
             self._type = self.identifier_dict.setdefault(lexeme, f"IDENTIFIER_{len(self.identifier_dict) + 1}")
