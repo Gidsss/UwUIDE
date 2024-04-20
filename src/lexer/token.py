@@ -29,6 +29,32 @@ class TokenType(Enum):
         return self.__str__()
     def flat_string(self, indent = 1):
         return self.__str__()
+    def python_string(self, indent = 1, cwass=False):
+        'should only be used for dtypes'
+        match self:
+            case TokenType.CHAN:
+                return "int"
+            case TokenType.CHAN_ARR:
+                return "Array"
+            case TokenType.KUN:
+                return "float"
+            case TokenType.KUN_ARR:
+                return "Array"
+            case TokenType.SAMA:
+                return "bool"
+            case TokenType.SAMA_ARR:
+                return "Array"
+            case TokenType.SAN:
+                return "NoneType"
+            case TokenType.SAN_ARR:
+                return "Array"
+            case TokenType.SENPAI:
+                return "String"
+            case TokenType.SENPAI_ARR:
+                return "Array"
+            case _:
+                raise ValueError(f"Unknown token: {self}")
+
     def header(self):
         return self.token
 
