@@ -341,7 +341,7 @@ class Declaration(Statement):
                 # convert value to floats first then to int
                 # this for strings being float strings but passed as int
                 res += f" = {self.dtype.python_string(cwass=cwass)}(float({self.value.python_string(cwass=cwass)}))"
-            elif self.dtype.is_unique_type() or self.dtype.is_arr_type():
+            elif self.dtype.is_unique_type() or self.dtype.is_arr_type() or self.dtype.token == TokenType.SENPAI:
                 res += f" = {self.value.python_string(cwass=cwass)}"
             else:
                 res += f" = {self.dtype.python_string(cwass=cwass)}({self.value.python_string(cwass=cwass)})"
@@ -375,7 +375,15 @@ class Assignment(Statement):
             if self.id.python_string(cwass=cwass) in class_properties:
                 res = "self."
         if not self.dtype.exists(): raise Exception(f"UNREACHABLE::no dtype for assignment: '{self.id.flat_string()}'")
-        res += f"{self.id.python_string(cwass=cwass)} = {self.dtype.python_string(cwass=cwass)}({self.value.python_string(cwass=cwass)})"
+        res += f"{self.id.python_string(cwass=cwass)}"
+        if self.dtype.token == TokenType.CHAN:
+            # convert value to floats first then to int
+            # this for strings being float strings but passed as int
+            res += f" = {self.dtype.python_string(cwass=cwass)}(float({self.value.python_string(cwass=cwass)}))"
+        elif self.dtype.is_unique_type() or self.dtype.is_arr_type() or self.dtype == TokenType.SENPAI:
+            res += f" = {self.value.python_string(cwass=cwass)}"
+        else:
+            res += f" = {self.dtype.python_string(cwass=cwass)}({self.value.python_string(cwass=cwass)})"
         return sprint(res, indent=indent)
 
     def __len__(self):
