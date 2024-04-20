@@ -519,7 +519,7 @@ class WhileLoop(Statement):
         res = ""
         if self.is_do:
             res = self.body.python_string(indent, cwass=cwass)
-        res += sprintln(f"while {self.condition.python_string(cwass=cwass)}:", indent=(indent if self.is_do else 0))
+        res += sprintln(f"while {self.condition.python_string(cwass=cwass)}:", indent=indent)
         res += self.body.python_string(indent+1, cwass=cwass)
         return res
 
@@ -555,6 +555,12 @@ class Parameter(Production):
     def __init__(self):
         self.id: Token = Token()
         self.dtype: Token = Token()
+        # always True
+        self.initialized = True
+        # always False
+        self.is_const: bool = False
+        # always EOF aka nothing
+        self.dono_token: Token = Token()
 
     def header(self):
         return f"id: {self.id.string()}, dtype: {self.dtype.string()}"
