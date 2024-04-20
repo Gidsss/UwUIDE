@@ -617,7 +617,7 @@ class TypeChecker:
 
     ## HELPER METHODS FOR OPERATORS AND OPERANDS
     def math_operands(self) -> list[TokenType]:
-        return [TokenType.CHAN, TokenType.KUN, TokenType.SAMA, TokenType.SAN]
+        return [TokenType.CHAN, TokenType.KUN, TokenType.SAMA]
     def math_operators(self) -> list[TokenType]:
         return [TokenType.ADDITION_SIGN, TokenType.DASH, TokenType.MULTIPLICATION_SIGN,
                 TokenType.DIVISION_SIGN, TokenType.MODULO_SIGN]
