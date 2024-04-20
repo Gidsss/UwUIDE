@@ -299,7 +299,7 @@ class ReturnStatement(Statement):
     def string(self, indent = 0) -> str:
         return sprintln("return", self.expr.string(indent), indent=indent)
     def python_string(self, indent=0, cwass=False) -> str:
-        return sprintln("return", self.expr.python_string(indent, cwass=cwass), indent=indent)
+        return sprint("return", self.expr.python_string(indent, cwass=cwass), indent=indent)
     def __len__(self):
         return 1
 
@@ -343,7 +343,7 @@ class Declaration(Statement):
                 res += f" = {self.dtype.python_string(cwass=cwass)}({self.value.python_string(cwass=cwass)})"
         else:
             res += f" = None"
-        return sprintln(res, indent=indent)
+        return sprint(res, indent=indent)
 
 class ArrayDeclaration(Statement):
     def __init__(self):
@@ -379,7 +379,7 @@ class ArrayDeclaration(Statement):
             res += f" = {self.value.python_string(cwass=cwass)}"
         else:
             res += f" = None"
-        return sprintln(res, indent=indent)
+        return sprint(res, indent=indent)
 
 class Assignment(Statement):
     def __init__(self):
@@ -406,7 +406,7 @@ class Assignment(Statement):
             if self.id.python_string(cwass=cwass) in class_properties:
                 res = "self."
         res += f"{self.id.python_string(cwass=cwass)} = {self.value.python_string(cwass=cwass)}"
-        return sprintln(res, indent=indent)
+        return sprint(res, indent=indent)
 
     def __len__(self):
         return 1
@@ -434,7 +434,7 @@ class Print(Statement):
         for v in self.values:
             res += f"{v.python_string(cwass=cwass)}, "
         res = res[:-2] + ")"
-        return sprintln(res, indent=indent)
+        return sprint(res, indent=indent)
 
 class IfStatement(Statement):
     def __init__(self):
@@ -544,7 +544,7 @@ class ForLoop(Statement):
         return res
 
     def python_string(self, indent=0, cwass=False) -> str:
-        res = self.init.python_string(indent=indent)
+        res = sprintln(self.init.python_string(indent=indent))
         res += sprintln(f"while {self.condition.python_string(cwass=cwass)}:", indent=indent)
         res += self.body.python_string(indent+1, cwass=cwass)
         res += sprintln(f"{self.init.id.python_string(cwass=cwass)} = {self.update.python_string(cwass=cwass)}", indent=indent+1)
