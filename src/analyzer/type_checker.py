@@ -264,8 +264,6 @@ class TypeChecker:
                     case ClassConstructor():
                         actual_type = UniqueTokenType() # placeholder, will not be used in this case
                         self.check_class_constructor(value, local_defs)
-                        for arg in value.args:
-                            self.evaluate_value(arg, local_defs)
                     case _:
                         actual_type = self.evaluate_value(value, local_defs)
                         if not self.is_similar_type(actual_type.flat_string(), expected_type.flat_string()):
