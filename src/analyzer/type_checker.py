@@ -250,7 +250,12 @@ class TypeChecker:
         match expected_type.token:
             case TokenType():
                 actual_type = self.evaluate_value(value, local_defs)
-                if not self.is_similar_type(actual_type.flat_string(), expected_type.flat_string()):
+                match value:
+                    case Input():
+                        if not value.concats: actual_type_str = "inpwt"
+                        else: actual_type_str = "senpai"
+                    case _: actual_type_str = actual_type.flat_string()
+                if not self.is_similar_type(actual_type_str, expected_type.flat_string()):
                     self.errors.append(
                         TypeMismatchError(
                             expected=expected_type,
@@ -713,8 +718,8 @@ class TypeChecker:
             # num types are convertible between each other
             case "chan" | "kun":
                 match actual_type:
-                    # string can be converted to num, runtime error if cannot convert
-                    case "chan" | "kun" | "sama" | "senpai": return True
+                    # inpwts with no concats can be converted to num types
+                    case "chan" | "kun" | "sama" | "inpwt": return True
                     case _: return False
             # all types are convertible to bool
             case "sama": return True
