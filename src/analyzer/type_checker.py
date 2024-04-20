@@ -1,3 +1,4 @@
+from copy import deepcopy
 from .error_handler import GlobalType
 from src.analyzer.error_handler import *
 from src.lexer.token import Token, UniqueTokenType
@@ -240,10 +241,12 @@ class TypeChecker:
                     class_signature=signature,
                 )
             )
-        self.check_value(assign.value, decl.dtype, local_defs, assignment=True)
+        self.check_value(assign.value, decl.dtype, local_defs, assignment=True, decl=decl)
 
-    def check_value(self, value: Value, expected_type: Token, local_defs: dict[str, tuple[Declaration, Token, GlobalType]], assignment: bool = False) -> None:
+    def check_value(self, value: Value, expected_type: Token, local_defs: dict[str, tuple[Declaration, Token, GlobalType]], assignment: bool = False, decl: Declaration = Declaration()) -> None:
         'if `assignment` is true, its an assignment. if false, its a declaration'
+        self.expr_err_count = 0
+
         match expected_type.token:
             case TokenType():
                 actual_type = self.evaluate_value(value, local_defs)
@@ -259,6 +262,7 @@ class TypeChecker:
             case UniqueTokenType():
                 match value:
                     case ClassConstructor():
+                        actual_type = UniqueTokenType() # placeholder, will not be used in this case
                         self.check_class_constructor(value, local_defs)
                         for arg in value.args:
                             self.evaluate_value(arg, local_defs)
@@ -273,6 +277,20 @@ class TypeChecker:
                                     assignment=assignment,
                                 )
                             )
+        if assignment:
+            # uninitialize identifiers if any errors occured in evaluating value
+            if self.expr_err_count > 0 and expected_type != TokenType.SAN:
+                decl_new = deepcopy(decl)
+                decl_new.initialized = False
+                decl_new.value = Value()
+                local_defs[decl_new.id.flat_string()] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
+
+            # initialize uninitialized identifiers
+            elif not decl.initialized and actual_type != TokenType.SAN:
+                decl_new = deepcopy(decl)
+                decl_new.initialized = True
+                local_defs[decl_new.id.flat_string()] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
+        self.expr_err_count = 0
 
     def evaluate_value(self, value: Value | Token, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> TokenType:
         match value:
@@ -305,6 +323,7 @@ class TypeChecker:
                             val_type=right,
                         )
                     )
+                    self.expr_err_count += 1
                 return right
             case InfixExpression():
                 left = self.evaluate_value(expr.left, local_defs)
@@ -327,6 +346,7 @@ class TypeChecker:
                                 right_type=right if right not in self.math_operands() else None,
                             )
                         )
+                        self.expr_err_count += 1
                     if left == TokenType.KUN or right == TokenType.KUN:
                         return TokenType.KUN
                     else:
@@ -348,6 +368,7 @@ class TypeChecker:
                                 right_type=right if right not in self.math_operands() else None,
                             )
                         )
+                        self.expr_err_count += 1
                     return TokenType.SAMA
                 elif expr.op.token in self.equality_operators():
                     return TokenType.SAMA
@@ -369,6 +390,7 @@ class TypeChecker:
                                 postfix=True,
                             )
                         )
+                        self.expr_err_count += 1
                 return left
             case _:
                 raise ValueError(f"Unknown expression: {expr}")
