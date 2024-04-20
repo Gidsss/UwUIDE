@@ -433,7 +433,7 @@ class TypeChecker:
         id = self.extract_id(accessor).flat_string()
         match accessor.id:
             case Token() | FnCall() | ClassAccessor():
-                class_type = local_defs[id][0].id
+                class_type = local_defs[id][0].dtype
                 if not class_type.is_unique_type() and not self.is_accessible(class_type.token):
                     self.errors.append(
                         NonClassAccessError(
@@ -443,14 +443,14 @@ class TypeChecker:
                         )
                     )
             case IndexedIdentifier():
-                class_type = local_defs[id][0].id
+                class_type = local_defs[id][0].dtype
                 if not self.is_accessible(class_type.token):
                     token = self.extract_id(accessor.id)
                     type_definition = local_defs[token.flat_string()][0]
                     self.errors.append(
                         NonIterableIndexingError(
                             token=token,
-                            type_definition=type_definition.id,
+                            type_definition=type_definition.dtype,
                             token_type=class_type.token,
                             usage=accessor.id.flat_string(),
                         )
