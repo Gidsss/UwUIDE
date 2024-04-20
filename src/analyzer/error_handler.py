@@ -341,7 +341,7 @@ class InfixOperandError:
                f'{(q + self.right.flat_string() + q) if self.right_type else ""}'
                "\n")
         msg += border
-        if self.left_definition:
+        if self.left_definition and self.left_type:
             lhs_index = str(self.left_definition.position[0] + 1)
             msg += f"\n\t{' ' * max_pad} | \t"
             msg += Styled.sprintln(
@@ -366,7 +366,7 @@ class InfixOperandError:
                 msg += '\n'
         if self.left_type and self.right_type:
             msg += f"\t{' ' * max_pad} |"
-        if self.right_definition:
+        if self.right_definition and self.right_type:
             rhs_index = str(self.right_definition.position[0] + 1)
             msg += f"\n\t{' ' * max_pad} | \t"
             msg += Styled.sprintln(
