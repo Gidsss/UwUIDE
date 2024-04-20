@@ -608,7 +608,11 @@ class TypeChecker:
             case TokenType.FLOAT_LITERAL: return TokenType.KUN
             case TokenType.FAX | TokenType.CAP: return TokenType.SAMA
             case TokenType.NUWW: return TokenType.SAN
-            case UniqueTokenType(): return local_defs[token.flat_string()][0].dtype.token
+            case UniqueTokenType():
+                decl = local_defs[token.flat_string()][0]
+                if not decl.initialized:
+                    return TokenType.SAN
+                return decl.dtype.token
             case _: raise ValueError(f"Unknown token: {token}")
 
     ## HELPER METHODS FOR OPERATORS AND OPERANDS
