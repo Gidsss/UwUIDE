@@ -591,15 +591,16 @@ class TypeChecker:
 
         method_signature = f"{class_id_str}.{fn_call.id.flat_string()}"
         expected_types = self.class_method_param_types[method_signature]
+        all_defs = self.class_signatures.copy()
+        all_defs.update(local_defs)
         self.check_call_args(GlobalType.CLASS_METHOD, method_signature, fn_call.id,
-                             fn_call.args, expected_types, self.class_signatures)
+                             fn_call.args, expected_types, all_defs)
         return return_type.id.token
 
     def check_call_args(self, global_type: GlobalType, call_str: str, id: Token, call_args: list[Value], expected_types: list[Token], local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> None:
         actual_types = []
         matches = []
         for arg, expected in zip(call_args, expected_types):
-            self.expr_err_count = 0
             match arg:
                 case Token():
                     actual_def = local_defs[arg.flat_string()][0]
@@ -607,10 +608,8 @@ class TypeChecker:
                     if not actual_def.initialized: actual = TokenType.SAN
                 case _:
                     actual = self.evaluate_value(arg, local_defs)
-                    if self.expr_err_count > 0: actual = TokenType.SAN
             actual_types.append(actual)
             matches.append(self.is_similar_type(actual.flat_string(), expected.flat_string(), is_call=True))
-            self.expr_err_count = 0
 
         if not all(matches) or len(call_args) != len(expected_types):
             self.errors.append(
