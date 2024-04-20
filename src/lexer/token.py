@@ -292,7 +292,7 @@ class Token:
                 res = ""
                 if cwass and self.lexeme in class_properties:
                     res = "self."
-                res += self.lexeme
+                res += f"_{self.lexeme}"
                 return res
             case (TokenType.GWOBAW
                 | TokenType.DONO
