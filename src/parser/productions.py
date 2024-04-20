@@ -88,7 +88,10 @@ class StringLiteral(Iterable):
     def string(self, indent = 0) -> str:
         return self.flat_string()
     def flat_string(self) -> str:
-        return sprint(self.val.flat_string(), *[c.flat_string() for c in self.concats])
+        res = sprint(self.val.flat_string(), *[c.flat_string() for c in self.concats])
+        if self.concats:
+            res += ' & ' + ' & '.join(c.flat_string() for c in self.concats)
+        return res
     def python_string(self, indent=0, cwass=False) -> str:
         res = self.val.python_string(cwass=cwass)
         if self.concats:
@@ -141,7 +144,10 @@ class StringFmt(Iterable):
     def string(self, indent = 0) -> str:
         return self.flat_string()
     def flat_string(self) -> str:
-        return f"{self.start.flat_string()}{' '.join(m.flat_string() for m in self.mid_expr_iter())}{self.end.flat_string()}"
+        res = f"{self.start.flat_string()}{' '.join(m.flat_string() for m in self.mid_expr_iter())}{self.end.flat_string()}"
+        if self.concats:
+            res += ' & ' + ' & '.join(c.flat_string() for c in self.concats)
+        return res
     def python_string(self, indent=0, cwass=False) -> str:
         res = f"{self.start.python_string(cwass=cwass)}{' '.join(m.python_string(cwass=cwass) for m in self.mid_expr())}{self.end.python_string(cwass=cwass)}"
         if self.concats:
