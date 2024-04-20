@@ -112,7 +112,10 @@ class Input(Iterable):
     def string(self, indent = 0) -> str:
         return self.flat_string()
     def flat_string(self) -> str:
-        return f"input({self.expr.flat_string()}) & {' & '.join(c.flat_string() for c in self.concats)}"
+        res = f"input({self.expr.flat_string()})"
+        if self.concats:
+            res += ' & ' + ' & '.join(c.flat_string() for c in self.concats)
+        return res
     def python_string(self, indent=0, cwass=False) -> str:
         res = f"input({self.expr.python_string(cwass=cwass)})"
         if self.concats:
