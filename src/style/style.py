@@ -15,7 +15,7 @@ class AnsiColor(Enum):
         Yields colors in order. This loops back to first color after last color.
         This is intended to be used with next(), not in a loop.
         '''
-        colors = [AnsiColor.RED, AnsiColor.GREEN, AnsiColor.YELLOW, AnsiColor.BLUE, AnsiColor.MAGENTA, AnsiColor.CYAN]
+        colors = [AnsiColor.YELLOW, AnsiColor.BLUE, AnsiColor.MAGENTA, AnsiColor.CYAN]
         while True:
             for color in colors:
                 yield color
