@@ -211,8 +211,7 @@ class TypeChecker:
         self.return_list.append(actual_type)
 
     def check_declaration(self, decl: Declaration, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> None:
-        self.check_value(decl.value, decl.dtype, local_defs)
-        local_defs[decl.id.flat_string()] = (decl, decl.dtype, GlobalType.IDENTIFIER)
+        self.check_value(decl.value, decl.dtype, local_defs, decl=decl)
 
     def check_assignment(self, assign: Assignment, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> None:
         signature, token, decl, dono_token, global_type = self.extract_last_id(assign.id, local_defs)
@@ -276,20 +275,20 @@ class TypeChecker:
                                     assignment=assignment,
                                 )
                             )
+        # uninitialize identifiers if any errors occured in evaluating value
+        if self.expr_err_count > 0 and expected_type != TokenType.SAN:
+            decl_new = deepcopy(decl)
+            decl_new.initialized = False
+            decl_new.value = Value()
+            local_defs[decl_new.id.flat_string()] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
+
+        # initialize uninitialized identifiers
+        elif not decl.initialized and actual_type != TokenType.SAN:
+            decl_new = deepcopy(decl)
+            decl_new.initialized = True
+            local_defs[decl_new.id.flat_string()] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
+
         if assignment:
-            # uninitialize identifiers if any errors occured in evaluating value
-            if self.expr_err_count > 0 and expected_type != TokenType.SAN:
-                decl_new = deepcopy(decl)
-                decl_new.initialized = False
-                decl_new.value = Value()
-                local_defs[decl_new.id.flat_string()] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
-
-            # initialize uninitialized identifiers
-            elif not decl.initialized and actual_type != TokenType.SAN:
-                decl_new = deepcopy(decl)
-                decl_new.initialized = True
-                local_defs[decl_new.id.flat_string()] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
-
             assign.dtype = actual_type
         self.expr_err_count = 0
 
