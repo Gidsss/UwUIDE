@@ -308,21 +308,23 @@ class Declaration(Statement):
         self.id: Token = Token()
         self.dtype: Token = Token() 
         self.value: Value = Value()
-        self.is_const: bool = False
         self.dono_token: Token = Token()
         self.initialized: bool = False
+        self.is_param: bool = False
 
     def header(self):
-        return f"declare {'constant' if self.is_const else 'variable'}: {self.id.string()}"
+        return f"{'declare' if not self.is_param else 'param'} {'constant' if self.dono_token.exists() else 'variable'}: {self.id.string()}"
     def child_nodes(self) -> None | dict[str, Production | Token]:
+        if self.is_param:
+            return {"dtype":self.dtype}
         return {"dtype":self.dtype, "value":self.value}
 
     def string(self, indent = 0) -> str:
         res = sprintln("declare:", self.id.flat_string(), indent=indent)
         res += sprintln("type:", self.dtype.flat_string(), indent=indent+1)
-        if self.is_const:
+        if self.dono_token.exists():
             res += sprintln("constant", indent=indent+1)
-        if self.value:
+        if self.initialized and not self.is_param:
             res += sprintln("value:", self.value.flat_string(), indent=indent+1)
         return res
     def python_string(self, indent=0, cwass=False) -> str:
@@ -337,48 +339,12 @@ class Declaration(Statement):
                 # convert value to floats first then to int
                 # this for strings being float strings but passed as int
                 res += f" = {self.dtype.python_string(cwass=cwass)}(float({self.value.python_string(cwass=cwass)}))"
-            elif self.dtype.is_unique_type():
+            elif self.dtype.is_unique_type() or self.dtype.is_arr_type():
                 res += f" = {self.value.python_string(cwass=cwass)}"
             else:
                 res += f" = {self.dtype.python_string(cwass=cwass)}({self.value.python_string(cwass=cwass)})"
-        else:
-            res += f" = None"
-        return sprint(res, indent=indent)
-
-class ArrayDeclaration(Statement):
-    def __init__(self):
-        self.id: Token = Token()
-        self.dtype: Token = Token()
-        self.value: Value = Value()
-        self.is_const: bool = False
-        self.dono_token: Token = Token()
-        self.initialized: bool = False
-
-    def header(self):
-        return f"declare{' constant' if self.is_const else ''} array: {self.id.string()}"
-    def child_nodes(self) -> None | dict[str, Production | Token]:
-        return {"dtype":self.dtype, "value":self.value}
-
-    def string(self, indent = 0) -> str:
-        res = sprintln("declare array:", self.id.flat_string(), indent=indent)
-        res += sprintln("type:", self.dtype.flat_string(), indent=indent+1)
-        if self.is_const:
-            res += sprintln("constant", indent=indent+1)
-        if self.value:
-            res += sprintln("value:", self.value.flat_string(), indent=indent+1)
-        return res
-
-    def python_string(self, indent=0, cwass=False) -> str:
-        res = ""
-        if cwass:
-            global class_properties
-            if self.id.python_string(cwass=cwass) in class_properties:
-                res = "self."
-        res += f"{self.id.python_string(cwass=cwass)}: Array"
-        if self.initialized:
-            res += f" = {self.value.python_string(cwass=cwass)}"
-        else:
-            res += f" = None"
+        elif self.is_param: pass
+        else: res += f" = None"
         return sprint(res, indent=indent)
 
 class Assignment(Statement):
@@ -525,7 +491,7 @@ class WhileLoop(Statement):
 
 class ForLoop(Statement):
     def __init__(self):
-        self.init: Declaration | ArrayDeclaration = Declaration()
+        self.init: Declaration = Declaration()
         self.condition: Value = Value()
         self.update: Value = Value()
         self.body: BlockStatement = BlockStatement()
@@ -551,35 +517,11 @@ class ForLoop(Statement):
         res += sprintln(f"{self.init.id.python_string(cwass=cwass)} = {self.update.python_string(cwass=cwass)}", indent=indent+1)
         return res
 
-class Parameter(Production):
-    def __init__(self):
-        self.id: Token = Token()
-        self.dtype: Token = Token()
-        # always True
-        self.initialized = True
-        # always False
-        self.is_const: bool = False
-        # always EOF aka nothing
-        self.dono_token: Token = Token()
-
-    def header(self):
-        return f"id: {self.id.string()}, dtype: {self.dtype.string()}"
-    def child_nodes(self) -> None | dict[str, Production | Token]:
-        return None
-
-    def string(self, indent = 0) -> str:
-        res = sprintln("param:", self.id.flat_string(), indent=0)
-        res += sprintln("dtype:", self.dtype.flat_string(), indent=indent+1)
-        return res
-
-    def python_string(self, indent=0, cwass=False) -> str:
-        return sprint(f"{self.id.python_string(cwass=cwass)}: {self.dtype.python_string(cwass=cwass)}", indent=indent)
-
 class Function(Production):
     def __init__(self):
         self.id: Token = Token()
         self.rtype: Token = Token()
-        self.params: list[Parameter] = []
+        self.params: list[Declaration] = []
         self.body: BlockStatement = BlockStatement()
 
     def header(self):
@@ -594,7 +536,7 @@ class Function(Production):
     def string(self, indent = 0) -> str:
         res = sprintln("function:", self.id.flat_string(), indent=indent)
         res += sprintln("rtype:", self.rtype.flat_string(), indent=indent+1)
-        if self.params:
+        if len(self.params) > 0:
             res += sprintln("parameters:", indent=indent+1)
             for param in self.params:
                 res += sprint(param.string(indent+2), indent=indent+2)
@@ -617,8 +559,8 @@ class Function(Production):
 class Class(Production):
     def __init__(self):
         self.id: Token = Token()
-        self.params: list[Parameter] = []
-        self.properties: list[Declaration | ArrayDeclaration] = []
+        self.params: list[Declaration] = []
+        self.properties: list[Declaration] = []
         self.methods: list[Function] = []
 
     def header(self):
@@ -691,7 +633,7 @@ class Program:
     'the root node of the syntax tree'
     def __init__(self):
         self.mainuwu: Function | None = None
-        self.globals: list[Declaration | ArrayDeclaration] = []
+        self.globals: list[Declaration] = []
         self.functions: list[Function] = []
         self.classes: list[Class] = []
 

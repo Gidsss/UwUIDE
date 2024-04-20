@@ -1,8 +1,4 @@
 '''
-TODOS:
-'''
-
-'''
 PLEASE READ!
 Headers are prepended by '###' so just search for that
 
@@ -243,7 +239,7 @@ class Parser:
 
         return p
 
-    def parse_declaration(self, ident = None) -> Declaration | ArrayDeclaration | None:
+    def parse_declaration(self, ident = None) -> Declaration | None:
         '''
         parse declarations of variables/constants, whether global or local.
         if encountered brackets, the parsed declaration is an array declaration.
@@ -290,10 +286,7 @@ class Parser:
 
         # array declaration
         if self.expect_peek(TokenType.OPEN_BRACKET):
-            ad = ArrayDeclaration()
-            ad.id, ad.dtype = d.id, d.dtype
-            ad.dtype.to_arr()
-            d = ad
+            d.dtype.to_arr()
             if not self.expect_peek(TokenType.CLOSE_BRACKET):
                 self.unclosed_bracket_error(self.peek_tok)
                 self.advance(2)
@@ -305,7 +298,6 @@ class Parser:
                 self.no_dono_error(self.peek_tok)
                 self.advance(2)
                 return None
-            d.is_const = True
             d.dono_token = self.curr_tok
 
         # uninitialized
@@ -313,8 +305,8 @@ class Parser:
         if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
             if not self.expect_peek(TokenType.TERMINATOR):
                 expecteds =[TokenType.TERMINATOR, TokenType.ASSIGNMENT_OPERATOR] 
-                if not d.is_const:
-                    if not isinstance(d, ArrayDeclaration):
+                if not d.dono_token.exists():
+                    if not d.dtype.is_arr_type():
                         expecteds.append(TokenType.OPEN_BRACKET)
                     expecteds.append(TokenType.DASH)
                 self.expected_error(expecteds)
@@ -485,9 +477,9 @@ class Parser:
 
         return c
 
-    def parse_params(self, main=False) -> list[Parameter] | None:
+    def parse_params(self, main=False) -> list[Declaration] | None:
         'note that this must start with ( in peek_tok'
-        parameters: list[Parameter] = []
+        parameters: list[Declaration] = []
 
         if not self.expect_peek(TokenType.OPEN_PAREN):
             self.peek_error(TokenType.OPEN_PAREN)
@@ -502,7 +494,9 @@ class Parser:
                 return None
 
             while True:
-                param = Parameter()
+                param = Declaration()
+                param.initialized = True
+                param.is_param = True
                 if not self.expect_peek_is_identifier():
                     self.no_ident_in_param_error(self.peek_tok)
                     self.advance(2)
@@ -532,10 +526,7 @@ class Parser:
                 parameters.append(param)
 
                 if self.expect_peek(TokenType.OPEN_BRACKET):
-                    ad = ArrayDeclaration()
-                    ad.id, ad.dtype = param.id, param.dtype
                     param.dtype.to_arr()
-                    param = ad
                     if not self.expect_peek(TokenType.CLOSE_BRACKET):
                         self.unclosed_bracket_error(self.peek_tok)
                         self.advance(2)
@@ -669,7 +660,7 @@ class Parser:
 
     def parse_ident_statement(self) -> (
         ClassAccessor | FnCall |
-        Declaration | ArrayDeclaration | Assignment |
+        Declaration | Assignment |
         None
     ):
         '''
@@ -813,18 +804,10 @@ class Parser:
             self.advance(2)
             return None
 
-        # just an identifier without initialization or assignment
-        if self.peek_tok_is(TokenType.TERMINATOR):
-            if (res := self.parse_literal()) is None:
-                return None
-            fl.init = res
-            self.advance()
-        # is either a declaration or an assignment
-        else:
-            if (res := self.parse_ident_statement()) is None:
-                return None
-            fl.init = res
-        self.advance() # consume the terminator after ident statement
+        if (res := self.parse_declaration(self.curr_tok)) is None:
+            return None
+        fl.init = res
+        self.advance() # consume the terminator of declaration
 
         if (res := self.parse_expression(LOWEST)) is None:
             return None
