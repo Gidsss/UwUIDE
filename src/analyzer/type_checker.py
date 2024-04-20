@@ -553,7 +553,7 @@ class TypeChecker:
                 flat_arr, units_type = self.expect_homogenous(collection, local_defs)
                 for val in flat_arr:
                     self.evaluate_value(val, local_defs)
-                return units_type.to_arr_type() if units_type != TokenType.SAN else TokenType.SAN
+                return units_type.to_arr_type()
             case StringFmt():
                 for val in collection.exprs:
                     self.evaluate_value(val, local_defs)
@@ -688,7 +688,7 @@ class TypeChecker:
                 HeterogeneousArrayError(arr, flat_arr, types)
             )
             return [], TokenType.SAN
-        return flat_arr, types.pop() if types else TokenType.SAN
+        return flat_arr, types.pop() if types else TokenType.SAN_ARR
 
     def flatten_array(self, arr: list[Value]) -> list[Value]:
         res = []
