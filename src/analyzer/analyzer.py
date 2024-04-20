@@ -87,10 +87,9 @@ class MemberAnalyzer:
             else:
                 local_defs[f"{cwass.id.flat_string()}.{method.id.string()}"] = (method.id, GlobalType.CLASS_METHOD)
 
-    def analyze_param(self, param: Parameter, local_defs: dict[str, tuple[Token, GlobalType]],
+    def analyze_param(self, param: Declaration, local_defs: dict[str, tuple[Token, GlobalType]],
                       *,
                       cwass=False) -> None:
-        assert isinstance(param.id, Token)
         if param.id.string() in local_defs:
             self.errors.append(DuplicateDefinitionError(
                 *local_defs[param.id.string()],
@@ -116,7 +115,7 @@ class MemberAnalyzer:
                     self.analyze_print(stmt, local_defs)
                 case Input():
                     self.analyze_input(stmt, local_defs)
-                case Declaration() | ArrayDeclaration():
+                case Declaration():
                     self.analyze_declaration(stmt, local_defs, cwass=cwass, in_body=True)
                 case Assignment():
                     self.analyze_assignment(stmt, local_defs)
@@ -151,7 +150,7 @@ class MemberAnalyzer:
         if if_stmt.else_block:
             self.analyze_body(if_stmt.else_block, local_defs.copy())
 
-    def analyze_declaration(self, decl: Declaration | ArrayDeclaration, local_defs: dict[str, tuple[Token, GlobalType]],
+    def analyze_declaration(self, decl: Declaration, local_defs: dict[str, tuple[Token, GlobalType]],
                             *,
                             cwass=False, in_body=False) -> None:
         self.expect_unique_token(decl.id,
@@ -188,7 +187,7 @@ class MemberAnalyzer:
         match for_loop.init:
             case Assignment():
                 self.analyze_assignment(for_loop.init, local_defs)
-            case Declaration() | ArrayDeclaration():
+            case Declaration():
                 self.analyze_declaration(for_loop.init, local_defs)
             case Token():
                 self.expect_defined_token(for_loop.init, GlobalType.IDENTIFIER, local_defs)
