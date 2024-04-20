@@ -1,4 +1,4 @@
-from src.lexer.token import TokenType, class_properties
+from src.lexer.token import TokenType, UniqueTokenType, class_properties
 from src.parser.production_types import *
 from src.lexer import Token
 
@@ -334,6 +334,8 @@ class Declaration(Statement):
             if self.id.python_string(cwass=cwass) in class_properties:
                 res = "self."
         res += f"{self.id.python_string(cwass=cwass)}: {self.dtype.python_string(cwass=cwass)}"
+        if self.is_param: return res
+
         if self.initialized:
             if self.dtype.token == TokenType.CHAN:
                 # convert value to floats first then to int
@@ -351,7 +353,7 @@ class Assignment(Statement):
     def __init__(self):
         self.id: Token | IndexedIdentifier | ClassAccessor = Token() 
         self.value: Value = Value()
-        self.dtype: Token = Token()
+        self.dtype: TokenType | UniqueTokenType = TokenType.EOF # placeholder
 
     def header(self):
         return f"assign: {self.id.header()}"
@@ -372,7 +374,8 @@ class Assignment(Statement):
             global class_properties
             if self.id.python_string(cwass=cwass) in class_properties:
                 res = "self."
-        res += f"{self.id.python_string(cwass=cwass)} = {self.value.python_string(cwass=cwass)}"
+        if not self.dtype.exists(): raise Exception(f"UNREACHABLE::no dtype for assignment: '{self.id.flat_string()}'")
+        res += f"{self.id.python_string(cwass=cwass)} = {self.dtype.python_string(cwass=cwass)}({self.value.python_string(cwass=cwass)})"
         return sprint(res, indent=indent)
 
     def __len__(self):
