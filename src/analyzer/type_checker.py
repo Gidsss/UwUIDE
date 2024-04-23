@@ -590,14 +590,14 @@ class TypeChecker:
                 )
             )
             return TokenType.SAN
-        return_type, _, member_type = res
+        _, return_type, member_type = res
         if member_type != GlobalType.CLASS_METHOD:
             self.errors.append(
                 UndefinedClassMember(
                     class_id.flat_string(),
                     fn_call.id,
                     GlobalType.CLASS_METHOD,
-                    actual_definition=(return_type.id, member_type),
+                    actual_definition=(return_type, member_type),
                 )
             )
             return TokenType.SAN
@@ -608,7 +608,7 @@ class TypeChecker:
         all_defs.update(local_defs)
         self.check_call_args(GlobalType.CLASS_METHOD, method_signature, fn_call.id,
                              fn_call.args, expected_types, all_defs)
-        return return_type.id.token
+        return return_type.token
 
     def check_call_args(self, global_type: GlobalType, call_str: str, id: Token, call_args: list[Value], expected_types: list[Token], local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> None:
         actual_types = []
