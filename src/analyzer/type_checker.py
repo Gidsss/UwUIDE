@@ -727,6 +727,11 @@ class TypeChecker:
                     # inpwts with no concats can be converted to num types
                     case "chan" | "kun" | "sama" | "inpwt": return True
                     case _: return False
+            # inpwt is inherently senpai
+            case "senpai":
+                match actual_type:
+                    case "senpai" | "inpwt": return True
+                    case _: return False
             # all types are convertible to bool
             case "sama": return True
             # every other type needs exact match
