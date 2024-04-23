@@ -560,7 +560,8 @@ class TypeChecker:
                 flat_arr, units_type = self.expect_homogenous(collection, local_defs)
                 for val in flat_arr:
                     self.evaluate_value(val, local_defs)
-                return units_type.to_arr_type()
+                ret = deepcopy(units_type).to_arr_type()
+                return ret
             case StringFmt():
                 for val in collection.exprs:
                     self.evaluate_value(val, local_defs)
