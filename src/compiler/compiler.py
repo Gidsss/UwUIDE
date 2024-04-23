@@ -10,8 +10,6 @@ class Compiler:
         if not (res := self.validate_file(filename)): return
         self.filename = res
         self.source = self.builtins() + py_source
-        self.compile()
-        self._run() # for testing purposes
 
     def validate_file(self, filename: str) -> str|None:
         # TODO: add more validations maybe?
@@ -31,11 +29,17 @@ class Compiler:
                         ])
         os.remove(tmp_file_path)
 
-    def _run(self):
-        'for testing purposes only'
+    def run(self):
         exe_name = f"{self.filename}.exe"
         exe_path = Path("./dist") / exe_name
         subprocess.run([exe_path])
+
+    def run_python(self):
+        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+            f.write(self.source)
+            tmp_file_path = f.name
+        subprocess.run(['python', tmp_file_path])
+        os.remove(tmp_file_path)
 
     def builtins(self) -> str:
         with open(BUILTIN_TYPES, 'r') as f:

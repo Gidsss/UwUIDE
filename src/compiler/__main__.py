@@ -61,3 +61,9 @@ if __name__ == "__main__":
         exit(1)
 
     c = Compiler(p.program.python_string(), "test.uwu")
+
+    # this is for running the python source code immediately without compiling
+    # run this alone without c.compile() and c.run() if you want
+    # c.run_python()
+    c.compile()
+    c.run()
