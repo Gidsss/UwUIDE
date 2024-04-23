@@ -239,7 +239,7 @@ class Parser:
 
         return p
 
-    def parse_declaration(self, ident = None) -> Declaration | None:
+    def parse_declaration(self, ident = None, for_loop_init = False) -> Declaration | None:
         '''
         parse declarations of variables/constants, whether global or local.
         if encountered brackets, the parsed declaration is an array declaration.
@@ -294,25 +294,37 @@ class Parser:
 
         # -dono to indicate constant
         if self.expect_peek(TokenType.DASH):
-            if not self.expect_peek(TokenType.DONO):
-                self.no_dono_error(self.peek_tok)
-                self.advance(2)
+            if for_loop_init:
+                expecteds = [TokenType.ASSIGNMENT_OPERATOR] + ([TokenType.OPEN_BRACKET] if not d.dtype.is_arr_type() else [])
+                self.expected_error(expecteds, curr=True)
+                self.advance()
                 return None
-            d.dono_token = self.curr_tok
+            else:
+                if not self.expect_peek(TokenType.DONO):
+                    self.no_dono_error(self.peek_tok)
+                    self.advance(2)
+                    return None
+                d.dono_token = self.curr_tok
 
         # uninitialized
         d.initialized = False
         if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
-            if not self.expect_peek(TokenType.TERMINATOR):
-                expecteds =[TokenType.TERMINATOR, TokenType.ASSIGNMENT_OPERATOR] 
-                if not d.dono_token.exists():
-                    if not d.dtype.is_arr_type():
-                        expecteds.append(TokenType.OPEN_BRACKET)
-                    expecteds.append(TokenType.DASH)
+            if for_loop_init:
+                expecteds = [TokenType.ASSIGNMENT_OPERATOR] + ([TokenType.OPEN_BRACKET] if not d.dtype.is_arr_type() else [])
                 self.expected_error(expecteds)
                 self.advance(2)
                 return None
-            return d
+            else:
+                if not self.expect_peek(TokenType.TERMINATOR):
+                    expecteds =[TokenType.TERMINATOR, TokenType.ASSIGNMENT_OPERATOR] 
+                    if not d.dono_token.exists():
+                        if not d.dtype.is_arr_type():
+                            expecteds.append(TokenType.OPEN_BRACKET)
+                        expecteds.append(TokenType.DASH)
+                    self.expected_error(expecteds)
+                    self.advance(2)
+                    return None
+                return d
 
         # initialized
         d.initialized = True
@@ -804,7 +816,7 @@ class Parser:
             self.advance(2)
             return None
 
-        if (res := self.parse_declaration(self.curr_tok)) is None:
+        if (res := self.parse_declaration(self.curr_tok, for_loop_init=True)) is None:
             return None
         fl.init = res
         self.advance() # consume the terminator of declaration
