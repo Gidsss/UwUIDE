@@ -59,15 +59,15 @@ class String:
         return iter(self.val)
 
     ## BUILTIN METHODS
-    def len(self) -> int:
+    def _len(self) -> int:
         return self.__len__()
-    def reversed(self) -> Self:
+    def _reversed(self) -> Self:
         return type(self)(self.val[::-1])
-    def has(self, item: str) -> bool:
+    def _has(self, item: str) -> bool:
         return item in self.val
-    def upper(self) -> Self:
+    def _upper(self) -> Self:
         return type(self)(self.val.upper())
-    def lower(self) -> Self:
+    def _lower(self) -> Self:
         return type(self)(self.val.lower())
 
     ## UTILS
@@ -120,9 +120,9 @@ class Array:
         return iter(self.val)
 
     ## BUILTIN METHODS
-    def len(self) -> int:
+    def _len(self) -> int:
         return self.__len__()
-    def reverse(self) -> None:
+    def _reverse(self) -> None:
         self.val = self.val[::-1]
 
     ## UTILS
