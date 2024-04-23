@@ -200,7 +200,7 @@ class TypeChecker:
                 )
             )
             return
-        elif not self.is_similar_type(actual_type.flat_string(), return_type.flat_string()):
+        elif not self.is_similar_type(actual_type.flat_string(), return_type.flat_string(), ret.expr):
             self.errors.append(
                 ReturnTypeMismatchError(
                     expected=return_type,
@@ -255,7 +255,7 @@ class TypeChecker:
                         if not value.concats: actual_type_str = "inpwt"
                         else: actual_type_str = "senpai"
                     case _: actual_type_str = actual_type.flat_string()
-                if not self.is_similar_type(actual_type_str, expected_type.flat_string()):
+                if not self.is_similar_type(actual_type_str, expected_type.flat_string(), value):
                     self.errors.append(
                         TypeMismatchError(
                             title="Assignment" if assignment else "Declaration",
@@ -272,7 +272,7 @@ class TypeChecker:
                         self.check_class_constructor(value, local_defs)
                     case _:
                         actual_type = self.evaluate_value(value, local_defs)
-                        if not self.is_similar_type(actual_type.flat_string(), expected_type.flat_string()):
+                        if not self.is_similar_type(actual_type.flat_string(), expected_type.flat_string(), value):
                             self.errors.append(
                                 TypeMismatchError(
                                     title="Assignment" if assignment else "Declaration",
@@ -612,22 +612,22 @@ class TypeChecker:
         return return_type.token
 
     def check_call_args(self, global_type: GlobalType, call_str: str, id: Token, call_args: list[Value], expected_types: list[Token], local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> None:
-        actual_types = []
-        matches = []
+        actual_types: list[TokenType] = []
+        matches: list[bool] = []
         for arg, expected in zip(call_args, expected_types):
             match arg:
                 case Token():
                     match arg.token:
                         case UniqueTokenType():
                             actual_def = local_defs[arg.flat_string()][0]
-                            actual = actual_def.dtype
+                            actual = actual_def.dtype.token
                             if not actual_def.initialized: actual = TokenType.SAN
                         case TokenType():
                             actual = self.evaluate_token(arg, local_defs)
                 case _:
                     actual = self.evaluate_value(arg, local_defs)
             actual_types.append(actual)
-            matches.append(self.is_similar_type(actual.flat_string(), expected.flat_string(), is_call=True))
+            matches.append(self.is_similar_type(actual.flat_string(), expected.flat_string(), arg, is_call=True))
 
         if not all(matches) or len(call_args) != len(expected_types):
             self.errors.append(
@@ -713,7 +713,7 @@ class TypeChecker:
                 res.append(item)
         return res
 
-    def is_similar_type(self, actual_type: str, expected_type: str, is_call: bool = False) -> bool:
+    def is_similar_type(self, actual_type: str, expected_type: str, val: Value, is_call: bool = False) -> bool:
         'determines if two types are similar'
         # nuww is an ok val for any type if and only if its not for a call
         condition_2 = (actual_type == 'san') if not is_call else False
@@ -737,7 +737,13 @@ class TypeChecker:
             case "sama": return True
             case _:
                 # all array types can accept san[]
-                if actual_type == "san[]" and expected_type[-2:] == '[]': return True
+                if expected_type[-2:] == '[]':
+                    if actual_type == "san[]":
+                        if isinstance(val, ArrayLiteral):
+                            if len(val.elements) == 0: return True
+                            else: return False
+                        else: return False
+
                 # every other type needs exact match
                 return False
 
