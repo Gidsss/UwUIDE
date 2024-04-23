@@ -692,6 +692,9 @@ class Program:
         if self.mainuwu:
             res += self.mainuwu.python_string(indent, cwass=cwass)
         res += sprintln("if __name__ == '__main__':", indent=indent)
+        res += sprintln("import platform", indent=indent+1)
+        res += sprintln("import os", indent=indent+1)
+        res += sprintln("os.system('cls' if platform.system() == 'Windows' else 'clear')", indent=indent+1)
         res += sprintln("main()", indent=indent+1)
         return res
 
