@@ -60,4 +60,4 @@ if __name__ == "__main__":
             print(err)
         exit(1)
 
-    c = Compiler(p.program.python_string())
+    c = Compiler(p.program.python_string(), "test.uwu")
