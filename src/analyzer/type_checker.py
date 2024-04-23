@@ -735,8 +735,11 @@ class TypeChecker:
                     case _: return False
             # all types are convertible to bool
             case "sama": return True
-            # every other type needs exact match
-            case _: return False
+            case _:
+                # all array types can accept san[]
+                if actual_type == "san[]" and expected_type[-2:] == '[]': return True
+                # every other type needs exact match
+                return False
 
     def is_accessible(self, actual_type: TokenType) -> bool:
         'determines if a type is accessable'
