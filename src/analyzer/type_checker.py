@@ -51,6 +51,7 @@ class TypeChecker:
 
             'array_type.len',
             'array_type.reverse',
+            'array_type.append',
         }
         self.class_signatures.update(
             {
@@ -62,6 +63,7 @@ class TypeChecker:
 
                 'array_type.len': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
                 'array_type.reverse': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
+                'array_type.append': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
             },
         )
         self.class_method_param_types.update(
@@ -74,6 +76,7 @@ class TypeChecker:
 
                 'array_type.len': [],
                 'array_type.reverse': [],
+                'array_type.append': [Token('self', TokenType.SELF)],
             }
         )
 
@@ -695,9 +698,10 @@ class TypeChecker:
                     types.append(self.evaluate_iterable(val, local_defs))
                 case _:
                     raise ValueError(f"Unknown array value type: {val.flat_string()}")
-        if len(set([t.flat_string() for t in types])) > 1:
+        type_list = [t.flat_string() for t in types]
+        if len(set(type_list)) > 1:
             self.errors.append(
-                HeterogeneousArrayError(arr, flat_arr, types)
+                HeterogeneousArrayError(arr, flat_arr, type_list)
             )
             return [], TokenType.SAN
         return flat_arr, types.pop() if types else TokenType.SAN_ARR
