@@ -615,7 +615,11 @@ class Class(Production):
         global class_properties
         res = sprintln(f"class {self.id.python_string(cwass=True)}:", indent=indent)
         if self.params or self.properties:
-            res += sprintln(f"def __init__(self, {', '.join([p.python_string(cwass=cwass) for p in self.params])}):", indent=indent+1)
+            res += sprint(f"def __init__(self", indent=indent+1)
+            if self.params:
+                res += sprintln(f", {', '.join([p.python_string(cwass=cwass) for p in self.params])}):", indent=indent+1)
+            else:
+                res += '):\n'
             for param in self.params:
                 res += sprintln(f"self.{param.id.python_string(cwass=True)}: {param.dtype.python_string(cwass=True)} = {param.dtype.python_string(cwass=True)}({param.id.python_string(cwass=True)})", indent=indent+2)
                 class_properties.add(param.id.python_string(cwass=True))
