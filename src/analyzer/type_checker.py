@@ -694,7 +694,7 @@ class TypeChecker:
                     types.append(self.evaluate_iterable(val, local_defs))
                 case _:
                     raise ValueError(f"Unknown array value type: {val.flat_string()}")
-        if len(set(types)) > 1:
+        if len(set([t.flat_string() for t in types])) > 1:
             self.errors.append(
                 HeterogeneousArrayError(arr, flat_arr, types)
             )
