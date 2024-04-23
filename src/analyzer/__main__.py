@@ -7,20 +7,26 @@ from src.parser.error_handler import ErrorSrc as parErrorSrc
 
 if __name__ == "__main__":
     sc = """
+    cwass Hololive() [[ a-san~ ]]
     fwunc mainuwu-san() [[
-        num-chan = inpwt("Enter number to be squared: ")~
-        times-chan = inpwt("Enter number of times to square: ")~
-        iwf (num > 0) [[
-            fow(i-chan = 1~ i < times~ i + 1) [[
-                pwint(num)~
-                num = square(num)~
-            ]]
-        ]] ewse [[
-            pwint("Enter a positive number. '| num |' is not a positive number.")~
-        ]]
+        a-chan[] = {nuww}~
+        a = {nuww}~
+        b-chan[] = {}~
+        b = {}~
+        c-Hololive[] = {nuww}~
+        c = {nuww}~
+        d-Hololive[] = {}~
+        d = {}~
+        z-chan~
+        y-chan[] = {z}~
+        sum({})~
+        sum({nuww})~
     ]]
-    fwunc square-chan(num-chan) [[
-        wetuwn(num*num)~
+    fwunc sum-chan[](num-chan[]) [[
+        wetuwn({nuww})~
+    ]]
+    fwunc sum2-chan[](num-chan[]) [[
+        wetuwn({})~
     ]]
     """
     source: list[str] = [line if line else '\n' for line in sc.split("\n")]
