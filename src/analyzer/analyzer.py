@@ -17,6 +17,8 @@ class MemberAnalyzer:
 
     def analyze_program(self) -> None:
         assert self.program.mainuwu
+        for global_dec in self.program.globals:
+            self.analyze_declaration(global_dec, self.global_names)
         self.analyze_function(self.program.mainuwu, self.global_names.copy())
         for func in self.program.functions:
             self.analyze_function(func, self.global_names.copy())
@@ -28,16 +30,6 @@ class MemberAnalyzer:
         populates the self.global_names dict with the unique global names
         any duplicates will be appended to error
         '''
-        self.global_names: dict[str, tuple[Token, GlobalType]] = {}
-        for global_dec in self.program.globals:
-            if global_dec.id.string() in self.global_names:
-                self.errors.append(DuplicateDefinitionError(
-                    *self.global_names[global_dec.id.string()],
-                    global_dec.id,
-                    GlobalType.IDENTIFIER,
-                ))
-            else:
-                self.global_names[global_dec.id.string()] = (global_dec.id, GlobalType.IDENTIFIER)
         for func in self.program.functions:
             if func.id.string() in self.global_names:
                 self.errors.append(DuplicateDefinitionError(
