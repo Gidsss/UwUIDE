@@ -467,6 +467,10 @@ class Parser:
             self.peek_error(TokenType.DOUBLE_OPEN_BRACKET)
             self.advance()
             return None
+        if self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
+            self.empty_code_body_error(cwass=True)
+            self.advance()
+            return None
         self.advance()
         stop_conditions = [TokenType.DOUBLE_CLOSE_BRACKET, TokenType.EOF]
         while not self.curr_tok_is_in(stop_conditions):
@@ -1694,12 +1698,16 @@ class Parser:
             self.curr_tok.position,
             self.curr_tok.end_position
         ))
-    def empty_code_body_error(self):
-        msg = f"Code bodies must contain at least one or more statement.\n\t"
+    def empty_code_body_error(self, cwass=False):
+        name = 'Class' if cwass else 'Code'
+        msg = f"{name} bodies must contain at least one or more statement.\n\t"
         msg += f"Expected any of the ff:"
-        for token in self.expected_in_block[:-1]:
-            msg += f" '{token}',"
-        msg += f" '{self.expected_in_block[-1]}'"
+        if cwass:
+            msg += f" IDENTIFIER, fwunc"
+        else:
+            for token in self.expected_in_block[:-1]:
+                msg += f" '{token}',"
+            msg += f" '{self.expected_in_block[-1]}'"
         msg += f"\n\tgot '{self.curr_tok}' instead"
         self.errors.append(Error(
             "EMPTY CODE BODY",
