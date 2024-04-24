@@ -12,6 +12,8 @@ class String:
         return len(self.val)
     def __str__(self):
         return str(self.val)
+    def __repr__(self):
+        return repr(self.val)
 
     # operator overloading
     def __add__(self, other):
