@@ -563,18 +563,22 @@ class MismatchedCallArgType:
             (f" but was called with {len(self.args)}" if len(self.expected_types) != len(self.actual_types) else ""),
             color=AnsiColor.CYAN
         )
-        max_type_pad = 4 + len(AnsiColor.RED.value)*2
+        expected_pad = actual_pad = 4 + len(AnsiColor.RED.value)*2
         if self.expected_types:
-            max_type_pad += max(len(expected) for expected in self.expected_types)
+            expected_pad += max(max(len(expected) for expected in self.expected_types), 8)
+        if self.actual_types:
+            actual_pad += max(max(len(actual.flat_string()) for actual in self.actual_types), 6)
+
         msg += f"\t{' ' * max_pad} |\t"
-        msg += f'{Styled.sprint("EXPECTED", color=AnsiColor.CYAN):{max_type_pad}} '
-        msg += f'{Styled.sprint("ACTUAL", color=AnsiColor.CYAN):{max_type_pad+2}}'
+        msg += f'{Styled.sprint("EXPECTED", color=AnsiColor.CYAN):{expected_pad-1}} '
+        msg += f'{Styled.sprint("ACTUAL", color=AnsiColor.CYAN):{actual_pad-1}} '
         msg += f'{Styled.sprint("ARG", color=AnsiColor.CYAN)}\n'
+
         for expected, actual, arg, matched in zip(self.expected_types, self.actual_types, self.args, self.matches):
             color = AnsiColor.GREEN if matched else AnsiColor.RED
             res = '✓' if matched else '✗'
             msg += f"\t{' ' * max_pad} |\t" + (
-                f"{Styled.sprint(res, expected, color=color):{max_type_pad}} {Styled.sprint('(', actual.flat_string(), ')', color=color):{max_type_pad+2}}"+
+                f"{Styled.sprint(res, expected, color=color):{expected_pad}}{Styled.sprint(actual.flat_string(), color=color):{actual_pad}}"+
                 Styled.sprint(arg.flat_string(), color=color)+
                 "\n"
             )
@@ -589,7 +593,7 @@ class MismatchedCallArgType:
                 )
                 for i in range(len(self.actual_types), len(self.expected_types)):
                     msg += f"\t{' ' * max_pad} |\t" + (
-                        f"{Styled.sprint('✗', self.expected_types[i], color=AnsiColor.RED):{max_type_pad}} {Styled.sprint('(', 'MISSING', ')', color=AnsiColor.RED):{max_type_pad+2}}\n"
+                        f"{Styled.sprint('✗', self.expected_types[i], color=AnsiColor.RED):{expected_pad}} {Styled.sprint('(', 'MISSING', ')', color=AnsiColor.RED):{actual_pad}}\n"
                     )
             elif actual_len > expected_len:
                 msg += Styled.sprintln(
@@ -598,7 +602,7 @@ class MismatchedCallArgType:
                 )
                 for i in range(len(self.expected_types), len(self.args)):
                     msg += f"\t{' ' * max_pad} |\t" + (
-                        f"{Styled.sprint('✗', 'NONE', color=AnsiColor.RED):{max_type_pad}} {Styled.sprint('(', self.args[i].flat_string(), ')', color=AnsiColor.RED):{max_type_pad+2}}"
+                        f"{Styled.sprint('✗', 'NONE', color=AnsiColor.RED):{expected_pad}} {Styled.sprint('(', self.args[i].flat_string(), ')', color=AnsiColor.RED):{actual_pad}}"
                         f"{Styled.sprint(self.args[i].flat_string(), color=AnsiColor.RED)}\n"
                     )
         msg += border
