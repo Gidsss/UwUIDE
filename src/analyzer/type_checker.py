@@ -751,6 +751,13 @@ class TypeChecker:
                 # every other type needs exact match
                 return False
 
+    def is_self_type(self, actual_type: TokenType, expected_type: TokenType) -> bool:
+        'determines if a type is self'
+        return (actual_type == expected_type
+            or actual_type.to_unit_type() == expected_type
+            or actual_type.to_arr_type() == expected_type
+        )
+
     def is_accessible(self, actual_type: TokenType) -> bool:
         'determines if a type is accessable'
         return actual_type.is_arr_type() or actual_type == TokenType.SENPAI
