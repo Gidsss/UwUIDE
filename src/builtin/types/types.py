@@ -66,7 +66,7 @@ class String:
     def _reversed(self) -> Self:
         return type(self)(self.val[::-1])
     def _has(self, item: str) -> bool:
-        return item in self.val
+        return str(item) in self.val
     def _upper(self) -> Self:
         return type(self)(self.val.upper())
     def _lower(self) -> Self:
