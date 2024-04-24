@@ -124,6 +124,8 @@ class Array:
         return self.__len__()
     def _reverse(self) -> None:
         self.val = self.val[::-1]
+    def _append(self, item) -> None:
+        self.val.append(item)
 
     ## UTILS
     def valid_array_elems(self) -> list[type]:
