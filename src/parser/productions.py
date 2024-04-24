@@ -687,18 +687,21 @@ class Program:
 
     def python_string(self, indent=0, cwass=False) -> str:
         res = ""
-        for g in self.globals:
-            res += sprintln(g.python_string(indent, cwass=cwass))
+        if self.mainuwu:
+            res += self.mainuwu.python_string(indent, cwass=cwass)
         for c in self.classes:
             res += c.python_string(indent, cwass=cwass)
         for fn in self.functions:
             res += fn.python_string(indent, cwass=cwass)
-        if self.mainuwu:
-            res += self.mainuwu.python_string(indent, cwass=cwass)
         res += sprintln("if __name__ == '__main__':", indent=indent)
+        res += sprintln("# clear screen before executing", indent=indent+1)
         res += sprintln("import platform", indent=indent+1)
         res += sprintln("import os", indent=indent+1)
         res += sprintln("os.system('cls' if platform.system() == 'Windows' else 'clear')", indent=indent+1)
+        res += sprintln()
+        res += sprintln("# declare as None first", indent=indent+1)
+        for g in self.globals:
+            res += sprintln(g.python_string(cwass=cwass), indent=indent+1)
         res += sprintln("main()", indent=indent+1)
         return res
 
