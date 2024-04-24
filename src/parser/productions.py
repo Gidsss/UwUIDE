@@ -699,7 +699,7 @@ class Program:
         res += sprintln("import os", indent=indent+1)
         res += sprintln("os.system('cls' if platform.system() == 'Windows' else 'clear')", indent=indent+1)
         res += sprintln()
-        res += sprintln("# declare as None first", indent=indent+1)
+        res += sprintln("# declare globals", indent=indent+1)
         for g in self.globals:
             res += sprintln(g.python_string(cwass=cwass), indent=indent+1)
         res += sprintln("main()", indent=indent+1)
