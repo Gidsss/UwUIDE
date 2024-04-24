@@ -583,12 +583,12 @@ class TypeChecker:
             case _:
                 raise ValueError(f"Unknown collection: {collection}")
 
-    def evaluate_method_call(self, class_id: Token, fn_call: FnCall, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> TokenType:
-        class_id_str = class_id.flat_string() if not class_id.token.is_arr_type() else 'array_type'
+    def evaluate_method_call(self, class_type: Token, fn_call: FnCall, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> TokenType:
+        class_id_str = class_type.flat_string() if not class_type.token.is_arr_type() else 'array_type'
         if (res := self.class_signatures.get(f"{class_id_str}.{fn_call.id.flat_string()}")) is None:
             self.errors.append(
                 UndefinedClassMember(
-                    class_id.flat_string(),
+                    class_type.flat_string(),
                     fn_call.id,
                     GlobalType.CLASS_METHOD,
                 )
@@ -598,7 +598,7 @@ class TypeChecker:
         if member_type != GlobalType.CLASS_METHOD:
             self.errors.append(
                 UndefinedClassMember(
-                    class_id.flat_string(),
+                    class_type.flat_string(),
                     fn_call.id,
                     GlobalType.CLASS_METHOD,
                     actual_definition=(return_type, member_type),
