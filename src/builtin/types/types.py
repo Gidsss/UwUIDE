@@ -4,14 +4,14 @@ class String:
     def __init__(self, val: str):
         expect_type_is_in(val, self.stringable_types(),
                                msg=f"OwO... that ain't stringable!")
-        self.val: str = val
+        self.val: str = str(val)
 
     ## META DUNDER METHODS
     # basic properties
     def __len__(self):
         return len(self.val)
     def __str__(self):
-        return self.val
+        return str(self.val)
 
     # operator overloading
     def __add__(self, other):
