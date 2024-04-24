@@ -635,7 +635,7 @@ class TypeChecker:
                     actual = self.evaluate_value(arg, local_defs)
             actual_types.append(actual)
             if expected.token == TokenType.ARRAY_ELEMENT:
-                matches.append(self.is_element_of_expected(actual, self_type if self_type.exists() else expected.token))
+                matches.append(self.is_element_of_expected(actual, self_type if self_type.exists() else expected.token, arg))
             else:
                 matches.append(self.is_similar_type(actual.flat_string(), expected.flat_string(), arg, is_call=True))
 
@@ -759,12 +759,21 @@ class TypeChecker:
                 # every other type needs exact match
                 return False
 
-    def is_element_of_expected(self, actual_type: TokenType, expected_type: TokenType) -> bool:
+    def is_element_of_expected(self, actual_type: TokenType, expected_type: TokenType, val: Value) -> bool:
         'determines if a type is self'
-        return (actual_type.flat_string() == expected_type.flat_string()
-            or actual_type.to_arr_type().flat_string() == expected_type.flat_string()
-            or actual_type.to_unit_type().flat_string() == expected_type.flat_string()
-        )
+        actual, actual_arr, actual_unit = actual_type.flat_string(), actual_type.to_arr_type().flat_string(), actual_type.to_unit_type().flat_string()
+        expected = expected_type.flat_string()
+        if (actual == expected
+            or actual_arr == expected
+            or actual_unit == expected
+            ): return True
+
+        if ("san[]" in [actual, actual_arr]
+            and isinstance(val, ArrayLiteral)
+            and len(val.elements) == 0):
+            return True
+
+        return False
 
     def is_accessible(self, actual_type: TokenType) -> bool:
         'determines if a type is accessable'
