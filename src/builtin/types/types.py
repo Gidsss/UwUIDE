@@ -71,6 +71,8 @@ class String:
         return type(self)(self.val.upper())
     def _lower(self) -> Self:
         return type(self)(self.val.lower())
+    def _concat(self, item: str) -> None:
+        self.val += str(item)
 
     ## UTILS
     def stringable_types(self) -> list[type]:

@@ -48,6 +48,7 @@ class TypeChecker:
             'senpai.has',
             'senpai.upper',
             'senpai.lower',
+            'senpai.concat',
 
             'array_type.len',
             'array_type.reverse',
@@ -61,6 +62,7 @@ class TypeChecker:
                 'senpai.has': (Declaration(), Token('sama', TokenType.SAMA), GlobalType.CLASS_METHOD),
                 'senpai.upper': (Declaration(), Token('senpai', TokenType.SENPAI), GlobalType.CLASS_METHOD),
                 'senpai.lower': (Declaration(), Token('senpai', TokenType.SENPAI), GlobalType.CLASS_METHOD),
+                'senpai.concat': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
 
                 'array_type.len': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
                 'array_type.reverse': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
@@ -75,6 +77,7 @@ class TypeChecker:
                 'senpai.has': [Token('senpai', TokenType.SENPAI)],
                 'senpai.upper': [],
                 'senpai.lower': [],
+                'senpai.concat': [Token('str', TokenType.STRINGABLE)],
 
                 'array_type.len': [],
                 'array_type.reverse': [],
@@ -636,11 +639,20 @@ class TypeChecker:
             actual_types.append(actual)
             if expected.token == TokenType.ARRAY_ELEMENT:
                 matches.append(self.is_element_of_expected(actual, self_type if self_type.exists() else expected.token, arg))
+            elif expected.token == TokenType.STRINGABLE:
+                matches.append(self.is_stringable(actual))
             else:
                 matches.append(self.is_similar_type(actual.flat_string(), expected.flat_string(), arg, is_call=True))
 
         if not all(matches) or len(call_args) != len(expected_types):
-            expected_types_str: list[str] = [f"{e.token}" if e.token != TokenType.ARRAY_ELEMENT else f"{self_type.to_unit_type()} or {self_type.to_arr_type()}" for e in expected_types ]
+            expected_types_str = []
+            for e in expected_types:
+                if e.token == TokenType.ARRAY_ELEMENT:
+                    expected_types_str.append(f"{self_type.to_unit_type()} or {self_type.to_arr_type()}")
+                elif e.token == TokenType.STRINGABLE:
+                    expected_types_str.append(f"any dtype except san or san[]")
+                else:
+                    expected_types_str.append(f"{e.token}")
             self.errors.append(
                 MismatchedCallArgType(
                     global_type=global_type,
@@ -774,6 +786,10 @@ class TypeChecker:
             return True
 
         return False
+
+    def is_stringable(self, actual_type: TokenType) -> bool:
+        'determines if a type is stringable'
+        return actual_type.flat_string() not in ["san", "san[]"]
 
     def is_accessible(self, actual_type: TokenType) -> bool:
         'determines if a type is accessable'
