@@ -253,11 +253,13 @@ class UniqueTokenType:
         return self.token
 
     def to_arr_type(self):
-        self._token += "[]"
-        return self
+        tmp = deepcopy(self)
+        tmp._token += "[]"
+        return tmp
     def to_unit_type(self):
-        self._token = self._token[:-2] if self._token.endswith("[]") else self._token
-        return self
+        tmp = deepcopy(self)
+        tmp._token = tmp._token[:-2] if tmp.is_arr_type() else tmp._token
+        return tmp
     def is_arr_type(self):
         return self.token.endswith("[]")
     def is_unique_type(self):
