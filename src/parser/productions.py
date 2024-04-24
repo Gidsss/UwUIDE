@@ -418,9 +418,8 @@ class Print(Statement):
 
     def python_string(self, indent=0, cwass=False) -> str:
         res = "print("
-        for v in self.values:
-            res += f"{v.python_string(cwass=cwass)}, "
-        res = res[:-2] + ")"
+        res += f"{', '.join(v.python_string(cwass=cwass) for v in self.values)}"
+        res += ")"
         return sprint(res, indent=indent)
 
 class IfStatement(Statement):
