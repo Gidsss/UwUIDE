@@ -186,7 +186,8 @@ class TokenType(Enum):
     WHITESPACE = ("WHITESPACE", "all")
     EOF = ("EOF", "all")
 
-    MIXED_ARRAY = ("MIXED_ARRAY", "all")
+    # for `append()` type checking
+    GENERAL_ARRAY = ("gen_arr", "all")
 
 class UniqueTokenType:
     """

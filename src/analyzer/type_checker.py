@@ -76,7 +76,7 @@ class TypeChecker:
 
                 'array_type.len': [],
                 'array_type.reverse': [],
-                'array_type.append': [Token('self', TokenType.SELF)],
+                'array_type.append': [Token('gen_arr', TokenType.GENERAL_ARRAY)],
             }
         )
 
@@ -631,13 +631,13 @@ class TypeChecker:
                 case _:
                     actual = self.evaluate_value(arg, local_defs)
             actual_types.append(actual)
-            if expected.token == TokenType.SELF:
+            if expected.token == TokenType.GENERAL_ARRAY:
                 matches.append(self.is_self_type(actual, self_type if self_type.exists() else expected.token))
             else:
                 matches.append(self.is_similar_type(actual.flat_string(), expected.flat_string(), arg, is_call=True))
 
         if not all(matches) or len(call_args) != len(expected_types):
-            expected_types_str: list[str] = [f"{e.token}" if e.token != TokenType.SELF else f"{self_type.to_unit_type()} or {self_type.to_arr_type()}" for e in expected_types ]
+            expected_types_str: list[str] = [f"{e.token}" if e.token != TokenType.GENERAL_ARRAY else f"{self_type.to_unit_type()} or {self_type.to_arr_type()}" for e in expected_types ]
             self.errors.append(
                 MismatchedCallArgType(
                     global_type=global_type,
