@@ -515,7 +515,7 @@ class UndefinedClassMember:
 
 class MismatchedCallArgType:
     def __init__(self, global_type: GlobalType, call_str: str, id: Token, id_definition: Token|None,
-                 expected_types: list[Token], args: list[Value], actual_types: list[TokenType], matches: list[bool]
+                 expected_types: list[str], args: list[Value], actual_types: list[TokenType], matches: list[bool]
                  ) -> None:
         self.global_type = global_type
         self.call_str = call_str
@@ -565,7 +565,7 @@ class MismatchedCallArgType:
         )
         max_type_pad = 4 + len(AnsiColor.RED.value)*2
         if self.expected_types:
-            max_type_pad += max(len(expected.flat_string()) for expected in self.expected_types)
+            max_type_pad += max(len(expected) for expected in self.expected_types)
         msg += f"\t{' ' * max_pad} |\t"
         msg += f'{Styled.sprint("EXPECTED", color=AnsiColor.CYAN):{max_type_pad}} '
         msg += f'{Styled.sprint("ACTUAL", color=AnsiColor.CYAN):{max_type_pad+2}}'
@@ -574,7 +574,7 @@ class MismatchedCallArgType:
             color = AnsiColor.GREEN if matched else AnsiColor.RED
             res = '✓' if matched else '✗'
             msg += f"\t{' ' * max_pad} |\t" + (
-                f"{Styled.sprint(res, expected.flat_string(), color=color):{max_type_pad}} {Styled.sprint('(', actual.flat_string(), ')', color=color):{max_type_pad+2}}"+
+                f"{Styled.sprint(res, expected, color=color):{max_type_pad}} {Styled.sprint('(', actual.flat_string(), ')', color=color):{max_type_pad+2}}"+
                 Styled.sprint(arg.flat_string(), color=color)+
                 "\n"
             )
@@ -589,7 +589,7 @@ class MismatchedCallArgType:
                 )
                 for i in range(len(self.actual_types), len(self.expected_types)):
                     msg += f"\t{' ' * max_pad} |\t" + (
-                        f"{Styled.sprint('✗', self.expected_types[i].flat_string(), color=AnsiColor.RED):{max_type_pad}} {Styled.sprint('(', 'MISSING', ')', color=AnsiColor.RED):{max_type_pad+2}}\n"
+                        f"{Styled.sprint('✗', self.expected_types[i], color=AnsiColor.RED):{max_type_pad}} {Styled.sprint('(', 'MISSING', ')', color=AnsiColor.RED):{max_type_pad+2}}\n"
                     )
             elif actual_len > expected_len:
                 msg += Styled.sprintln(
