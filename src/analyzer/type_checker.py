@@ -52,6 +52,7 @@ class TypeChecker:
             'array_type.len',
             'array_type.reverse',
             'array_type.append',
+            'array_type.has',
         }
         self.class_signatures.update(
             {
@@ -63,6 +64,7 @@ class TypeChecker:
 
                 'array_type.len': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
                 'array_type.reverse': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
+                'array_type.has': (Declaration(), Token('sama', TokenType.SAMA), GlobalType.CLASS_METHOD),
                 'array_type.append': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
             },
         )
@@ -77,6 +79,7 @@ class TypeChecker:
                 'array_type.len': [],
                 'array_type.reverse': [],
                 'array_type.append': [Token('elem', TokenType.ARRAY_ELEMENT)],
+                'array_type.has': [Token('elem', TokenType.ARRAY_ELEMENT)],
             }
         )
 
