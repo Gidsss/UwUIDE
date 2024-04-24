@@ -611,10 +611,11 @@ class TypeChecker:
         all_defs = self.class_signatures.copy()
         all_defs.update(local_defs)
         self.check_call_args(GlobalType.CLASS_METHOD, method_signature, fn_call.id,
-                             fn_call.args, expected_types, all_defs)
+                             fn_call.args, expected_types, all_defs, class_type.token)
         return return_type.token
 
-    def check_call_args(self, global_type: GlobalType, call_str: str, id: Token, call_args: list[Value], expected_types: list[Token], local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> None:
+    def check_call_args(self, global_type: GlobalType, call_str: str, id: Token, call_args: list[Value], expected_types: list[Token],
+                        local_defs: dict[str, tuple[Declaration, Token, GlobalType]], self_type: TokenType = TokenType.EOF) -> None:
         actual_types: list[TokenType] = []
         matches: list[bool] = []
         for arg, expected in zip(call_args, expected_types):
@@ -630,16 +631,20 @@ class TypeChecker:
                 case _:
                     actual = self.evaluate_value(arg, local_defs)
             actual_types.append(actual)
-            matches.append(self.is_similar_type(actual.flat_string(), expected.flat_string(), arg, is_call=True))
+            if expected.token == TokenType.SELF:
+                matches.append(self.is_self_type(actual, self_type if self_type.exists() else expected.token))
+            else:
+                matches.append(self.is_similar_type(actual.flat_string(), expected.flat_string(), arg, is_call=True))
 
         if not all(matches) or len(call_args) != len(expected_types):
+            expected_types_str: list[str] = [f"{e.token}" if e.token != TokenType.SELF else f"{self_type.to_unit_type()} or {self_type.to_arr_type()}" for e in expected_types ]
             self.errors.append(
                 MismatchedCallArgType(
                     global_type=global_type,
-                    call_str=call_str,
+                    call_str=call_str if not self_type.exists() else call_str.replace("array_type", self_type.flat_string()),
                     id=id,
                     id_definition=local_defs[call_str][1] if call_str not in self.builtin_signatures else None,
-                    expected_types=expected_types,
+                    expected_types=expected_types_str,
                     args=call_args,
                     actual_types=actual_types,
                     matches=matches
