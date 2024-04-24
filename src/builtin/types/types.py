@@ -126,6 +126,8 @@ class Array:
         self.val = self.val[::-1]
     def _append(self, item) -> None:
         self.val.append(item)
+    def _has(self, item) -> bool:
+        return item in self.val
 
     ## UTILS
     def valid_array_elems(self) -> list[type]:
