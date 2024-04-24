@@ -294,7 +294,7 @@ class Token:
                 global class_properties
                 res = ""
                 if self.token.is_arr_type(): return "Array"
-                if cwass and self.lexeme in class_properties:
+                if cwass and f"_{self.lexeme}" in class_properties:
                     res = "self."
                 res += f"_{self.lexeme}"
                 return res
