@@ -758,9 +758,9 @@ class TypeChecker:
 
     def is_self_type(self, actual_type: TokenType, expected_type: TokenType) -> bool:
         'determines if a type is self'
-        return (actual_type == expected_type
-            or actual_type.to_unit_type() == expected_type
-            or actual_type.to_arr_type() == expected_type
+        return (actual_type.flat_string() == expected_type.flat_string()
+            or actual_type.to_arr_type().flat_string() == expected_type.flat_string()
+            or actual_type.to_unit_type().flat_string() == expected_type.flat_string()
         )
 
     def is_accessible(self, actual_type: TokenType) -> bool:
