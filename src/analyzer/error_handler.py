@@ -435,10 +435,11 @@ class NonIterableIndexingError:
         return msg
 
 class NonClassAccessError:
-    def __init__(self, id: Token, id_definition: Token|None, usage: str) -> None:
+    def __init__(self, id: Token, id_definition: Token|None, usage: str, initialized=True) -> None:
         self.id = id
         self.id_definition = id_definition
         self.usage = usage
+        self.initialized = initialized
 
     def __str__(self):
         id_index = str(self.id.position[0] + 1)
@@ -462,10 +463,16 @@ class NonClassAccessError:
             msg += f"\t{' ' * max_pad} | |\n"
 
         msg += f"\t{' ' * max_pad} | " f"{'|' if self.id_definition else ''}" "\t"
-        msg += Styled.sprintln(
-            f"Tried to do an access using a non class" f" of type: '{self.id_definition.token}'" if self.id_definition else "",
-            color=AnsiColor.RED
-        )
+        if self.initialized:
+            msg += Styled.sprintln(
+                f"Tried to do an access using a non class" f" of type: '{self.id_definition.token}'" if self.id_definition else "",
+                color=AnsiColor.RED
+            )
+        else:
+            msg += Styled.sprintln(
+                f"Tried to do an access using an uninitialized " f"'{self.id_definition.token}'" if self.id_definition else "variable/constant",
+                color=AnsiColor.RED
+            )
 
         msg += f"\t{id_index:{max_pad}} | " f"{'|' if self.id_definition else ' '}" f"{ErrorSrc.src[self.id.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | " f"{'|' if self.id_definition else ' '}" f"{' ' * self.id.position[1]}{'^' * (len(self.id.flat_string()))}\n"
