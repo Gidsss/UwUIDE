@@ -714,6 +714,8 @@ class TypeChecker:
             actual_types.append(actual)
             if expected.token == TokenType.ARRAY_ELEMENT:
                 matches.append(self.is_element_of_expected(actual, self_type if self_type.exists() else expected.token, arg))
+            elif expected.token == TokenType.GEN_ARRAY:
+                matches.append(self.is_similar_type(actual.flat_string(), self_type.flat_string() if self_type.exists() else expected.flat_string(), arg))
             else:
                 matches.append(self.is_similar_type(actual.flat_string(), expected.flat_string(), arg, is_call=True))
 
