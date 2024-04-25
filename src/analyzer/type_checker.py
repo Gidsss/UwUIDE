@@ -686,8 +686,6 @@ class TypeChecker:
             actual_types.append(actual)
             if expected.token == TokenType.ARRAY_ELEMENT:
                 matches.append(self.is_element_of_expected(actual, self_type if self_type.exists() else expected.token, arg))
-            elif expected.token == TokenType.STRINGABLE:
-                matches.append(self.is_stringable(actual))
             else:
                 matches.append(self.is_similar_type(actual.flat_string(), expected.flat_string(), arg, is_call=True))
 
@@ -696,8 +694,6 @@ class TypeChecker:
             for e in expected_types:
                 if e.token == TokenType.ARRAY_ELEMENT:
                     expected_types_str.append(f"{self_type.to_unit_type()} or {self_type.to_arr_type()}")
-                elif e.token == TokenType.STRINGABLE:
-                    expected_types_str.append(f"any dtype except san or san[]")
                 else:
                     expected_types_str.append(f"{e.token}")
             self.errors.append(
@@ -819,7 +815,7 @@ class TypeChecker:
                 return False
 
     def is_element_of_expected(self, actual_type: TokenType, expected_type: TokenType, val: Value) -> bool:
-        'determines if a type is self'
+        'determines if a type is a valid element of an expected type'
         actual, actual_arr, actual_unit = actual_type.flat_string(), actual_type.to_arr_type().flat_string(), actual_type.to_unit_type().flat_string()
         expected = expected_type.flat_string()
         if (actual == expected
@@ -831,12 +827,7 @@ class TypeChecker:
             and isinstance(val, ArrayLiteral)
             and len(val.elements) == 0):
             return True
-
         return False
-
-    def is_stringable(self, actual_type: TokenType) -> bool:
-        'determines if a type is stringable'
-        return actual_type.flat_string() not in ["san", "san[]"]
 
     def is_accessible(self, actual_type: TokenType) -> bool:
         'determines if a type is accessable'
