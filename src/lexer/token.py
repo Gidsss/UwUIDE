@@ -189,9 +189,6 @@ class TokenType(Enum):
     # for `append()` type checking
     ARRAY_ELEMENT = ("elem", "all")
 
-    # for `concat()` type checking
-    STRINGABLE = ("str", "all")
-
 class UniqueTokenType:
     """
     A class for generating unique token types.
