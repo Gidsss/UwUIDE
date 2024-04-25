@@ -1842,6 +1842,6 @@ class Parser:
         if isinstance(tok, Token) and tok.token.token.startswith("IDENTIFIER"):
             added.add(TokenType.DOT_OP)
         if isinstance(tok, Token) and not tok.token.token.startswith("IDENTIFIER"):
-            added.remove(TokenType.OPEN_BRACKET)
-            added.remove(TokenType.OPEN_PAREN)
+            if TokenType.OPEN_BRACKET in added: added.remove(TokenType.OPEN_BRACKET)
+            if TokenType.OPEN_PAREN in added: added.remove(TokenType.OPEN_PAREN)
         return list(added)
