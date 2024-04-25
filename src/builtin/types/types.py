@@ -165,9 +165,11 @@ class Array:
         return self.val.index(item)
     def _pop(self) -> None:
         if len(self.val) == 0: return
-        self.val.pop()
+        _ = self.val.pop()
     def _prepend(self, item) -> None:
         self.val.insert(0, item)
+    def _prextend(self, item) -> None:
+        self.val = item + self.val
 
     ## UTILS
     def valid_array_elems(self) -> list[type]:

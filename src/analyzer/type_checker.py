@@ -70,6 +70,7 @@ class TypeChecker:
             'array_type.index',
             'array_type.pop',
             'array_type.prepend',
+            'array_type.prextend',
         }
         self.class_signatures.update(
             {
@@ -100,6 +101,7 @@ class TypeChecker:
                 'array_type.index': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
                 'array_type.pop': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
                 'array_type.prepend': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
+                'array_type.prextend': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
             },
         )
         self.class_method_param_types.update(
@@ -131,6 +133,7 @@ class TypeChecker:
                 'array_type.index': [Token('elem', TokenType.ARRAY_ELEMENT)],
                 'array_type.pop': [],
                 'array_type.prepend': [Token('elem', TokenType.ARRAY_ELEMENT)],
+                'array_type.prextend': [Token('gen_arr', TokenType.GEN_ARRAY)],
             }
         )
 
