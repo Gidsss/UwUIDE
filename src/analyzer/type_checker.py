@@ -490,13 +490,23 @@ class TypeChecker:
             id = self.extract_id(accessor).flat_string()
             match accessor.id:
                 case Token() | FnCall() | ClassAccessor():
-                    class_type = local_defs[id][0].dtype
+                    res = local_defs[id][0]
+                    class_type = res.dtype
                     if not class_type.is_unique_type() and not self.is_accessible(class_type.token):
                         self.errors.append(
                             NonClassAccessError(
                                 id=self.extract_id(accessor),
                                 id_definition=class_type,
                                 usage=accessor.flat_string(),
+                            )
+                        )
+                    elif not res.initialized:
+                        self.errors.append(
+                            NonClassAccessError(
+                                id=self.extract_id(accessor),
+                                id_definition=class_type,
+                                usage=accessor.flat_string(),
+                                initialized=False
                             )
                         )
                 case IndexedIdentifier():
