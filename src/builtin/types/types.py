@@ -71,8 +71,9 @@ class String:
         return type(self)(self.val.upper())
     def _lower(self) -> Self:
         return type(self)(self.val.lower())
-    def _concat(self, item: str) -> None:
-        self.val += str(item)
+    def _concat(self, item: str) -> Self:
+        tmp = str(self.val) + str(item)
+        return type(self)(tmp)
     def _prepend(self, item: str) -> Self:
         tmp = str(item) + str(self.val)
         return type(self)(tmp)
