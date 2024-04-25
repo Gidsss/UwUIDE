@@ -73,6 +73,27 @@ class String:
         return type(self)(self.val.lower())
     def _concat(self, item: str) -> None:
         self.val += str(item)
+    def _prepend(self, item: str) -> Self:
+        tmp = str(item) + str(self.val)
+        return type(self)(tmp)
+    def _count(self, item: str) -> int:
+        return self.val.count(str(item))
+    def _endswith(self, item: str) -> bool:
+        return self.val.endswith(str(item))
+    def _startswith(self, item: str) -> bool:
+        return self.val.startswith(str(item))
+    def _index(self, item: str) -> int:
+        return self.val.find(str(item))
+    def _replace(self, old: str, new: str) -> Self:
+        return type(self)(self.val.replace(str(old), str(new)))
+    def _strip(self) -> Self:
+        return type(self)(self.val.strip())
+    def _split(self, item: str) -> list[Self]:
+        return [type(self)(x) for x in self.val.split(str(item))]
+    def _swapcase(self) -> Self:
+        return type(self)(self.val.swapcase())
+    def _title(self) -> Self:
+        return type(self)(self.val.title())
 
     ## UTILS
     def stringable_types(self) -> list[type]:
