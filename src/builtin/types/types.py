@@ -154,6 +154,20 @@ class Array:
         self.val.append(item)
     def _has(self, item) -> bool:
         return item in self.val
+    def _clear(self) -> None:
+        self.val.clear()
+    def _count(self, item) -> int:
+        return self.val.count(item)
+    def _extend(self, item) -> None:
+        self.val.extend(item)
+    def _index(self, item) -> int:
+        if item not in self.val: return -1
+        return self.val.index(item)
+    def _pop(self) -> None:
+        if len(self.val) == 0: return
+        self.val.pop()
+    def _prepend(self, item) -> None:
+        self.val.insert(0, item)
 
     ## UTILS
     def valid_array_elems(self) -> list[type]:

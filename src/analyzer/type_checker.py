@@ -64,6 +64,12 @@ class TypeChecker:
             'array_type.reverse',
             'array_type.append',
             'array_type.has',
+            'array_type.clear',
+            'array_type.count',
+            'array_type.extend',
+            'array_type.index',
+            'array_type.pop',
+            'array_type.prepend',
         }
         self.class_signatures.update(
             {
@@ -88,6 +94,12 @@ class TypeChecker:
                 'array_type.reverse': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
                 'array_type.has': (Declaration(), Token('sama', TokenType.SAMA), GlobalType.CLASS_METHOD),
                 'array_type.append': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
+                'array_type.clear': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
+                'array_type.count': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
+                'array_type.extend': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
+                'array_type.index': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
+                'array_type.pop': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
+                'array_type.prepend': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
             },
         )
         self.class_method_param_types.update(
@@ -113,6 +125,12 @@ class TypeChecker:
                 'array_type.reverse': [],
                 'array_type.append': [Token('elem', TokenType.ARRAY_ELEMENT)],
                 'array_type.has': [Token('elem', TokenType.ARRAY_ELEMENT)],
+                'array_type.clear': [],
+                'array_type.count': [Token('elem', TokenType.ARRAY_ELEMENT)],
+                'array_type.extend': [Token('gen_arr', TokenType.GEN_ARRAY)],
+                'array_type.index': [Token('elem', TokenType.ARRAY_ELEMENT)],
+                'array_type.pop': [],
+                'array_type.prepend': [Token('elem', TokenType.ARRAY_ELEMENT)],
             }
         )
 
