@@ -188,6 +188,8 @@ class TokenType(Enum):
 
     # for `append()` type checking
     ARRAY_ELEMENT = ("elem", "all")
+    # for `extend()` type checking
+    GEN_ARRAY = ("gen_arr", "all")
 
 class UniqueTokenType:
     """
