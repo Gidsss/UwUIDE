@@ -25,7 +25,7 @@ class SemanticError:
     @abstractmethod
     def __str__(self) -> str: ...
     @abstractmethod
-    def position(self) -> tuple[int, int]: ...
+    def position(self) -> tuple[int, int]|None: ...
     @abstractmethod
     def string(self) -> str: ...
 
@@ -35,6 +35,9 @@ class DuplicateDefinitionError(SemanticError):
         self.duplicate = duplicate
         self.original_type = original_type
         self.duplicate_type = duplicate_type
+
+    def position(self) -> tuple[int, int]|None:
+        return self.duplicate.position
 
     def __str__(self):
         index_str = str(self.original.position[0] + 1)
@@ -71,6 +74,9 @@ class NonFunctionIdCall(SemanticError):
         self.original = original
         self.called = called
 
+    def position(self) -> tuple[int, int]|None:
+        return self.called.position
+
     def __str__(self):
         index_str = str(self.original.position[0] + 1)
         dupe_index = str(self.called.position[0] + 1)
@@ -105,6 +111,9 @@ class FunctionAssignmentError(SemanticError):
         self.original = original
         self.assignment = assignment
         self.class_signature = class_signature
+
+    def position(self) -> tuple[int, int]|None:
+        return self.assignment.position
 
     def __str__(self):
         index_str = str(self.original.position[0] + 1) if self.original else ""
@@ -148,6 +157,9 @@ class UndefinedError(SemanticError):
         self.token = token
         self.gtype = gtype
 
+    def position(self) -> tuple[int, int]|None:
+        return self.token.position
+
     def __str__(self):
         index_str = str(self.token.position[0] + 1)
         max_pad = len(index_str)
@@ -173,6 +185,9 @@ class ReassignedConstantError:
         self.defined_token = defined_token
         self.header = header
         self.msg = token_msg
+
+    def position(self) -> tuple[int, int]|None:
+        return self.token.position
 
     def __str__(self):
         index_str = str(self.token.position[0] + 1)
@@ -212,6 +227,9 @@ class ReturnTypeMismatchError(SemanticError):
         self.expected = expected
         self.return_stmt = return_stmt
         self.actual_type = actual_type
+
+    def position(self) -> tuple[int, int]|None:
+        return self.expected.position
 
     def __str__(self):
         expected_index = str(self.expected.position[0] + 1)
@@ -254,6 +272,9 @@ class TypeMismatchError(SemanticError):
         self.context = context
         self.title = title # if None, its a declaration, if true, its an assignment
 
+    def position(self) -> tuple[int, int]|None:
+        return extract_id(self.context.id).position
+
     def __str__(self):
         index_str = str(self.expected.position[0] + 1)
         assign_index_str = (str(extract_id(self.context.id).position[0] + 1) + '..n') if self.title else 'rhs'
@@ -293,6 +314,9 @@ class PrePostFixOperandError(SemanticError):
         self.val_type = val_type
         self.header = header
         self.postfix = postfix
+
+    def position(self) -> tuple[int, int]|None:
+        return None
 
     def __str__(self):
         op_index = str(self.op.position[0] + 1)
@@ -337,6 +361,9 @@ class InfixOperandError(SemanticError):
         self.left_type = left_type
         self.right_type = right_type
         self.header = header
+
+    def position(self) -> tuple[int, int]|None:
+        return None
 
     def __str__(self):
         op_str = str(self.op.position[0] + 1)
@@ -412,6 +439,9 @@ class NonIterableIndexingError(SemanticError):
         self.token_type = token_type
         self.usage = usage
 
+    def position(self) -> tuple[int, int]|None:
+        return self.token.position
+
     def __str__(self):
         tok_index = str(self.token.position[0] + 1)
         def_index = str(self.type_definition.position[0] + 1)
@@ -449,6 +479,9 @@ class NonClassAccessError(SemanticError):
         self.id_definition = id_definition
         self.usage = usage
         self.initialized = initialized
+
+    def position(self) -> tuple[int, int]|None:
+        return self.id.position
 
     def __str__(self):
         id_index = str(self.id.position[0] + 1)
@@ -499,6 +532,9 @@ class UndefinedClassMember(SemanticError):
         self.member_type = member_type
         self.actual_definition, self.actual_type = actual_definition
 
+    def position(self) -> tuple[int, int]|None:
+        return self.property.position
+
     def __str__(self):
         property_index = str(self.property.position[0] + 1)
         max_pad = len(property_index)
@@ -541,6 +577,9 @@ class MismatchedCallArgType(SemanticError):
         self.args = args
         self.actual_types = actual_types
         self.matches = matches
+
+    def position(self) -> tuple[int, int]|None:
+        return self.id.position
 
     def __str__(self):
         id_index = str(self.id.position[0] + 1)
@@ -630,6 +669,9 @@ class HeterogeneousArrayError(SemanticError):
         self.vals = vals
         self.types = types
 
+    def position(self) -> tuple[int, int] | None:
+        return None
+
     def __str__(self):
         max_pad = 3
         max_len = len(self.arr.flat_string())
@@ -671,6 +713,9 @@ class NoReturnStatement(SemanticError):
     def __init__(self, func: Function, cwass:str|None=None):
         self.func = func
         self.cwass = cwass
+
+    def position(self) -> tuple[int, int] | None:
+        return self.func.id.position
 
     def __str__(self):
         last_stmt = final_statement(self.func.body) + 1
