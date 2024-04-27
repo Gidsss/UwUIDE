@@ -20,7 +20,16 @@ class GlobalType(Enum):
 class ErrorSrc:
     src = [""]
 
-class DuplicateDefinitionError:
+# base abstract class for all error types
+class SemanticError:
+    @abstractmethod
+    def __str__(self) -> str: ...
+    @abstractmethod
+    def position(self) -> tuple[int, int]: ...
+    @abstractmethod
+    def string(self) -> str: ...
+
+class DuplicateDefinitionError(SemanticError):
     def __init__(self, original: Token, original_type: GlobalType, duplicate: Token, duplicate_type: GlobalType):
         self.original = original
         self.duplicate = duplicate
@@ -57,7 +66,7 @@ class DuplicateDefinitionError:
 
         return msg
 
-class NonFunctionIdCall:
+class NonFunctionIdCall(SemanticError):
     def __init__(self, original: Token, called: Token):
         self.original = original
         self.called = called
@@ -91,7 +100,7 @@ class NonFunctionIdCall:
         msg += border
         return msg
 
-class FunctionAssignmentError:
+class FunctionAssignmentError(SemanticError):
     def __init__(self, original: Token|None, assignment: Token, class_signature: str|None = None):
         self.original = original
         self.assignment = assignment
@@ -134,7 +143,7 @@ class FunctionAssignmentError:
         msg += border
         return msg
 
-class UndefinedError:
+class UndefinedError(SemanticError):
     def __init__(self, token: Token, gtype: GlobalType) -> None:
         self.token = token
         self.gtype = gtype
@@ -198,7 +207,7 @@ class ReassignedConstantError:
 
         return msg
 
-class ReturnTypeMismatchError:
+class ReturnTypeMismatchError(SemanticError):
     def __init__(self, expected: Token, return_stmt: ReturnStatement, actual_type: TokenType) -> None:
         self.expected = expected
         self.return_stmt = return_stmt
@@ -236,7 +245,7 @@ class ReturnTypeMismatchError:
         msg += border
         return msg
 
-class TypeMismatchError:
+class TypeMismatchError(SemanticError):
     def __init__(self, expected: Token, actual_val: Value, actual_type: TokenType,
                  context: Assignment|Declaration, title: str) -> None:
         self.expected = expected
@@ -276,7 +285,7 @@ class TypeMismatchError:
         msg += border
         return msg
 
-class PrePostFixOperandError:
+class PrePostFixOperandError(SemanticError):
     def __init__(self, op: Token, val: Value, val_definition: Token|None, val_type: TokenType, header: str, postfix=False) -> None:
         self.op = op
         self.val = val
@@ -317,7 +326,7 @@ class PrePostFixOperandError:
         msg += border
         return msg
 
-class InfixOperandError:
+class InfixOperandError(SemanticError):
     def __init__(self, op: Token, left: tuple[Value, Token|None], 
                  right: tuple[Value, Token|None],
                  left_type: TokenType|None, right_type: TokenType|None,
@@ -396,7 +405,7 @@ class InfixOperandError:
         msg += border + '\n'
         return msg
 
-class NonIterableIndexingError:
+class NonIterableIndexingError(SemanticError):
     def __init__(self, token: Token, type_definition: Token, token_type: TokenType, usage: str) -> None:
         self.token = token
         self.type_definition = type_definition
@@ -434,7 +443,7 @@ class NonIterableIndexingError:
         msg += border
         return msg
 
-class NonClassAccessError:
+class NonClassAccessError(SemanticError):
     def __init__(self, id: Token, id_definition: Token|None, usage: str, initialized=True) -> None:
         self.id = id
         self.id_definition = id_definition
@@ -482,7 +491,7 @@ class NonClassAccessError:
         msg += border
         return msg
 
-class UndefinedClassMember:
+class UndefinedClassMember(SemanticError):
     def __init__(self, cwass: str, property: Token, member_type: GlobalType,
                  actual_definition: tuple[Token|None, GlobalType|None]=(None, None)) -> None:
         self.cwass = cwass
@@ -520,7 +529,7 @@ class UndefinedClassMember:
         msg += border
         return msg
 
-class MismatchedCallArgType:
+class MismatchedCallArgType(SemanticError):
     def __init__(self, global_type: GlobalType, call_str: str, id: Token, id_definition: Token|None,
                  expected_types: list[str], args: list[Value], actual_types: list[TokenType], matches: list[bool]
                  ) -> None:
@@ -615,7 +624,7 @@ class MismatchedCallArgType:
         msg += border
         return msg
 
-class HeterogeneousArrayError:
+class HeterogeneousArrayError(SemanticError):
     def __init__(self, arr: ArrayLiteral, vals: list[Value], types: list[str]):
         self.arr = arr
         self.vals = vals
@@ -658,7 +667,7 @@ class HeterogeneousArrayError:
         msg += border
         return msg
 
-class NoReturnStatement:
+class NoReturnStatement(SemanticError):
     def __init__(self, func: Function, cwass:str|None=None):
         self.func = func
         self.cwass = cwass
