@@ -1,5 +1,3 @@
-from typing import Self
-
 class String:
     def __init__(self, val: str):
         expect_type_is_in(val, self.stringable_types(),
@@ -63,18 +61,18 @@ class String:
     ## BUILTIN METHODS
     def _len(self) -> int:
         return self.__len__()
-    def _reversed(self) -> Self:
+    def _reversed(self) -> "String":
         return type(self)(self.val[::-1])
     def _has(self, item: str) -> bool:
         return str(item) in self.val
-    def _upper(self) -> Self:
+    def _upper(self) -> "String":
         return type(self)(self.val.upper())
-    def _lower(self) -> Self:
+    def _lower(self) -> "String":
         return type(self)(self.val.lower())
-    def _concat(self, item: str) -> Self:
+    def _concat(self, item: str) -> "String":
         tmp = str(self.val) + str(item)
         return type(self)(tmp)
-    def _prepend(self, item: str) -> Self:
+    def _prepend(self, item: str) -> "String":
         tmp = str(item) + str(self.val)
         return type(self)(tmp)
     def _count(self, item: str) -> int:
@@ -85,15 +83,15 @@ class String:
         return self.val.startswith(str(item))
     def _index(self, item: str) -> int:
         return self.val.find(str(item))
-    def _replace(self, old: str, new: str) -> Self:
+    def _replace(self, old: str, new: str) -> "String":
         return type(self)(self.val.replace(str(old), str(new)))
-    def _strip(self) -> Self:
+    def _strip(self) -> "String":
         return type(self)(self.val.strip())
-    def _split(self, item: str) -> list[Self]:
+    def _split(self, item: str) -> list["String"]:
         return [type(self)(x) for x in self.val.split(str(item))]
-    def _swapcase(self) -> Self:
+    def _swapcase(self) -> "String":
         return type(self)(self.val.swapcase())
-    def _title(self) -> Self:
+    def _title(self) -> "String":
         return type(self)(self.val.title())
 
     ## UTILS
