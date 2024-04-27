@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 import tempfile
 import subprocess
+import threading
 
 from constants.path import BUILTIN_TYPES
 
@@ -19,21 +20,30 @@ class Compiler:
         return Path(filename).stem
 
     def compile(self):
-        with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
-            f.write(self.source)
-            tmp_file_path = f.name
-        subprocess.run(['pyinstaller',
-                        '--name', f'{self.filename}.exe',
-                        '--onefile', tmp_file_path,
-                        '--specpath', f'./build/{self.filename}',
-                        ])
-        os.remove(tmp_file_path)
+        def compile_thread():
+            with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
+                f.write(self.source)
+                tmp_file_path = f.name
+
+            compile_command = ['pyinstaller', '--noconfirm', '--log-level=ERROR', '--name', f'{self.filename}.exe', '--onefile', tmp_file_path]
+            subprocess.run(compile_command, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+            os.remove(tmp_file_path) 
+
+        # Start the compilation in a separate thread
+        thread = threading.Thread(target=compile_thread)
+        thread.start()
 
     def run(self):
-        exe_name = f"{self.filename}.exe"
-        exe_path = Path("./dist") / exe_name
-        subprocess.run([exe_path])
-
+        # Ensure this method is thread-safe if interacting with the GUI
+        exe_path = Path("./dist") / f"{self.filename}.exe"
+        if exe_path.exists():
+            # Command to open a new cmd prompt and run the executable
+            run_command = f'cmd /c start cmd.exe /k "{exe_path}"'
+            threading.Thread(target=lambda: subprocess.run(run_command, shell=True)).start()
+        else:
+            print("Executable not found.") # for debugging
+        
     def run_python(self):
         with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
             f.write(self.source)

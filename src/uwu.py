@@ -128,6 +128,7 @@ class UwU(CTk):
     def on_compiler_run(self, code_editor: CodeEditor):
         code_editor.run_lexer()
         code_editor.run_parser()
+        code_editor.compile_and_run()
         self.analyzer_panel.update_lexer(tokens=code_editor.tokens)
         
         if code_editor.program:
@@ -145,4 +146,4 @@ if __name__ == "__main__":
     app = UwU()  
     app.mainloop()
 
-# Version 0.1.1
+# Version 0.2.1

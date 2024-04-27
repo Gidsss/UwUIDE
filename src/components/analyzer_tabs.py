@@ -3,6 +3,7 @@ from tkinter import ttk
 from customtkinter import *
 from .lexer_table import LexerCanvas
 from src.parser import Production, Program
+from src.compiler import Compiler
 
 class UwUParserTab(CTkScrollableFrame):
     def __init__(self, master, **kwargs):
@@ -64,6 +65,10 @@ class UwUParserTab(CTkScrollableFrame):
             self.tree.insert('', 'end', text='Classes', iid=3, open=True)
             for c in program.classes:
                 loop_tree(node=c, parent='3')
+    def update_parser_tree_and_run(self, program: Program, compiler: Compiler):
+        self.update_parser_tree(program)  # Update the UI with the parsed tree first
+        self.master.update_idletasks() 
+        self.master.after(1000, compiler.run)  # Schedule the compiler.run after a delay
 
 class UwULexerTab(CTkScrollableFrame):
     def __init__(self, master, **kwargs):

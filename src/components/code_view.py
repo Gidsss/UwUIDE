@@ -4,6 +4,8 @@ from constants.path import *
 
 from src.lexer import Lexer, Token, Error
 from src.parser import Parser, ErrorSrc
+from src.analyzer import MemberAnalyzer, TypeChecker
+from src.compiler import Compiler
 
 from enum import Enum
 from PIL import Image
@@ -148,6 +150,38 @@ class CodeEditor(CTkFrame):
             self.p_errors = p.errors
         else:
             self.p_errors = []
+
+    def compile_and_run(self):
+        self.run_lexer()
+        if self.lx_errors:
+            # Display lexer errors in UI
+            self.display_errors(self.lx_errors)
+            return
+
+        self.run_parser()
+        if self.p_errors:
+            # Display parser errors in UI
+            self.display_errors(self.p_errors)
+            return
+
+        if self.program:
+            # Analyze program using MemberAnalyzer and TypeChecker
+            ma = MemberAnalyzer(self.program)
+            if ma.errors:
+                # Display member analyzer errors in UI
+                self.display_errors(ma.errors)
+                return
+
+            tc = TypeChecker(self.program)
+            if tc.errors:
+                # Display type checker errors in UI
+                self.display_errors(tc.errors)
+                return
+
+            # If no errors, proceed with compilation
+            c = Compiler(self.program.python_string(), "output.uwu") 
+            c.compile()
+            c.run()
 
     def format(self, tag: str, start_pos: tuple[int, int], end_pos: tuple[int, int] = None):
         """
