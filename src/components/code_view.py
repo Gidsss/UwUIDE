@@ -1,9 +1,15 @@
+import subprocess
+import threading
+
 from customtkinter import *
 from tkinter import *
 from constants.path import *
 
 from src.lexer import Lexer, Token, Error
 from src.parser import Parser, ErrorSrc
+from src.analyzer import MemberAnalyzer, TypeChecker
+from src.analyzer.error_handler import ErrorSrc as AnalyzerErrorSrc
+from src.compiler import Compiler
 
 from enum import Enum
 from PIL import Image
@@ -70,15 +76,20 @@ class Tags(Enum):
 
 
 class CodeEditor(CTkFrame):
-    def __init__(self, master, lexer: Lexer, parser: Parser, **kwargs):
+    def __init__(self, master, filename, lexer: Lexer, parser: Parser, analyzer: MemberAnalyzer, type_checker: TypeChecker, **kwargs):
         super().__init__(master, **kwargs)
 
+        self.filename: str = filename
         self.lexer = lexer
         self.parser = parser
+        self.analyzer = analyzer
+        self.type_checker = type_checker
         self.tokens: list[Token] = []
         self.program = None
+        self.transpiled_program = None
         self.lx_errors: list[Error] = []
         self.p_errors: list[Error] = []
+        self.a_errors = []
 
         self.grid_columnconfigure(0, weight=1)
         self.grid_columnconfigure(1, weight=25)
@@ -123,7 +134,7 @@ class CodeEditor(CTkFrame):
         e.widget.insert(INSERT, " " * 6)
         return 'break'
 
-    def run_lexer(self):
+    def run_lexer(self) -> bool:
         self.source_code = [v if v else v + '\n' for v in self.text.get('1.0', 'end-1c').split('\n')]
         lx: Lexer = self.lexer(self.source_code)
 
@@ -132,11 +143,16 @@ class CodeEditor(CTkFrame):
 
         if(len(self.lx_errors) > 0 and self.program):
             self.program = None
+            self.transpiled_program = None
             self.p_errors = []
-
-        Remote.code_editor_instance = self
-
-    def run_parser(self):
+            self.a_errors = []
+        else:
+            Remote.code_editor_instance = self
+            return True
+        
+        return False
+ 
+    def run_parser(self) -> bool:
         if len(self.lx_errors) > 0:
             return
         
@@ -148,6 +164,52 @@ class CodeEditor(CTkFrame):
             self.p_errors = p.errors
         else:
             self.p_errors = []
+            return True
+        
+        return False
+
+    def run_analyzer(self) -> bool:
+        if len(self.p_errors) > 0 or not self.program:
+            return
+        
+        AnalyzerErrorSrc.src = self.source_code
+        ma = self.analyzer(self.program)
+        if ma.errors:
+            self.a_errors = ma.errors
+        else:
+            self.a_errors = []
+
+        tc = self.type_checker(self.program)
+        if tc.errors:
+            self.a_errors = tc.errors
+        else:
+            self.a_errors = []
+        
+        if len(self.a_errors) == 0:
+            self.transpiled_program = self.program.python_string()
+            return True
+        else: 
+            self.transpiled_program = None
+
+        return False
+
+    def compile_and_run(self, editor, compiler_status, update_logs_callback):
+        filename = self.filename.split('.')[0]
+        c = Compiler(py_source=self.transpiled_program, filename=self.filename)
+        c.compile()
+
+        exe_name = f"{filename}.exe"
+        exe_path = Path("./dist") / exe_name
+        if exe_path.exists():
+            cmd = f"cmd /c start cmd.exe /k {exe_path}"
+            subprocess.run([cmd], shell=True)
+
+        compiler_status.is_compiling = False
+        update_logs_callback(editor=editor, is_compiling=compiler_status.is_compiling)
+
+    def start(self, editor, compiler_status, update_logs_callback):
+        compile_thread = threading.Thread(target=lambda: self.compile_and_run(editor=editor, compiler_status=compiler_status, update_logs_callback=update_logs_callback), name="UwU Compile", daemon=True)
+        compile_thread.start()
 
     def format(self, tag: str, start_pos: tuple[int, int], end_pos: tuple[int, int] = None):
         """
@@ -232,7 +294,7 @@ class CodeView(CTkTabview):
         tab.grid_columnconfigure((0, 1), weight=1)
         tab.grid_rowconfigure((0, 1), weight=1)
 
-        code_editor = CodeEditor(master=tab, fg_color='transparent', lexer=Lexer, parser=Parser)
+        code_editor = CodeEditor(master=tab, filename=file_name, fg_color='transparent', lexer=Lexer, parser=Parser, analyzer=MemberAnalyzer, type_checker=TypeChecker)
         code_editor.grid(row=0, column=0, rowspan=2, columnspan=2, sticky='nsew')
         self.bind_esc(editor=code_editor, file_name=file_name)
         self.code_editors[file_name] = code_editor

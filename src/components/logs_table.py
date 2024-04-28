@@ -3,10 +3,10 @@ from src.lexer.lexer import Error, DelimError
 from src.components.code_view import Tags, Remote
 
 class LogsTable(CTkFrame):
-    def __init__(self, master, logs: list[Error], **kwargs):
+    def __init__(self, master, logs, **kwargs):
         super().__init__(master, **kwargs)
 
-        self.logs: list[Error] = logs
+        self.logs = logs
         
         self.rows = tuple([v for v in range(len(self.logs))]) if len(self.logs) > 0 else (0,1,2,3,4)
         self.grid_columnconfigure((0,1,2,3,4,5,6,7,8,9,10), weight=1)
@@ -17,20 +17,31 @@ class LogsTable(CTkFrame):
 
         for row in range(len(self.logs)):
             # TODO: Change render on Integ
-            start_pos = line, col = self.logs[row].position
-            end_pos = None if isinstance(self.logs[row], DelimError) else self.logs[row].end_position
-            line_label = CTkLabel(master=self, text=line + 1, fg_color='transparent', font=('JetBrains Mono', 10), text_color='#FFFFFF', anchor='n')
+            start_pos = None
+            end_pos = None
+
+            line_label = None
+            try:
+                start_pos = line, col = self.logs[row].position
+                end_pos = None if isinstance(self.logs[row], DelimError) else self.logs[row].end_position
+
+                line_label = CTkLabel(master=self, text=line + 1, fg_color='transparent', font=('JetBrains Mono', 10), text_color='#FFFFFF', anchor='n')
+            except:
+                line_label = CTkLabel(master=self, text='-', fg_color='transparent', font=('JetBrains Mono', 10), text_color='#FFFFFF', anchor='n')
+
             self.line_labels.append(line_label)
+            line_label.grid(row=row, column=0, sticky='nsew', padx=32, pady=8)
 
             log_message_label = CTkLabel(master=self, text=self.logs[row], fg_color='transparent', font=('JetBrains Mono', 10), text_color='#ff5349', anchor='nw', justify="left")
             self.log_message_labels.append(log_message_label)
 
              # Bind callbacks
-            log_message_label.bind("<Enter>", lambda ev, sp=start_pos, ep=end_pos: self.code_editor.format(
-                Tags.ERROR_HIGHLIGHT.name, sp, ep
-            ))
-            log_message_label.bind("<Leave>", lambda ev: self.code_editor.clear_format())
-            line_label.grid(row=row, column=0, sticky='nsew', padx=32, pady=8)
+            if(start_pos or end_pos):
+                log_message_label.bind("<Enter>", lambda ev, sp=start_pos, ep=end_pos: self.code_editor.format(
+                    Tags.ERROR_HIGHLIGHT.name, sp, ep
+                ))
+                log_message_label.bind("<Leave>", lambda ev: self.code_editor.clear_format())
+
             log_message_label.grid(row=row, column=1, sticky='nsew', columnspan=9, pady=8)
     
     def delete_labels(self):
