@@ -1197,11 +1197,10 @@ class NonNumberIndex:
         self.ok = ok
 
     def __str__(self) -> str:
-        indexed_id_token = extract_id(self.indexed_id)
-        indexed_id_index = str(indexed_id_token.position[0] + 1)
+        indexed_id_index = str(extract_id(self.indexed_id).position[0] + 1)
         max_pad = len(indexed_id_index) + 3
-        max_len = len(ErrorSrc.src[indexed_id_token.position[0]])
-        border = f"\t{'_' * (max_len + 3 + max_pad)}\n"
+        max_len = len(self.indexed_id.flat_string())
+        border = f"\t{'_' * (max_len + 6 + max_pad)}\n"
 
         msg = f"Non Number Indexing: '{self.indexed_id.flat_string()}'\n"
         msg += border
@@ -1224,6 +1223,17 @@ class NonNumberIndex:
                 f"{res} {dtype.flat_string():{dtype_pad}}{index.flat_string()}",
                 color=AnsiColor.GREEN if ok else AnsiColor.RED
             )
+        msg += f"\t{' ' * max_pad} |\n"
+        msg += f"\t{' ' * max_pad} |    "
+        msg += Styled.sprintln(
+            "Hint: Only number types can be used as indices.",
+            color=AnsiColor.CYAN
+        )
+        msg += f"\t{' ' * max_pad} |    "
+        msg += Styled.sprintln(
+            "chan, kun, sama",
+            color=AnsiColor.CYAN
+        )
         msg += border
         return msg
 
