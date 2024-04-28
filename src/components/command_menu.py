@@ -20,18 +20,18 @@ class CommandMenu(CTkFrame):
         self.uwuLabel = CTkLabel(master=self, image=self.uwuBgImage, text='')
         self.uwuLabel.grid(row=0, column=0, sticky='nsew', columnspan=2)
 
-        self.runBgImage = CTkImage(light_image=Image.open(f"{RUN_ASSET}"))
-        self.runButton = CTkButton(
+        self.compileAndRunBgImage = CTkImage(light_image=Image.open(f"{RUN_ASSET}"))
+        self.compileAndRunButton = CTkButton(
             master=self,
-            image=self.runBgImage,
+            image=self.compileAndRunBgImage,
             fg_color='#1A1B26',
-            text='Run',
+            text='Compile & Run',
             font=('JetBrains Mono', 12),
             width=99,
             height=30,
-            command=lambda : self.parent.on_compiler_run(code_editor=self.code_view.editor)
+            command=lambda : self.parent.on_compile_and_run(code_editor=self.code_view.editor)
         )
-        self.runButton.grid(row=0, column=13, sticky='', columnspan=1)
+        self.compileAndRunButton.grid(row=0, column=13, sticky='', columnspan=1)
 
         self.saveBgImage = CTkImage(light_image=Image.open(f"{SAVE_ASSET}"))
         self.saveButton = CTkButton(
