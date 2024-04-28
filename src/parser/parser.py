@@ -1153,7 +1153,9 @@ class Parser:
             tmp = IndexedIdentifier()
             tmp.id = ident
             ident = tmp
-            if (idx := self.parse_expression(LOWEST)) is None:
+            limit = self.expected_prefix.copy()
+            limit.remove(TokenType.DASH)
+            if (idx := self.parse_expression(LOWEST, limit_to=limit)) is None:
                 return None
             if not self.expect_peek(TokenType.CLOSE_BRACKET):
                 self.expected_error([TokenType.CLOSE_BRACKET, *self.error_context(idx)])
