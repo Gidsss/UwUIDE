@@ -610,30 +610,30 @@ class TypeChecker:
                                 )
                             )
                             return TokenType.SAN
-                        return_type, _, member_type = res
+                        _, return_type, member_type = res
                         if member_type != GlobalType.CLASS_PROPERTY:
                             self.errors.append(
                                 UndefinedClassMember(
                                     class_type.flat_string(),
                                     accessed,
                                     GlobalType.CLASS_PROPERTY,
-                                    actual_definition=(return_type.id, member_type),
+                                    actual_definition=(return_type, member_type),
                                 )
                             )
                             return TokenType.SAN
-                        if not self.is_accessible(return_type.id.token):
+                        if not self.is_accessible(return_type.token):
                             token = self.extract_id(accessed)
                             type_definition = self.class_signatures[member_signature][0]
                             self.errors.append(
                                 NonIterableIndexingError(
                                     token=token,
                                     type_definition=type_definition.id,
-                                    token_type=return_type.id.token,
+                                    token_type=return_type.token,
                                     usage=accessed.flat_string(),
                                 )
                             )
                             return TokenType.SAN
-                        return return_type.id.token
+                        return return_type.token.to_unit_type()
                     case FnCall():
                         return self.evaluate_method_call(class_type, accessed, local_defs)
                     case _:
