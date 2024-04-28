@@ -469,8 +469,22 @@ class TypeChecker:
     def evaluate_ident_prods(self, ident_prod: IdentifierProds, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> TokenType:
         match ident_prod:
             case IndexedIdentifier():
+                dtypes: list[TokenType] = []
+                ok: list[bool] = []
                 for idx in ident_prod.index:
-                    self.evaluate_value(idx, local_defs)
+                    dtype = self.evaluate_value(idx, local_defs)
+                    dtypes.append(dtype)
+                    ok.append(self.is_similar_type(dtype.flat_string(), TokenType.CHAN.flat_string(), idx, as_index=True))
+                if not all(ok):
+                    self.errors.append(
+                        NonNumberIndex(
+                            indexed_id=ident_prod,
+                            indices=ident_prod.index,
+                            actual_types=dtypes,
+                            ok=ok,
+                        )
+                    )
+
                 match ident_prod.id:
                     case Token():
                         arr_type = self.evaluate_token(ident_prod.id, local_defs)
