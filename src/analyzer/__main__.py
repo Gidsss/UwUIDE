@@ -53,7 +53,6 @@ if __name__ == "__main__":
             print(err)
         exit(1)
 
-    print(p.errors)
     ErrorSrc.src = source
     ma = MemberAnalyzer(p.program)
     if ma.errors:
