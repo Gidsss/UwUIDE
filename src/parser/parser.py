@@ -295,7 +295,7 @@ class Parser:
         # -dono to indicate constant
         if self.expect_peek(TokenType.DASH):
             if for_loop_init:
-                expecteds = [TokenType.ASSIGNMENT_OPERATOR] + ([TokenType.OPEN_BRACKET] if not d.dtype.is_arr_type() else [])
+                expecteds = [TokenType.ASSIGNMENT_OPERATOR] + ([TokenType.OPEN_BRACE] if not d.dtype.is_arr_type() else [])
                 self.expected_error(expecteds, curr=True)
                 self.advance()
                 return None
@@ -310,7 +310,7 @@ class Parser:
         d.initialized = False
         if not self.expect_peek(TokenType.ASSIGNMENT_OPERATOR):
             if for_loop_init:
-                expecteds = [TokenType.ASSIGNMENT_OPERATOR] + ([TokenType.OPEN_BRACKET] if not d.dtype.is_arr_type() else [])
+                expecteds = [TokenType.ASSIGNMENT_OPERATOR] + ([TokenType.OPEN_BRACE] if not d.dtype.is_arr_type() else [])
                 self.expected_error(expecteds)
                 self.advance(2)
                 return None
@@ -319,7 +319,7 @@ class Parser:
                     expecteds =[TokenType.TERMINATOR, TokenType.ASSIGNMENT_OPERATOR] 
                     if not d.dono_token.exists():
                         if not d.dtype.is_arr_type():
-                            expecteds.append(TokenType.OPEN_BRACKET)
+                            expecteds.append(TokenType.OPEN_BRACE)
                         expecteds.append(TokenType.DASH)
                     self.expected_error(expecteds)
                     self.advance(2)
@@ -1101,7 +1101,7 @@ class Parser:
         ident = self.curr_tok
         is_call = False
 
-        if not self.peek_tok_is_in([TokenType.OPEN_PAREN, TokenType.DOT_OP, TokenType.OPEN_BRACKET]):
+        if not self.peek_tok_is_in([TokenType.OPEN_PAREN, TokenType.DOT_OP, TokenType.OPEN_BRACE]):
             return ident
 
         if self.peek_tok_is(TokenType.OPEN_PAREN):
@@ -1143,7 +1143,7 @@ class Parser:
                 return None
 
         # array indexing, keep looping until curr tok is not close bracket
-        if self.peek_tok_is(TokenType.OPEN_BRACKET):
+        if self.peek_tok_is(TokenType.OPEN_BRACE):
             if not expr and is_call:
                 self.peek_error(TokenType.TERMINATOR)
                 self.advance(2)
@@ -1157,18 +1157,18 @@ class Parser:
             limit.remove(TokenType.DASH)
             if (idx := self.parse_expression(LOWEST, limit_to=limit)) is None:
                 return None
-            if not self.expect_peek(TokenType.CLOSE_BRACKET):
-                self.expected_error([TokenType.CLOSE_BRACKET, *self.error_context(idx)])
+            if not self.expect_peek(TokenType.CLOSE_BRACE):
+                self.expected_error([TokenType.CLOSE_BRACE, *self.error_context(idx)])
                 return None
 
             ident.index.append(idx)
             # if more indexing exists
-            while self.expect_peek(TokenType.OPEN_BRACKET):
+            while self.expect_peek(TokenType.OPEN_BRACE):
                 self.advance()
                 if (idx := self.parse_expression(LOWEST)) is None:
                     return None
-                if not self.expect_peek(TokenType.CLOSE_BRACKET):
-                    self.expected_error([TokenType.CLOSE_BRACKET, *self.error_context(idx)])
+                if not self.expect_peek(TokenType.CLOSE_BRACE):
+                    self.expected_error([TokenType.CLOSE_BRACE, *self.error_context(idx)])
                     return None
                 ident.index.append(idx)
 
