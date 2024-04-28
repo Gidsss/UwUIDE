@@ -37,7 +37,7 @@ DELIMS = {
     'close_brace': {'}', '~', ' ', ',', ')', '\n', '>', '&', *ATOMS['general_operator'], '!', '|'},
     'open_parenthesis': {'{', *ATOMS['number'], *ATOMS['alpha'], ' ', '-', '\n', '>', '(', ')', '"'},
     'id': {'{', '\n', ' ', '~', ',', '(', ')', '[', ']', '}', *ATOMS['general_operator'], '!', r'&', '|', '.'},
-    'close_parenthesis': {' ', *ATOMS['general_operator'], '!', '&', '|', '\n', '~', '>', '.', ',', ')', '(', '[', ']', '}'},
+    'close_parenthesis': {'{', ' ', *ATOMS['general_operator'], '!', '&', '|', '\n', '~', '>', '.', ',', ')', '(', '[', ']', '}'},
     'open_bracket': {']', *ATOMS['number'], '-', *ATOMS['alpha'], '(', ' ', '\n'},
     'double_open_bracket': {' ', '\n', *ATOMS['alpha'], '>'},
     'close_bracket': {'\n', '(', ' ', '~', ',', ')', '[', ']', '}', *ATOMS['general_operator'], '!', r'&', '|', '.', '\n'},
