@@ -635,7 +635,7 @@ class TypeChecker:
                             return TokenType.SAN
                         return return_type.token.to_unit_type()
                     case FnCall():
-                        return self.evaluate_method_call(class_type, accessed, local_defs)
+                        return self.evaluate_method_call(class_type, accessed, local_defs).to_unit_type()
                     case _:
                         raise ValueError(f"Unknown class accessor: {accessor}")
             case ClassAccessor():
