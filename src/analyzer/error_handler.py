@@ -1209,7 +1209,7 @@ class NonNumberIndex(SemanticError):
         msg += border
         msg += f"\t{' ' * max_pad} |    "
         msg += "Not all indices are a number type" if len(self.indexed_id.index) > 1 else f"Index '{self.indexed_id.index[0].flat_string()}' is not a number type"
-        msg += f"\t{indexed_id_index:{max_pad}} |    {self.indexed_id.flat_string()}\n"
+        msg += f"\t{f'{indexed_id_index}..n':{max_pad}} |    {self.indexed_id.flat_string()}\n"
         msg += f"\t{' ' * max_pad} |\n"
         dtype_pad = max([len(dtype.flat_string()) for dtype in self.actual_types]) + 5
         msg += f"\t{' ' * max_pad} |    "
@@ -1241,7 +1241,7 @@ class NonNumberIndex(SemanticError):
             context,
             color=AnsiColor.RED
         )
-        msg += f"\t{indexed_id_index:{max_pad}} |    {self.indexed_id.flat_string()}\n"
+        msg += f"\t{f'{indexed_id_index}..n':{max_pad}} |    {self.indexed_id.flat_string()}\n"
         msg += f"\t{' ' * max_pad} |\n"
         dtype_pad = max([len(dtype.flat_string()) for dtype in self.actual_types]) + 5
         msg += f"\t{' ' * max_pad} |    "
