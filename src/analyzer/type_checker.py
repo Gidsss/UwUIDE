@@ -469,22 +469,7 @@ class TypeChecker:
     def evaluate_ident_prods(self, ident_prod: IdentifierProds, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> TokenType:
         match ident_prod:
             case IndexedIdentifier():
-                dtypes: list[TokenType] = []
-                ok: list[bool] = []
-                for idx in ident_prod.index:
-                    dtype = self.evaluate_value(idx, local_defs)
-                    dtypes.append(dtype)
-                    ok.append(self.is_similar_type(dtype.flat_string(), TokenType.CHAN.flat_string(), idx, as_index=True))
-                if not all(ok):
-                    self.errors.append(
-                        NonNumberIndex(
-                            indexed_id=ident_prod,
-                            indices=ident_prod.index,
-                            actual_types=dtypes,
-                            ok=ok,
-                        )
-                    )
-
+                self.check_indexed_id_indices(ident_prod, local_defs)
                 match ident_prod.id:
                     case Token():
                         arr_type = self.evaluate_token(ident_prod.id, local_defs)
@@ -514,6 +499,23 @@ class TypeChecker:
                 return self.check_and_evaluate_class_accessor(ident_prod, local_defs)
             case _:
                 raise ValueError(f"Unknown identifier production: {ident_prod}")
+
+    def check_indexed_id_indices(self, indexed_id: IndexedIdentifier, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> None:
+        dtypes: list[TokenType] = []
+        ok: list[bool] = []
+        for idx in indexed_id.index:
+            dtype = self.evaluate_value(idx, local_defs)
+            dtypes.append(dtype)
+            ok.append(self.is_similar_type(dtype.flat_string(), TokenType.CHAN.flat_string(), idx, as_index=True))
+        if not all(ok):
+            self.errors.append(
+                NonNumberIndex(
+                    indexed_id=indexed_id,
+                    indices=indexed_id.index,
+                    actual_types=dtypes,
+                    ok=ok,
+                )
+            )
 
     def check_and_evaluate_class_accessor(
             self, accessor: ClassAccessor, local_defs: dict[str, tuple[Declaration, Token, GlobalType]],
@@ -597,6 +599,7 @@ class TypeChecker:
                 accessed = accessor.accessed.id
                 return self.evaluate_method_call(class_type, accessor.accessed, local_defs)
             case IndexedIdentifier():
+                self.check_indexed_id_indices(accessor.accessed, local_defs)
                 accessed = accessor.accessed.id
                 match accessed:
                     case Token():
