@@ -1189,6 +1189,44 @@ class NoReturnStatement(SemanticError):
         msg += border
         return msg
 
+class NonNumberIndex:
+    def __init__(self, indexed_id: IndexedIdentifier, indices: list[Value], actual_types: list[TokenType], ok: list[bool] ) -> None:
+        self.indexed_id = indexed_id
+        self.indices = indices
+        self.actual_types = actual_types
+        self.ok = ok
+
+    def __str__(self) -> str:
+        indexed_id_token = extract_id(self.indexed_id)
+        indexed_id_index = str(indexed_id_token.position[0] + 1)
+        max_pad = len(indexed_id_index) + 3
+        max_len = len(ErrorSrc.src[indexed_id_token.position[0]])
+        border = f"\t{'_' * (max_len + 3 + max_pad)}\n"
+
+        msg = f"Non Number Indexing: '{self.indexed_id.flat_string()}'\n"
+        msg += border
+        msg += f"\t{' ' * max_pad} |    "
+        context = "Not all indices are a number type" if len(self.indexed_id.index) > 1 else f"Index '{self.indexed_id.index[0].flat_string()}' is not a number type"
+        msg += Styled.sprintln(
+            context,
+            color=AnsiColor.RED
+        )
+        msg += f"\t{indexed_id_index:{max_pad}} |    {self.indexed_id.flat_string()}\n"
+        msg += f"\t{' ' * max_pad} |\n"
+        dtype_pad = max([len(dtype.flat_string()) for dtype in self.actual_types]) + 5
+        msg += f"\t{' ' * max_pad} |    "
+        msg += Styled.sprintln(f'{"TYPE":<{dtype_pad}}INDEX', color=AnsiColor.CYAN)
+
+        for index, dtype, ok in zip(self.indices, self.actual_types, self.ok):
+            res = '✓' if ok else '✗'
+            msg += f"\t{' ' * max_pad} |    "
+            msg += Styled.sprintln(
+                f"{res} {dtype.flat_string():{dtype_pad}}{index.flat_string()}",
+                color=AnsiColor.GREEN if ok else AnsiColor.RED
+            )
+        msg += border
+        return msg
+
 ### HELPER FUNCTIONS FOR SUGGESTIONS
 def extract_id(accessor: Token | FnCall | IndexedIdentifier | ClassAccessor) -> Token:
     'gets the very first id of a class accessor'
