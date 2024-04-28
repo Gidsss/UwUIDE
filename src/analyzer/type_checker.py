@@ -813,10 +813,11 @@ class TypeChecker:
                 res.append(item)
         return res
 
-    def is_similar_type(self, actual_type: str, expected_type: str, val: Value, is_call: bool = False) -> bool:
+    def is_similar_type(self, actual_type: str, expected_type: str, val: Value,
+                        *, is_call: bool = False, as_index=False) -> bool:
         'determines if two types are similar'
         # nuww is an ok val for any type if and only if its not for a call
-        condition_2 = (actual_type == 'san') if not is_call else False
+        condition_2 = (actual_type == 'san') if not is_call and not as_index else False
         if (actual_type == expected_type 
             or condition_2): return True
 
@@ -826,7 +827,8 @@ class TypeChecker:
             case "chan" | "kun":
                 match actual_type:
                     # inpwts with no concats can be converted to num types
-                    case "chan" | "kun" | "sama" | "inpwt": return True
+                    case "chan" | "kun" | "sama": return True
+                    case "inpwt": return True if not as_index else False
                     case _: return False
             # inpwt is inherently senpai
             case "senpai":
