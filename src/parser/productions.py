@@ -683,6 +683,7 @@ class ForLoop(Statement):
 class Break(Statement):
     def __init__(self):
         self.token: Token = Token()
+        self.in_loop: bool = False
 
     def header(self):
         return "break statement:"
@@ -692,7 +693,7 @@ class Break(Statement):
     def string(self, indent = 0) -> str:
         return sprintln("break statement:", self.id.flat_string(), indent=indent)
     def python_string(self, indent=0, cwass=False) -> str:
-        return sprintln("break", indent=indent)
+        return sprint("break" if self.in_loop else "...", indent=indent)
     def formatted_string(self, indent=0) -> str:
         return sprintln("bweak~", indent=indent)
 
