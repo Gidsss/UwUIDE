@@ -231,6 +231,7 @@ class Parser:
                         p.definition_order.append(res)
                 case TokenType.GWOBAW:
                     if res := self.parse_declaration():
+                        res.is_global = True
                         self.advance()
                         p.globals.append(res)
                         p.definition_order.append(res)
