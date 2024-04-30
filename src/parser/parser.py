@@ -235,7 +235,8 @@ class Parser:
                         p.globals.append(res)
                         p.definition_order.append(res)
                 case TokenType.SINGLE_LINE_COMMENT | TokenType.MULTI_LINE_COMMENT:
-                    p.definition_order.append(self.curr_tok)
+                    res = Comment(self.curr_tok)
+                    p.definition_order.append(res)
                     self.advance()
                 case _:
                     self.expected_error([TokenType.FWUNC, TokenType.CWASS, TokenType.GWOBAW], curr=True)
