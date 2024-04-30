@@ -121,6 +121,8 @@ class MemberAnalyzer:
                     self.analyze_return(stmt, local_defs)
                 case IdentifierProds():
                     self.analyze_ident_prods(stmt, local_defs)
+                case Comment():
+                    pass
                 case _:
                     raise ValueError(f"Unknown statement: {stmt}")
 

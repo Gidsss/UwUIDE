@@ -819,7 +819,8 @@ class BlockStatement(Production):
         return "block"
     def child_nodes(self) -> None | dict[str, Production | Token]:
         if self.statements:
-            return {**{f"statement {i+1}":s for i,s in enumerate(self.statements)}}
+            # Filter out comments when constructing visual AST
+            return {**{f"statement {i+1}":s for i,s in enumerate(self.statements) if not isinstance(s, Comment)}}
         return None
 
     def string(self, indent = 0) -> str:
@@ -844,8 +845,11 @@ class Comment:
     def __init__(self, token):
         self.comment = str(token)
 
+    def python_string(self, indent=0, cwass=False) -> str:
+        return ""
+
     def formatted_string(self, indent=0) -> str:
-        return f"{self.comment}"
+        return sprint(f"{self.comment}", indent=indent)
 
 class Program:
     'the root node of the syntax tree'

@@ -188,6 +188,8 @@ class TypeChecker:
                     self.evaluate_fn_call(statement, local_defs)
                 case ClassAccessor():
                     self.check_and_evaluate_class_accessor(statement, local_defs)
+                case Comment():
+                    pass
                 case _:
                     raise ValueError(f"Unknown statement: {statement}")
 
