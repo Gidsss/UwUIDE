@@ -1,3 +1,4 @@
+import re
 from src.lexer.token import TokenType, UniqueTokenType, class_properties
 from src.parser.production_types import *
 from src.lexer import Token
@@ -625,6 +626,8 @@ class WhileLoop(Statement):
         res = ""
         if self.is_do:
             res = self.body.python_string(indent, cwass=cwass)
+            # initial body of do while, remove breaks
+            res = re.sub(r"break", "...", res)
         res += sprintln(f"while {self.condition.python_string(cwass=cwass)}:", indent=indent)
         res += self.body.python_string(indent+1, cwass=cwass)
         return res
