@@ -294,6 +294,8 @@ class TypeChecker:
                     self.check_and_evaluate_class_accessor(statement, local_defs)
                 case Break():
                     pass
+                case Comment():
+                    pass
                 case _:
                     raise ValueError(f"Unknown statement: {statement}")
 

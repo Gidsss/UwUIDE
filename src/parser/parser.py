@@ -70,7 +70,7 @@ precedence_map = {
 
 class Parser:
     def __init__(self, tokens: list[Token]):
-        self.tokens = [token for token in tokens if token.token not in [TokenType.WHITESPACE, TokenType.SINGLE_LINE_COMMENT, TokenType.MULTI_LINE_COMMENT]]
+        self.tokens = [token for token in tokens if token.token not in [TokenType.WHITESPACE]]
         self.errors: list[Error] = []
 
         # to associate prefix and infix parsing functions for certain token types
@@ -206,6 +206,8 @@ class Parser:
         self.register_in_block(TokenType.FOW, self.parse_for_statement)
         self.register_in_block(TokenType.PWINT, self.parse_print)
         self.register_in_block(TokenType.BWEAK, self.parse_break)
+        self.register_in_block(TokenType.SINGLE_LINE_COMMENT, self.parse_comment)
+        self.register_in_block(TokenType.MULTI_LINE_COMMENT, self.parse_comment)
         # TODO: change cfg to accomodate this as an in block statement
         # self.register_in_block(TokenType.INPWT, self.parse_input)
 
@@ -714,6 +716,13 @@ class Parser:
             if (statement := parser()) is None:
                 return None
             bs.statements.append(statement)
+
+        # If the block is empty when the comments are removed
+        if not [s for s in bs.statements if not isinstance(s, Comment)]:
+            self.empty_code_body_error()
+            self.advance()
+            return None
+
         return bs
 
     def parse_ident_statement(self) -> (
@@ -960,6 +969,9 @@ class Parser:
             self.advance()
             return None
         return p
+
+    def parse_comment(self) -> Comment | None:
+        return Comment(self.curr_tok)
 
     ### expression parsers
     def parse_expression(self, precedence, limit_to: list[TokenType] = [], grouped=False,
