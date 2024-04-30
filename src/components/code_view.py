@@ -219,7 +219,15 @@ class CodeEditor(CTkFrame):
             end_pos indicates where to stop applying
             if start_pos and end_pos are the same, it will only format the single character in start_pos
         """
+        # Validate position inputs
+        if not start_pos or not isinstance(start_pos, tuple) or len(start_pos) != 2:
+            print("Invalid start position")
+            return
 
+        if end_pos and (not isinstance(end_pos, tuple) or len(end_pos) != 2):
+            print("Invalid end position, defaulting to start_pos")
+            end_pos = start_pos
+            
         # Set end_pos to None if it is equal to start_pos
         end_pos = None if end_pos == start_pos else end_pos
 
