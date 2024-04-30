@@ -16,6 +16,8 @@ class PrefixExpression(Expression):
         self.op: Token = Token()
         self.right: Value = Value()
 
+        self.grouped = False
+
     def header(self) -> str:
         return self.string()
     def child_nodes(self) -> None | dict[str, Production | Token]:
@@ -27,6 +29,11 @@ class PrefixExpression(Expression):
         return f"{self.op.flat_string()}{self.right.flat_string()}"
     def python_string(self, indent=0, cwass=False) -> str:
         return f"{self.op.python_string(cwass=cwass)}{self.right.python_string(cwass=cwass)}"
+    def formatted_string(self, indent=0) -> str:
+        res = f"{self.op.formatted_string()}{self.right.formatted_string()}"
+        if self.grouped:
+            res = f"({res})"
+        return res
 
     def __len__(self):
         return 1
@@ -36,6 +43,9 @@ class InfixExpression(Expression):
         self.left: Value = Value()
         self.op: Token = Token()
         self.right: Value = Value()
+
+        self.grouped = False
+
     def header(self):
         return ""
     def child_nodes(self) -> None | dict[str, Production | Token]:
@@ -53,6 +63,12 @@ class InfixExpression(Expression):
             lhs = f"bool({lhs})"
             rhs = f"bool({rhs})"
         return f"({lhs} {op} {rhs})"
+    def formatted_string(self, spaced=True, dindent=0) -> str:
+        lhs = self.left.formatted_string()
+        op = self.op.formatted_string()
+        rhs = self.right.formatted_string()
+
+        return f"({lhs} {op} {rhs})" if self.grouped else f"{lhs} {op} {rhs}"
 
     def __len__(self):
         return 1
@@ -61,6 +77,9 @@ class PostfixExpression(Expression):
     def __init__(self):
         self.left: Value = Value()
         self.op: Token = Token()
+
+        self.grouped = False
+
     def header(self):
         return self.string()
     def child_nodes(self) -> None | dict[str, Production | Token]:
@@ -72,6 +91,11 @@ class PostfixExpression(Expression):
         return f"{self.left.flat_string()}{self.op.flat_string()}"
     def python_string(self, indent=0, cwass=False) -> str:
         return f"{self.left.python_string(cwass=cwass)}{self.op.python_string(cwass=cwass)}"
+    def formatted_string(self, indent=0) -> str:
+        res = f"{self.left.formatted_string()}{self.op.formatted_string()}"
+        if self.grouped:
+            res = f"({res})"
+        return res
 
     def __len__(self):
         return 1
@@ -276,6 +300,11 @@ class IndexedIdentifier(IdentifierProds):
         for index in self.index:
             res += f"[int({index.python_string(cwass=cwass)})]"
         return res
+    def formatted_string(self, indent=0) -> str:
+        res = self.id.formatted_string()
+        for index in self.index:
+            res += f"{{{index.formatted_string()}}}"
+        return res
 
 class ClassConstructor(IdentifierProds):
     def __init__(self):
@@ -293,6 +322,8 @@ class ClassConstructor(IdentifierProds):
         return f"{self.id.flat_string()}({', '.join(a.flat_string() for a in self.args)})"
     def python_string(self, indent=0, cwass=False) -> str:
         return f"{self.id.python_string(cwass=cwass)}({', '.join(a.python_string(cwass=cwass) for a in self.args)})"
+    def formatted_string(self, indent=0) -> str:
+        return f"{self.id.formatted_string()}({', '.join(a.formatted_string() for a in self.args)})"
 
     def __len__(self):
         return 1
@@ -325,6 +356,8 @@ class ClassAccessor(IdentifierProds):
         return f"{self.id.flat_string()}.{self.accessed.flat_string()}"
     def python_string(self, indent=0, cwass=False) -> str:
         return sprint(f"{self.id.python_string(cwass=cwass)}.{self.accessed.python_string(cwass=cwass)}", indent=indent)
+    def formatted_string(self, indent=0) -> str:
+        return sprint(f"{self.id.formatted_string()}.{self.accessed.formatted_string()}", indent=indent)
 
     def __len__(self):
         return 1
@@ -406,7 +439,7 @@ class Declaration(Statement):
         if self.dono_token.exists():
             res += "-dono"
 
-        if self.initialized:
+        if self.initialized and not self.is_param:
             res += f" = {self.value.formatted_string()}"
 
         if not self.is_param:
@@ -596,6 +629,18 @@ class WhileLoop(Statement):
         res += self.body.python_string(indent+1, cwass=cwass)
         return res
 
+    def formatted_string(self, indent=0) -> str:
+        res = ""
+
+        if self.is_do:
+            res += "do "
+
+        res += sprintln(f"whiwe({self.condition.formatted_string()}) [[", indent=0)
+        res += self.body.formatted_string(indent=indent+1)
+        res += sprint("]]", indent=indent)
+
+        return sprint(res, indent=indent)
+
 class ForLoop(Statement):
     def __init__(self):
         self.init: Declaration = Declaration()
@@ -623,6 +668,18 @@ class ForLoop(Statement):
         res += self.body.python_string(indent+1, cwass=cwass)
         res += sprintln(f"{self.init.id.python_string(cwass=cwass)} = {self.update.python_string(cwass=cwass)}", indent=indent+1)
         return res
+
+    def formatted_string(self, indent=0) -> str:
+        init = self.init.formatted_string().replace(" ", "")
+        condition = self.condition.formatted_string().replace(" ", "")
+        update = self.update.formatted_string().replace(" ", "")
+
+        res = sprintln(f"fow({init} {condition}~ {update}) [[", indent=0)
+        res += self.body.formatted_string(indent=indent+1)
+        res += sprint("]]", indent=indent)
+
+        return sprint(res, indent=indent)
+
 
 class Function(Production):
     def __init__(self):
@@ -674,10 +731,9 @@ class Function(Production):
         res += self.body.formatted_string(indent=indent+1)
 
         # ]]
-        res += sprintln("]]", indent=indent)
+        res += sprint("]]", indent=indent)
 
         return res
-
 
 class Class(Production):
     def __init__(self):
@@ -685,6 +741,9 @@ class Class(Production):
         self.params: list[Declaration] = []
         self.properties: list[Declaration] = []
         self.methods: list[Function] = []
+
+        # For formatting
+        self.definition_order = []
 
     def header(self):
         return f"class: {self.id.string()}"
@@ -733,6 +792,15 @@ class Class(Production):
             res += method.python_string(indent+1, cwass=True)
         class_properties.clear()
         return res
+
+    def formatted_string(self, indent=0) -> str:
+        params = ', '.join([p.formatted_string() for p in self.params])
+        res = sprintln(f"cwass {self.id.formatted_string()}({params}) [[")
+        for definitions in self.definition_order:
+            res += definitions.formatted_string(indent=indent+1) + "\n"
+        res += "]]"
+        return res
+
 
 class BlockStatement(Production):
     def __init__(self):
@@ -828,7 +896,7 @@ class Program:
     def formatted_string(self, indent=0) -> str:
         res = ""
         for definitions in self.definition_order:
-            res += definitions.formatted_string() + "\n"
+            res += definitions.formatted_string() + "\n\n"
         return res
 
     def __str__(self):

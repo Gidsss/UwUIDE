@@ -487,10 +487,12 @@ class Parser:
                 if (res := self.parse_function()) is None:
                     return None
                 c.methods.append(res)
+                c.definition_order.append(res)
             elif self.curr_tok_is_identifier():
                 if (res := self.parse_declaration(ident=self.curr_tok)) is None:
                     return None
                 c.properties.append(res)
+                c.definition_order.append(res)
                 self.advance()
 
         if not self.curr_tok_is(TokenType.DOUBLE_CLOSE_BRACKET):
@@ -1092,6 +1094,7 @@ class Parser:
             self.expected_error([TokenType.CLOSE_PAREN, *expecteds])
             self.advance(2)
             return None
+        expr.grouped = True
         return expr
 
 
