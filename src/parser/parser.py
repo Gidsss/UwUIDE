@@ -101,6 +101,9 @@ class Parser:
         self.curr_tok = self.tokens[self.pos]
         self.peek_tok = self.tokens[self.pos + 1]
 
+        # to keep track of whether inside loops
+        self.loop_level = 0
+
         eof_pos = (self.tokens[-1].end_position[0], self.tokens[-1].end_position[1] + 1)
         self.tokens.append(Token("EOF", TokenType.EOF, eof_pos, eof_pos))
         self.program = self.parse_program()
@@ -821,8 +824,11 @@ class Parser:
             self.advance()
             return None
 
+        self.loop_level += 1
         if (res := self.parse_block_statement()) is None:
+            self.loop_level -= 1
             return None
+        self.loop_level -= 1
         wl.body = res
 
         if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
@@ -874,9 +880,12 @@ class Parser:
             self.advance()
             return None
 
+        self.loop_level += 1
         if (res := self.parse_block_statement()) is None:
+            self.loop_level -= 1
             return None
         fl.body = res
+        self.loop_level -= 1
 
         if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
             self.unclosed_double_bracket_error(self.peek_tok)
@@ -1369,6 +1378,7 @@ class Parser:
         'must start with break in current token'
         b = Break()
         b.token = self.curr_tok
+        b.in_loop = bool(self.loop_level)
         if not self.expect_peek(TokenType.TERMINATOR):
             self.peek_error(TokenType.TERMINATOR)
             self.advance(2)
