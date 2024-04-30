@@ -652,6 +652,14 @@ class BlockStatement(Production):
             res += s.python_string(indent, cwass=cwass) + '\n'
         return res
 
+class Comment:
+    'only used in formatting'
+    def __init__(self, token):
+        self.comment = str(token)
+
+    def formatted_string(self, indent=0) -> str:
+        return f"{self.comment}\n"
+
 class Program:
     'the root node of the syntax tree'
     def __init__(self):
@@ -706,6 +714,9 @@ class Program:
             res += sprintln(g.python_string(cwass=cwass), indent=indent+1)
         res += sprintln("main()", indent=indent+1)
         return res
+
+    def formatted_string(self, indent=0) -> str:
+        res = ""
 
     def __str__(self):
         res = "MAINUWU:\n"
