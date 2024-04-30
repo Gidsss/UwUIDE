@@ -317,8 +317,12 @@ class TypeChecker:
                     self.evaluate_fn_call(statement, local_defs)
                 case ClassAccessor():
                     self.check_and_evaluate_class_accessor(statement, local_defs)
-                case Break(): pass
-                case _: raise ValueError(f"Unknown statement: {statement}")
+                case Break():
+                    pass
+                case Comment():
+                    pass
+                case _:
+                    raise ValueError(f"Unknown statement: {statement}")
 
     def check_print(self, print: Print, local_defs: dict[str, Signature]) -> None:
         for val in print.values: self.evaluate_value(val, local_defs)

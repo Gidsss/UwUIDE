@@ -133,6 +133,8 @@ class MemberAnalyzer:
                     self.analyze_ident_prods(stmt, local_defs)
                 case Break():
                     pass
+                case Comment():
+                    pass
                 case _:
                     raise ValueError(f"Unknown statement: {stmt}")
 
