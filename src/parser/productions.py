@@ -98,6 +98,13 @@ class StringLiteral(Iterable):
             res += ' + ' + ' + '.join(c.python_string(cwass=cwass) for c in self.concats)
         return res
 
+    def formatted_string(self, indent=0) -> str:
+        res = self.val.formatted_string()
+        if self.concats:
+            res += ' & ' + ' & '.join(c.formatted_string() for c in self.concats)
+
+        return res
+
     def __len__(self):
         return 1
 
@@ -123,6 +130,12 @@ class Input(Iterable):
         res = f"input({self.expr.python_string(cwass=cwass)})"
         if self.concats:
             res += ' + ' + ' + '.join(c.python_string(cwass=cwass) for c in self.concats)
+        return res
+
+    def formatted_string(self, indent=0) -> str:
+        res = f"inpwt({self.expr.formatted_string()})"
+        if self.concats:
+            res += ' & ' + ' & '.join(c.formatted_string() for c in self.concats)
         return res
 
     def __len__(self):
@@ -154,6 +167,15 @@ class StringFmt(Iterable):
             res += ' + ' + ' + '.join(c.python_string(cwass=cwass) for c in self.concats)
         return res
 
+    def formatted_string(self, indent=0) -> str:
+        start = self.start.lexeme[:-1]
+        end = self.end.lexeme[1:]
+        res = "''"
+        res = f"{start}{''.join([c if type(c) == str else c.formatted_string() for c in self.mid_expr_uwu()])}{end}"
+        if self.concats:
+            res += ' & ' + ' & '.join(c.formatted_string() for c in self.concats)
+        return res
+
     def mid_expr_iter(self):
         if self.exprs:
             yield self.exprs[0]
@@ -167,6 +189,14 @@ class StringFmt(Iterable):
         for m,e in zip(self.mid, self.exprs[1:]):
             all.append(m)
             all.append(e)
+        return all
+    def mid_expr_uwu(self):
+        all = []
+        if self.exprs:
+            all.append(f"|{self.exprs[0]}|")
+        for m,e in zip(self.mid, self.exprs[1:]):
+            all.append(m.lexeme[1:-1])
+            all.append(f"|{e}|")
         return all
 
     def __len__(self):
@@ -187,6 +217,9 @@ class ArrayLiteral(Iterable):
         return f"{{{', '.join(e.flat_string() for e in self.elements)}}}"
     def python_string(self, indent=0, cwass=False) -> str:
         return f"Array([{', '.join(e.python_string(cwass=cwass) for e in self.elements)}])"
+
+    def formatted_string(self, indent=0) -> str:
+        return f"{{{', '.join(e.formatted_string() for e in self.elements)}}}"
 
     def __len__(self):
         return len(self.elements)
@@ -320,6 +353,7 @@ class Declaration(Statement):
         self.dono_token: Token = Token()
         self.initialized: bool = False
         self.is_param: bool = False
+        self.is_global: bool = False
 
     def header(self):
         return f"{'declare' if not self.is_param else 'param'} {'constant' if self.dono_token.exists() else 'variable'}: {self.id.string()}"
@@ -357,6 +391,24 @@ class Declaration(Statement):
         elif self.is_param: pass
         else: res += f" = None"
         return sprint(res, indent=indent)
+
+    def formatted_string(self, indent=0) -> str:
+        res = ""
+
+        if self.is_global:
+            res += "gwobaw "
+
+        res += f"{self.id}-{self.dtype}"
+        if self.dono_token.exists():
+            res += "-dono"
+
+        if self.initialized:
+            res += f" = {self.value.formatted_string(indent)}"
+
+        if not self.is_param:
+            res += "~"
+
+        return res
 
 class Assignment(Statement):
     def __init__(self):
@@ -717,6 +769,11 @@ class Program:
 
     def formatted_string(self, indent=0) -> str:
         res = ""
+        for definitions in self.definition_order:
+            if isinstance(definitions, Function):
+                continue
+            res += definitions.formatted_string() + "\n"
+        return res
 
     def __str__(self):
         res = "MAINUWU:\n"
