@@ -70,7 +70,7 @@ precedence_map = {
 
 class Parser:
     def __init__(self, tokens: list[Token]):
-        self.tokens = [token for token in tokens if token.token not in [TokenType.WHITESPACE]]
+        self.tokens = [token for token in tokens if token.token not in [TokenType.WHITESPACE, TokenType.SINGLE_LINE_COMMENT, TokenType.MULTI_LINE_COMMENT]]
         self.errors: list[Error] = []
 
         # to associate prefix and infix parsing functions for certain token types

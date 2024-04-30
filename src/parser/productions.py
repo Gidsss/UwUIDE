@@ -868,7 +868,7 @@ class Comment:
         self.comment = str(token)
 
     def formatted_string(self, indent=0) -> str:
-        return f"{self.comment}\n"
+        return f"{self.comment}"
 
 class Program:
     'the root node of the syntax tree'
