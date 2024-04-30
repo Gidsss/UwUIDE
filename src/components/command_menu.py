@@ -20,6 +20,19 @@ class CommandMenu(CTkFrame):
         self.uwuLabel = CTkLabel(master=self, image=self.uwuBgImage, text='')
         self.uwuLabel.grid(row=0, column=0, sticky='nsew', columnspan=2)
 
+        self.formatBgImage = CTkImage(light_image=Image.open(f"{FORMAT_ASSET}"))
+        self.formatButton = CTkButton(
+            master=self,
+            image=self.formatBgImage,
+            fg_color='#1A1B26',
+            text='Format',
+            font=('JetBrains Mono', 12),
+            width=99,
+            height=30,
+            command=self.code_view.format_code  # Set the command to trigger file loading
+        )
+        self.formatButton.grid(row=0, column=12, sticky='', columnspan=1)
+
         self.compileAndRunBgImage = CTkImage(light_image=Image.open(f"{RUN_ASSET}"))
         self.compileAndRunButton = CTkButton(
             master=self,
