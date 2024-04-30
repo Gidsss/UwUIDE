@@ -929,7 +929,7 @@ class NonClassAccessError(SemanticError):
 
 class UndefinedClassMember(SemanticError):
     def __init__(self, cwass: str, property: Token, member_type: GlobalType,
-                 actual_definition: tuple[Token|None, GlobalType|None]=(None, None)) -> None:
+                 actual_definition: tuple[Token, GlobalType|None]=(Token(), None)) -> None:
         self.cwass = cwass
         self.property = property
         self.member_type = member_type
@@ -947,18 +947,18 @@ class UndefinedClassMember(SemanticError):
         border = f"\t{'_' * (max_pad + 4 + len(ErrorSrc.src[self.property.position[0]]))}\n"
         msg = f"Undefined {self.member_type} of '{self.cwass}': '{self.property.flat_string()}'\n"
         msg += border
-        if self.actual_type and self.actual_definition:
+        if self.actual_type and self.actual_definition.exists():
             msg += f"\t{' ' * max_pad} |\t"
             msg += f"'{self.property.flat_string()}' is a {self.actual_type} of '{self.cwass}' defined here\n"
             msg += f"\t{str(self.actual_definition.position[0] + 1):{max_pad}} | {ErrorSrc.src[self.actual_definition.position[0]]}\n"
             msg += f"\t{' ' * max_pad} | {' ' * self.actual_definition.position[1]}{'^' * (len(self.actual_definition.flat_string()))}\n"
             msg += f"\t{' ' * max_pad} | {'_' * (self.actual_definition.position[1])}|\n"
             msg += f"\t{' ' * max_pad} | |\n"
-        msg += f"\t{' ' * max_pad} | " f"{'|' if self.actual_type else ''}" "\t"
+        msg += f"\t{' ' * max_pad} | " f"{'|' if self.actual_definition.exists() else ''}" "\t"
         msg += f"'{self.property.flat_string()}' is not a {self.member_type} of '{self.cwass}'\n"
-        msg += f"\t{property_index:{max_pad}} | " f"{'|' if self.actual_type else ''}" f"{ErrorSrc.src[self.property.position[0]]}\n"
-        msg += f"\t{' ' * max_pad} | " f"{'|' if self.actual_type else ''}" f"{' ' * self.property.position[1]}{'^' * (len(self.property.flat_string()))}\n"
-        if self.actual_type and self.actual_definition:
+        msg += f"\t{property_index:{max_pad}} | " f"{'|' if self.actual_definition.exists() else ''}" f"{ErrorSrc.src[self.property.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | " f"{'|' if self.actual_definition.exists() else ''}" f"{' ' * self.property.position[1]}{'^' * (len(self.property.flat_string()))}\n"
+        if self.actual_type and self.actual_definition.exists():
             msg += f"\t{' ' * max_pad} | |{'_' * (self.property.position[1])}|\n"
         msg += border
         return msg
@@ -970,7 +970,7 @@ class UndefinedClassMember(SemanticError):
 
         msg = f"Undefined {self.member_type} of '{self.cwass}': '{self.property.flat_string()}'\n"
         msg += border
-        if self.actual_type and self.actual_definition:
+        if self.actual_type and self.actual_definition.exists():
             msg += f"\t{' ' * max_pad} |\t"
             msg += Styled.sprintln(
                 f"'{self.property.flat_string()}' is a {self.actual_type} of '{self.cwass}' defined here",
@@ -981,14 +981,14 @@ class UndefinedClassMember(SemanticError):
             msg += f"\t{' ' * max_pad} | {'_' * (self.actual_definition.position[1])}|\n"
             msg += f"\t{' ' * max_pad} | |\n"
 
-        msg += f"\t{' ' * max_pad} | " f"{'|' if self.actual_type else ''}" "\t"
+        msg += f"\t{' ' * max_pad} | " f"{'|' if self.actual_definition.exists() else ''}" "\t"
         msg += Styled.sprintln(
             f"'{self.property.flat_string()}' is not a {self.member_type} of '{self.cwass}'",
             color=AnsiColor.RED
         )
-        msg += f"\t{property_index:{max_pad}} | " f"{'|' if self.actual_type else ''}" f"{ErrorSrc.src[self.property.position[0]]}\n"
-        msg += f"\t{' ' * max_pad} | " f"{'|' if self.actual_type else ''}" f"{' ' * self.property.position[1]}{'^' * (len(self.property.flat_string()))}\n"
-        if self.actual_type and self.actual_definition:
+        msg += f"\t{property_index:{max_pad}} | " f"{'|' if self.actual_definition.exists() else ''}" f"{ErrorSrc.src[self.property.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | " f"{'|' if self.actual_definition.exists() else ''}" f"{' ' * self.property.position[1]}{'^' * (len(self.property.flat_string()))}\n"
+        if self.actual_type and self.actual_definition.exists():
             msg += f"\t{' ' * max_pad} | |{'_' * (self.property.position[1])}|\n"
         msg += border
         return msg
