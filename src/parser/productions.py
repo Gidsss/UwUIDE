@@ -272,7 +272,7 @@ class FnCall(IdentifierProds):
         if self.need_self: res += "self."
         return sprint(res + f"{self.id.python_string(cwass=cwass)}({', '.join(a.python_string(cwass=cwass) for a in self.args)})", indent=indent)
     def formatted_string(self, indent=0) -> str:
-        return sprint(f"{self.id.formatted_string()}({', '.join(a.formatted_string() for a in self.args)})~", indent=indent)
+        return sprint(f"{self.id.formatted_string()}({', '.join(a.formatted_string() for a in self.args)})", indent=indent)
 
     def __len__(self):
         return 1
