@@ -27,6 +27,8 @@ class SemanticError:
     @abstractmethod
     def position(self) -> tuple[int, int]|None: ...
     @abstractmethod
+    def end_position(self) -> tuple[int, int]|None: ...
+    @abstractmethod
     def string(self) -> str: ...
 
 class DuplicateDefinitionError(SemanticError):
@@ -38,6 +40,9 @@ class DuplicateDefinitionError(SemanticError):
 
     def position(self) -> tuple[int, int]|None:
         return self.duplicate.position
+
+    def end_position(self) -> tuple[int, int]|None:
+        return self.duplicate.end_position
 
     def string(self) -> str:
         index_str = str(self.original.position[0] + 1)
@@ -99,6 +104,9 @@ class NonFunctionIdCall(SemanticError):
     def position(self) -> tuple[int, int]|None:
         return self.called.position
 
+    def end_position(self) -> tuple[int, int]|None:
+        return self.called.end_position
+
     def string(self) -> str:
         index_str = str(self.original.position[0] + 1)
         dupe_index = str(self.called.position[0] + 1)
@@ -159,6 +167,9 @@ class FunctionAssignmentError(SemanticError):
 
     def position(self) -> tuple[int, int]|None:
         return self.assignment.position
+
+    def end_position(self) -> tuple[int, int]|None:
+        return self.assignment.end_position
 
     def string(self) -> str:
         index_str = str(self.original.position[0] + 1) if self.original else ""
@@ -238,6 +249,9 @@ class UndefinedError(SemanticError):
     def position(self) -> tuple[int, int]|None:
         return self.token.position
 
+    def end_position(self) -> tuple[int, int]|None:
+        return self.token.end_position
+
     def string(self) -> str:
         index_str = str(self.token.position[0] + 1)
         max_pad = len(index_str)
@@ -280,6 +294,9 @@ class ReassignedConstantError:
 
     def position(self) -> tuple[int, int]|None:
         return self.token.position
+
+    def end_position(self) -> tuple[int, int]|None:
+        return self.token.end_position
 
     def string(self) -> str:
         index_str = str(self.token.position[0] + 1)
@@ -347,6 +364,9 @@ class ReturnTypeMismatchError(SemanticError):
     def position(self) -> tuple[int, int]|None:
         return self.expected.position
 
+    def end_position(self) -> tuple[int, int]|None:
+        return self.expected.end_position
+
     def string(self) -> str:
         expected_index = str(self.expected.position[0] + 1)
         max_pad = max(len(expected_index), 3)
@@ -413,6 +433,9 @@ class TypeMismatchError(SemanticError):
     def position(self) -> tuple[int, int]|None:
         return extract_id(self.context.id).position
 
+    def end_position(self) -> tuple[int, int]|None:
+        return extract_id(self.context.id).end_position
+
     def string(self) -> str:
         index_str = str(self.expected.position[0] + 1)
         assign_index_str = (str(extract_id(self.context.id).position[0] + 1) + '..n') if self.title else 'rhs'
@@ -475,6 +498,9 @@ class PrePostFixOperandError(SemanticError):
         self.postfix = postfix
 
     def position(self) -> tuple[int, int]|None:
+        return None
+
+    def end_position(self) -> tuple[int, int]|None:
         return None
 
     def string(self) -> str:
@@ -545,6 +571,9 @@ class InfixOperandError(SemanticError):
         self.header = header
 
     def position(self) -> tuple[int, int]|None:
+        return None
+
+    def end_position(self) -> tuple[int, int]|None:
         return None
 
     def string(self) -> str:
@@ -678,6 +707,9 @@ class NonIterableIndexingError(SemanticError):
     def position(self) -> tuple[int, int]|None:
         return self.token.position
 
+    def end_position(self) -> tuple[int, int]|None:
+        return self.token.end_position
+
     def string(self) -> str:
         tok_index = str(self.token.position[0] + 1)
         def_index = str(self.type_definition.position[0] + 1)
@@ -740,6 +772,9 @@ class NonClassAccessError(SemanticError):
 
     def position(self) -> tuple[int, int]|None:
         return self.id.position
+
+    def end_position(self) -> tuple[int, int]|None:
+        return self.id.end_position
 
     def string(self) -> str:
         id_index = str(self.id.position[0] + 1)
@@ -820,6 +855,9 @@ class UndefinedClassMember(SemanticError):
     def position(self) -> tuple[int, int]|None:
         return self.property.position
 
+    def end_position(self) -> tuple[int, int]|None:
+        return self.property.end_position
+
     def string(self) -> str:
         property_index = str(self.property.position[0] + 1)
         max_pad = len(property_index)
@@ -887,6 +925,9 @@ class MismatchedCallArgType(SemanticError):
 
     def position(self) -> tuple[int, int]|None:
         return self.id.position
+
+    def end_position(self) -> tuple[int, int]|None:
+        return self.id.end_position
 
     def string(self) -> str:
         id_index = str(self.id.position[0] + 1)
@@ -1054,6 +1095,9 @@ class HeterogeneousArrayError(SemanticError):
     def position(self) -> tuple[int, int] | None:
         return None
 
+    def end_position(self) -> tuple[int, int]|None:
+        return None
+
     def string(self) -> str:
         max_pad = 3
         max_len = len(self.arr.flat_string())
@@ -1121,6 +1165,9 @@ class NoReturnStatement(SemanticError):
 
     def position(self) -> tuple[int, int] | None:
         return self.func.id.position
+
+    def end_position(self) -> tuple[int, int]|None:
+        return self.func.id.end_position
 
     def strign(self) -> str:
         last_stmt = final_statement(self.func.body) + 1
@@ -1198,6 +1245,9 @@ class NonNumberIndex(SemanticError):
 
     def position(self) -> tuple[int, int]|None:
         return extract_id(self.indexed_id).position
+
+    def end_position(self) -> tuple[int, int]|None:
+        return extract_id(self.indexed_id).end_position
 
     def string(self) -> str:
         indexed_id_index = str(extract_id(self.indexed_id).position[0] + 1)
