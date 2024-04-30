@@ -796,9 +796,18 @@ class Class(Production):
     def formatted_string(self, indent=0) -> str:
         params = ', '.join([p.formatted_string() for p in self.params])
         res = sprintln(f"cwass {self.id.formatted_string()}({params}) [[")
-        for definitions in self.definition_order:
-            res += definitions.formatted_string(indent=indent+1) + "\n"
-        res += "]]"
+
+        definitions = []
+        for definition in self.definition_order:
+            if isinstance(definition, list):
+                attrib_group = [att.formatted_string(indent=indent+1) for att in definition]
+                definitions.append('\n'.join(attrib_group))
+            else:
+                definitions.append(definition.formatted_string(indent=indent+1))
+
+        res += "\n\n".join(definitions)
+        res += "\n]]"
+
         return res
 
 
@@ -894,10 +903,15 @@ class Program:
         return res
 
     def formatted_string(self, indent=0) -> str:
-        res = ""
-        for definitions in self.definition_order:
-            res += definitions.formatted_string() + "\n\n"
-        return res
+        definitions = []
+        for definition in self.definition_order:
+            if isinstance(definition, list):
+                global_dec_group = [dec.formatted_string() for dec in definition]
+                definitions.append('\n'.join(global_dec_group))
+            else:
+                definitions.append(definition.formatted_string())
+
+        return "\n\n".join(definitions)
 
     def __str__(self):
         res = "MAINUWU:\n"

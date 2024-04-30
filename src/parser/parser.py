@@ -234,7 +234,14 @@ class Parser:
                         res.is_global = True
                         self.advance()
                         p.globals.append(res)
-                        p.definition_order.append(res)
+
+                        # Group global declarations
+                        last_def = None if not p.definition_order else p.definition_order[-1]
+                        if isinstance(last_def, list):
+                            last_def.append(res)
+                        else:
+                            p.definition_order.append([res])
+
                 case TokenType.SINGLE_LINE_COMMENT | TokenType.MULTI_LINE_COMMENT:
                     res = Comment(self.curr_tok)
                     p.definition_order.append(res)
@@ -492,7 +499,14 @@ class Parser:
                 if (res := self.parse_declaration(ident=self.curr_tok)) is None:
                     return None
                 c.properties.append(res)
-                c.definition_order.append(res)
+
+                # Group attributes
+                last_def = None if not c.definition_order else c.definition_order[-1]
+                if isinstance(last_def, list):
+                    last_def.append(res)
+                else:
+                    c.definition_order.append([res])
+
                 self.advance()
 
         if not self.curr_tok_is(TokenType.DOUBLE_CLOSE_BRACKET):
