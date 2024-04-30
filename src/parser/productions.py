@@ -242,6 +242,8 @@ class FnCall(IdentifierProds):
         return sprint(f"{self.id.flat_string()}({', '.join(a.flat_string() for a in self.args)})", indent=indent)
     def python_string(self, indent=0, cwass=False) -> str:
         return sprint(f"{self.id.python_string(cwass=cwass)}({', '.join(a.python_string(cwass=cwass) for a in self.args)})", indent=indent)
+    def formatted_string(self, indent=0) -> str:
+        return sprint(f"{self.id.formatted_string()}({', '.join(a.formatted_string() for a in self.args)})~", indent=indent)
 
     def __len__(self):
         return 1
@@ -342,6 +344,8 @@ class ReturnStatement(Statement):
         return sprintln("return", self.expr.string(indent), indent=indent)
     def python_string(self, indent=0, cwass=False) -> str:
         return sprint("return", self.expr.python_string(indent, cwass=cwass), indent=indent)
+    def formatted_string(self, indent=0) -> str:
+        return sprint(f"wetuwn({self.expr.formatted_string()})~", indent=indent)
     def __len__(self):
         return 1
 
@@ -393,7 +397,7 @@ class Declaration(Statement):
         return sprint(res, indent=indent)
 
     def formatted_string(self, indent=0) -> str:
-        res = ""
+        res = sprint("", indent=indent)
 
         if self.is_global:
             res += "gwobaw "
@@ -403,7 +407,7 @@ class Declaration(Statement):
             res += "-dono"
 
         if self.initialized:
-            res += f" = {self.value.formatted_string(indent)}"
+            res += f" = {self.value.formatted_string()}"
 
         if not self.is_param:
             res += "~"
@@ -446,6 +450,9 @@ class Assignment(Statement):
         else:
             res += f" = {self.dtype.python_string(cwass=cwass)}({self.value.python_string(cwass=cwass)})"
         return sprint(res, indent=indent)
+    def formatted_string(self, indent=0) -> str:
+        res = f"{self.id.formatted_string()} = {self.value.formatted_string()}~"
+        return sprint(res, indent=indent)
 
     def __len__(self):
         return 1
@@ -472,6 +479,10 @@ class Print(Statement):
         res = "print("
         res += f"{', '.join(v.python_string(cwass=cwass) for v in self.values)}"
         res += ")"
+        return sprint(res, indent=indent)
+
+    def formatted_string(self, indent=0) -> str:
+        res = f"pwint({', '.join(v.formatted_string() for v in self.values)})~"
         return sprint(res, indent=indent)
 
 class IfStatement(Statement):
@@ -512,6 +523,25 @@ class IfStatement(Statement):
             res += self.else_block.python_string(indent+1, cwass=cwass)
         return sprint(res, indent=indent)
 
+    def formatted_string(self, indent=0) -> str:
+        # iwf (condition) [[
+        res = sprintln(f"iwf ({self.condition.formatted_string()}) [[", indent=indent)
+
+        # then block
+        res += self.then.formatted_string(indent+1)
+
+        # ]] ewse iwf (condition) [[
+        res += sprint("]]", indent=indent)
+        for e in self.else_if:
+            res += e.formatted_string(indent=indent)
+        if self.else_block.statements:
+            res += sprintln(" ewse [[", indent=0)
+            res += self.else_block.formatted_string(indent=indent+1)
+            res += sprint("]]", indent=indent)
+
+        return res
+
+
 class ElseIfStatement(Statement):
     def __init__(self):
         self.condition: Value = Value()
@@ -533,6 +563,12 @@ class ElseIfStatement(Statement):
         res = sprintln(f"elif {self.condition.python_string(cwass=cwass)}:", indent=0)
         res += self.then.python_string(indent+1, cwass=cwass)
         return sprint(res, indent=indent)
+
+    def formatted_string(self, indent=0) -> str:
+        res = sprintln(f" ewse iwf ({self.condition.formatted_string()}) [[", indent=0)
+        res += self.then.formatted_string(indent + 1)
+        res += sprint("]]", indent=indent)
+        return res
 
 class WhileLoop(Statement):
     def __init__(self):
@@ -627,6 +663,22 @@ class Function(Production):
         res += self.body.python_string(indent+1, cwass=cwass)
         return sprintln(res, indent=indent)
 
+    def formatted_string(self, indent=0) -> str:
+        params_string = [p.formatted_string() for p in self.params]
+
+        # fwunc id-dtype(params, params) [[
+        res = f"fwunc {self.id.formatted_string()}-{self.rtype.formatted_string()}({', '.join(params_string)}) [["
+        res = sprintln(res, indent=indent)
+
+        # block statements
+        res += self.body.formatted_string(indent=indent+1)
+
+        # ]]
+        res += sprintln("]]", indent=indent)
+
+        return res
+
+
 class Class(Production):
     def __init__(self):
         self.id: Token = Token()
@@ -704,6 +756,12 @@ class BlockStatement(Production):
             res += s.python_string(indent, cwass=cwass) + '\n'
         return res
 
+    def formatted_string(self, indent=0) -> str:
+        res = ""
+        for s in self.statements:
+            res += s.formatted_string(indent=indent) + '\n'
+        return res
+
 class Comment:
     'only used in formatting'
     def __init__(self, token):
@@ -770,8 +828,6 @@ class Program:
     def formatted_string(self, indent=0) -> str:
         res = ""
         for definitions in self.definition_order:
-            if isinstance(definitions, Function):
-                continue
             res += definitions.formatted_string() + "\n"
         return res
 
