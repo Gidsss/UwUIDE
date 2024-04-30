@@ -202,6 +202,7 @@ class Parser:
         self.register_in_block(TokenType.DO_WHIWE, self.parse_while_statement)
         self.register_in_block(TokenType.FOW, self.parse_for_statement)
         self.register_in_block(TokenType.PWINT, self.parse_print)
+        self.register_in_block(TokenType.BWEAK, self.parse_break)
         # TODO: change cfg to accomodate this as an in block statement
         # self.register_in_block(TokenType.INPWT, self.parse_input)
 
@@ -1363,6 +1364,16 @@ class Parser:
     def parse_literal(self) -> Token:
         'returns the current token'
         return self.curr_tok
+
+    def parse_break(self) -> Break|None:
+        'must start with break in current token'
+        b = Break()
+        b.token = self.curr_tok
+        if not self.expect_peek(TokenType.TERMINATOR):
+            self.peek_error(TokenType.TERMINATOR)
+            self.advance(2)
+            return None
+        return b
 
     ### helper methods
     # registering prefix and infix functions to parse certain token types

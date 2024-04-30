@@ -680,6 +680,21 @@ class ForLoop(Statement):
 
         return sprint(res, indent=indent)
 
+class Break(Statement):
+    def __init__(self):
+        self.token: Token = Token()
+
+    def header(self):
+        return "break statement:"
+    def child_nodes(self) -> None | dict[str, Production | Token]:
+        return {"break":self.token}
+
+    def string(self, indent = 0) -> str:
+        return sprintln("break statement:", self.id.flat_string(), indent=indent)
+    def python_string(self, indent=0, cwass=False) -> str:
+        return sprintln("break", indent=indent)
+    def formatted_string(self, indent=0) -> str:
+        return sprintln("bweak~", indent=indent)
 
 class Function(Production):
     def __init__(self):
