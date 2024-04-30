@@ -131,7 +131,7 @@ class CodeEditor(CTkFrame):
         self.text.focus_set()
 
     def on_tab(self, e: Event):
-        e.widget.insert(INSERT, " " * 6)
+        e.widget.insert(INSERT, " " * 4)
         return 'break'
 
     def run_lexer(self) -> bool:
@@ -312,6 +312,7 @@ class CodeView(CTkTabview):
 
         options_menu.add_command(label='Run Program', command=lambda : self.parent.on_compiler_run(code_editor=code_editor))
         options_menu.add_command(label='Save Program', command=self.save_file)
+        options_menu.add_command(label='Format Source Code', command=self.format_code)
         options_menu.add_separator()
         options_menu.add_command(label='Close File', command=lambda : self.remove_tab(file_name))
 
@@ -344,7 +345,22 @@ class CodeView(CTkTabview):
                 self.code_editors[file_name].text.delete('1.0', 'end-1c')
                 self.code_editors[file_name].text.insert('1.0', file_content)
             self.editor.init_linenums()
-    
+
+    def format_code(self):
+        src = [v if v else v + '\n' for v in self.editor.text.get('1.0', 'end-1c').split('\n')]
+
+        # Validate source code
+        lex = Lexer(src)
+        if lex.errors:
+            return
+        parse = Parser(lex.tokens)
+        if parse.errors:
+            return
+
+        # Replace source code with formatted string
+        self.editor.text.delete("1.0", END)
+        self.editor.text.insert("1.0", parse.program.formatted_string())
+
     def bind_esc(self, editor: CodeEditor, file_name: str):
         editor.text.bind("<Escape>", lambda e: self.remove_tab(file_name))
 
