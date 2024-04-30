@@ -70,7 +70,7 @@ precedence_map = {
 
 class Parser:
     def __init__(self, tokens: list[Token]):
-        self.tokens = [token for token in tokens if token.token not in [TokenType.WHITESPACE, TokenType.SINGLE_LINE_COMMENT, TokenType.MULTI_LINE_COMMENT]]
+        self.tokens = [token for token in tokens if token.token not in [TokenType.WHITESPACE]]
         self.errors: list[Error] = []
 
         # to associate prefix and infix parsing functions for certain token types
@@ -220,16 +220,23 @@ class Parser:
                         else:
                             if res := self.parse_function(main=True):
                                 p.mainuwu = res
+                                p.definition_order.append(res)
                     else:
                         if res := self.parse_function():
                             p.functions.append(res)
+                            p.definition_order.append(res)
                 case TokenType.CWASS:
                     if res := self.parse_class():
                         p.classes.append(res)
+                        p.definition_order.append(res)
                 case TokenType.GWOBAW:
                     if res := self.parse_declaration():
                         self.advance()
                         p.globals.append(res)
+                        p.definition_order.append(res)
+                case TokenType.SINGLE_LINE_COMMENT | TokenType.MULTI_LINE_COMMENT:
+                    p.definition_order.append(self.curr_tok)
+                    self.advance()
                 case _:
                     self.expected_error([TokenType.FWUNC, TokenType.CWASS, TokenType.GWOBAW], curr=True)
                     self.advance()
