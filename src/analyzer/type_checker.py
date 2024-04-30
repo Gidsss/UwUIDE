@@ -469,8 +469,7 @@ class TypeChecker:
     def evaluate_ident_prods(self, ident_prod: IdentifierProds, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> TokenType:
         match ident_prod:
             case IndexedIdentifier():
-                for idx in ident_prod.index:
-                    self.evaluate_value(idx, local_defs)
+                self.check_indexed_id_indices(ident_prod, local_defs)
                 match ident_prod.id:
                     case Token():
                         arr_type = self.evaluate_token(ident_prod.id, local_defs)
@@ -500,6 +499,23 @@ class TypeChecker:
                 return self.check_and_evaluate_class_accessor(ident_prod, local_defs)
             case _:
                 raise ValueError(f"Unknown identifier production: {ident_prod}")
+
+    def check_indexed_id_indices(self, indexed_id: IndexedIdentifier, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> None:
+        dtypes: list[TokenType] = []
+        ok: list[bool] = []
+        for idx in indexed_id.index:
+            dtype = self.evaluate_value(idx, local_defs)
+            dtypes.append(dtype)
+            ok.append(self.is_similar_type(dtype.flat_string(), TokenType.CHAN.flat_string(), idx, as_index=True))
+        if not all(ok):
+            self.errors.append(
+                NonNumberIndex(
+                    indexed_id=indexed_id,
+                    indices=indexed_id.index,
+                    actual_types=dtypes,
+                    ok=ok,
+                )
+            )
 
     def check_and_evaluate_class_accessor(
             self, accessor: ClassAccessor, local_defs: dict[str, tuple[Declaration, Token, GlobalType]],
@@ -583,6 +599,7 @@ class TypeChecker:
                 accessed = accessor.accessed.id
                 return self.evaluate_method_call(class_type, accessor.accessed, local_defs)
             case IndexedIdentifier():
+                self.check_indexed_id_indices(accessor.accessed, local_defs)
                 accessed = accessor.accessed.id
                 match accessed:
                     case Token():
@@ -596,32 +613,32 @@ class TypeChecker:
                                 )
                             )
                             return TokenType.SAN
-                        return_type, _, member_type = res
+                        _, return_type, member_type = res
                         if member_type != GlobalType.CLASS_PROPERTY:
                             self.errors.append(
                                 UndefinedClassMember(
                                     class_type.flat_string(),
                                     accessed,
                                     GlobalType.CLASS_PROPERTY,
-                                    actual_definition=(return_type.id, member_type),
+                                    actual_definition=(return_type, member_type),
                                 )
                             )
                             return TokenType.SAN
-                        if not self.is_accessible(return_type.id.token):
+                        if not self.is_accessible(return_type.token):
                             token = self.extract_id(accessed)
                             type_definition = self.class_signatures[member_signature][0]
                             self.errors.append(
                                 NonIterableIndexingError(
                                     token=token,
                                     type_definition=type_definition.id,
-                                    token_type=return_type.id.token,
+                                    token_type=return_type.token,
                                     usage=accessed.flat_string(),
                                 )
                             )
                             return TokenType.SAN
-                        return return_type.id.token
+                        return return_type.token.to_unit_type()
                     case FnCall():
-                        return self.evaluate_method_call(class_type, accessed, local_defs)
+                        return self.evaluate_method_call(class_type, accessed, local_defs).to_unit_type()
                     case _:
                         raise ValueError(f"Unknown class accessor: {accessor}")
             case ClassAccessor():
@@ -813,10 +830,11 @@ class TypeChecker:
                 res.append(item)
         return res
 
-    def is_similar_type(self, actual_type: str, expected_type: str, val: Value, is_call: bool = False) -> bool:
+    def is_similar_type(self, actual_type: str, expected_type: str, val: Value,
+                        *, is_call: bool = False, as_index=False) -> bool:
         'determines if two types are similar'
         # nuww is an ok val for any type if and only if its not for a call
-        condition_2 = (actual_type == 'san') if not is_call else False
+        condition_2 = (actual_type == 'san') if not is_call and not as_index else False
         if (actual_type == expected_type 
             or condition_2): return True
 
@@ -826,7 +844,8 @@ class TypeChecker:
             case "chan" | "kun":
                 match actual_type:
                     # inpwts with no concats can be converted to num types
-                    case "chan" | "kun" | "sama" | "inpwt": return True
+                    case "chan" | "kun" | "sama": return True
+                    case "inpwt": return True if not as_index else False
                     case _: return False
             # inpwt is inherently senpai
             case "senpai":

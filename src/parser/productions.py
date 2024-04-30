@@ -234,12 +234,12 @@ class IndexedIdentifier(IdentifierProds):
     def flat_string(self) -> str:
         res = self.id.flat_string()
         for index in self.index:
-            res += f"[{index.flat_string()}]"
+            res += f"{{{index.flat_string()}}}"
         return res
     def python_string(self, indent=0, cwass=False) -> str:
         res = self.id.python_string(cwass=cwass)
         for index in self.index:
-            res += f"[{index.python_string(cwass=cwass)}]"
+            res += f"[int({index.python_string(cwass=cwass)})]"
         return res
 
 class ClassConstructor(IdentifierProds):

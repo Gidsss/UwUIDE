@@ -1189,6 +1189,85 @@ class NoReturnStatement(SemanticError):
         msg += border
         return msg
 
+class NonNumberIndex(SemanticError):
+    def __init__(self, indexed_id: IndexedIdentifier, indices: list[Value], actual_types: list[TokenType], ok: list[bool] ) -> None:
+        self.indexed_id = indexed_id
+        self.indices = indices
+        self.actual_types = actual_types
+        self.ok = ok
+
+    def position(self) -> tuple[int, int]|None:
+        return extract_id(self.indexed_id).position
+
+    def string(self) -> str:
+        indexed_id_index = str(extract_id(self.indexed_id).position[0] + 1)
+        max_pad = len(indexed_id_index) + 3
+        max_len = len(self.indexed_id.flat_string())
+        border = f"\t{'_' * (max_len + 6 + max_pad)}\n"
+
+        msg = f"Non Number Indexing: '{self.indexed_id.flat_string()}'\n"
+        msg += border
+        msg += f"\t{' ' * max_pad} |    "
+        msg += "Not all indices are a number type" if len(self.indexed_id.index) > 1 else f"Index '{self.indexed_id.index[0].flat_string()}' is not a number type"
+        msg += f"\t{f'{indexed_id_index}..n':{max_pad}} |    {self.indexed_id.flat_string()}\n"
+        msg += f"\t{' ' * max_pad} |\n"
+        dtype_pad = max([len(dtype.flat_string()) for dtype in self.actual_types]) + 5
+        msg += f"\t{' ' * max_pad} |    "
+        msg += f'{"TYPE":<{dtype_pad}}INDEX'
+
+        for index, dtype, ok in zip(self.indices, self.actual_types, self.ok):
+            res = '✓' if ok else '✗'
+            msg += f"\t{' ' * max_pad} |    "
+            msg += f"{res} {dtype.flat_string():{dtype_pad}}{index.flat_string()}"
+        msg += f"\t{' ' * max_pad} |\n"
+        msg += f"\t{' ' * max_pad} |    "
+        msg += "Hint: Only number types can be used as indices."
+        msg += f"\t{' ' * max_pad} |    "
+        msg += "chan, kun, sama"
+        msg += border
+        return msg
+
+    def __str__(self) -> str:
+        indexed_id_index = str(extract_id(self.indexed_id).position[0] + 1)
+        max_pad = len(indexed_id_index) + 3
+        max_len = len(self.indexed_id.flat_string())
+        border = f"\t{'_' * (max_len + 6 + max_pad)}\n"
+
+        msg = f"Non Number Indexing: '{self.indexed_id.flat_string()}'\n"
+        msg += border
+        msg += f"\t{' ' * max_pad} |    "
+        context = "Not all indices are a number type" if len(self.indexed_id.index) > 1 else f"Index '{self.indexed_id.index[0].flat_string()}' is not a number type"
+        msg += Styled.sprintln(
+            context,
+            color=AnsiColor.RED
+        )
+        msg += f"\t{f'{indexed_id_index}..n':{max_pad}} |    {self.indexed_id.flat_string()}\n"
+        msg += f"\t{' ' * max_pad} |\n"
+        dtype_pad = max([len(dtype.flat_string()) for dtype in self.actual_types]) + 5
+        msg += f"\t{' ' * max_pad} |    "
+        msg += Styled.sprintln(f'{"TYPE":<{dtype_pad}}INDEX', color=AnsiColor.CYAN)
+
+        for index, dtype, ok in zip(self.indices, self.actual_types, self.ok):
+            res = '✓' if ok else '✗'
+            msg += f"\t{' ' * max_pad} |    "
+            msg += Styled.sprintln(
+                f"{res} {dtype.flat_string():{dtype_pad}}{index.flat_string()}",
+                color=AnsiColor.GREEN if ok else AnsiColor.RED
+            )
+        msg += f"\t{' ' * max_pad} |\n"
+        msg += f"\t{' ' * max_pad} |    "
+        msg += Styled.sprintln(
+            "Hint: Only number types can be used as indices.",
+            color=AnsiColor.CYAN
+        )
+        msg += f"\t{' ' * max_pad} |    "
+        msg += Styled.sprintln(
+            "chan, kun, sama",
+            color=AnsiColor.CYAN
+        )
+        msg += border
+        return msg
+
 ### HELPER FUNCTIONS FOR SUGGESTIONS
 def extract_id(accessor: Token | FnCall | IndexedIdentifier | ClassAccessor) -> Token:
     'gets the very first id of a class accessor'
