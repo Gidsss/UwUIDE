@@ -54,12 +54,12 @@ class DuplicateDefinitionError(SemanticError):
         msg = f"Duplicate {self.original_type}: {self.duplicate}\n"
         msg += border
         msg += f"\t{' ' * max_pad} | \t"
-        msg += f'Original {self.original_type} definition'
+        msg += f'Original {self.original_type} definition\n'
         msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.original.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.original.position[1]}{'^' * (og_range)}\n"
         msg += f"\t{' ' * max_pad} | {'_' * (self.original.position[1])}|\n"
         msg += f"\t{' ' * max_pad} | |\n"
-        msg += f"\t{' ' * max_pad} | |\ttried to redefine as {('another ' if self.duplicate_type == self.original_type else '')} {self.duplicate_type}"
+        msg += f"\t{' ' * max_pad} | |\ttried to redefine as {('another ' if self.duplicate_type == self.original_type else '')} {self.duplicate_type}\n"
         msg += f"\t{dupe_index:{max_pad}} | |{ErrorSrc.src[self.duplicate.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | |{' ' * self.duplicate.position[1]}{'^' * (error_range)}\n"
         msg += f"\t{' ' * max_pad} | |{'_' * (self.duplicate.position[1])}|\n"
@@ -117,13 +117,13 @@ class NonFunctionIdCall(SemanticError):
         msg = f"Non Function Called: {self.called}\n"
         msg += border
         msg += f"\t{' ' * max_pad} | \t"
-        msg += f'Original identifier definition'
+        msg += f'Original identifier definition\n'
         msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.original.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.original.position[1]}{'^' * (og_range)}\n"
         msg += f"\t{' ' * max_pad} | {'_' * (self.original.position[1])}|\n"
         msg += f"\t{' ' * max_pad} | |\n"
         msg += f"\t{' ' * max_pad} | |\t"
-        msg += f"Tried to call '{self.called}' as a function"
+        msg += f"Tried to call '{self.called}' as a function\n"
         msg += f"\t{dupe_index:{max_pad}} | |{ErrorSrc.src[self.called.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | |{' ' * self.called.position[1]}{'^' * (error_range)}\n"
         msg += f"\t{' ' * max_pad} | |{'_' * (self.called.position[1])}|\n"
@@ -189,14 +189,14 @@ class FunctionAssignmentError(SemanticError):
         msg += border
         if self.original:
             msg += f"\t{' ' * max_pad} | \t"
-            msg += f'Original {global_type} definition'
+            msg += f'Original {global_type} definition\n'
             msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.original.position[0]]}\n"
             msg += f"\t{' ' * max_pad} | {' ' * self.original.position[1]}{'^' * (og_range)}\n"
             msg += f"\t{' ' * max_pad} | {'_' * (self.original.position[1])}|\n"
             msg += f"\t{' ' * max_pad} | |\n"
 
         msg += f"\t{' ' * max_pad} | {'|' if self.original else ''}\t"
-        msg += f"'{name}' is a {global_type} and cannot be assigned to"
+        msg += f"'{name}' is a {global_type} and cannot be assigned to\n"
         msg += f"\t{assign_index:{max_pad}} | {'|' if self.original else ''}{ErrorSrc.src[self.assignment.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {'|' if self.original else ''}{' ' * self.assignment.position[1]}{'^' * (error_range)}\n"
         if self.original:
@@ -260,7 +260,7 @@ class UndefinedError(SemanticError):
         msg = f"Undefined {self.gtype}: {self.token}\n"
         msg += border
         msg += f"\t{' ' * max_pad} | \t"
-        msg +='Undefined identifier'
+        msg +='Undefined identifier\n'
         msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.token.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.token.position[1]}{'^' * (error_range)}\n"
         msg += border
@@ -309,14 +309,14 @@ class ReassignedConstantError:
         msg = f"{self.header}\n"
         msg += border
         msg += f"\t{' ' * max_pad} | \t"
-        msg +="Defined as constant here"
+        msg +="Defined as constant here\n"
         msg += f"\t{defined_index:{max_pad}} | {ErrorSrc.src[self.defined_token.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.defined_token.position[1]}{'^' * (defined_range)}\n"
         msg += f"\t{' ' * max_pad} | {'_' * (self.defined_token.position[1])}|\n"
         msg += f"\t{' ' * max_pad} | |\n"
         msg += f"\t{' ' * max_pad} | |\t"
         msg += self.msg
-        msg += f"\t{index_str:{max_pad}} | |{ErrorSrc.src[self.token.position[0]]}\n"
+        msg += f"\n\t{index_str:{max_pad}} | |{ErrorSrc.src[self.token.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | |{' ' * self.token.position[1]}{'^' * (error_range)}\n"
         msg += f"\t{' ' * max_pad} | |{'_' * (self.token.position[1])}|\n"
         msg += border
@@ -376,13 +376,13 @@ class ReturnTypeMismatchError(SemanticError):
         msg = f"Return Type Mismatch: expected '{self.expected.flat_string()}' but got '{self.actual_type.flat_string()}'\n"
         msg += border
         msg += f"\t{' ' * max_pad} | \t"
-        msg += f"Expected return type: '{self.expected}'"
+        msg += f"Expected return type: '{self.expected}'\n"
         msg += f"\t{expected_index:{max_pad}} | {ErrorSrc.src[self.expected.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.expected.position[1]}{'^' * (len(self.expected.flat_string()))}\n"
         msg += f"\t{' ' * max_pad} | {'_' * (self.expected.position[1])}|\n"
         msg += f"\t{' ' * max_pad} | |\n"
         msg += f"\t{' ' * max_pad} | |\t"
-        msg += f"Value below evaluates to type: '{self.actual_type.flat_string()}'"
+        msg += f"Value below evaluates to type: '{self.actual_type.flat_string()}'\n"
         msg += f"\t{'ret':{max_pad}} | |    wetuwn({self.return_stmt.expr.flat_string()})~\n"
         msg += f"\t{' ' * max_pad} | |{' ' * 11}{'^' * (len(self.return_stmt.expr.flat_string()))}\n"
         msg += f"\t{' ' * max_pad} | |{'_' * 11}|\n"
@@ -444,12 +444,12 @@ class TypeMismatchError(SemanticError):
         msg = f"{self.title} Type Mismatch: expected '{self.expected.flat_string()}' but got '{self.actual_type.flat_string()}'\n"
         msg += border
         msg += f"\t{' ' * max_pad} |    "
-        msg += f"Expected type defined here"
+        msg += f"Expected type defined here\n"
         msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.expected.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.expected.position[1]}{'^' * (len(self.expected.flat_string()))}\n"
         msg += f"\t{' ' * max_pad} | {'_' * (self.expected.position[1])}|\n"
         msg += f"\t{' ' * max_pad} | |  "
-        msg += f"Tried to assign a value that evaluates to type: '{self.actual_type.flat_string()}'"
+        msg += f"Tried to assign a value that evaluates to type: '{self.actual_type.flat_string()}'\n"
         ctx_str = f"{self.context.id}{f'-{self.context.dtype}' if self.title == 'Declaration' else ''} = "
         msg += f"\t{assign_index_str:{max_pad}} | |    {ctx_str}{self.actual_val.flat_string()}\n"
         msg += f"\t{' ' * max_pad} | |{' ' * (4 + len(ctx_str))}{'^' * (len(self.actual_val.flat_string()))}\n"
@@ -513,12 +513,12 @@ class PrePostFixOperandError(SemanticError):
         msg += border
         if self.val_definition:
             msg += f"\t{' ' * max_pad} | \t"
-            msg += f"Expected type defined here"
+            msg += f"Expected type defined here\n"
             msg += f"\t{def_index:{max_pad}} | {ErrorSrc.src[self.val_definition.position[0]]}\n"
             msg += f"\t{' ' * max_pad} | {' ' * self.val_definition.position[1]}{'^' * (len(self.val_definition.flat_string()))}\n"
             msg += f"\t{' ' * max_pad} | {'_' * (self.val_definition.position[1])}|\n"
         msg += f"\t{' ' * max_pad} | " f"{'|' if self.val_definition else ''}" "\t"
-        msg += f"Value below evaluates to type: '{self.val_type.flat_string()}'"
+        msg += f"Value below evaluates to type: '{self.val_type.flat_string()}'\n"
         msg += f"\t{op_index:{max_pad}} | " f"{'|' if self.val_definition else ''}" f"  {self.op.flat_string() if not self.postfix else ''}{self.val.flat_string()}{self.op.flat_string() if self.postfix else ''}\n"
         msg += f"\t{' ' * max_pad} | " f"{'|' if self.val_definition else ''}" f"{' ' * (3 if not self.postfix else 2)}{'^' * (len(self.val.flat_string()))}\n"
         if self.val_definition:
@@ -594,14 +594,14 @@ class InfixOperandError(SemanticError):
         if self.left_definition and self.left_type:
             lhs_index = str(self.left_definition.position[0] + 1)
             msg += f"\n\t{' ' * max_pad} | \t"
-            msg += f"Left value defined here"
+            msg += f"Left value defined here\n"
             msg += f"\t{lhs_index:{max_pad}} | {ErrorSrc.src[self.left_definition.position[0]]}\n"
             msg += f"\t{' ' * max_pad} | {' ' * self.left_definition.position[1]}{'^' * (len(self.left_definition.flat_string()))}\n"
             msg += f"\t{' ' * max_pad} | {'_' * (self.left_definition.position[1])}|\n"
             msg += f"\t{' ' * max_pad} | |"
         if self.left_type:
             msg += f"\n\t{' ' * max_pad} | "f"{'|' if self.left_definition else ''}""\t"
-            msg += f"Left value evaluates to type: '{self.left_type.flat_string()}'"
+            msg += f"Left value evaluates to type: '{self.left_type.flat_string()}'\n"
             msg += f"\t{op_str:{max_pad}} | " f"{'|' if self.left_definition else ''}" f"  {self.left.flat_string()}{self.op.flat_string()}{self.right.flat_string()}\n"
             msg += f"\t{' ' * max_pad} | " f"{'|' if self.left_definition else ''}" f"  {'^' * (len(self.left.flat_string()))}"
             if self.left_definition:
@@ -613,14 +613,14 @@ class InfixOperandError(SemanticError):
         if self.right_definition and self.right_type:
             rhs_index = str(self.right_definition.position[0] + 1)
             msg += f"\n\t{' ' * max_pad} | \t"
-            msg += f"Right value defined here"
+            msg += f"Right value defined here\n"
             msg += f"\t{rhs_index:{max_pad}} | {ErrorSrc.src[self.right_definition.position[0]]}\n"
             msg += f"\t{' ' * max_pad} | {' ' * self.right_definition.position[1]}{'^' * (len(self.right_definition.flat_string()))}\n"
             msg += f"\t{' ' * max_pad} | {'_' * (self.right_definition.position[1])}|\n"
             msg += f"\t{' ' * max_pad} | |"
         if self.right_type:
             msg += f"\n\t{' ' * max_pad} | " f"{'|' if self.right_definition else ''}" "\t"
-            msg += f"Right value evaluates to type: '{self.right_type.flat_string()}'"
+            msg += f"Right value evaluates to type: '{self.right_type.flat_string()}'\n"
             msg += f"\t{op_str:{max_pad}} | " f"{'|' if self.right_definition else ''}" f"  {self.left.flat_string()}{self.op.flat_string()}{self.right.flat_string()}\n"
             msg += f"\t{' ' * max_pad} | " f"{'|' if self.right_definition else ''}" f"  {' ' * (len(self.left.flat_string()) + len(self.op.flat_string()))}{'^' * (len(self.right.flat_string()))}"
             if self.right_definition:
@@ -719,13 +719,13 @@ class NonIterableIndexingError(SemanticError):
         msg = f"Non Iterable Indexing: '{self.usage}'\n"
         msg += border
         msg += f"\t{' ' * max_pad} | \t"
-        msg += f"Actual type defined here"
+        msg += f"Actual type defined here\n"
         msg += f"\t{def_index:{max_pad}} | {ErrorSrc.src[self.type_definition.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.type_definition.position[1]}{'^' * (len(self.type_definition.flat_string()))}\n"
         msg += f"\t{' ' * max_pad} | {'_' * (self.type_definition.position[1])}|\n"
         msg += f"\t{' ' * max_pad} | |\n"
         msg += f"\t{' ' * max_pad} | |\t"
-        msg += f"Tried to index into a non iterable of type: '{self.token_type}'"
+        msg += f"Tried to index into a non iterable of type: '{self.token_type}'\n"
         msg += f"\t{tok_index:{max_pad}} | |{ErrorSrc.src[self.token.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | |{' ' * self.token.position[1]}{'^' * (len(self.token.flat_string()))}\n"
         msg += f"\t{' ' * max_pad} | |{'_' * (self.token.position[1])}|\n"
@@ -786,16 +786,16 @@ class NonClassAccessError(SemanticError):
         msg += border
         if self.id_definition:
             msg += f"\t{' ' * max_pad} | \t"
-            msg += f"Actual type defined here"
+            msg += f"Actual type defined here\n"
             msg += f"\t{def_index:{max_pad}} | {ErrorSrc.src[self.id_definition.position[0]]}\n"
             msg += f"\t{' ' * max_pad} | {' ' * self.id_definition.position[1]}{'^' * (len(self.id_definition.flat_string()))}\n"
             msg += f"\t{' ' * max_pad} | {'_' * (self.id_definition.position[1])}|\n"
             msg += f"\t{' ' * max_pad} | |\n"
         msg += f"\t{' ' * max_pad} | " f"{'|' if self.id_definition else ''}" "\t"
         if self.initialized:
-            msg += f"Tried to do an access using a non class" f" of type: '{self.id_definition.token}'" if self.id_definition else ""
+            msg += f"Tried to do an access using a non class" f" of type: '{self.id_definition.token}'\n" if self.id_definition else "\n"
         else:
-            msg += f"Tried to do an access using an uninitialized " f"'{self.id_definition.token}'" if self.id_definition else "variable/constant"
+            msg += f"Tried to do an access using an uninitialized " f"'{self.id_definition.token}'\n" if self.id_definition else "variable/constant\n"
         msg += f"\t{id_index:{max_pad}} | " f"{'|' if self.id_definition else ' '}" f"{ErrorSrc.src[self.id.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | " f"{'|' if self.id_definition else ' '}" f"{' ' * self.id.position[1]}{'^' * (len(self.id.flat_string()))}\n"
         if self.id_definition:
@@ -866,13 +866,13 @@ class UndefinedClassMember(SemanticError):
         msg += border
         if self.actual_type and self.actual_definition:
             msg += f"\t{' ' * max_pad} |\t"
-            msg += f"'{self.property.flat_string()}' is a {self.actual_type} of '{self.cwass}' defined here"
+            msg += f"'{self.property.flat_string()}' is a {self.actual_type} of '{self.cwass}' defined here\n"
             msg += f"\t{str(self.actual_definition.position[0] + 1):{max_pad}} | {ErrorSrc.src[self.actual_definition.position[0]]}\n"
             msg += f"\t{' ' * max_pad} | {' ' * self.actual_definition.position[1]}{'^' * (len(self.actual_definition.flat_string()))}\n"
             msg += f"\t{' ' * max_pad} | {'_' * (self.actual_definition.position[1])}|\n"
             msg += f"\t{' ' * max_pad} | |\n"
         msg += f"\t{' ' * max_pad} | " f"{'|' if self.actual_type else ''}" "\t"
-        msg += f"'{self.property.flat_string()}' is not a {self.member_type} of '{self.cwass}'"
+        msg += f"'{self.property.flat_string()}' is not a {self.member_type} of '{self.cwass}'\n"
         msg += f"\t{property_index:{max_pad}} | " f"{'|' if self.actual_type else ''}" f"{ErrorSrc.src[self.property.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | " f"{'|' if self.actual_type else ''}" f"{' ' * self.property.position[1]}{'^' * (len(self.property.flat_string()))}\n"
         if self.actual_type and self.actual_definition:
@@ -940,14 +940,14 @@ class MismatchedCallArgType(SemanticError):
         msg += border
         if self.id_definition:
             msg += f"\t{' ' * max_pad} |\t"
-            msg += f"'{self.call_str}()' {self.global_type} defined here"
+            msg += f"'{self.call_str}()' {self.global_type} defined here\n"
             msg += f"\t{def_index:{max_pad}} | {ErrorSrc.src[self.id_definition.position[0]]}\n"
             msg += f"\t{' ' * max_pad} | {' ' * self.id_definition.position[1]}{'^' * (len(self.id_definition.flat_string()))}\n"
             msg += f"\t{' ' * max_pad} | {'_' * (self.id_definition.position[1])}|\n"
 
         msg += f"\t{' ' * max_pad} | {'|' if self.id_definition else ''}\n"
         msg += f"\t{' ' * max_pad} | {'|' if self.id_definition else ''}\t"
-        msg += f"'{self.call_str}()' called here"
+        msg += f"'{self.call_str}()' called here\n"
         msg += f"\t{id_index:{max_pad}} | {'|' if self.id_definition else ''}{ErrorSrc.src[self.id.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {'|' if self.id_definition else ''}{' ' * self.id.position[1]}{'^' * (len(self.id.flat_string()))}\n"
         if self.id_definition:
@@ -958,7 +958,7 @@ class MismatchedCallArgType(SemanticError):
         msg += (
             f"'{self.call_str}()' {self.global_type} expects {len(self.expected_types)} {'argument' if len(self.expected_types) == 1 else 'arguments'}"+
             (f" but was called with {len(self.args)}" if len(self.expected_types) != len(self.actual_types) else "")
-        )
+        ) + "\n"
         expected_pad = actual_pad = 4
         if self.expected_types:
             expected_pad += max(max(len(expected) for expected in self.expected_types), 8)
@@ -971,35 +971,27 @@ class MismatchedCallArgType(SemanticError):
         msg += f'{"ARG"}\n'
 
         for expected, actual, arg, matched in zip(self.expected_types, self.actual_types, self.args, self.matches):
-            color = AnsiColor.GREEN if matched else AnsiColor.RED
             res = '✓' if matched else '✗'
             msg += f"\t{' ' * max_pad} |\t" + (
-                f"{res} {expected}{actual.flat_string():{actual_pad}}"+
-                Styled.sprint(arg.flat_string(), color=color)+
-                "\n"
+                f"{f'{res} {expected}':{expected_pad}} {actual.flat_string():{actual_pad}}"+
+                arg.flat_string() + "\n"
             )
         if len(self.expected_types) != len(self.args):
             msg += f"\t{' ' * max_pad} |\n"
             msg += f"\t{' ' * max_pad} |\t"
             expected_len, actual_len = len(self.expected_types), len(self.args)
             if expected_len > actual_len:
-                msg += Styled.sprintln(
-                    f"{expected_len - actual_len} {'arg' if expected_len - actual_len == 1 else 'args'} missing",
-                    color=AnsiColor.RED
-                )
+                msg += f"{expected_len - actual_len} {'arg' if expected_len - actual_len == 1 else 'args'} missing\n"
                 for i in range(len(self.actual_types), len(self.expected_types)):
                     msg += f"\t{' ' * max_pad} |\t" + (
-                        f"{Styled.sprint('✗', self.expected_types[i], color=AnsiColor.RED):{expected_pad}} {Styled.sprint('(', 'MISSING', ')', color=AnsiColor.RED):{actual_pad}}\n"
+                        f"{f'✗ {self.expected_types[i]}':{expected_pad}} {f'( MISSING )':{actual_pad}}\n"
                     )
             elif actual_len > expected_len:
-                msg += Styled.sprintln(
-                    f"{actual_len - expected_len} {'arg' if actual_len - expected_len == 1 else 'args'} too many",
-                    color=AnsiColor.RED
-                )
+                msg += f"{actual_len - expected_len} {'arg' if actual_len - expected_len == 1 else 'args'} too many\n"
                 for i in range(len(self.expected_types), len(self.args)):
                     msg += f"\t{' ' * max_pad} |\t" + (
-                        f"{Styled.sprint('✗', 'NONE', color=AnsiColor.RED):{expected_pad}} {Styled.sprint('(', self.args[i].flat_string(), ')', color=AnsiColor.RED):{actual_pad}}"
-                        f"{Styled.sprint(self.args[i].flat_string(), color=AnsiColor.RED)}\n"
+                        f"{'✗ NONE':{expected_pad}} {f'( {self.args[i].flat_string()} )':{actual_pad}}"
+                        f"{self.args[i].flat_string()}\n"
                     )
         msg += border
         return msg
@@ -1105,7 +1097,7 @@ class HeterogeneousArrayError(SemanticError):
         msg = f"Heterogeneous Array:\n"
         msg += border
         msg += f"\t{' ' * max_pad} | \t"
-        msg += f"Array contains {len(set(self.types))} unit types: {', '.join([t for t in set(self.types)])}"
+        msg += f"Array contains {len(set(self.types))} unit types: {', '.join([t for t in set(self.types)])}\n"
         msg += f"\t{' ' * max_pad} | \t{self.arr.flat_string()}\n"
         msg += f"\t{' ' * max_pad} |\n"
         curr_type = None
@@ -1116,7 +1108,7 @@ class HeterogeneousArrayError(SemanticError):
                 msg += f"{dtype:{max_type_pad}}"
             elif curr_type != dtype:
                 msg += f"{dtype:{max_type_pad}}"
-            msg += f"\t{'':{max_type_pad if curr_type == dtype else 0}}{val.flat_string():{max_type_pad}}"
+            msg += f"\t{'':{max_type_pad if curr_type == dtype else 0}}{val.flat_string():{max_type_pad}}\n"
             curr_type = dtype
         msg += border
         return msg
@@ -1169,7 +1161,7 @@ class NoReturnStatement(SemanticError):
     def end_position(self) -> tuple[int, int]|None:
         return self.func.id.end_position
 
-    def strign(self) -> str:
+    def string(self) -> str:
         last_stmt = final_statement(self.func.body) + 1
         rtype_index_str = str(self.func.rtype.position[0] + 1)
         max_pad = max(len(rtype_index_str), 4)
@@ -1179,15 +1171,15 @@ class NoReturnStatement(SemanticError):
         msg = f"{name} '{self.func.id.flat_string() if not self.cwass else (self.cwass+'.'+self.func.id.flat_string())}()' has no return statement:\n"
         msg += border
         msg += f"\t{' ' * max_pad} |\t"
-        msg += f"{name}s that don't have return statements implicitly retuwn 'nuww'."
+        msg += f"{name}s that don't have return statements implicitly retuwn 'nuww'.\n"
         msg += f"\t{' ' * max_pad} |\t"
-        msg += "Return type defined here"
+        msg += "Return type defined here\n"
         msg += f"\t{rtype_index_str:{max_pad}} | {ErrorSrc.src[self.func.rtype.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.func.rtype.position[1]}{'^' * (len(self.func.rtype.flat_string()))}\n"
         msg += f"\t{' ' * max_pad} |\t"
-        msg += f"Consider adding a return statement somewhere"
+        msg += f"Consider adding a return statement somewhere\n"
         msg += f"\t{' ' * max_pad} |\t"
-        msg += f"like after the statement in line {last_stmt}"
+        msg += f"like after the statement in line {last_stmt}\n"
         default_return = default_rtype(self.func.rtype.token)
         msg += f"\t{last_stmt:<{max_pad}} |\t\t{ErrorSrc.src[last_stmt-1].strip()}\n"
         msg += f"\t{f'...n':<{max_pad}} |\t\twetuwn({default_return})~\n"
@@ -1258,7 +1250,7 @@ class NonNumberIndex(SemanticError):
         msg = f"Non Number Indexing: '{self.indexed_id.flat_string()}'\n"
         msg += border
         msg += f"\t{' ' * max_pad} |    "
-        msg += "Not all indices are a number type" if len(self.indexed_id.index) > 1 else f"Index '{self.indexed_id.index[0].flat_string()}' is not a number type"
+        msg += "Not all indices are a number type\n" if len(self.indexed_id.index) > 1 else f"Index '{self.indexed_id.index[0].flat_string()}' is not a number type\n"
         msg += f"\t{f'{indexed_id_index}..n':{max_pad}} |    {self.indexed_id.flat_string()}\n"
         msg += f"\t{' ' * max_pad} |\n"
         dtype_pad = max([len(dtype.flat_string()) for dtype in self.actual_types]) + 5
@@ -1271,9 +1263,9 @@ class NonNumberIndex(SemanticError):
             msg += f"{res} {dtype.flat_string():{dtype_pad}}{index.flat_string()}"
         msg += f"\t{' ' * max_pad} |\n"
         msg += f"\t{' ' * max_pad} |    "
-        msg += "Hint: Only number types can be used as indices."
+        msg += "Hint: Only number types can be used as indices.\n"
         msg += f"\t{' ' * max_pad} |    "
-        msg += "chan, kun, sama"
+        msg += "chan, kun, sama\n"
         msg += border
         return msg
 
