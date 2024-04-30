@@ -660,6 +660,9 @@ class Program:
         self.functions: list[Function] = []
         self.classes: list[Class] = []
 
+        # For formatting
+        self.definition_order = []
+
     def mainuwu_string(self, indent = 0):
         if not self.mainuwu:
             return ''
