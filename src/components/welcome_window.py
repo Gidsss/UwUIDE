@@ -60,10 +60,14 @@ class WelcomeWindow(CTkToplevel):
 
         self.fourthLog = CTkLabel(master = self, anchor = 'center', text = '• Lexical Analyzer', 
                                     text_color = '#FFFFFF', bg_color  = 'transparent', font = ('JetBrains Mono Light', 15))
-        self.fourthLog.place(x = 217, y = 484)
+        self.fourthLog.place(x = 210, y = 484)
+
+        self.fifthLog = CTkLabel(master = self, anchor = 'center', text = '• Syntax & Semantic Analyzer', 
+                                    text_color = '#FFFFFF', bg_color  = 'transparent', font = ('JetBrains Mono Light', 15))
+        self.fifthLog.place(x = 180, y = 511)
 
         self.button = CTkButton(self, text="Okay, got it <3", font=('JetBrains Mono Bold', 15), fg_color="#333652", command=self.close_window)
-        self.button.place(x=230, y=520)
+        self.button.place(x=230, y=540)
 
     def close_window(self):
         self.destroy()
