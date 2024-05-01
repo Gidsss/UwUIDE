@@ -33,11 +33,11 @@ class TokenType(Enum):
         'should only be used for dtypes'
         match self:
             case TokenType.CHAN:
-                return "int"
+                return "Int"
             case TokenType.CHAN_ARR:
                 return "Array"
             case TokenType.KUN:
-                return "float"
+                return "Float"
             case TokenType.KUN_ARR:
                 return "Array"
             case TokenType.SAMA:
@@ -356,11 +356,11 @@ class Token:
             case TokenType.BWEAK:
                 return "break"
             case TokenType.CHAN:
-                return "int"
+                return "Int"
             case TokenType.CHAN_ARR:
                 return "Array"
             case TokenType.KUN:
-                return "float"
+                return "Float"
             case TokenType.KUN_ARR:
                 return "Array"
             case TokenType.SAMA:
