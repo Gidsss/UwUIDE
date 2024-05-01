@@ -347,19 +347,22 @@ class CodeView(CTkTabview):
             self.editor.init_linenums()
 
     def auto_format_code(self):
-        src = [v if v else v + '\n' for v in self.editor.text.get('1.0', 'end-1c').split('\n')]
 
         # Validate source code
-        lex = Lexer(src)
-        if lex.errors:
+        lx_res = self.editor.run_lexer()
+        p_res = self.editor.run_parser()
+
+        self.parent.code_panel.update_compiler_logs(editor=self.editor, is_compiling=False, is_formatting=True)
+        if self.editor.lx_errors:
+            self.parent.code_panel.update_error_logs(errors=self.editor.lx_errors)
             return
-        parse = Parser(lex.tokens)
-        if parse.errors:
+        if self.editor.p_errors:
+            self.parent.code_panel.update_error_logs(errors=self.editor.p_errors)
             return
 
         # Replace source code with formatted string
         self.editor.text.delete("1.0", END)
-        self.editor.text.insert("1.0", parse.program.formatted_string())
+        self.editor.text.insert("1.0", self.editor.program.formatted_string())
 
     def bind_esc(self, editor: CodeEditor, file_name: str):
         editor.text.bind("<Escape>", lambda e: self.remove_tab(file_name))
