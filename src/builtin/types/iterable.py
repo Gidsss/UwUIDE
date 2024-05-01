@@ -1,5 +1,3 @@
-from .utils import expect_type_is_in
-
 class String:
     def __init__(self, val: str):
         self.val: str = str(val)
@@ -163,3 +161,9 @@ class Array:
     def valid_operands(self) -> list[type]:
         return [list, Array]
 
+class TypeError(Exception):
+    pass
+def expect_type_is_in(actual, expecteds: list[type], msg: str):
+    if type(actual) not in expecteds:
+        raise TypeError(f"{msg}\nExpected any in {expecteds} !!\nGot {type(actual)} !!!")
+    return True
