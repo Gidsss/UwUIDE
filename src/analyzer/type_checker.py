@@ -43,6 +43,10 @@ class TypeChecker:
 
     def compile_std_types(self):
         self.builtin_signatures: set[str] = {
+            'chan.abs',
+
+            'kun.abs',
+
             'senpai.len',
             'senpai.reversed',
             'senpai.has',
@@ -74,6 +78,10 @@ class TypeChecker:
         }
         self.class_signatures.update(
             {
+                'chan.abs': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
+
+                'kun.abs': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
+
                 'senpai.len': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
                 'senpai.reversed': (Declaration(), Token('senpai', TokenType.SENPAI), GlobalType.CLASS_METHOD),
                 'senpai.has': (Declaration(), Token('sama', TokenType.SAMA), GlobalType.CLASS_METHOD),
@@ -106,6 +114,10 @@ class TypeChecker:
         )
         self.class_method_param_types.update(
             {
+                'chan.abs': [],
+
+                'kun.abs': [],
+
                 'senpai.len': [],
                 'senpai.reversed': [],
                 'senpai.has': [Token('senpai', TokenType.SENPAI)],
@@ -885,7 +897,12 @@ class TypeChecker:
 
     def is_accessible(self, actual_type: TokenType) -> bool:
         'determines if a type is accessable'
-        return actual_type.is_arr_type() or actual_type == TokenType.SENPAI
+        return (
+            actual_type.is_arr_type()
+            or actual_type == TokenType.SENPAI
+            or actual_type == TokenType.CHAN
+            or actual_type == TokenType.KUN
+        )
 
     ## HELPER METHODS TO EXTRACT TYPES
     def extract_id(self, accessor: Token | FnCall | IndexedIdentifier | ClassAccessor) -> Token:
