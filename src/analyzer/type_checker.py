@@ -44,8 +44,20 @@ class TypeChecker:
     def compile_std_types(self):
         self.builtin_signatures: set[str] = {
             'chan.abs',
+            'chan.pow',
+            'chan.sqrt',
+            'chan.isNegative',
+            'chan.isPositive',
+            'chan.float',
 
             'kun.abs',
+            'kun.pow',
+            'kun.sqrt',
+            'kun.isNegative',
+            'kun.isPositive',
+            'kun.ceil',
+            'kun.floor',
+            'kun.int',
 
             'senpai.len',
             'senpai.reversed',
@@ -79,8 +91,20 @@ class TypeChecker:
         self.class_signatures.update(
             {
                 'chan.abs': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
+                'chan.pow': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
+                'chan.sqrt': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
+                'chan.isNegative': (Declaration(), Token('sama', TokenType.SAMA), GlobalType.CLASS_METHOD),
+                'chan.isPositive': (Declaration(), Token('sama', TokenType.SAMA), GlobalType.CLASS_METHOD),
+                'chan.float': (Declaration(), Token('kun', TokenType.KUN), GlobalType.CLASS_METHOD),
 
-                'kun.abs': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
+                'kun.abs': (Declaration(), Token('kun', TokenType.KUN), GlobalType.CLASS_METHOD),
+                'kun.pow': (Declaration(), Token('kun', TokenType.KUN), GlobalType.CLASS_METHOD),
+                'kun.sqrt': (Declaration(), Token('kun', TokenType.KUN), GlobalType.CLASS_METHOD),
+                'kun.isNegative': (Declaration(), Token('sama', TokenType.SAMA), GlobalType.CLASS_METHOD),
+                'kun.isPositive': (Declaration(), Token('sama', TokenType.SAMA), GlobalType.CLASS_METHOD),
+                'kun.ceil': (Declaration(), Token('kun', TokenType.KUN), GlobalType.CLASS_METHOD),
+                'kun.floor': (Declaration(), Token('kun', TokenType.KUN), GlobalType.CLASS_METHOD),
+                'kun.int': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
 
                 'senpai.len': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
                 'senpai.reversed': (Declaration(), Token('senpai', TokenType.SENPAI), GlobalType.CLASS_METHOD),
@@ -115,8 +139,20 @@ class TypeChecker:
         self.class_method_param_types.update(
             {
                 'chan.abs': [],
+                'chan.pow': [Token('num', TokenType.NUMBER)],
+                'chan.sqrt': [],
+                'chan.isNegative': [],
+                'chan.isPositive': [],
+                'chan.float': [],
 
                 'kun.abs': [],
+                'kun.pow': [Token('num', TokenType.NUMBER)],
+                'kun.sqrt': [],
+                'kun.isNegative': [],
+                'kun.isPositive': [],
+                'kun.ceil': [],
+                'kun.floor': [],
+                'kun.int': [],
 
                 'senpai.len': [],
                 'senpai.reversed': [],
