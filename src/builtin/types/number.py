@@ -84,10 +84,16 @@ class Int:
         return bool(self.val)
     def __bool__(self):
         return bool(self.val)
+    def __int__(self):
+        try:
+            res = int(self.val)
+            return res
+        except:
+            raise ValueError(f"Oh no!! '{self.val}' cannot be converted to kuuuuuuuunnnnnnn!!")
     def __float__(self):
         try:
             res = float(self.val)
-            return Float(res)
+            return res
         except:
             raise ValueError(f"Oh no!! '{self.val}' cannot be converted to kuuuuuuuunnnnnnn!!")
 
@@ -192,7 +198,13 @@ class Float:
     def __int__(self):
         try:
             res = int(self.val)
-            return Int(res)
+            return res
+        except:
+            raise ValueError(f"Oh no!! '{self.val}' cannot be converted to kuuuuuuuunnnnnnn!!")
+    def __float__(self):
+        try:
+            res = float(self.val)
+            return res
         except:
             raise ValueError(f"Oh no!! '{self.val}' cannot be converted to kuuuuuuuunnnnnnn!!")
 
