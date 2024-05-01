@@ -13,4 +13,7 @@ WELCOME_BG_ASSET = Path('./assets/welcome_bg.png')
 ICON_WHITE_ASSET = Path('./assets/icon_white.ico')
 ICON_BLACK_ASSET = Path('./assets/icon_black.ico')
 
-BUILTIN_TYPES = ROOT / 'src' / 'builtin' / 'types' / 'types.py'
+BUILTIN_TYPES = [
+    ROOT / 'src' / 'builtin' / 'types' / 'iterable.py',
+    ROOT / 'src' / 'builtin' / 'types' / 'number.py',
+]

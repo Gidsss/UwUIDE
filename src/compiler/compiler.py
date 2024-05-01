@@ -42,6 +42,8 @@ class Compiler:
         os.remove(tmp_file_path)
 
     def builtins(self) -> str:
-        with open(BUILTIN_TYPES, 'r') as f:
-            contents = f.read()
+        contents = ""
+        for path in BUILTIN_TYPES:
+            with open(path, 'r') as f:
+                contents += f.read() + '\n'
         return contents
