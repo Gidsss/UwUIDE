@@ -122,7 +122,7 @@ class Float:
         return type(self)(float((self.cap_val(self.val)).__ceil__()))
     def _floor(self) -> "Float":
         return type(self)(float((self.cap_val(self.val)).__floor__()))
-    def _chan(self) -> "Int":
+    def _int(self) -> "Int":
         return Int(self.val)
 
     ## HELPER METHODS
@@ -257,7 +257,7 @@ class Int:
         return self.val < 0
     def _isPositive(self) -> bool:
         return self.val > 0
-    def _kun(self) -> "Float":
+    def _float(self) -> "Float":
         return Float(self.val)
 
     ## HELPER METHODS
