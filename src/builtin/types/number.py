@@ -123,8 +123,7 @@ class Float:
     def _floor(self) -> "Float":
         return type(self)(float((self.cap_val(self.val)).__floor__()))
     def _chan(self) -> "Int":
-        return Int(int(self.val))
-
+        return Int(self.val)
 
     ## HELPER METHODS
     def cap_val(self, val) -> float:
@@ -250,6 +249,16 @@ class Int:
     ## BUILTIN METHODS
     def _abs(self) -> "Int":
         return type(self)(self.cap_val(abs(self.val)))
+    def _pow(self, other: int|float) -> "Int":
+        return type(self)(self.cap_val(self.val ** other))
+    def _sqrt(self) -> "Int":
+        return type(self)(self.cap_val(int(sqrt(self.val))))
+    def _isNegative(self) -> bool:
+        return self.val < 0
+    def _isPositive(self) -> bool:
+        return self.val > 0
+    def _kun(self) -> "Float":
+        return Float(self.val)
 
     ## HELPER METHODS
     def cap_val(self, val) -> int:
