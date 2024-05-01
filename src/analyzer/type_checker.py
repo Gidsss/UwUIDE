@@ -787,6 +787,8 @@ class TypeChecker:
                     matches.append(self.is_element_of_expected(actual, self_type if self_type.exists() else expected.token, arg))
                 case TokenType.GEN_ARRAY:
                     matches.append(self.is_similar_type(actual.flat_string(), self_type.flat_string() if self_type.exists() else expected.flat_string(), arg))
+                case TokenType.NUMBER:
+                    matches.append(self.is_similar_type(actual.flat_string(), "chan", arg))
                 case _:
                     matches.append(self.is_similar_type(actual.flat_string(), expected.flat_string(), arg, is_call=True))
 
