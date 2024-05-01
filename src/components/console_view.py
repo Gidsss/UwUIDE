@@ -33,16 +33,23 @@ class CompilerLogsCanvas(CTkCanvas):
             intro_label.grid(row=i, column=0, sticky="nw")
             self.labels.append(intro_label)
 
-    def generate_log(self, lx_errors: list, p_errors: list, a_errors: list, is_compiling = False) -> dict:
+    def generate_log(self, lx_errors: list, p_errors: list, a_errors: list, is_compiling = False, is_formatting = False) -> dict:
         is_passed = not lx_errors and not p_errors and not a_errors
         status = None
 
-        if(is_passed and is_compiling):
-            status = "[PASSED] Lexer, [PASSED] Parser, [PASSED] Analyzer. Compiling..."
-        elif(is_passed and not is_compiling):
-            status = "UwU++ Compiler compiled successfully!"
+        if is_passed:
+            if is_formatting:
+                status = "Your source code has been formatted!"
+            else:
+                if is_compiling:
+                    status = "[PASSED] Lexer, [PASSED] Parser, [PASSED] Analyzer. Compiling..."
+                else:
+                    status = "UwU++ Compiler compiled successfully!"
         else:
-            status = "UwU++ Compiler compilation unsuccessful. Following errors were found:"
+            if is_formatting:
+                status = "Formatting unsuccessful. Resolve the following errors first:"
+            else:
+                status = "UwU++ Compiler compilation unsuccessful. Following errors were found:"
 
         return {
             "Status": status,
@@ -51,20 +58,20 @@ class CompilerLogsCanvas(CTkCanvas):
             "Semantic Errors": len(a_errors) if len(a_errors) > 0 else None
         }
     
-    def render_logs(self, lx_errors: list, p_errors: list, a_errors: list, is_compiling = False):
-        generated_log = self.generate_log(lx_errors=lx_errors, p_errors=p_errors, a_errors=a_errors, is_compiling=is_compiling)
+    def render_logs(self, lx_errors: list, p_errors: list, a_errors: list, is_compiling = False, is_formatting = False):
+        generated_log = self.generate_log(lx_errors=lx_errors, p_errors=p_errors, a_errors=a_errors, is_compiling=is_compiling, is_formatting = is_formatting)
 
         self.generated_log_frame = GeneratedLogFrame(master=self, fg_color='transparent', generated_log=generated_log)
         self.generated_log_frame.grid(row=0, column=0, columnspan=2, sticky='nsew')
 
-    def update_logs(self, editor: CodeEditor, is_compiling):
+    def update_logs(self, editor: CodeEditor, is_compiling, is_formatting = False):
         if len(self.labels) > 0:
             for label in self.labels:
                 label.destroy()
             
             self.labels = []
 
-        self.render_logs(lx_errors=editor.lx_errors,p_errors=editor.p_errors, a_errors=editor.a_errors, is_compiling=is_compiling)
+        self.render_logs(lx_errors=editor.lx_errors,p_errors=editor.p_errors, a_errors=editor.a_errors, is_compiling=is_compiling, is_formatting = is_formatting)
 
 class CompilerLogs(CTkScrollableFrame):
     def __init__(self, master, editor: CodeEditor, **kwargs):
