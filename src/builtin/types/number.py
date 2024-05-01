@@ -1,3 +1,4 @@
+from math import sqrt
 class Float: ...
 class Int: ...
 
@@ -109,6 +110,21 @@ class Float:
     ## BUILTIN METHODS
     def _abs(self) -> "Float":
         return type(self)(self.cap_val(abs(self.val)))
+    def _pow(self, other: int|float) -> "Float":
+        return type(self)(self.cap_val(self.val ** other))
+    def _sqrt(self) -> "Float":
+        return type(self)(float((self.cap_val(sqrt(self.val))).__floor__()))
+    def _isNegative(self) -> bool:
+        return self.val < 0
+    def _isPositive(self) -> bool:
+        return self.val > 0
+    def _ceil(self) -> "Float":
+        return type(self)(float((self.cap_val(self.val)).__ceil__()))
+    def _floor(self) -> "Float":
+        return type(self)(float((self.cap_val(self.val)).__floor__()))
+    def _chan(self) -> "Int":
+        return Int(int(self.val))
+
 
     ## HELPER METHODS
     def cap_val(self, val) -> float:
