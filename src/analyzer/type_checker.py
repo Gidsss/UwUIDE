@@ -793,10 +793,13 @@ class TypeChecker:
         if not all(matches) or len(call_args) != len(expected_types):
             expected_types_str = []
             for e in expected_types:
-                if e.token == TokenType.ARRAY_ELEMENT:
-                    expected_types_str.append(f"{self_type.to_unit_type()} or {self_type.to_arr_type()}")
-                else:
-                    expected_types_str.append(f"{e.token}")
+                match e.token:
+                    case TokenType.ARRAY_ELEMENT:
+                        expected_types_str.append(f"{self_type.to_unit_type()} or {self_type.to_arr_type()}")
+                    case TokenType.NUMBER:
+                        expected_types_str.append("chan, kun, or sama")
+                    case _:
+                        expected_types_str.append(f"{e.token}")
             self.errors.append(
                 MismatchedCallArgType(
                     global_type=global_type,
