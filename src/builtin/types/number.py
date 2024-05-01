@@ -1,7 +1,7 @@
 class Int:
     def __init__(self, val):
         try:
-            self.val: int = int(val)
+            self.val: int = int(float(val))
             if self.val > 9999999999:
                 self.val = 9999999999
             elif self.val < -9999999999:
@@ -19,25 +19,25 @@ class Int:
     # operator overloading
     def __add__(self, other) -> "Int":
         try:
-            res = int(other)
+            res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return type(self)(self.val + res)
     def __sub__(self, other) -> "Int":
         try:
-            res = int(other)
+            res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return type(self)(self.val - res)
     def __mul__(self, other) -> "Int":
         try:
-            res = int(other)
+            res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return type(self)(self.val * res)
     def __truediv__(self, other) -> "Int":
         try:
-            res = int(other)
+            res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return type(self)(self.val / res)
@@ -45,37 +45,37 @@ class Int:
         return type(self)(-self.val)
     def __lt__(self, other) -> bool:
         try:
-            res = int(other)
+            res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return self.val < res
     def __gt__(self, other) -> bool:
         try:
-            res = int(other)
+            res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return self.val > res
     def __le__(self, other) -> bool:
         try:
-            res = int(other)
+            res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return self.val <= res
     def __ge__(self, other) -> bool:
         try:
-            res = int(other)
+            res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return self.val >= res
     def __eq__(self, other):
         try:
-            res = int(other)
+            res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return res == self.val
     def __ne__(self, other):
         try:
-            res = int(other)
+            res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return res != self.val
