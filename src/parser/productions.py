@@ -1,3 +1,4 @@
+import re
 from src.lexer.token import TokenType, UniqueTokenType, class_properties
 from src.parser.production_types import *
 from src.lexer import Token
@@ -63,7 +64,7 @@ class InfixExpression(Expression):
             lhs = f"bool({lhs})"
             rhs = f"bool({rhs})"
         return f"({lhs} {op} {rhs})"
-    def formatted_string(self, spaced=True, dindent=0) -> str:
+    def formatted_string(self, spaced=True, indent=0) -> str:
         lhs = self.left.formatted_string()
         op = self.op.formatted_string()
         rhs = self.right.formatted_string()
@@ -298,7 +299,7 @@ class IndexedIdentifier(IdentifierProds):
     def python_string(self, indent=0, cwass=False) -> str:
         res = self.id.python_string(cwass=cwass)
         for index in self.index:
-            res += f"[int({index.python_string(cwass=cwass)})]"
+            res += f"[{TokenType.CHAN.python_string()}({index.python_string(cwass=cwass)})]"
         return res
     def formatted_string(self, indent=0) -> str:
         res = self.id.formatted_string()
@@ -420,7 +421,7 @@ class Declaration(Statement):
             if self.dtype.token == TokenType.CHAN:
                 # convert value to floats first then to int
                 # this for strings being float strings but passed as int
-                res += f" = {self.dtype.python_string(cwass=cwass)}(float({self.value.python_string(cwass=cwass)}))"
+                res += f" = {self.dtype.python_string(cwass=cwass)}({TokenType.KUN.python_string()}({self.value.python_string(cwass=cwass)}))"
             elif self.dtype.is_unique_type() or self.dtype.is_arr_type():
                 res += f" = {self.value.python_string(cwass=cwass)}"
             else:
@@ -477,7 +478,7 @@ class Assignment(Statement):
         if self.dtype.token == TokenType.CHAN:
             # convert value to floats first then to int
             # this for strings being float strings but passed as int
-            res += f" = {self.dtype.python_string(cwass=cwass)}(float({self.value.python_string(cwass=cwass)}))"
+            res += f" = {self.dtype.python_string(cwass=cwass)}({TokenType.KUN.python_string()}({self.value.python_string(cwass=cwass)}))"
         elif self.dtype.is_unique_type() or self.dtype.is_arr_type():
             res += f" = {self.value.python_string(cwass=cwass)}"
         else:
@@ -625,6 +626,8 @@ class WhileLoop(Statement):
         res = ""
         if self.is_do:
             res = self.body.python_string(indent, cwass=cwass)
+            # initial body of do while, remove breaks
+            res = re.sub(r"break", "...", res)
         res += sprintln(f"while {self.condition.python_string(cwass=cwass)}:", indent=indent)
         res += self.body.python_string(indent+1, cwass=cwass)
         return res
@@ -680,6 +683,22 @@ class ForLoop(Statement):
 
         return sprint(res, indent=indent)
 
+class Break(Statement):
+    def __init__(self):
+        self.token: Token = Token()
+        self.in_loop: bool = False
+
+    def header(self):
+        return "break statement:"
+    def child_nodes(self) -> None | dict[str, Production | Token]:
+        return {"break":self.token}
+
+    def string(self, indent = 0) -> str:
+        return sprintln("break statement:", indent=indent)
+    def python_string(self, indent=0, cwass=False) -> str:
+        return sprint("break" if self.in_loop else "...", indent=indent)
+    def formatted_string(self, indent=0) -> str:
+        return sprintln("bweak~", indent=indent)
 
 class Function(Production):
     def __init__(self):

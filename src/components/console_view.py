@@ -36,7 +36,6 @@ class CompilerLogsCanvas(CTkCanvas):
     def generate_log(self, lx_errors: list, p_errors: list, a_errors: list, is_compiling = False, is_formatting = False) -> dict:
         is_passed = not lx_errors and not p_errors and not a_errors
         status = None
-
         if is_passed:
             if is_formatting:
                 status = "Your source code has been formatted!"
@@ -50,7 +49,6 @@ class CompilerLogsCanvas(CTkCanvas):
                 status = "Formatting unsuccessful. Resolve the following errors first:"
             else:
                 status = "UwU++ Compiler compilation unsuccessful. Following errors were found:"
-
         return {
             "Status": status,
             "Lexical Errors": len(lx_errors) if len(lx_errors) > 0 else None,
@@ -60,7 +58,6 @@ class CompilerLogsCanvas(CTkCanvas):
     
     def render_logs(self, lx_errors: list, p_errors: list, a_errors: list, is_compiling = False, is_formatting = False):
         generated_log = self.generate_log(lx_errors=lx_errors, p_errors=p_errors, a_errors=a_errors, is_compiling=is_compiling, is_formatting = is_formatting)
-
         self.generated_log_frame = GeneratedLogFrame(master=self, fg_color='transparent', generated_log=generated_log)
         self.generated_log_frame.grid(row=0, column=0, columnspan=2, sticky='nsew')
 

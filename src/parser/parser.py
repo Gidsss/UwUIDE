@@ -101,6 +101,9 @@ class Parser:
         self.curr_tok = self.tokens[self.pos]
         self.peek_tok = self.tokens[self.pos + 1]
 
+        # to keep track of whether inside loops
+        self.loop_level = 0
+
         eof_pos = (self.tokens[-1].end_position[0], self.tokens[-1].end_position[1] + 1)
         self.tokens.append(Token("EOF", TokenType.EOF, eof_pos, eof_pos))
         self.program = self.parse_program()
@@ -204,6 +207,7 @@ class Parser:
         self.register_in_block(TokenType.PWINT, self.parse_print)
         self.register_in_block(TokenType.SINGLE_LINE_COMMENT, self.parse_comment)
         self.register_in_block(TokenType.MULTI_LINE_COMMENT, self.parse_comment)
+        self.register_in_block(TokenType.BWEAK, self.parse_break)
         # TODO: change cfg to accomodate this as an in block statement
         # self.register_in_block(TokenType.INPWT, self.parse_input)
 
@@ -829,8 +833,11 @@ class Parser:
             self.advance()
             return None
 
+        self.loop_level += 1
         if (res := self.parse_block_statement()) is None:
+            self.loop_level -= 1
             return None
+        self.loop_level -= 1
         wl.body = res
 
         if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
@@ -882,9 +889,12 @@ class Parser:
             self.advance()
             return None
 
+        self.loop_level += 1
         if (res := self.parse_block_statement()) is None:
+            self.loop_level -= 1
             return None
         fl.body = res
+        self.loop_level -= 1
 
         if not self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
             self.unclosed_double_bracket_error(self.peek_tok)
@@ -1375,6 +1385,17 @@ class Parser:
     def parse_literal(self) -> Token:
         'returns the current token'
         return self.curr_tok
+
+    def parse_break(self) -> Break|None:
+        'must start with break in current token'
+        b = Break()
+        b.token = self.curr_tok
+        b.in_loop = bool(self.loop_level)
+        if not self.expect_peek(TokenType.TERMINATOR):
+            self.peek_error(TokenType.TERMINATOR)
+            self.advance(2)
+            return None
+        return b
 
     ### helper methods
     # registering prefix and infix functions to parse certain token types

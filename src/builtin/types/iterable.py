@@ -1,7 +1,5 @@
 class String:
     def __init__(self, val: str):
-        expect_type_is_in(val, self.stringable_types(),
-                               msg=f"OwO... that ain't stringable!")
         self.val: str = str(val)
 
     ## META DUNDER METHODS
@@ -20,35 +18,31 @@ class String:
                                msg=f"OwO... you can't add that!")
         return String(self.val + str(other))
     def __eq__(self, other):
-        expect_type_is_in(other, self.stringable_types(),
-                               msg=f"OwO... you can't compare with that!")
         return other == self.val
     def __ne__(self, other):
-        expect_type_is_in(other, self.stringable_types(),
-                               msg=f"OwO... you can't compare with that!")
         return other != self.val
 
     # converting to other types
     def __nonzero__(self):
         'determines the truth value of String (same as str)'
-        expect_type_is_in(self.val, self.valid_operands(),
-                               msg=f"OwO... that ain't a String!")
         return bool(self.val)
     def __bool__(self):
         'determines the truth value of String (same as str)'
-        expect_type_is_in(self.val, self.valid_operands(),
-                               msg=f"OwO... that ain't a String!")
         return bool(self.val)
     def __int__(self):
         'converts String to int'
-        expect_type_is_in(self.val, self.valid_operands(),
-                               msg=f"OwO... that ain't a String!")
-        return int(self.val)
+        try:
+            res = int(self.val)
+        except:
+            raise ValueError(f"Oh no!! '{self.val}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return int(res)
     def __float__(self):
         'converts String to float'
-        expect_type_is_in(self.val, self.valid_operands(),
-                               msg=f"OwO... that ain't a String!")
-        return float(self.val)
+        try:
+            res = float(self.val)
+        except:
+            raise ValueError(f"Oh no!! '{self.val}' cannot be converted to kuuuuuuuunnnnnnnnnnn!!")
+        return float(res)
 
     # subscripting
     def __getitem__(self, index):
@@ -95,8 +89,6 @@ class String:
         return type(self)(self.val.title())
 
     ## UTILS
-    def stringable_types(self) -> list[type]:
-        return [str, String, int, float, bool, Array]
     def valid_operands(self) -> list[type]:
         return [str, String]
 
@@ -126,13 +118,9 @@ class Array:
     # converting to other types
     def __nonzero__(self):
         'determines the truth value of Array (same as list)'
-        expect_type_is_in(self.val, self.valid_operands(),
-                               msg=f"OwO... that ain't an Array!")
         return bool(self.val)
     def __bool__(self):
         'determines the truth value of Array (same as list)'
-        expect_type_is_in(self.val, self.valid_operands(),
-                               msg=f"OwO... that ain't an Array!")
         return bool(self.val)
 
     # subscripting
@@ -170,8 +158,6 @@ class Array:
         self.val = item + self.val
 
     ## UTILS
-    def valid_array_elems(self) -> list[type]:
-        return [str, String, int, float, bool, list, Array]
     def valid_operands(self) -> list[type]:
         return [list, Array]
 
