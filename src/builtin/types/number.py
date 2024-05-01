@@ -131,23 +131,29 @@ class Int:
         return repr(self.val)
 
     # operator overloading
-    def __add__(self, other) -> "Int":
+    def __add__(self, other) -> "Int | Float":
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        if isinstance(other, float):
+            return Float(float(self.cap_val(self.val + res)))
         return type(self)(self.cap_val(self.val + res))
-    def __sub__(self, other) -> "Int":
+    def __sub__(self, other) -> "Int | Float":
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        if isinstance(other, float):
+            return Float(float(self.cap_val(self.val - res)))
         return type(self)(self.cap_val(self.val - res))
-    def __mul__(self, other) -> "Int":
+    def __mul__(self, other) -> "Int | Float":
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        if isinstance(other, float):
+            return Float(float(self.cap_val(self.val * res)))
         return type(self)(self.cap_val(self.val * res))
     def __truediv__(self, other) -> Float:
         try:
@@ -155,11 +161,13 @@ class Int:
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return Float(self.cap_val(self.val / res))
-    def __mod__(self, other) -> "Int":
+    def __mod__(self, other) -> "Int | Float":
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        if isinstance(other, float):
+            return Float(float(self.cap_val(self.val % res)))
         return type(self)(self.cap_val(self.val % res))
     def __neg__(self) -> "Int":
         return type(self)(-self.val)
