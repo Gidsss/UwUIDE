@@ -126,12 +126,12 @@ class Float:
         return Int(self.val)
 
     ## HELPER METHODS
-    def cap_val(self, val) -> float:
+    def cap_val(self, val: float|int) -> float:
         if val > 9999999999.0:
             val = 9999999999.0
         elif val < -9999999999.0:
             val = -9999999999.0
-        return val
+        return float(val)
 
 class Int:
     def __init__(self, val):
@@ -261,9 +261,9 @@ class Int:
         return Float(self.val)
 
     ## HELPER METHODS
-    def cap_val(self, val) -> int:
+    def cap_val(self, val: float|int) -> int:
         if val > 9999999999:
             val = 9999999999
         elif val < -9999999999:
             val = -9999999999
-        return val
+        return int(val)
