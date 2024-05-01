@@ -29,7 +29,7 @@ class CommandMenu(CTkFrame):
             font=('JetBrains Mono', 12),
             width=99,
             height=30,
-            command=self.code_view.format_code  # Set the command to trigger file loading
+            command=self.code_view.auto_format_code  # Set the command to trigger file loading
         )
         self.formatButton.grid(row=0, column=12, sticky='', columnspan=1)
 
