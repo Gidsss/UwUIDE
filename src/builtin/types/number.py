@@ -38,6 +38,12 @@ class Int:
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return type(self)(self.cap_val(self.val / res))
+    def __mod__(self, other) -> "Int":
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return type(self)(self.cap_val(self.val % res))
     def __neg__(self) -> "Int":
         return type(self)(-self.val)
     def __lt__(self, other) -> bool:
@@ -149,6 +155,12 @@ class Float:
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return type(self)(self.cap_val(self.val / res))
+    def __mod__(self, other) -> "Float":
+        try:
+            res = float(other)
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
+        return type(self)(self.cap_val(self.val % res))
     def __neg__(self) -> "Float":
         return type(self)(-self.val)
     def __lt__(self, other) -> bool:
