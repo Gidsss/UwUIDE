@@ -64,7 +64,7 @@ class InfixExpression(Expression):
             lhs = f"bool({lhs})"
             rhs = f"bool({rhs})"
         return f"({lhs} {op} {rhs})"
-    def formatted_string(self, spaced=True, dindent=0) -> str:
+    def formatted_string(self, spaced=True, indent=0) -> str:
         lhs = self.left.formatted_string()
         op = self.op.formatted_string()
         rhs = self.right.formatted_string()
@@ -299,7 +299,7 @@ class IndexedIdentifier(IdentifierProds):
     def python_string(self, indent=0, cwass=False) -> str:
         res = self.id.python_string(cwass=cwass)
         for index in self.index:
-            res += f"[int({index.python_string(cwass=cwass)})]"
+            res += f"[{TokenType.CHAN.python_string()}({index.python_string(cwass=cwass)})]"
         return res
     def formatted_string(self, indent=0) -> str:
         res = self.id.formatted_string()
@@ -421,7 +421,7 @@ class Declaration(Statement):
             if self.dtype.token == TokenType.CHAN:
                 # convert value to floats first then to int
                 # this for strings being float strings but passed as int
-                res += f" = {self.dtype.python_string(cwass=cwass)}(float({self.value.python_string(cwass=cwass)}))"
+                res += f" = {self.dtype.python_string(cwass=cwass)}({TokenType.KUN.python_string()}({self.value.python_string(cwass=cwass)}))"
             elif self.dtype.is_unique_type() or self.dtype.is_arr_type():
                 res += f" = {self.value.python_string(cwass=cwass)}"
             else:
@@ -478,7 +478,7 @@ class Assignment(Statement):
         if self.dtype.token == TokenType.CHAN:
             # convert value to floats first then to int
             # this for strings being float strings but passed as int
-            res += f" = {self.dtype.python_string(cwass=cwass)}(float({self.value.python_string(cwass=cwass)}))"
+            res += f" = {self.dtype.python_string(cwass=cwass)}({TokenType.KUN.python_string()}({self.value.python_string(cwass=cwass)}))"
         elif self.dtype.is_unique_type() or self.dtype.is_arr_type():
             res += f" = {self.value.python_string(cwass=cwass)}"
         else:
@@ -694,7 +694,7 @@ class Break(Statement):
         return {"break":self.token}
 
     def string(self, indent = 0) -> str:
-        return sprintln("break statement:", self.id.flat_string(), indent=indent)
+        return sprintln("break statement:", indent=indent)
     def python_string(self, indent=0, cwass=False) -> str:
         return sprint("break" if self.in_loop else "...", indent=indent)
     def formatted_string(self, indent=0) -> str:
