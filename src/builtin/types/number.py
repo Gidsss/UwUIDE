@@ -1,3 +1,6 @@
+class Float: ...
+class Int: ...
+
 class Float:
     def __init__(self, val):
         try:
