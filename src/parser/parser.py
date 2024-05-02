@@ -512,6 +512,9 @@ class Parser:
                     c.definition_order.append([res])
 
                 self.advance()
+            else:
+                self.expected_error([TokenType.FWUNC, "IDENTIFIER"], curr=True)
+                self.advance()
 
         if not self.curr_tok_is(TokenType.DOUBLE_CLOSE_BRACKET):
             self.unclosed_double_bracket_error(self.curr_tok)
