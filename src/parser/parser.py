@@ -764,6 +764,10 @@ class Parser:
                     peek_accessed = last_accessed.id
         if isinstance(last_accessed, FnCall):
             assert isinstance(res, FnCall) or isinstance(res, ClassAccessor)
+            if isinstance(res, FnCall):
+                res.is_statement = True
+            elif isinstance(res, ClassAccessor):
+                res.accessed.is_statement = True
             if not self.expect_peek(TokenType.TERMINATOR):
                 self.peek_error(TokenType.TERMINATOR)
                 self.advance(2)

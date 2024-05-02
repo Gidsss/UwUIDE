@@ -258,6 +258,8 @@ class FnCall(IdentifierProds):
         self.args: list[Value] = []
         self.need_self = False
 
+        self.is_statement = False
+
     def header(self):
         return sprint("call:", self.id.string(),indent=0)
     def child_nodes(self) -> None | dict[str, Production | Token]:
@@ -272,7 +274,8 @@ class FnCall(IdentifierProds):
         if self.need_self: res += "self."
         return sprint(res + f"{self.id.python_string(cwass=cwass)}({', '.join(a.python_string(cwass=cwass) for a in self.args)})", indent=indent)
     def formatted_string(self, indent=0) -> str:
-        return sprint(f"{self.id.formatted_string()}({', '.join(a.formatted_string() for a in self.args)})", indent=indent)
+        tilde  = "~" if self.is_statement else ""
+        return sprint(f"{self.id.formatted_string()}({', '.join(a.formatted_string() for a in self.args)}){tilde}", indent=indent)
 
     def __len__(self):
         return 1
