@@ -163,7 +163,7 @@ class MemberAnalyzer:
     def analyze_assignment(self, assign: Assignment, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         match assign.id:
             case Token():
-                self.expect_defined_token(assign.id, GlobalType.IDENTIFIER, local_defs)
+                self.expect_defined_token(assign.id, GlobalType.IDENTIFIER, local_defs, assign=True)
             case IdentifierProds():
                 self.analyze_ident_prods(assign.id, local_defs)
             case _:
@@ -338,7 +338,8 @@ class MemberAnalyzer:
 
 
     ## HELPER METHODS
-    def expect_defined_token(self, token: Token, global_type: GlobalType, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
+    def expect_defined_token(self, token: Token, global_type: GlobalType, local_defs: dict[str, tuple[Token, GlobalType]],
+                             *, assign=False) -> None:
         '''
         checks whether the token is defined in the scope
         if not, appends to errors
@@ -350,10 +351,16 @@ class MemberAnalyzer:
                 if token.string() in local_defs:
                     if not local_defs[token.string()][1] in (
                         GlobalType.IDENTIFIER, GlobalType.CLASS_PROPERTY, GlobalType.LOCAL_CLASS_ID, GlobalType.CLASS):
-                        self.errors.append(FnUsedAsVar(
-                            local_defs[token.string()][0],
-                            token,
-                        ))
+                        if assign:
+                            self.errors.append(FunctionAssignmentError(
+                                local_defs[token.string()][0],
+                                token,
+                            ))
+                        else:
+                            self.errors.append(FnUsedAsVar(
+                                local_defs[token.string()][0],
+                                token,
+                            ))
                 else:
                     self.errors.append(UndefinedError(
                         token,
