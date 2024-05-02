@@ -353,16 +353,24 @@ class CodeView(CTkTabview):
         p_res = self.editor.run_parser()
 
         self.parent.code_panel.update_compiler_logs(editor=self.editor, is_compiling=False, is_formatting=True)
+
+        if lx_res and p_res:
+            # Replace source code with formatted string
+            self.editor.text.delete("1.0", END)
+            self.editor.text.insert("1.0", self.editor.program.formatted_string())
+
+            # Reset states
+            self.editor.lx_errors = []
+            self.editor.p_errors = []
+            self.editor.program = None
+            self.parent.code_panel.update_error_logs(errors=[])
+            return 
+
+        # Update errors
         if self.editor.lx_errors:
             self.parent.code_panel.update_error_logs(errors=self.editor.lx_errors)
-            return
         if self.editor.p_errors:
             self.parent.code_panel.update_error_logs(errors=self.editor.p_errors)
-            return
-
-        # Replace source code with formatted string
-        self.editor.text.delete("1.0", END)
-        self.editor.text.insert("1.0", self.editor.program.formatted_string())
 
     def bind_esc(self, editor: CodeEditor, file_name: str):
         editor.text.bind("<Escape>", lambda e: self.remove_tab(file_name))
