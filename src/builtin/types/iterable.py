@@ -92,6 +92,24 @@ class String:
         return type(self)(self.val.swapcase())
     def _title(self) -> "String":
         return type(self)(self.val.title())
+    def _first(self, n: Int) -> "String":
+        idx: int = max(int(n), 0)
+        return type(self)(self.val[:idx])
+    def _last(self, n: Int) -> "String":
+        idx: int = max(int(n), 0)
+        return type(self)(self.val[-idx:])
+    def _substr(self, start: Int, end: Int) -> "String":
+        start_idx: int = max(int(start), 0)
+        end_idx: int = max(int(end), 0)
+        return type(self)(self.val[start_idx:end_idx+1])
+    def _from(self, item: str) -> "String":
+        if self.val.find(str(item)) == -1:
+            return type(self)("")
+        return type(self)(str(item) + str(self.val[self.val.find(str(item))+len(item):]))
+    def _upTo(self, item: str) -> "String":
+        if self.val.find(str(item)) == -1:
+            return type(self)("")
+        return type(self)(str(self.val[:self.val.find(str(item))]) + str(item))
 
     ## UTILS
     def valid_operands(self) -> list[type]:
