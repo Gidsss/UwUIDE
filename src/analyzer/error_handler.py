@@ -96,6 +96,88 @@ class DuplicateDefinitionError(SemanticError):
 
         return msg
 
+class FnUsedAsVar(SemanticError):
+    def __init__(self, original: Token|None, usage: Token, class_signature: str|None = None):
+        self.original = original
+        self.usage = usage
+        self.class_signature = class_signature
+
+    def position(self) -> tuple[int, int]|None:
+        return self.usage.position
+
+    def end_position(self) -> tuple[int, int]|None:
+        return self.usage.end_position
+
+    def string(self) -> str:
+        index_str = str(self.original.position[0] + 1) if self.original else ""
+        assign_index = str(self.usage.position[0] + 1)
+        max_pad = max(len(index_str), len(assign_index))
+        max_len = max((len(ErrorSrc.src[self.original.position[0]] if self.original else ''), len(ErrorSrc.src[self.usage.position[0]])))
+        border = f"\t{'_' * ( max_len + 4 + max_pad)}\n"
+        if self.original:
+            og_range = 1 if self.original.end_position is None else self.original.end_position[1] - self.original.position[1] + 1
+        else:
+            og_range = 0
+        error_range = 1 if self.usage.end_position is None else self.usage.end_position[1] - self.usage.position[1] + 1
+        global_type = 'function' if not self.class_signature else 'method'
+        name = f"{self.usage}()" if not self.class_signature else f"{self.class_signature}()"
+
+        msg = f"Tried to use {global_type} as value: {name}\n"
+        msg += border
+        if self.original:
+            msg += f"\t{' ' * max_pad} | \t"
+            msg += f'Original {global_type} definition'
+            msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.original.position[0]]}\n"
+            msg += f"\t{' ' * max_pad} | {' ' * self.original.position[1]}{'^' * (og_range)}\n"
+            msg += f"\t{' ' * max_pad} | {'_' * (self.original.position[1])}|\n"
+            msg += f"\t{' ' * max_pad} | |\n"
+
+        msg += f"\t{' ' * max_pad} | {'|' if self.original else ''}\t"
+        msg += f"'{name}' is a {global_type} and cannot be used as a value without calling it"
+        msg += f"\t{assign_index:{max_pad}} | {'|' if self.original else ''}{ErrorSrc.src[self.usage.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | {'|' if self.original else ''}{' ' * self.usage.position[1]}{'^' * (error_range)}\n"
+        if self.original:
+            msg += f"\t{' ' * max_pad} | |{'_' * (self.usage.position[1])}|\n"
+        msg += border
+        return msg
+
+    def __str__(self):
+        index_str = str(self.original.position[0] + 1) if self.original else ""
+        assign_index = str(self.usage.position[0] + 1)
+        max_pad = max(len(index_str), len(assign_index))
+        max_len = max((len(ErrorSrc.src[self.original.position[0]] if self.original else ''), len(ErrorSrc.src[self.usage.position[0]])))
+        border = f"\t{'_' * ( max_len + 4 + max_pad)}\n"
+        if self.original:
+            og_range = 1 if self.original.end_position is None else self.original.end_position[1] - self.original.position[1] + 1
+        else:
+            og_range = 0
+        error_range = 1 if self.usage.end_position is None else self.usage.end_position[1] - self.usage.position[1] + 1
+        global_type = 'function' if not self.class_signature else 'method'
+        name = f"{self.usage}()" if not self.class_signature else f"{self.class_signature}()"
+
+        msg = f"Tried to use {global_type} as value: {name}\n"
+        msg += border
+        if self.original:
+            msg += f"\t{' ' * max_pad} | \t"
+            msg += Styled.sprintln(
+                f'Original {global_type} definition',
+                color=AnsiColor.GREEN)
+            msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.original.position[0]]}\n"
+            msg += f"\t{' ' * max_pad} | {' ' * self.original.position[1]}{'^' * (og_range)}\n"
+            msg += f"\t{' ' * max_pad} | {'_' * (self.original.position[1])}|\n"
+            msg += f"\t{' ' * max_pad} | |\n"
+
+        msg += f"\t{' ' * max_pad} | {'|' if self.original else ''}\t"
+        msg += Styled.sprintln(
+            f"'{name}' is a {global_type} and cannot be used as a value without calling it",
+            color=AnsiColor.RED)
+        msg += f"\t{assign_index:{max_pad}} | {'|' if self.original else ''}{ErrorSrc.src[self.usage.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | {'|' if self.original else ''}{' ' * self.usage.position[1]}{'^' * (error_range)}\n"
+        if self.original:
+            msg += f"\t{' ' * max_pad} | |{'_' * (self.usage.position[1])}|\n"
+        msg += border
+        return msg
+
 class NonFunctionIdCall(SemanticError):
     def __init__(self, original: Token, called: Token):
         self.original = original
