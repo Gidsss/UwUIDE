@@ -37,7 +37,13 @@ class LogsTable(CTkFrame):
             self.line_labels.append(line_label)
             line_label.grid(row=row, column=0, sticky='nsew', padx=32, pady=8)
 
-            log_message_label = CTkLabel(master=self, text=str(self.logs[row]), fg_color='transparent', font=('JetBrains Mono', 10), text_color='#ff5349', anchor='nw', justify="left")
+            
+            log_message_label = None
+            try:
+                log_message_label = CTkLabel(master=self, text=str(self.logs[row].string()), fg_color='transparent', font=('JetBrains Mono', 10), text_color='#ff5349', anchor='nw', justify="left")
+            except:
+                log_message_label = CTkLabel(master=self, text=str(self.logs[row]), fg_color='transparent', font=('JetBrains Mono', 10), text_color='#ff5349', anchor='nw', justify="left")
+            
             self.log_message_labels.append(log_message_label)
             log_message_label.grid(row=row, column=1, sticky='nsew', columnspan=9, pady=8)
 
