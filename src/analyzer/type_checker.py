@@ -341,10 +341,10 @@ class TypeChecker:
     def check_assignment(self, assign: Assignment, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> None:
         signature, token, decl, dono_token, global_type = self.extract_last_id(assign.id, local_defs)
         try:
-            original_def = local_defs[signature][0]
+            original_def, expected_type = local_defs[signature][:2]
         except KeyError:
-            original_def = self.class_signatures[signature][0]
-            if signature in self.builtin_signatures:
+            original_def, expected_type = self.class_signatures[signature][:2]
+            if signature in self.builtin_signatures or not original_def.id.exists():
                 original_def = None
         if decl.dono_token.exists():
             signature = self.extract_id(assign.id)
@@ -365,7 +365,7 @@ class TypeChecker:
                     class_signature=signature,
                 )
             )
-        self.check_value(assign.value, decl.dtype, local_defs, assignment=True, decl=decl, assign=assign)
+        self.check_value(assign.value, expected_type, local_defs, assignment=True, decl=decl, assign=assign)
 
     def check_value(self, value: Value, expected_type: Token, local_defs: dict[str, tuple[Declaration, Token, GlobalType]],
                     assignment: bool = False, decl: Declaration = Declaration(), assign: Assignment = Assignment()) -> None:
