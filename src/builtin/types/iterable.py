@@ -1,3 +1,8 @@
+from .number import Int, Float
+
+class String: ...
+class Array: ...
+
 class String:
     def __init__(self, val: str):
         self.val: str = str(val)
@@ -53,8 +58,8 @@ class String:
         return iter(self.val)
 
     ## BUILTIN METHODS
-    def _len(self) -> int:
-        return self.__len__()
+    def _len(self) -> Int:
+        return Int(self.__len__())
     def _reversed(self) -> "String":
         return type(self)(self.val[::-1])
     def _has(self, item: str) -> bool:
@@ -69,20 +74,20 @@ class String:
     def _prepend(self, item: str) -> "String":
         tmp = str(item) + str(self.val)
         return type(self)(tmp)
-    def _count(self, item: str) -> int:
-        return self.val.count(str(item))
+    def _count(self, item: str) -> Int:
+        return Int(self.val.count(str(item)))
     def _endswith(self, item: str) -> bool:
         return self.val.endswith(str(item))
     def _startswith(self, item: str) -> bool:
         return self.val.startswith(str(item))
-    def _index(self, item: str) -> int:
-        return self.val.find(str(item))
+    def _index(self, item: str) -> Int:
+        return Int(self.val.find(str(item)))
     def _replace(self, old: str, new: str) -> "String":
         return type(self)(self.val.replace(str(old), str(new)))
     def _strip(self) -> "String":
         return type(self)(self.val.strip())
-    def _split(self, item: str) -> list["String"]:
-        return [type(self)(x) for x in self.val.split(str(item))]
+    def _split(self, item: str) -> Array:
+        return Array([type(self)(x) for x in self.val.split(str(item))])
     def _swapcase(self) -> "String":
         return type(self)(self.val.swapcase())
     def _title(self) -> "String":
@@ -132,8 +137,8 @@ class Array:
         return iter(self.val)
 
     ## BUILTIN METHODS
-    def _len(self) -> int:
-        return self.__len__()
+    def _len(self) -> Int:
+        return Int(self.__len__())
     def _reverse(self) -> None:
         self.val = self.val[::-1]
     def _append(self, item) -> None:
@@ -142,13 +147,13 @@ class Array:
         return item in self.val
     def _clear(self) -> None:
         self.val.clear()
-    def _count(self, item) -> int:
-        return self.val.count(item)
+    def _count(self, item) -> Int:
+        return Int(self.val.count(item))
     def _extend(self, item) -> None:
         self.val.extend(item)
-    def _index(self, item) -> int:
-        if item not in self.val: return -1
-        return self.val.index(item)
+    def _index(self, item) -> Int:
+        if item not in self.val: return Int(-1)
+        return Int(self.val.index(item))
     def _pop(self) -> None:
         if len(self.val) == 0: return
         _ = self.val.pop()
