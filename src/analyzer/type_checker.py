@@ -635,6 +635,21 @@ class TypeChecker:
                     class_type = class_type.to_unit_type()
                 case _: raise ValueError(f"Unknown class accessor: {accessor}")
 
+        # type check accessor
+        match accessor.id:
+            case Token(): pass
+            case FnCall():
+                if class_type.exists(): self.evaluate_method_call(class_type, accessor.id, local_defs)
+                else: self.evaluate_fn_call(accessor.id, local_defs)
+            case ClassAccessor():
+                match (res := self.extract_id_prod(accessor.id)):
+                    case Token(): pass
+                    case FnCall():
+                        if class_type.exists(): self.evaluate_method_call(class_type, res, local_defs)
+                        else: self.evaluate_fn_call(res, local_defs)
+                    case IndexedIdentifier(): self.check_indexed_id_indices(res, local_defs)
+
+        # type check accessed
         match accessor.accessed:
             case Token():
                 accessed = accessor.accessed
@@ -979,6 +994,20 @@ class TypeChecker:
                         raise ValueError(f"Unknown class accessor: {accessor}")
             case ClassAccessor():
                 return self.extract_id(accessor.id)
+            case _:
+                raise ValueError(f"Unknown class accessor: {accessor}")
+
+    def extract_id_prod(self, accessor: Token | FnCall | IndexedIdentifier | ClassAccessor) -> Token | FnCall | IndexedIdentifier:
+        'gets the very first id of a class accessor'
+        match accessor:
+            case Token():
+                return accessor
+            case FnCall():
+                return accessor
+            case IndexedIdentifier():
+                return accessor
+            case ClassAccessor():
+                return self.extract_id_prod(accessor.id)
             case _:
                 raise ValueError(f"Unknown class accessor: {accessor}")
 
