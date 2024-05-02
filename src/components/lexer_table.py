@@ -20,7 +20,13 @@ class LexerTable(CTkFrame):
         for i, token in enumerate(self.tokens):
 
             lexeme_label = CTkLabel(master=self, text=token.lexeme, fg_color='transparent', font=('JetBrains Mono', 13), text_color='#FFFFFF')
-            token_label = CTkLabel(master=self, text=token.token, fg_color='transparent', font=('JetBrains Mono', 13), text_color='#FFFFFF')
+
+            token_label = None
+
+            if(token.is_unique_type()):
+                token_label = CTkLabel(master=self, text=token.token.unique_type, fg_color='transparent', font=('JetBrains Mono', 13), text_color='#FFFFFF')
+            else:
+                token_label = CTkLabel(master=self, text=token.token, fg_color='transparent', font=('JetBrains Mono', 13), text_color='#FFFFFF')
 
             lexeme_label.grid(row=i*2, column=0, sticky='ew')
             token_label.grid(row=i*2, column=1, sticky='ew')
