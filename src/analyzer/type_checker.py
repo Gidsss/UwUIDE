@@ -1032,18 +1032,18 @@ class TypeChecker:
                 while isinstance(val_tmp, ClassAccessor):
                     match val_tmp.accessed:
                         case Token():
-                            accessed = f"{class_type.id.flat_string()}.{val_tmp.accessed.flat_string()}"
+                            accessed = f"{class_type.dtype.flat_string()}.{val_tmp.accessed.flat_string()}"
                             return accessed, val_tmp.accessed, *self.class_signatures[accessed]
                         case FnCall():
-                            accessed =f"{class_type.id.flat_string()}.{val_tmp.accessed.id.flat_string()}" 
+                            accessed =f"{class_type.dtype.flat_string()}.{val_tmp.accessed.id.flat_string()}" 
                             return accessed, val_tmp.accessed.id, *self.class_signatures[accessed]
                         case IndexedIdentifier():
                             match val_tmp.accessed.id:
                                 case Token():
-                                    accessed = f"{class_type.id.flat_string()}.{val_tmp.accessed.id.flat_string()}"
+                                    accessed = f"{class_type.dtype.flat_string()}.{val_tmp.accessed.id.flat_string()}"
                                     return accessed, val_tmp.accessed.id, *self.class_signatures[accessed]
                                 case FnCall():
-                                    accessed = f"{class_type.id.flat_string()}.{val_tmp.accessed.id.id.flat_string()}"
+                                    accessed = f"{class_type.dtype.flat_string()}.{val_tmp.accessed.id.id.flat_string()}"
                                     return accessed, val_tmp.accessed.id.id, *self.class_signatures[accessed]
                                 case _:
                                     raise ValueError(f"Unknown class accessor: {val}")
