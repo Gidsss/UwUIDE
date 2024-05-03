@@ -89,7 +89,7 @@ class String:
         return type(self)(self.val.replace(str(old), str(new)))
     def _strip(self) -> "String":
         return type(self)(self.val.strip())
-    def _split(self, item: str) -> Array:
+    def _split(self, item: str) -> "Array":
         return Array([type(self)(x) for x in self.val.split(str(item))])
     def _swapcase(self) -> "String":
         return type(self)(self.val.swapcase())
