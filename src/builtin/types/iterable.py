@@ -15,11 +15,16 @@ class String:
         return repr(self.val)
 
     # operator overloading
-    def __add__(self, other):
+    def __add__(self, other) -> "String":
         'concatenates two strings'
         expect_type_is_in(other, self.valid_operands(),
                                msg=f"OwO... you can't add that!")
         return String(self.val + str(other))
+    def __radd__(self, other) -> "String":
+        'concatenates two strings'
+        expect_type_is_in(other, self.valid_operands(),
+                               msg=f"OwO... you can't add that!")
+        return String(str(other) + self.val)
     def __eq__(self, other):
         return other == self.val
     def __ne__(self, other):
