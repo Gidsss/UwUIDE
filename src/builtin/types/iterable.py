@@ -1,7 +1,5 @@
-from .number import Int, Float
-
-class String: ...
-class Array: ...
+class Int: ...
+class Float: ...
 
 class String:
     def __init__(self, val: str):
@@ -17,11 +15,16 @@ class String:
         return repr(self.val)
 
     # operator overloading
-    def __add__(self, other):
+    def __add__(self, other) -> "String":
         'concatenates two strings'
         expect_type_is_in(other, self.valid_operands(),
                                msg=f"OwO... you can't add that!")
         return String(self.val + str(other))
+    def __radd__(self, other) -> "String":
+        'concatenates two strings'
+        expect_type_is_in(other, self.valid_operands(),
+                               msg=f"OwO... you can't add that!")
+        return String(str(other) + self.val)
     def __eq__(self, other):
         return other == self.val
     def __ne__(self, other):
@@ -86,7 +89,7 @@ class String:
         return type(self)(self.val.replace(str(old), str(new)))
     def _strip(self) -> "String":
         return type(self)(self.val.strip())
-    def _split(self, item: str) -> Array:
+    def _split(self, item: str) -> "Array":
         return Array([type(self)(x) for x in self.val.split(str(item))])
     def _swapcase(self) -> "String":
         return type(self)(self.val.swapcase())

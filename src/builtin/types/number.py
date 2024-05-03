@@ -1,6 +1,4 @@
 from math import sqrt
-class Float: ...
-class Int: ...
 
 class Float:
     def __init__(self, val):
@@ -24,30 +22,60 @@ class Float:
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return type(self)(self.cap_val(self.val + res))
+    def __radd__(self, other) -> "Float":
+        try:
+            res = float(other)
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
+        return type(self)(self.cap_val(res + self.val))
     def __sub__(self, other) -> "Float":
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return type(self)(self.cap_val(self.val - res))
+    def __rsub__(self, other) -> "Float":
+        try:
+            res = float(other)
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
+        return type(self)(self.cap_val(res - self.val))
     def __mul__(self, other) -> "Float":
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return type(self)(self.cap_val(self.val * res))
+    def __rmul__(self, other) -> "Float":
+        try:
+            res = float(other)
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
+        return type(self)(self.cap_val(res * self.val))
     def __truediv__(self, other) -> "Float":
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return type(self)(self.cap_val(self.val / res))
+    def __rtruediv__(self, other) -> "Float":
+        try:
+            res = float(other)
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
+        return type(self)(self.cap_val(res / self.val))
     def __mod__(self, other) -> "Float":
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return type(self)(self.cap_val(self.val % res))
+    def __rmod__(self, other) -> "Float":
+        try:
+            res = float(other)
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
+        return type(self)(self.cap_val(res % self.val))
     def __neg__(self) -> "Float":
         return type(self)(-self.val)
     def __lt__(self, other) -> bool:
@@ -137,7 +165,7 @@ class Int:
     def __init__(self, val):
         try:
             res = int(float(val))
-            self.val: int = self.cap_val(res)
+            self.val: int = int(self.cap_val(res))
         except:
             raise ValueError(f"Oh no!! '{val}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
 
@@ -154,39 +182,85 @@ class Int:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        if isinstance(other, float):
-            return Float(float(self.cap_val(self.val + res)))
-        return type(self)(self.cap_val(self.val + res))
+        match other:
+            case float(): return Float(float(self.cap_val(self.val + other)))
+            case Float(): return Float(float(self.cap_val(self.val + other.val)))
+            case _: return type(self)(self.cap_val(self.val + res))
+    def __radd__(self, other) -> "Int | Float":
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        match other:
+            case float(): return Float(float(self.cap_val(other + self.val)))
+            case Float(): return Float(float(self.cap_val(other.val + self.val)))
+            case _: return type(self)(self.cap_val(res + self.val))
     def __sub__(self, other) -> "Int | Float":
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        if isinstance(other, float):
-            return Float(float(self.cap_val(self.val - res)))
-        return type(self)(self.cap_val(self.val - res))
+        match other:
+            case float(): return Float(float(self.cap_val(self.val - other)))
+            case Float(): return Float(float(self.cap_val(self.val - other.val)))
+            case _: return type(self)(self.cap_val(self.val - res))
+    def __rsub__(self, other) -> "Int | Float":
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        match other:
+            case float(): return Float(float(self.cap_val(other - self.val)))
+            case Float(): return Float(float(self.cap_val(other.val - self.val)))
+            case _: return type(self)(self.cap_val(res - self.val))
     def __mul__(self, other) -> "Int | Float":
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        if isinstance(other, float):
-            return Float(float(self.cap_val(self.val * res)))
-        return type(self)(self.cap_val(self.val * res))
-    def __truediv__(self, other) -> Float:
+        match other:
+            case float(): return Float(float(self.cap_val(self.val * other)))
+            case Float(): return Float(float(self.cap_val(self.val * other.val)))
+            case _: return type(self)(self.cap_val(self.val * res))
+    def __rmul__(self, other) -> "Int | Float":
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        match other:
+            case float(): return Float(float(self.cap_val(other * self.val)))
+            case Float(): return Float(float(self.cap_val(other.val * self.val)))
+            case _: return type(self)(self.cap_val(res * self.val))
+    def __truediv__(self, other) -> Float:
+        try:
+            res = float(other)
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return Float(self.cap_val(self.val / res))
+    def __rtruediv__(self, other) -> Float:
+        try:
+            res = float(other)
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return Float(self.cap_val(res / self.val))
     def __mod__(self, other) -> "Int | Float":
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        if isinstance(other, float):
-            return Float(float(self.cap_val(self.val % res)))
-        return type(self)(self.cap_val(self.val % res))
+        match other:
+            case float(): return Float(float(self.cap_val(self.val % other)))
+            case Float(): return Float(float(self.cap_val(self.val % other.val)))
+            case _: return type(self)(self.cap_val(self.val % res))
+    def __rmod__(self, other) -> "Int | Float":
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        match other:
+            case float(): return Float(float(self.cap_val(other % self.val)))
+            case Float(): return Float(float(self.cap_val(other.val % self.val)))
+            case _: return type(self)(self.cap_val(res % self.val))
     def __neg__(self) -> "Int":
         return type(self)(-self.val)
     def __lt__(self, other) -> bool:
@@ -261,9 +335,9 @@ class Int:
         return Float(self.val)
 
     ## HELPER METHODS
-    def cap_val(self, val: float|int) -> int:
+    def cap_val(self, val: float|int) -> int|float:
         if val > 9999999999:
             val = 9999999999
         elif val < -9999999999:
             val = -9999999999
-        return int(val)
+        return val
