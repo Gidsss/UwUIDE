@@ -118,6 +118,11 @@ class Parser:
             pos += 1
         return self.tokens[pos + 1]
 
+    @property
+    def true_peek_tok(self):
+        ''' Peek token that also peeks comments (this is what peek_tok was before)'''
+        return self.tokens[self.pos + 1]
+
     def advance(self, inc: int = 1, skip_comments=True):
         'advance the current and peek tokens based on the increment. default is 1'
         if inc <= 0 :
@@ -248,7 +253,7 @@ class Parser:
                 case TokenType.GWOBAW:
                     if res := self.parse_declaration():
                         res.is_global = True
-                        self.advance()
+                        self.advance(skip_comments=False)
                         p.globals.append(res)
 
                         # Group global declarations
@@ -261,7 +266,7 @@ class Parser:
                 case TokenType.SINGLE_LINE_COMMENT | TokenType.MULTI_LINE_COMMENT:
                     res = Comment(self.curr_tok)
                     p.definition_order.append(res)
-                    self.advance()
+                    self.advance(skip_comments=False)
                 case _:
                     self.expected_error([TokenType.FWUNC, TokenType.CWASS, TokenType.GWOBAW], curr=True)
                     self.advance()
@@ -479,7 +484,7 @@ class Parser:
             return None
 
         # Consume double close bracket
-        self.advance()
+        self.advance(skip_comments=False)
 
         return func
 
@@ -533,7 +538,7 @@ class Parser:
             return None
 
         # Consume double close bracket
-        self.advance()
+        self.advance(skip_comments=False)
 
         return c
 
@@ -706,8 +711,8 @@ class Parser:
             return None
 
         stop_condition = [TokenType.DOUBLE_CLOSE_BRACKET, TokenType.EOF]
-        while not self.peek_tok_is_in(stop_condition):
-            self.advance()
+        while not self.peek_tok_is_in(stop_condition, peek_comments=True):
+            self.advance(skip_comments=False)
             parser = self.get_in_block_parse_fn(self.curr_tok.token)
             if parser is None:
                 self.no_in_block_parse_fn_error(self.curr_tok.token)
@@ -1562,12 +1567,15 @@ class Parser:
             "CWASS_ID" in token_types and self.curr_tok_is_class_name()):
             return True
         return self.curr_tok.token in token_types
-    def peek_tok_is_in(self, token_types: list[TokenType]) -> bool:
+    def peek_tok_is_in(self, token_types: list[TokenType], peek_comments=False) -> bool:
         'checks if the next token is in the list of token types.'
         if "IDENTIFIER" in token_types and self.curr_tok_is_identifier() or (
             "CWASS_ID" in token_types and self.curr_tok_is_class_name()):
             return True
-        return self.peek_tok.token in token_types
+        if peek_comments:
+            return self.true_peek_tok.token in token_types
+        else:
+            return self.peek_tok.token in token_types
     def expect_peek_in(self, token_types: list[TokenType]) -> bool:
         '''
         checks if the next token is in the list of token types.
