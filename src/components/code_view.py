@@ -176,6 +176,7 @@ class CodeEditor(CTkFrame):
         ma = self.analyzer(self.program)
         if ma.errors:
             self.a_errors = ma.errors
+            return False
         else:
             self.a_errors = []
 
