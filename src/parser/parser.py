@@ -98,8 +98,6 @@ class Parser:
 
         # to keep track of tokens
         self.pos = 0
-        self.curr_tok = self.tokens[self.pos]
-        self.peek_tok = self.tokens[self.pos + 1]
 
         # to keep track of whether inside loops
         self.loop_level = 0
@@ -107,6 +105,14 @@ class Parser:
         eof_pos = (self.tokens[-1].end_position[0], self.tokens[-1].end_position[1] + 1)
         self.tokens.append(Token("EOF", TokenType.EOF, eof_pos, eof_pos))
         self.program = self.parse_program()
+
+    @property
+    def curr_tok(self):
+        return self.tokens[self.pos]
+
+    @property
+    def peek_tok(self):
+        return self.tokens[self.pos + 1]
 
     def advance(self, inc: int = 1):
         'advance the current and peek tokens based on the increment. default is 1'
@@ -117,13 +123,10 @@ class Parser:
                 return
 
             if self.peek_tok.token == TokenType.EOF:
-                self.curr_tok = self.peek_tok
                 self.pos += 1
                 return
 
             self.pos += 1
-            self.curr_tok = self.peek_tok
-            self.peek_tok = self.tokens[self.pos + 1]
 
     def register_init(self):
         '''
