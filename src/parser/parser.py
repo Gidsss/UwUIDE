@@ -112,9 +112,13 @@ class Parser:
 
     @property
     def peek_tok(self):
-        return self.tokens[self.pos + 1]
+        # Skip comments
+        pos = self.pos
+        while self.is_comment(self.tokens[pos+1]):
+            pos += 1
+        return self.tokens[pos + 1]
 
-    def advance(self, inc: int = 1):
+    def advance(self, inc: int = 1, skip_comments=True):
         'advance the current and peek tokens based on the increment. default is 1'
         if inc <= 0 :
             return
@@ -122,6 +126,9 @@ class Parser:
             if self.curr_tok.token == TokenType.EOF:
                 return
 
+            # Skip comments
+            while skip_comments and self.is_comment(self.tokens[self.pos+1]):
+                self.pos += 1
             if self.peek_tok.token == TokenType.EOF:
                 self.pos += 1
                 return
@@ -972,6 +979,9 @@ class Parser:
             self.advance()
             return None
         return p
+
+    def is_comment(self, token: Token):
+        return token.token in [TokenType.SINGLE_LINE_COMMENT, TokenType.MULTI_LINE_COMMENT]
 
     def parse_comment(self) -> Comment | None:
         return Comment(self.curr_tok)
