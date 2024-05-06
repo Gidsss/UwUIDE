@@ -1,5 +1,142 @@
 from math import sqrt
 
+class Bool:
+    def __init__(self, val):
+        try:
+            self.val = bool(val)
+        except:
+            raise ValueError(f"oh no!! {self.val} cannot be converted to saaaamaaaaaaaaaaaa!!")
+
+    ## META DUNDER METHODS
+    # basic properties
+    def __len__(self) -> int:
+        return 1
+    def __repr__(self):
+        return self.__str__()
+
+    # operator overloading
+    def __add__(self, other) -> "Bool":
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return type(self)(self.val + res)
+    def __radd__(self, other) -> "Bool":
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return type(self)(res + self.val)
+    def __sub__(self, other) -> "Bool":
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return type(self)(self.val - res)
+    def __rsub__(self, other) -> "Bool":
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return type(self)(res - self.val)
+    def __mul__(self, other) -> "Bool":
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return type(self)(self.val * res)
+    def __rmul__(self, other) -> "Bool":
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return type(self)(res * self.val)
+    def __truediv__(self, other) -> "Bool":
+        try:
+            res = float(other)
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return type(self)(self.val / res)
+    def __rtruediv__(self, other) -> "Bool":
+        try:
+            res = float(other)
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return type(self)(res / self.val)
+    def __mod__(self, other) -> "Bool":
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return type(self)(self.val % res)
+    def __rmod__(self, other) -> "Bool":
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return type(self)(res % self.val)
+    def __neg__(self) -> "Bool":
+        return type(self)(-self.val)
+    def __lt__(self, other) -> "Bool":
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return type(self)(self.val < res)
+    def __gt__(self, other) -> "Bool":
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return type(self)(self.val > res)
+    def __le__(self, other) -> bool:
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return self.val <= res
+    def __ge__(self, other) -> "Bool":
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return type(self)(self.val >= res)
+    def __eq__(self, other) -> "Bool":
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return type(self)(res == self.val)
+    def __ne__(self, other) -> "Bool":
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return type(self)(res != self.val)
+
+    # converting to other types
+    def __str__(self):
+        match self.val:
+            case True: return "fax"
+            case False: return "cap"
+            case _: raise ValueError(f"oh no!! {self.val} cannot be converted to saaaamaaaaaaaaaaaa!!")
+    def __nonzero__(self):
+        return bool(self.val)
+    def __bool__(self):
+        return bool(self.val)
+    def __int__(self):
+        try:
+            res = int(self.val)
+            return res
+        except:
+            raise ValueError(f"Oh no!! '{self.val}' cannot be converted to kuuuuuuuunnnnnnn!!")
+    def __float__(self):
+        try:
+            res = float(self.val)
+            return res
+        except:
+            raise ValueError(f"Oh no!! '{self.val}' cannot be converted to kuuuuuuuunnnnnnn!!")
+
 class Float:
     def __init__(self, val):
         try:
