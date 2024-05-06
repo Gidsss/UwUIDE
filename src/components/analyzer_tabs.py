@@ -3,6 +3,7 @@ from tkinter import ttk
 from customtkinter import *
 from .lexer_table import LexerCanvas
 from src.parser import Production, Program
+from .code_view import Remote, Tags
 
 class UwUParserTab(CTkScrollableFrame):
     def __init__(self, master, **kwargs):
@@ -16,8 +17,13 @@ class UwUParserTab(CTkScrollableFrame):
         treestyles.map('Treeview', background=[('selected', "#1A1B26")], foreground=[('selected', "#89ca78")])
 
         self.tree = ttk.Treeview(self, height=100, show='tree')
+        self.tree.bind("<ButtonRelease-1>", self.highlight)
+        self.tree.bind("<Leave>", self.clear_highlight)
+        self.iid_dict = {}
 
         self.tree.grid(row=0, column=0, columnspan=2, sticky='nsew')
+
+        self.code_editor = Remote.code_editor_instance
     
     def clear_parser_tree(self):
         if(len(self.tree.get_children()) > 0):
@@ -34,13 +40,14 @@ class UwUParserTab(CTkScrollableFrame):
                 return
             
             node_iid = uuid.uuid4()
+            self.iid_dict.update({str(node_iid): node})
 
             self.tree.insert(parent, 'end', iid=node_iid, text=f"{key}: {node.header()}" if key else node.header(), open=True)
 
             for k, v in node.child_nodes().items():
                 if v and not isinstance(v, Production):
-                    print(v)
-                    self.tree.insert(node_iid, 'end', text=f"{k}: {v}")
+                    child_node_id = self.tree.insert(node_iid, 'end', text=f"{k}: {v}")
+                    self.iid_dict.update({str(child_node_id): v})
                 elif v:
                     loop_tree(node=v, parent=node_iid, key=k)
 
@@ -48,6 +55,7 @@ class UwUParserTab(CTkScrollableFrame):
 
         if(program.mainuwu):
             self.tree.insert('', 'end', text='Mainuwu', iid=0, open=True)
+            self.iid_dict.update({'0': program.mainuwu})
             loop_tree(node=program.mainuwu, parent='0')
         
         if(len(program.functions) > 0):
@@ -64,6 +72,21 @@ class UwUParserTab(CTkScrollableFrame):
             self.tree.insert('', 'end', text='Classes', iid=3, open=True)
             for c in program.classes:
                 loop_tree(node=c, parent='3')
+
+    def highlight(self, event):
+        # Highlights the hovered node in the source code
+        self.code_editor = Remote.code_editor_instance
+        selected = self.tree.focus()
+        if selected in self.iid_dict.keys():
+            value = self.iid_dict[selected]
+            if isinstance(value, Production):
+                self.code_editor.format(Tags.TOKEN_HIGHLIGHT.name, tuple(value.start_pos), tuple(value.end_pos))
+            else:
+                self.code_editor.format(Tags.TOKEN_HIGHLIGHT.name, tuple(value.position), tuple(value.end_position))
+
+    def clear_highlight(self, event):
+        self.code_editor = Remote.code_editor_instance
+        self.code_editor.clear_format()
 
 class UwULexerTab(CTkScrollableFrame):
     def __init__(self, master, **kwargs):
