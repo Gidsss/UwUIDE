@@ -61,8 +61,8 @@ class InfixExpression(Expression):
         op = self.op.python_string(cwass=cwass)
         rhs = self.right.python_string(cwass=cwass)
         if self.op.token in [TokenType.AND_OPERATOR, TokenType.OR_OPERATOR]:
-            lhs = f"bool({lhs})"
-            rhs = f"bool({rhs})"
+            lhs = f"Bool({lhs})"
+            rhs = f"Bool({rhs})"
         return f"({lhs} {op} {rhs})"
     def formatted_string(self, spaced=True, indent=0) -> str:
         lhs = self.left.formatted_string()
