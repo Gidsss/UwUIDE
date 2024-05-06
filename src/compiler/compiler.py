@@ -42,8 +42,20 @@ class Compiler:
         os.remove(tmp_file_path)
 
     def builtins(self) -> str:
-        contents = ""
+        contents = "from __future__ import annotations\n\n"
+        # remove any lines starting with
+        remove = [
+            "#",
+            "from .namespace",
+            "from __future__",
+        ]
         for path in BUILTIN_TYPES:
             with open(path, 'r') as f:
-                contents += f.read() + '\n'
+                res = f.readlines()
+                for r in remove:
+                    res = [line for line in res if (
+                        not line.strip().startswith(r)
+                        and not line.strip() == '')
+                    ]
+                contents += ''.join(res) + '\n'
         return contents
