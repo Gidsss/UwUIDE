@@ -215,42 +215,42 @@ class Float:
         return type(self)(self.cap_val(res % self.val))
     def __neg__(self) -> "Float":
         return type(self)(-self.val)
-    def __lt__(self, other) -> bool:
+    def __lt__(self, other) -> "Bool":
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
-        return self.val < res
-    def __gt__(self, other) -> bool:
+        return Bool(self.val < res)
+    def __gt__(self, other) -> "Bool":
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
-        return self.val > res
-    def __le__(self, other) -> bool:
+        return Bool(self.val > res)
+    def __le__(self, other) -> "Bool":
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
-        return self.val <= res
-    def __ge__(self, other) -> bool:
+        return Bool(self.val <= res)
+    def __ge__(self, other) -> "Bool":
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
-        return self.val >= res
-    def __eq__(self, other):
+        return Bool(self.val >= res)
+    def __eq__(self, other) -> "Bool":
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
-        return res == self.val
-    def __ne__(self, other):
+        return Bool(res == self.val)
+    def __ne__(self, other) -> "Bool":
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
-        return res != self.val
+        return Bool(res != self.val)
 
     # converting to other types
     def __str__(self):
@@ -279,10 +279,10 @@ class Float:
         return type(self)(self.cap_val(self.val ** other))
     def _sqrt(self) -> "Float":
         return type(self)(float((self.cap_val(sqrt(self.val))).__floor__()))
-    def _isNegative(self) -> bool:
-        return self.val < 0
-    def _isPositive(self) -> bool:
-        return self.val > 0
+    def _isNegative(self) -> "Bool":
+        return Bool(self.val < 0)
+    def _isPositive(self) -> "Bool":
+        return Bool(self.val > 0)
     def _ceil(self) -> "Float":
         return type(self)(float((self.cap_val(self.val)).__ceil__()))
     def _floor(self) -> "Float":
@@ -301,7 +301,8 @@ class Float:
 class Int:
     def __init__(self, val):
         try:
-            res = int(float(val))
+            self.val = 0
+            res = float(val)
             self.val: int = int(self.cap_val(res))
         except:
             raise ValueError(f"Oh no!! '{val}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
@@ -400,42 +401,42 @@ class Int:
             case _: return type(self)(self.cap_val(res % self.val))
     def __neg__(self) -> "Int":
         return type(self)(-self.val)
-    def __lt__(self, other) -> bool:
+    def __lt__(self, other) -> "Bool":
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        return self.val < res
-    def __gt__(self, other) -> bool:
+        return Bool(self.val < res)
+    def __gt__(self, other) -> "Bool":
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        return self.val > res
-    def __le__(self, other) -> bool:
+        return Bool(self.val > res)
+    def __le__(self, other) -> "Bool":
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        return self.val <= res
-    def __ge__(self, other) -> bool:
+        return Bool(self.val <= res)
+    def __ge__(self, other) -> "Bool":
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        return self.val >= res
-    def __eq__(self, other):
+        return Bool(self.val >= res)
+    def __eq__(self, other) -> "Bool":
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        return res == self.val
-    def __ne__(self, other):
+        return Bool(res == self.val)
+    def __ne__(self, other) -> "Bool":
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        return res != self.val
+        return Bool(res != self.val)
 
     # converting to other types
     def __str__(self):
@@ -464,10 +465,10 @@ class Int:
         return type(self)(self.cap_val(self.val ** other))
     def _sqrt(self) -> "Int":
         return type(self)(self.cap_val(int(sqrt(self.val))))
-    def _isNegative(self) -> bool:
-        return self.val < 0
-    def _isPositive(self) -> bool:
-        return self.val > 0
+    def _isNegative(self) -> "Bool":
+        return Bool(self.val < 0)
+    def _isPositive(self) -> "Bool":
+        return Bool(self.val > 0)
     def _float(self) -> "Float":
         return Float(self.val)
 

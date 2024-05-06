@@ -1,5 +1,7 @@
 class Int: ...
 class Float: ...
+class Bool:
+    def __init__(self, val): ...
 
 class String:
     def __init__(self, val: str):
@@ -25,10 +27,10 @@ class String:
         expect_type_is_in(other, self.valid_operands(),
                                msg=f"OwO... you can't add that!")
         return String(str(other) + self.val)
-    def __eq__(self, other):
-        return other == self.val
-    def __ne__(self, other):
-        return other != self.val
+    def __eq__(self, other) -> "Bool":
+        return Bool(other == self.val)
+    def __ne__(self, other) -> "Bool":
+        return Bool(other != self.val)
 
     # converting to other types
     def __nonzero__(self):
@@ -132,14 +134,14 @@ class Array:
         return repr(self.val)
 
     # operator overloading
-    def __eq__(self, other):
+    def __eq__(self, other) -> "Bool":
         expect_type_is_in(other, self.valid_operands(),
                                msg=f"OwO... you can't compare with that!")
-        return self.val == other
-    def __ne__(self, other):
+        return Bool(self.val == other)
+    def __ne__(self, other) -> "Bool":
         expect_type_is_in(other, self.valid_operands(),
                                msg=f"OwO... you can't compare with that!")
-        return self.val != other
+        return Bool(self.val != other)
 
     # converting to other types
     def __nonzero__(self):
