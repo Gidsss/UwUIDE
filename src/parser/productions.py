@@ -396,6 +396,12 @@ class Declaration(Statement):
         self.is_param: bool = False
         self.is_global: bool = False
 
+        self.start_pos = None
+        self.end_pos = None
+
+    def map_position(self):
+        self.start_pos = self.id.position
+
     def header(self):
         return f"{'declare' if not self.is_param else 'param'} {'constant' if self.dono_token.exists() else 'variable'}: {self.id.string()}"
     def child_nodes(self) -> None | dict[str, Production | Token]:
@@ -710,6 +716,12 @@ class Function(Production):
         self.params: list[Declaration] = []
         self.body: BlockStatement = BlockStatement()
 
+        self.start_pos = None
+        self.end_pos = None
+
+    def map_position(self):
+        self.body.map_position()
+
     def header(self):
         return f"function: {self.id.string()}"
     def child_nodes(self) -> None | dict[str, Production | Token]:
@@ -841,6 +853,16 @@ class BlockStatement(Production):
     def __init__(self):
         self.statements: list[Statement] = []
 
+        self.start_pos = None
+        self.end_pos = None
+
+    def map_position(self):
+        for statement in self.statements:
+            statement.map_position()
+
+        self.start_pos = self.statements[0].start_pos
+        self.end_pos = self.statements[0].end_pos
+
     def header(self):
         return "block"
     def child_nodes(self) -> None | dict[str, Production | Token]:
@@ -869,13 +891,20 @@ class BlockStatement(Production):
 class Comment:
     'only used in formatting'
     def __init__(self, token):
-        self.comment = str(token)
+        self.comment: Token = token
+
+        self.start_pos = None
+        self.end_pos = None
+
+    def map_position(self):
+        self.start_pos = self.comment.position
+        self.end_pos = self.comment.end_position
 
     def python_string(self, indent=0, cwass=False) -> str:
         return ""
 
     def formatted_string(self, indent=0) -> str:
-        return sprint(f"{self.comment}", indent=indent)
+        return sprint(f"{str(self.comment)}", indent=indent)
 
 class Program:
     'the root node of the syntax tree'
@@ -885,8 +914,31 @@ class Program:
         self.functions: list[Function] = []
         self.classes: list[Class] = []
 
+        # For highlighting
+        self.start_pos = None
+        self.end_pos = None
+
         # For formatting
         self.definition_order = []
+
+    def map_position(self):
+        """ Maps start_pos and end_pos of the entire program including the productions within """
+        for definition in self.definition_order:
+            if isinstance(definition, list):
+                for global_dec in definition:
+                    global_dec.map_position()
+            else:
+                definition.map_position()
+
+        # Get first and last productions
+        first = self.definition_order[0]
+        last = self.definition_order[-1]
+        first = first if not isinstance(first, list) else first[0]
+        last = last if not isinstance(last, list) else first[-1]
+
+        self.start_pos = first.start_pos
+        self.end_pos = last.end_pos
+
 
     def mainuwu_string(self, indent = 0):
         if not self.mainuwu:
