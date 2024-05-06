@@ -301,6 +301,8 @@ class Parser:
                 return None
             d.id = self.curr_tok
 
+        d.start_pos = self.curr_tok.position
+
         if not self.expect_peek(TokenType.DASH):
             self.no_data_type_indicator_error(self.peek_tok)
             self.advance(2)
@@ -361,6 +363,7 @@ class Parser:
                     self.expected_error(expecteds)
                     self.advance(2)
                     return None
+                d.end_pos = self.curr_tok.position
                 return d
 
         # initialized
@@ -389,6 +392,8 @@ class Parser:
             self.expected_error([TokenType.TERMINATOR, *added])
             self.advance(2)
             return None
+        d.end_pos = self.curr_tok.position
+
         return d
 
     ### statement parsers
@@ -423,6 +428,7 @@ class Parser:
     # block statements
     def parse_function(self, main=False) -> Function | None:
         func = Function()
+        func.start_pos = self.curr_tok.position
 
         if not self.expect_peek_is_identifier() and not self.expect_peek(TokenType.MAINUWU):
             self.no_ident_in_func_declaration_error(self.peek_tok)
@@ -482,6 +488,8 @@ class Parser:
             self.advance(2)
             self.unclosed_double_bracket_error(self.curr_tok)
             return None
+
+        func.end_pos = self.curr_tok.end_position
 
         # Consume double close bracket
         self.advance(skip_comments=False)
@@ -703,6 +711,7 @@ class Parser:
         ends with the close bracket in peek token
         '''
         bs = BlockStatement()
+        bs.start_pos = self.curr_tok.position
 
         # Check if block is empty
         if self.expect_peek(TokenType.DOUBLE_CLOSE_BRACKET):
@@ -728,6 +737,7 @@ class Parser:
             self.advance()
             return None
 
+        bs.end_pos = self.peek_tok.end_position
         return bs
 
     def parse_ident_statement(self) -> (
