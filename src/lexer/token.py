@@ -41,7 +41,7 @@ class TokenType(Enum):
             case TokenType.KUN_ARR:
                 return "Array"
             case TokenType.SAMA:
-                return "bool"
+                return "Bool"
             case TokenType.SAMA_ARR:
                 return "Array"
             case TokenType.SAN:
@@ -366,7 +366,7 @@ class Token:
             case TokenType.KUN_ARR:
                 return "Array"
             case TokenType.SAMA:
-                return "bool"
+                return "Bool"
             case TokenType.SAMA_ARR:
                 return "Array"
             case TokenType.SAN:
