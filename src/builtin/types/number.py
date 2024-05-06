@@ -1,3 +1,4 @@
+from __future__ import annotations
 from math import sqrt
 
 class Bool:
@@ -15,75 +16,75 @@ class Bool:
         return self.__str__()
 
     # operator overloading
-    def __add__(self, other) -> "Bool":
+    def __add__(self, other) -> Bool:
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return type(self)(self.val + res)
-    def __radd__(self, other) -> "Bool":
+    def __radd__(self, other) -> Bool:
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return type(self)(res + self.val)
-    def __sub__(self, other) -> "Bool":
+    def __sub__(self, other) -> Bool:
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return type(self)(self.val - res)
-    def __rsub__(self, other) -> "Bool":
+    def __rsub__(self, other) -> Bool:
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return type(self)(res - self.val)
-    def __mul__(self, other) -> "Bool":
+    def __mul__(self, other) -> Bool:
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return type(self)(self.val * res)
-    def __rmul__(self, other) -> "Bool":
+    def __rmul__(self, other) -> Bool:
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return type(self)(res * self.val)
-    def __truediv__(self, other) -> "Bool":
+    def __truediv__(self, other) -> Bool:
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return type(self)(self.val / res)
-    def __rtruediv__(self, other) -> "Bool":
+    def __rtruediv__(self, other) -> Bool:
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return type(self)(res / self.val)
-    def __mod__(self, other) -> "Bool":
+    def __mod__(self, other) -> Bool:
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return type(self)(self.val % res)
-    def __rmod__(self, other) -> "Bool":
+    def __rmod__(self, other) -> Bool:
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return type(self)(res % self.val)
-    def __neg__(self) -> "Bool":
+    def __neg__(self) -> Bool:
         return type(self)(-self.val)
-    def __lt__(self, other) -> "Bool":
+    def __lt__(self, other) -> Bool:
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return type(self)(self.val < res)
-    def __gt__(self, other) -> "Bool":
+    def __gt__(self, other) -> Bool:
         try:
             res = int(float(other))
         except:
@@ -95,19 +96,19 @@ class Bool:
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return self.val <= res
-    def __ge__(self, other) -> "Bool":
+    def __ge__(self, other) -> Bool:
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return type(self)(self.val >= res)
-    def __eq__(self, other) -> "Bool":
+    def __eq__(self, other) -> Bool:
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return type(self)(res == self.val)
-    def __ne__(self, other) -> "Bool":
+    def __ne__(self, other) -> Bool:
         try:
             res = int(float(other))
         except:
@@ -153,99 +154,99 @@ class Float:
         return repr(self.val)
 
     # operator overloading
-    def __add__(self, other) -> "Float":
+    def __add__(self, other) -> Float:
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return type(self)(self.cap_val(self.val + res))
-    def __radd__(self, other) -> "Float":
+    def __radd__(self, other) -> Float:
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return type(self)(self.cap_val(res + self.val))
-    def __sub__(self, other) -> "Float":
+    def __sub__(self, other) -> Float:
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return type(self)(self.cap_val(self.val - res))
-    def __rsub__(self, other) -> "Float":
+    def __rsub__(self, other) -> Float:
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return type(self)(self.cap_val(res - self.val))
-    def __mul__(self, other) -> "Float":
+    def __mul__(self, other) -> Float:
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return type(self)(self.cap_val(self.val * res))
-    def __rmul__(self, other) -> "Float":
+    def __rmul__(self, other) -> Float:
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return type(self)(self.cap_val(res * self.val))
-    def __truediv__(self, other) -> "Float":
+    def __truediv__(self, other) -> Float:
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return type(self)(self.cap_val(self.val / res))
-    def __rtruediv__(self, other) -> "Float":
+    def __rtruediv__(self, other) -> Float:
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return type(self)(self.cap_val(res / self.val))
-    def __mod__(self, other) -> "Float":
+    def __mod__(self, other) -> Float:
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return type(self)(self.cap_val(self.val % res))
-    def __rmod__(self, other) -> "Float":
+    def __rmod__(self, other) -> Float:
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return type(self)(self.cap_val(res % self.val))
-    def __neg__(self) -> "Float":
+    def __neg__(self) -> Float:
         return type(self)(-self.val)
-    def __lt__(self, other) -> "Bool":
+    def __lt__(self, other) -> Bool:
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return Bool(self.val < res)
-    def __gt__(self, other) -> "Bool":
+    def __gt__(self, other) -> Bool:
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return Bool(self.val > res)
-    def __le__(self, other) -> "Bool":
+    def __le__(self, other) -> Bool:
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return Bool(self.val <= res)
-    def __ge__(self, other) -> "Bool":
+    def __ge__(self, other) -> Bool:
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return Bool(self.val >= res)
-    def __eq__(self, other) -> "Bool":
+    def __eq__(self, other) -> Bool:
         try:
             res = float(other)
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return Bool(res == self.val)
-    def __ne__(self, other) -> "Bool":
+    def __ne__(self, other) -> Bool:
         try:
             res = float(other)
         except:
@@ -273,21 +274,21 @@ class Float:
             raise ValueError(f"Oh no!! '{self.val}' cannot be converted to kuuuuuuuunnnnnnn!!")
 
     ## BUILTIN METHODS
-    def _abs(self) -> "Float":
+    def _abs(self) -> Float:
         return type(self)(self.cap_val(abs(self.val)))
-    def _pow(self, other: int|float) -> "Float":
+    def _pow(self, other: int|float) -> Float:
         return type(self)(self.cap_val(self.val ** other))
-    def _sqrt(self) -> "Float":
+    def _sqrt(self) -> Float:
         return type(self)(float((self.cap_val(sqrt(self.val))).__floor__()))
-    def _isNegative(self) -> "Bool":
+    def _isNegative(self) -> Bool:
         return Bool(self.val < 0)
-    def _isPositive(self) -> "Bool":
+    def _isPositive(self) -> Bool:
         return Bool(self.val > 0)
-    def _ceil(self) -> "Float":
+    def _ceil(self) -> Float:
         return type(self)(float((self.cap_val(self.val)).__ceil__()))
-    def _floor(self) -> "Float":
+    def _floor(self) -> Float:
         return type(self)(float((self.cap_val(self.val)).__floor__()))
-    def _int(self) -> "Int":
+    def _int(self) -> Int:
         return Int(self.val)
 
     ## HELPER METHODS
@@ -315,7 +316,7 @@ class Int:
         return repr(self.val)
 
     # operator overloading
-    def __add__(self, other) -> "Int | Float":
+    def __add__(self, other) -> Int | Float:
         try:
             res = int(float(other))
         except:
@@ -324,7 +325,7 @@ class Int:
             case float(): return Float(float(self.cap_val(self.val + other)))
             case Float(): return Float(float(self.cap_val(self.val + other.val)))
             case _: return type(self)(self.cap_val(self.val + res))
-    def __radd__(self, other) -> "Int | Float":
+    def __radd__(self, other) -> Int | Float:
         try:
             res = int(float(other))
         except:
@@ -333,7 +334,7 @@ class Int:
             case float(): return Float(float(self.cap_val(other + self.val)))
             case Float(): return Float(float(self.cap_val(other.val + self.val)))
             case _: return type(self)(self.cap_val(res + self.val))
-    def __sub__(self, other) -> "Int | Float":
+    def __sub__(self, other) -> Int | Float:
         try:
             res = int(float(other))
         except:
@@ -342,7 +343,7 @@ class Int:
             case float(): return Float(float(self.cap_val(self.val - other)))
             case Float(): return Float(float(self.cap_val(self.val - other.val)))
             case _: return type(self)(self.cap_val(self.val - res))
-    def __rsub__(self, other) -> "Int | Float":
+    def __rsub__(self, other) -> Int | Float:
         try:
             res = int(float(other))
         except:
@@ -351,7 +352,7 @@ class Int:
             case float(): return Float(float(self.cap_val(other - self.val)))
             case Float(): return Float(float(self.cap_val(other.val - self.val)))
             case _: return type(self)(self.cap_val(res - self.val))
-    def __mul__(self, other) -> "Int | Float":
+    def __mul__(self, other) -> Int | Float:
         try:
             res = int(float(other))
         except:
@@ -360,7 +361,7 @@ class Int:
             case float(): return Float(float(self.cap_val(self.val * other)))
             case Float(): return Float(float(self.cap_val(self.val * other.val)))
             case _: return type(self)(self.cap_val(self.val * res))
-    def __rmul__(self, other) -> "Int | Float":
+    def __rmul__(self, other) -> Int | Float:
         try:
             res = int(float(other))
         except:
@@ -381,7 +382,7 @@ class Int:
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return Float(self.cap_val(res / self.val))
-    def __mod__(self, other) -> "Int | Float":
+    def __mod__(self, other) -> Int | Float:
         try:
             res = int(float(other))
         except:
@@ -390,7 +391,7 @@ class Int:
             case float(): return Float(float(self.cap_val(self.val % other)))
             case Float(): return Float(float(self.cap_val(self.val % other.val)))
             case _: return type(self)(self.cap_val(self.val % res))
-    def __rmod__(self, other) -> "Int | Float":
+    def __rmod__(self, other) -> Int | Float:
         try:
             res = int(float(other))
         except:
@@ -399,39 +400,39 @@ class Int:
             case float(): return Float(float(self.cap_val(other % self.val)))
             case Float(): return Float(float(self.cap_val(other.val % self.val)))
             case _: return type(self)(self.cap_val(res % self.val))
-    def __neg__(self) -> "Int":
+    def __neg__(self) -> Int:
         return type(self)(-self.val)
-    def __lt__(self, other) -> "Bool":
+    def __lt__(self, other) -> Bool:
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return Bool(self.val < res)
-    def __gt__(self, other) -> "Bool":
+    def __gt__(self, other) -> Bool:
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return Bool(self.val > res)
-    def __le__(self, other) -> "Bool":
+    def __le__(self, other) -> Bool:
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return Bool(self.val <= res)
-    def __ge__(self, other) -> "Bool":
+    def __ge__(self, other) -> Bool:
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return Bool(self.val >= res)
-    def __eq__(self, other) -> "Bool":
+    def __eq__(self, other) -> Bool:
         try:
             res = int(float(other))
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return Bool(res == self.val)
-    def __ne__(self, other) -> "Bool":
+    def __ne__(self, other) -> Bool:
         try:
             res = int(float(other))
         except:
@@ -459,17 +460,17 @@ class Int:
             raise ValueError(f"Oh no!! '{self.val}' cannot be converted to kuuuuuuuunnnnnnn!!")
 
     ## BUILTIN METHODS
-    def _abs(self) -> "Int":
+    def _abs(self) -> Int:
         return type(self)(self.cap_val(abs(self.val)))
-    def _pow(self, other: int|float) -> "Int":
+    def _pow(self, other: int|float) -> Int:
         return type(self)(self.cap_val(self.val ** other))
-    def _sqrt(self) -> "Int":
+    def _sqrt(self) -> Int:
         return type(self)(self.cap_val(int(sqrt(self.val))))
-    def _isNegative(self) -> "Bool":
+    def _isNegative(self) -> Bool:
         return Bool(self.val < 0)
-    def _isPositive(self) -> "Bool":
+    def _isPositive(self) -> Bool:
         return Bool(self.val > 0)
-    def _float(self) -> "Float":
+    def _float(self) -> Float:
         return Float(self.val)
 
     ## HELPER METHODS
