@@ -1,5 +1,5 @@
-class Int: ...
-class Float: ...
+from __future__ import annotations
+from .namespace import Int, Bool
 
 class String:
     def __init__(self, val: str):
@@ -15,20 +15,20 @@ class String:
         return repr(self.val)
 
     # operator overloading
-    def __add__(self, other) -> "String":
+    def __add__(self, other) -> String:
         'concatenates two strings'
         expect_type_is_in(other, self.valid_operands(),
                                msg=f"OwO... you can't add that!")
         return String(self.val + str(other))
-    def __radd__(self, other) -> "String":
+    def __radd__(self, other) -> String:
         'concatenates two strings'
         expect_type_is_in(other, self.valid_operands(),
                                msg=f"OwO... you can't add that!")
         return String(str(other) + self.val)
-    def __eq__(self, other):
-        return other == self.val
-    def __ne__(self, other):
-        return other != self.val
+    def __eq__(self, other) -> Bool:
+        return Bool(other == self.val)
+    def __ne__(self, other) -> Bool:
+        return Bool(other != self.val)
 
     # converting to other types
     def __nonzero__(self):
@@ -63,53 +63,53 @@ class String:
     ## BUILTIN METHODS
     def _len(self) -> Int:
         return Int(self.__len__())
-    def _reversed(self) -> "String":
+    def _reversed(self) -> String:
         return type(self)(self.val[::-1])
-    def _has(self, item: str) -> bool:
-        return str(item) in self.val
-    def _upper(self) -> "String":
+    def _has(self, item: str) -> Bool:
+        return Bool(str(item) in self.val)
+    def _upper(self) -> String:
         return type(self)(self.val.upper())
-    def _lower(self) -> "String":
+    def _lower(self) -> String:
         return type(self)(self.val.lower())
-    def _concat(self, item: str) -> "String":
+    def _concat(self, item: str) -> String:
         tmp = str(self.val) + str(item)
         return type(self)(tmp)
-    def _prepend(self, item: str) -> "String":
+    def _prepend(self, item: str) -> String:
         tmp = str(item) + str(self.val)
         return type(self)(tmp)
     def _count(self, item: str) -> Int:
         return Int(self.val.count(str(item)))
-    def _endswith(self, item: str) -> bool:
-        return self.val.endswith(str(item))
-    def _startswith(self, item: str) -> bool:
-        return self.val.startswith(str(item))
+    def _endswith(self, item: str) -> Bool:
+        return Bool(self.val.endswith(str(item)))
+    def _startswith(self, item: str) -> Bool:
+        return Bool(self.val.startswith(str(item)))
     def _index(self, item: str) -> Int:
         return Int(self.val.find(str(item)))
-    def _replace(self, old: str, new: str) -> "String":
+    def _replace(self, old: str, new: str) -> String:
         return type(self)(self.val.replace(str(old), str(new)))
-    def _strip(self) -> "String":
+    def _strip(self) -> String:
         return type(self)(self.val.strip())
-    def _split(self, item: str) -> "Array":
+    def _split(self, item: str) -> Array:
         return Array([type(self)(x) for x in self.val.split(str(item))])
-    def _swapcase(self) -> "String":
+    def _swapcase(self) -> String:
         return type(self)(self.val.swapcase())
-    def _title(self) -> "String":
+    def _title(self) -> String:
         return type(self)(self.val.title())
-    def _first(self, n: Int) -> "String":
+    def _first(self, n: Int) -> String:
         idx: int = max(int(n), 0)
         return type(self)(self.val[:idx])
-    def _last(self, n: Int) -> "String":
+    def _last(self, n: Int) -> String:
         idx: int = max(int(n), 0)
         return type(self)(self.val[-idx:])
-    def _substr(self, start: Int, end: Int) -> "String":
+    def _substr(self, start: Int, end: Int) -> String:
         start_idx: int = max(int(start), 0)
         end_idx: int = max(int(end), 0)
         return type(self)(self.val[start_idx:end_idx+1])
-    def _from(self, item: str) -> "String":
+    def _from(self, item: str) -> String:
         if self.val.find(str(item)) == -1:
             return type(self)("")
         return type(self)(str(item) + str(self.val[self.val.find(str(item))+len(item):]))
-    def _upTo(self, item: str) -> "String":
+    def _upTo(self, item: str) -> String:
         if self.val.find(str(item)) == -1:
             return type(self)("")
         return type(self)(str(self.val[:self.val.find(str(item))]) + str(item))
@@ -132,14 +132,14 @@ class Array:
         return repr(self.val)
 
     # operator overloading
-    def __eq__(self, other):
+    def __eq__(self, other) -> Bool:
         expect_type_is_in(other, self.valid_operands(),
                                msg=f"OwO... you can't compare with that!")
-        return self.val == other
-    def __ne__(self, other):
+        return Bool(self.val == other)
+    def __ne__(self, other) -> Bool:
         expect_type_is_in(other, self.valid_operands(),
                                msg=f"OwO... you can't compare with that!")
-        return self.val != other
+        return Bool(self.val != other)
 
     # converting to other types
     def __nonzero__(self):
@@ -164,8 +164,8 @@ class Array:
         self.val = self.val[::-1]
     def _append(self, item) -> None:
         self.val.append(item)
-    def _has(self, item) -> bool:
-        return item in self.val
+    def _has(self, item) -> Bool:
+        return Bool(item in self.val)
     def _clear(self) -> None:
         self.val.clear()
     def _count(self, item) -> Int:

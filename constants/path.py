@@ -14,6 +14,7 @@ ICON_WHITE_ASSET = Path('./assets/icon_white.ico')
 ICON_BLACK_ASSET = Path('./assets/icon_black.ico')
 
 BUILTIN_TYPES = [
+    ROOT / 'src' / 'builtin' / 'types' / 'namespace.py',
     ROOT / 'src' / 'builtin' / 'types' / 'iterable.py',
     ROOT / 'src' / 'builtin' / 'types' / 'number.py',
 ]

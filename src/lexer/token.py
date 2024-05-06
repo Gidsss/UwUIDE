@@ -41,7 +41,7 @@ class TokenType(Enum):
             case TokenType.KUN_ARR:
                 return "Array"
             case TokenType.SAMA:
-                return "bool"
+                return "Bool"
             case TokenType.SAMA_ARR:
                 return "Array"
             case TokenType.SAN:
@@ -366,7 +366,7 @@ class Token:
             case TokenType.KUN_ARR:
                 return "Array"
             case TokenType.SAMA:
-                return "bool"
+                return "Bool"
             case TokenType.SAMA_ARR:
                 return "Array"
             case TokenType.SAN:
@@ -386,9 +386,9 @@ class Token:
             case TokenType.STRING_PART_END:
                 return f'}}{self.lexeme[1:]})'
             case TokenType.FAX:
-                return "True"
+                return "Bool(True)"
             case TokenType.CAP:
-                return "False"
+                return "Bool(False)"
             case TokenType.AND_OPERATOR:
                 return "and"
             case TokenType.OR_OPERATOR:
