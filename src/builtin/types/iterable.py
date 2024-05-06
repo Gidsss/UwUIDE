@@ -67,8 +67,8 @@ class String:
         return Int(self.__len__())
     def _reversed(self) -> "String":
         return type(self)(self.val[::-1])
-    def _has(self, item: str) -> bool:
-        return str(item) in self.val
+    def _has(self, item: str) -> "Bool":
+        return Bool(str(item) in self.val)
     def _upper(self) -> "String":
         return type(self)(self.val.upper())
     def _lower(self) -> "String":
@@ -81,10 +81,10 @@ class String:
         return type(self)(tmp)
     def _count(self, item: str) -> Int:
         return Int(self.val.count(str(item)))
-    def _endswith(self, item: str) -> bool:
-        return self.val.endswith(str(item))
-    def _startswith(self, item: str) -> bool:
-        return self.val.startswith(str(item))
+    def _endswith(self, item: str) -> "Bool":
+        return Bool(self.val.endswith(str(item)))
+    def _startswith(self, item: str) -> "Bool":
+        return Bool(self.val.startswith(str(item)))
     def _index(self, item: str) -> Int:
         return Int(self.val.find(str(item)))
     def _replace(self, old: str, new: str) -> "String":
@@ -166,8 +166,8 @@ class Array:
         self.val = self.val[::-1]
     def _append(self, item) -> None:
         self.val.append(item)
-    def _has(self, item) -> bool:
-        return item in self.val
+    def _has(self, item) -> "Bool":
+        return Bool(item in self.val)
     def _clear(self) -> None:
         self.val.clear()
     def _count(self, item) -> Int:
