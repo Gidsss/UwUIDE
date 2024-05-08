@@ -299,7 +299,7 @@ class IndexedIdentifier(IdentifierProds):
     def python_string(self, indent=0, cwass=False) -> str:
         res = self.id.python_string(cwass=cwass)
         for index in self.index:
-            res += f"[{TokenType.CHAN.python_string()}({index.python_string(cwass=cwass)})]"
+            res += f"[int({index.python_string(cwass=cwass)})]"
         return res
     def formatted_string(self, indent=0) -> str:
         res = self.id.formatted_string()
