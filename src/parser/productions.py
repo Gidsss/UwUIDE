@@ -17,6 +17,9 @@ class PrefixExpression(Expression):
         self.op: Token = Token()
         self.right: Value = Value()
 
+        self.start_pos = None
+        self.end_pos = None
+
         self.grouped = False
 
     def header(self) -> str:
@@ -44,6 +47,9 @@ class InfixExpression(Expression):
         self.left: Value = Value()
         self.op: Token = Token()
         self.right: Value = Value()
+
+        self.start_pos = None
+        self.end_pos = None
 
         self.grouped = False
 
@@ -79,6 +85,9 @@ class PostfixExpression(Expression):
         self.left: Value = Value()
         self.op: Token = Token()
 
+        self.start_pos = None
+        self.end_pos = None
+
         self.grouped = False
 
     def header(self):
@@ -106,6 +115,10 @@ class StringLiteral(Iterable):
     def __init__(self, val: Token):
         self.val: Token = val
         self.concats: list[StringFmt | Input | StringLiteral] = []
+
+        self.start_pos = None
+        self.end_pos = None
+
     def header(self):
         return self.string()
     def child_nodes(self) -> None | dict[str, Production | Token]:
@@ -138,6 +151,9 @@ class Input(Iterable):
         self.expr: Value | Token = Value()
         self.concats: list[StringFmt | Input | StringLiteral] = []
         self.stmt: bool = False
+
+        self.start_pos = None
+        self.end_pos = None
 
     def header(self):
         return "input:"
@@ -174,6 +190,9 @@ class StringFmt(Iterable):
         self.exprs: list[Value | Token] = []
         self.end: Token = Token()
         self.concats: list[StringFmt | Input | StringLiteral] = []
+
+        self.start_pos = None
+        self.end_pos = None
 
     def header(self):
         return "string fmt:"
@@ -232,6 +251,9 @@ class ArrayLiteral(Iterable):
     def __init__(self):
         self.elements: list[Value] = []
 
+        self.start_pos = None
+        self.end_pos = None
+
     def header(self):
         return "array literal:"
     def child_nodes(self) -> None | dict[str, Production | Token]:
@@ -256,6 +278,9 @@ class FnCall(IdentifierProds):
     def __init__(self):
         self.id: Token = Token()
         self.args: list[Value] = []
+
+        self.start_pos = None
+        self.end_pos = None
 
         self.is_statement = False
 
@@ -287,6 +312,9 @@ class IndexedIdentifier(IdentifierProds):
         self.id: Token | FnCall = Token()
         self.index: list[Value] = []
 
+        self.start_pos = None
+        self.end_pos = None
+
     def header(self):
         return self.string()
 
@@ -315,6 +343,9 @@ class ClassConstructor(IdentifierProds):
     def __init__(self):
         self.id: Token = Token()
         self.args: list[Value] = []
+
+        self.start_pos = None
+        self.end_pos = None
 
     def header(self):
         return sprint("constructor:", self.id.string(),indent=0)
@@ -350,6 +381,9 @@ class ClassAccessor(IdentifierProds):
         self.id: Token | FnCall | IndexedIdentifier | ClassAccessor = Token()
         self.accessed: Token | FnCall | IndexedIdentifier | ClassAccessor = Token()
 
+        self.start_pos = None
+        self.end_pos = None
+
     def header(self):
         return self.id.string()
     def child_nodes(self) -> None | dict[str, Production | Token]:
@@ -372,6 +406,9 @@ class ClassAccessor(IdentifierProds):
 class ReturnStatement(Statement):
     def __init__(self):
         self.expr: Value = Value()
+
+        self.start_pos = None
+        self.end_pos = None
 
     def header(self):
         return "return"
@@ -461,6 +498,9 @@ class Assignment(Statement):
         self.value: Value = Value()
         self.dtype: Token = Token()
 
+        self.start_pos = None
+        self.end_pos = None
+
     def header(self):
         return f"assign: {self.id.header()}"
     def child_nodes(self) -> None | dict[str, Production | Token]:
@@ -503,6 +543,9 @@ class Print(Statement):
         self.print: Token = Token()
         self.values: list[Value] = []
 
+        self.start_pos = None
+        self.end_pos = None
+
     def header(self):
         return "print:"
     def child_nodes(self) -> None | dict[str, Production | Token]:
@@ -532,6 +575,9 @@ class IfStatement(Statement):
         self.then: BlockStatement = BlockStatement()
         self.else_if: list[ElseIfStatement] = []
         self.else_block: BlockStatement = BlockStatement()
+
+        self.start_pos = None
+        self.end_pos = None
 
     def header(self):
         return "if statement:"
@@ -588,6 +634,9 @@ class ElseIfStatement(Statement):
         self.condition: Value = Value()
         self.then: BlockStatement = BlockStatement()
 
+        self.start_pos = None
+        self.end_pos = None
+
     def header(self):
         return "else if statement:"
     def child_nodes(self) -> None | dict[str, Production | Token]:
@@ -616,6 +665,9 @@ class WhileLoop(Statement):
         self.condition: Value = Value()
         self.body: BlockStatement = BlockStatement()
         self.is_do = False
+
+        self.start_pos = None
+        self.end_pos = None
 
     def header(self):
         return f"{'do' if self.is_do else ''} while statement:"
@@ -658,6 +710,9 @@ class ForLoop(Statement):
         self.update: Value = Value()
         self.body: BlockStatement = BlockStatement()
 
+        self.start_pos = None
+        self.end_pos = None
+
     def header(self):
         return "for loop:"
     def child_nodes(self) -> None | dict[str, Production | Token]:
@@ -694,6 +749,9 @@ class Break(Statement):
     def __init__(self):
         self.token: Token = Token()
         self.in_loop: bool = False
+
+        self.start_pos = None
+        self.end_pos = None
 
     def header(self):
         return "break statement:"
@@ -770,6 +828,9 @@ class Class(Production):
         self.params: list[Declaration] = []
         self.properties: list[Declaration] = []
         self.methods: list[Function] = []
+
+        self.start_pos = None
+        self.end_pos = None
 
         # For formatting
         self.definition_order = []
