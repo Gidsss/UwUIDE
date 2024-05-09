@@ -347,10 +347,12 @@ class TypeChecker:
         signature, token, decl, dono_token, global_type, id_prod_type = self.extract_last_id(assign.id, local_defs)
         try:
             original_def, expected_type = local_defs[signature][:2]
+            class_member = False
         except KeyError:
             original_def, expected_type = self.class_signatures[signature][:2]
             if signature in self.builtin_signatures or not original_def.id.exists():
                 original_def = None
+            class_member = True
         if decl.dono_token.exists():
             signature = self.extract_id(assign.id)
             self.errors.append(
@@ -370,10 +372,12 @@ class TypeChecker:
                     class_signature=signature,
                 )
             )
-        self.check_value(assign.value, expected_type, local_defs, assignment=True, decl=decl, assign=assign)
+        self.check_value(assign.value, expected_type.to_unit_type() if id_prod_type == IdProd.INDEXED_ID else expected_type,
+                         local_defs, assignment=True, decl=decl, assign=assign, class_member=class_member)
 
     def check_value(self, value: Value, expected_type: Token, local_defs: dict[str, tuple[Declaration, Token, GlobalType]],
-                    assignment: bool = False, decl: Declaration = Declaration(), assign: Assignment = Assignment()) -> None:
+                    assignment: bool = False, decl: Declaration = Declaration(), assign: Assignment = Assignment(),
+                    class_member=False) -> None:
         'if `assignment` is true, its an assignment. if false, its a declaration'
         self.expr_err_count = 0
 
@@ -417,17 +421,26 @@ class TypeChecker:
             decl_new = deepcopy(decl)
             decl_new.initialized = False
             decl_new.value = Value()
-            local_defs[decl_new.id.flat_string()] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
+            if class_member:
+                self.class_signatures[f"{expected_type.flat_string()}.{decl_new.id.flat_string()}"] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
+            else:
+                local_defs[decl_new.id.flat_string()] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
 
         # (ASSIGNMENT) initialize uninitialized identifiers
         elif not decl.initialized and actual_type != TokenType.SAN:
             decl_new = deepcopy(decl)
             decl_new.initialized = True
-            local_defs[decl_new.id.flat_string()] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
+            if class_member:
+                self.class_signatures[f"{expected_type.flat_string()}.{decl_new.id.flat_string()}"] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
+            else:
+                local_defs[decl_new.id.flat_string()] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
 
         # (DECLARATION & ASSIGNMENT) initialize identifiers with assigned values
         else:
-            local_defs[decl.id.flat_string()] = (decl, decl.dtype, GlobalType.IDENTIFIER)
+            if class_member:
+                self.class_signatures[f"{expected_type.flat_string()}.{decl.id.flat_string()}"] = (decl, decl.dtype, GlobalType.IDENTIFIER)
+            else:
+                local_defs[decl.id.flat_string()] = (decl, decl.dtype, GlobalType.IDENTIFIER)
 
         if assignment:
             assign.dtype = actual_type
