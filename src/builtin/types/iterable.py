@@ -152,6 +152,8 @@ class Array:
     # subscripting
     def __getitem__(self, index):
         return self.val[index]
+    def __setitem__(self, index, item):
+        self.val[index] = item
     def __contains__(self, item):
         return item in self.val
     def __iter__(self):
