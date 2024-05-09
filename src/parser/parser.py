@@ -251,8 +251,10 @@ class Parser:
                         p.classes.append(res)
                         p.definition_order.append(res)
                 case TokenType.GWOBAW:
+                    gwobaw_pos = self.curr_tok.position
                     if res := self.parse_declaration():
                         res.is_global = True
+                        res.start_pos = gwobaw_pos
                         self.advance(skip_comments=False)
                         p.globals.append(res)
 
@@ -747,7 +749,8 @@ class Parser:
             self.advance()
             return None
 
-        bs.end_pos = self.peek_tok.end_position
+        bs.start_pos = bs.statements[0].start_pos
+        bs.end_pos = bs.statements[-1].end_pos
         return bs
 
     def parse_ident_statement(self) -> (
