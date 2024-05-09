@@ -17,9 +17,6 @@ class PrefixExpression(Expression):
         self.op: Token = Token()
         self.right: Value = Value()
 
-        self.start_pos = None
-        self.end_pos = None
-
         self.grouped = False
 
     def header(self) -> str:
@@ -42,14 +39,22 @@ class PrefixExpression(Expression):
     def __len__(self):
         return 1
 
+    @property
+    def start_pos(self):
+        return self.op.position
+
+    @property
+    def end_pos(self):
+        return self.right.end_position if isinstance(self.right, Token) else self.right.end_pos
+
 class InfixExpression(Expression):
     def __init__(self):
         self.left: Value = Value()
         self.op: Token = Token()
         self.right: Value = Value()
 
-        self.start_pos = None
-        self.end_pos = None
+        self._start_pos = None
+        self._end_pos = None
 
         self.grouped = False
 
@@ -80,13 +85,29 @@ class InfixExpression(Expression):
     def __len__(self):
         return 1
 
+    @property
+    def start_pos(self):
+        pos = self.left.position if isinstance(self.left, Token) else self.left.start_pos
+        return self._start_pos if self._start_pos else pos
+
+    @property
+    def end_pos(self):
+        pos = self.right.end_position if isinstance(self.right, Token) else self.right.end_pos
+        return self._end_pos if self._end_pos else pos
+
+    @start_pos.setter
+    def start_pos(self, value):
+        self._start_pos = value
+
+    @end_pos.setter
+    def end_pos(self, value):
+        self._end_pos = value
+
 class PostfixExpression(Expression):
     def __init__(self):
         self.left: Value = Value()
         self.op: Token = Token()
 
-        self.start_pos = None
-        self.end_pos = None
 
         self.grouped = False
 
@@ -109,6 +130,14 @@ class PostfixExpression(Expression):
 
     def __len__(self):
         return 1
+
+    @property
+    def start_pos(self):
+        return self.left.position if isinstance(self.left, Token) else self.left.start_pos
+
+    @property
+    def end_pos(self):
+        return self.op.end_position
 
 ### LITERAL PRODUCTIONS
 class StringLiteral(Iterable):
