@@ -532,7 +532,7 @@ class TypeMismatchError(SemanticError):
         msg += f"\t{' ' * max_pad} | {'_' * (self.expected.position[1])}|\n"
         msg += f"\t{' ' * max_pad} | |  "
         msg += f"Tried to assign a value that evaluates to type: '{self.actual_type.flat_string()}'"
-        ctx_str = f"{self.context.id}{f'-{self.context.dtype}' if self.title == 'Declaration' else ''} = "
+        ctx_str = f"{self.context.id.flat_string()}{f'-{self.context.dtype}' if self.title == 'Declaration' else ''} = "
         msg += f"\t{assign_index_str:{max_pad}} | |    {ctx_str}{self.actual_val.flat_string()}\n"
         msg += f"\t{' ' * max_pad} | |{' ' * (4 + len(ctx_str))}{'^' * (len(self.actual_val.flat_string()))}\n"
         msg += f"\t{' ' * max_pad} | |{'_' * (4 + len(ctx_str))}|\n"
@@ -562,7 +562,7 @@ class TypeMismatchError(SemanticError):
             f"Tried to assign a value that evaluates to type: '{self.actual_type.flat_string()}'",
             color=AnsiColor.RED
         )
-        ctx_str = f"{self.context.id}{f'-{self.context.dtype}' if self.title == 'Declaration' else ''} = "
+        ctx_str = f"{self.context.id.flat_string()}{f'-{self.context.dtype}' if self.title == 'Declaration' else ''} = "
         msg += f"\t{assign_index_str:{max_pad}} | |    {ctx_str}{self.actual_val.flat_string()}\n"
         msg += f"\t{' ' * max_pad} | |{' ' * (4 + len(ctx_str))}{'^' * (len(self.actual_val.flat_string()))}\n"
         msg += f"\t{' ' * max_pad} | |{'_' * (4 + len(ctx_str))}|\n"
