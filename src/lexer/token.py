@@ -413,6 +413,7 @@ class Token:
         return self._lexeme
 
     def to_arr(self):
+        'modifies the underlying token'
         self._lexeme += "[]" if not self._lexeme.endswith("[]") else ""
         match self.token:
             case TokenType.CHAN:
@@ -447,6 +448,25 @@ class Token:
                 ret._token = TokenType.SENPAI
             case UniqueTokenType():
                 ret._token = ret._token.to_unit_type()
+        return ret
+    
+    def to_arr_type(self):
+        'returns a copy'
+        ret = deepcopy(self)
+        ret._lexeme += "[]" if not ret._lexeme.endswith("[]") else ""
+        match ret.token:
+            case TokenType.CHAN:
+                ret._token = TokenType.CHAN_ARR
+            case TokenType.KUN:
+                ret._token = TokenType.KUN_ARR
+            case TokenType.SAMA:
+                ret._token = TokenType.SAMA_ARR
+            case TokenType.SAN:
+                ret._token = TokenType.SAN_ARR
+            case TokenType.SENPAI:
+                ret._token = TokenType.SENPAI_ARR
+            case UniqueTokenType():
+                ret._token = ret._token.to_arr_type()
         return ret
 
     def is_unique_type(self):
