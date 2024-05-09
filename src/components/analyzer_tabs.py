@@ -60,16 +60,19 @@ class UwUParserTab(CTkScrollableFrame):
         
         if(len(program.functions) > 0):
             self.tree.insert('', 'end', text='Functions', iid=1, open=True)
+            self.iid_dict.update({'1': program.functions})
             for fn in program.functions:
                 loop_tree(node=fn, parent='1')
         
         if(len(program.globals) > 0):
             self.tree.insert('', 'end', text='Globals', iid=2, open=True)
+            self.iid_dict.update({'2': program.globals})
             for g in program.globals:
                 loop_tree(node=g, parent='2')
 
         if(len(program.classes) > 0):
             self.tree.insert('', 'end', text='Classes', iid=3, open=True)
+            self.iid_dict.update({'3': program.classes})
             for c in program.classes:
                 loop_tree(node=c, parent='3')
 
@@ -81,6 +84,9 @@ class UwUParserTab(CTkScrollableFrame):
             value = self.iid_dict[selected]
             if isinstance(value, Production):
                 self.code_editor.format(Tags.TOKEN_HIGHLIGHT.name, tuple(value.start_pos), tuple(value.end_pos))
+            elif isinstance(value, list):
+                func_ranges = [(func.start_pos, func.end_pos) for func in value]
+                self.code_editor.format_multiple(Tags.TOKEN_HIGHLIGHT.name, func_ranges)
             else:
                 self.code_editor.format(Tags.TOKEN_HIGHLIGHT.name, tuple(value.position), tuple(value.end_position))
 
