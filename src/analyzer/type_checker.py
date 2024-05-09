@@ -372,12 +372,12 @@ class TypeChecker:
                     class_signature=signature,
                 )
             )
-        self.check_value(assign.value, expected_type.to_unit_type() if id_prod_type == IdProd.INDEXED_ID else expected_type,
-                         local_defs, assignment=True, decl=decl, assign=assign, class_member=class_member)
+        self.check_value(assign.value, expected_type, local_defs, assignment=True, decl=decl, assign=assign,
+                         class_member=class_member, indexed_id=id_prod_type == IdProd.INDEXED_ID)
 
     def check_value(self, value: Value, expected_type: Token, local_defs: dict[str, tuple[Declaration, Token, GlobalType]],
                     assignment: bool = False, decl: Declaration = Declaration(), assign: Assignment = Assignment(),
-                    class_member=False) -> None:
+                    indexed_id=False, class_member=False) -> None:
         'if `assignment` is true, its an assignment. if false, its a declaration'
         self.expr_err_count = 0
 
@@ -389,7 +389,7 @@ class TypeChecker:
                         if not value.concats: actual_type_str = "inpwt"
                         else: actual_type_str = "senpai"
                     case _: actual_type_str = actual_type.flat_string()
-                if not self.is_similar_type(actual_type_str, expected_type.flat_string(), value):
+                if not self.is_similar_type(actual_type_str, expected_type.flat_string(), value, indexing=indexed_id):
                     self.errors.append(
                         TypeMismatchError(
                             title="Assignment" if assignment else "Declaration",
@@ -397,6 +397,7 @@ class TypeChecker:
                             actual_val=value,
                             actual_type=actual_type,
                             context=assign if assignment else decl,
+                            indexing=indexed_id,
                         )
                     )
             case UniqueTokenType():
@@ -406,7 +407,7 @@ class TypeChecker:
                         self.check_class_constructor(value, local_defs)
                     case _:
                         actual_type = self.evaluate_value(value, local_defs)
-                        if not self.is_similar_type(actual_type.flat_string(), expected_type.flat_string(), value):
+                        if not self.is_similar_type(actual_type.flat_string(), expected_type.flat_string(), value, indexing=indexed_id):
                             self.errors.append(
                                 TypeMismatchError(
                                     title="Assignment" if assignment else "Declaration",
@@ -414,6 +415,7 @@ class TypeChecker:
                                     actual_val=value,
                                     actual_type=actual_type,
                                     context=assign if assignment else decl,
+                                    indexing=indexed_id,
                                 )
                             )
         # (DECLARATION & ASSIGNMENT) uninitialize identifiers if any errors occured in evaluating value
@@ -935,7 +937,7 @@ class TypeChecker:
         return res
 
     def is_similar_type(self, actual_type: str, expected_type: str, val: Value,
-                        *, is_call: bool = False, as_index=False) -> bool:
+                        *, is_call: bool = False, as_index=False, indexing=False) -> bool:
         'determines if two types are similar'
         # nuww is an ok val for any type if and only if its not for a call
         condition_2 = (actual_type == 'san') if not is_call and not as_index else False
@@ -959,13 +961,17 @@ class TypeChecker:
             # all types are convertible to bool
             case "sama": return True
             case _:
-                # all array types can accept san[]
-                if expected_type[-2:] == '[]':
-                    if actual_type == "san[]":
-                        if isinstance(val, ArrayLiteral):
-                            if len(val.elements) == 0: return True
+                # all array types can accept its unit types
+                # or its array type when assigning through index
+                if indexing and actual_type in [expected_type, expected_type.replace('[]', '')]: return True
+                else:
+                    # all array types can accept san[]
+                    if expected_type[-2:] == '[]':
+                        if actual_type == "san[]":
+                            if isinstance(val, ArrayLiteral):
+                                if len(val.elements) == 0: return True
+                                else: return False
                             else: return False
-                        else: return False
 
                 # every other type needs exact match
                 return False
