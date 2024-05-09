@@ -505,12 +505,13 @@ class ReturnTypeMismatchError(SemanticError):
 
 class TypeMismatchError(SemanticError):
     def __init__(self, expected: Token, actual_val: Value, actual_type: TokenType,
-                 context: Assignment|Declaration, title: str) -> None:
+                 context: Assignment|Declaration, title: str, indexing=False) -> None:
         self.expected = expected
         self.actual_val = actual_val
         self.actual_type = actual_type
         self.context = context
         self.title = title # if None, its a declaration, if true, its an assignment
+        self.indexing = indexing
 
     def position(self) -> tuple[int, int]|None:
         return extract_id(self.context.id).position
@@ -532,7 +533,7 @@ class TypeMismatchError(SemanticError):
         msg += f"\t{' ' * max_pad} | {'_' * (self.expected.position[1])}|\n"
         msg += f"\t{' ' * max_pad} | |  "
         msg += f"Tried to assign a value that evaluates to type: '{self.actual_type.flat_string()}'"
-        ctx_str = f"{self.context.id}{f'-{self.context.dtype}' if self.title == 'Declaration' else ''} = "
+        ctx_str = f"{self.context.id.flat_string()}{f'-{self.context.dtype}' if self.title == 'Declaration' else ''} = "
         msg += f"\t{assign_index_str:{max_pad}} | |    {ctx_str}{self.actual_val.flat_string()}\n"
         msg += f"\t{' ' * max_pad} | |{' ' * (4 + len(ctx_str))}{'^' * (len(self.actual_val.flat_string()))}\n"
         msg += f"\t{' ' * max_pad} | |{'_' * (4 + len(ctx_str))}|\n"
@@ -545,7 +546,8 @@ class TypeMismatchError(SemanticError):
         max_pad = max(len(index_str), len(assign_index_str))
         border = f"\t{'_' * (len(ErrorSrc.src[self.expected.position[0]]) + len(str(self.expected.position[0] + 1)) + max_pad)}\n"
 
-        msg = f"{self.title} Type Mismatch: expected '{self.expected.flat_string()}' but got '{self.actual_type.flat_string()}'\n"
+        dtype = f"'{self.expected.to_unit_type().flat_string()}' or '{self.expected.to_arr_type().flat_string()}'" if self.indexing else f"'{self.expected.flat_string()}'"
+        msg = f"{self.title} Type Mismatch: expected {dtype} but got '{self.actual_type.flat_string()}'\n"
         msg += border
 
         msg += f"\t{' ' * max_pad} |    "
@@ -562,7 +564,7 @@ class TypeMismatchError(SemanticError):
             f"Tried to assign a value that evaluates to type: '{self.actual_type.flat_string()}'",
             color=AnsiColor.RED
         )
-        ctx_str = f"{self.context.id}{f'-{self.context.dtype}' if self.title == 'Declaration' else ''} = "
+        ctx_str = f"{self.context.id.flat_string()}{f'-{self.context.dtype}' if self.title == 'Declaration' else ''} = "
         msg += f"\t{assign_index_str:{max_pad}} | |    {ctx_str}{self.actual_val.flat_string()}\n"
         msg += f"\t{' ' * max_pad} | |{' ' * (4 + len(ctx_str))}{'^' * (len(self.actual_val.flat_string()))}\n"
         msg += f"\t{' ' * max_pad} | |{'_' * (4 + len(ctx_str))}|\n"

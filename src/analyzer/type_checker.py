@@ -4,6 +4,11 @@ from src.analyzer.error_handler import *
 from src.lexer.token import Token, UniqueTokenType
 from src.parser.productions import *
 
+class IdProd(Enum):
+    TOKEN = 0
+    FN_CALL = 1
+    INDEXED_ID = 2
+
 class TypeChecker:
     def __init__(self, program: Program):
         self.program = program
@@ -297,7 +302,7 @@ class TypeChecker:
                         raise ValueError(f"Unknown token: {for_loop.init}")
             case IdentifierProds():
                 self.evaluate_ident_prods(for_loop.init, local_defs)
-                _, _, decl, dono_token, global_type = self.extract_last_id(for_loop.init, local_defs)
+                decl, dono_token = self.extract_last_id(for_loop.init, local_defs)[2:4]
 
         if decl.dono_token.exists():
             token = self.extract_id(for_loop.init.id)
@@ -339,13 +344,15 @@ class TypeChecker:
         self.check_value(decl.value, decl.dtype, local_defs, decl=decl)
 
     def check_assignment(self, assign: Assignment, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> None:
-        signature, token, decl, dono_token, global_type = self.extract_last_id(assign.id, local_defs)
+        signature, token, decl, dono_token, global_type, id_prod_type = self.extract_last_id(assign.id, local_defs)
         try:
             original_def, expected_type = local_defs[signature][:2]
+            class_member = False
         except KeyError:
             original_def, expected_type = self.class_signatures[signature][:2]
             if signature in self.builtin_signatures or not original_def.id.exists():
                 original_def = None
+            class_member = True
         if decl.dono_token.exists():
             signature = self.extract_id(assign.id)
             self.errors.append(
@@ -365,10 +372,12 @@ class TypeChecker:
                     class_signature=signature,
                 )
             )
-        self.check_value(assign.value, expected_type, local_defs, assignment=True, decl=decl, assign=assign)
+        self.check_value(assign.value, expected_type, local_defs, assignment=True, decl=decl, assign=assign,
+                         class_member=class_member, indexed_id=id_prod_type == IdProd.INDEXED_ID)
 
     def check_value(self, value: Value, expected_type: Token, local_defs: dict[str, tuple[Declaration, Token, GlobalType]],
-                    assignment: bool = False, decl: Declaration = Declaration(), assign: Assignment = Assignment()) -> None:
+                    assignment: bool = False, decl: Declaration = Declaration(), assign: Assignment = Assignment(),
+                    indexed_id=False, class_member=False) -> None:
         'if `assignment` is true, its an assignment. if false, its a declaration'
         self.expr_err_count = 0
 
@@ -380,7 +389,7 @@ class TypeChecker:
                         if not value.concats: actual_type_str = "inpwt"
                         else: actual_type_str = "senpai"
                     case _: actual_type_str = actual_type.flat_string()
-                if not self.is_similar_type(actual_type_str, expected_type.flat_string(), value):
+                if not self.is_similar_type(actual_type_str, expected_type.flat_string(), value, indexing=indexed_id):
                     self.errors.append(
                         TypeMismatchError(
                             title="Assignment" if assignment else "Declaration",
@@ -388,6 +397,7 @@ class TypeChecker:
                             actual_val=value,
                             actual_type=actual_type,
                             context=assign if assignment else decl,
+                            indexing=indexed_id,
                         )
                     )
             case UniqueTokenType():
@@ -397,7 +407,7 @@ class TypeChecker:
                         self.check_class_constructor(value, local_defs)
                     case _:
                         actual_type = self.evaluate_value(value, local_defs)
-                        if not self.is_similar_type(actual_type.flat_string(), expected_type.flat_string(), value):
+                        if not self.is_similar_type(actual_type.flat_string(), expected_type.flat_string(), value, indexing=indexed_id):
                             self.errors.append(
                                 TypeMismatchError(
                                     title="Assignment" if assignment else "Declaration",
@@ -405,6 +415,7 @@ class TypeChecker:
                                     actual_val=value,
                                     actual_type=actual_type,
                                     context=assign if assignment else decl,
+                                    indexing=indexed_id,
                                 )
                             )
         # (DECLARATION & ASSIGNMENT) uninitialize identifiers if any errors occured in evaluating value
@@ -412,17 +423,26 @@ class TypeChecker:
             decl_new = deepcopy(decl)
             decl_new.initialized = False
             decl_new.value = Value()
-            local_defs[decl_new.id.flat_string()] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
+            if class_member:
+                self.class_signatures[f"{expected_type.flat_string()}.{decl_new.id.flat_string()}"] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
+            else:
+                local_defs[decl_new.id.flat_string()] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
 
         # (ASSIGNMENT) initialize uninitialized identifiers
         elif not decl.initialized and actual_type != TokenType.SAN:
             decl_new = deepcopy(decl)
             decl_new.initialized = True
-            local_defs[decl_new.id.flat_string()] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
+            if class_member:
+                self.class_signatures[f"{expected_type.flat_string()}.{decl_new.id.flat_string()}"] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
+            else:
+                local_defs[decl_new.id.flat_string()] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
 
         # (DECLARATION & ASSIGNMENT) initialize identifiers with assigned values
         else:
-            local_defs[decl.id.flat_string()] = (decl, decl.dtype, GlobalType.IDENTIFIER)
+            if class_member:
+                self.class_signatures[f"{expected_type.flat_string()}.{decl.id.flat_string()}"] = (decl, decl.dtype, GlobalType.IDENTIFIER)
+            else:
+                local_defs[decl.id.flat_string()] = (decl, decl.dtype, GlobalType.IDENTIFIER)
 
         if assignment:
             assign.dtype = actual_type
@@ -917,7 +937,7 @@ class TypeChecker:
         return res
 
     def is_similar_type(self, actual_type: str, expected_type: str, val: Value,
-                        *, is_call: bool = False, as_index=False) -> bool:
+                        *, is_call: bool = False, as_index=False, indexing=False) -> bool:
         'determines if two types are similar'
         # nuww is an ok val for any type if and only if its not for a call
         condition_2 = (actual_type == 'san') if not is_call and not as_index else False
@@ -941,13 +961,17 @@ class TypeChecker:
             # all types are convertible to bool
             case "sama": return True
             case _:
-                # all array types can accept san[]
-                if expected_type[-2:] == '[]':
-                    if actual_type == "san[]":
-                        if isinstance(val, ArrayLiteral):
-                            if len(val.elements) == 0: return True
+                # all array types can accept its unit types
+                # or its array type when assigning through index
+                if indexing and actual_type in [expected_type, expected_type.replace('[]', '')]: return True
+                else:
+                    # all array types can accept san[]
+                    if expected_type[-2:] == '[]':
+                        if actual_type == "san[]":
+                            if isinstance(val, ArrayLiteral):
+                                if len(val.elements) == 0: return True
+                                else: return False
                             else: return False
-                        else: return False
 
                 # every other type needs exact match
                 return False
@@ -1012,18 +1036,19 @@ class TypeChecker:
                 raise ValueError(f"Unknown class accessor: {accessor}")
 
     def extract_last_id(self, val: Token | FnCall | IndexedIdentifier | ClassAccessor, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]
-                        ) -> tuple[str, Token, Declaration, Token, GlobalType]:
+                        ) -> tuple[str, Token, Declaration, Token, GlobalType, IdProd]:
+        'returns: signature, id token, definition, dono token, global type'
         match val:
             case Token():
-                return val.string(), val, *local_defs[val.flat_string()]
+                return val.string(), val, *local_defs[val.flat_string()], IdProd.TOKEN
             case FnCall():
-                return val.id.string(), val.id, *local_defs[val.id.flat_string()]
+                return val.id.string(), val.id, *local_defs[val.id.flat_string()], IdProd.FN_CALL
             case IndexedIdentifier():
                 match val.id:
                     case Token():
-                        return val.id.string(), val.id, *local_defs[val.id.flat_string()]
+                        return val.id.string(), val.id, *local_defs[val.id.flat_string()], IdProd.INDEXED_ID
                     case FnCall():
-                        return val.id.id.string(), val.id.id, *local_defs[val.id.id.flat_string()]
+                        return val.id.id.string(), val.id.id, *local_defs[val.id.id.flat_string()], IdProd.INDEXED_ID
                     case _:
                         raise ValueError(f"Unknown class accessor: {val}")
             case ClassAccessor():
@@ -1033,18 +1058,18 @@ class TypeChecker:
                     match val_tmp.accessed:
                         case Token():
                             accessed = f"{class_type.dtype.flat_string()}.{val_tmp.accessed.flat_string()}"
-                            return accessed, val_tmp.accessed, *self.class_signatures[accessed]
+                            return accessed, val_tmp.accessed, *self.class_signatures[accessed], IdProd.TOKEN
                         case FnCall():
                             accessed =f"{class_type.dtype.flat_string()}.{val_tmp.accessed.id.flat_string()}" 
-                            return accessed, val_tmp.accessed.id, *self.class_signatures[accessed]
+                            return accessed, val_tmp.accessed.id, *self.class_signatures[accessed], IdProd.FN_CALL
                         case IndexedIdentifier():
                             match val_tmp.accessed.id:
                                 case Token():
                                     accessed = f"{class_type.dtype.flat_string()}.{val_tmp.accessed.id.flat_string()}"
-                                    return accessed, val_tmp.accessed.id, *self.class_signatures[accessed]
+                                    return accessed, val_tmp.accessed.id, *self.class_signatures[accessed], IdProd.INDEXED_ID
                                 case FnCall():
                                     accessed = f"{class_type.dtype.flat_string()}.{val_tmp.accessed.id.id.flat_string()}"
-                                    return accessed, val_tmp.accessed.id.id, *self.class_signatures[accessed]
+                                    return accessed, val_tmp.accessed.id.id, *self.class_signatures[accessed], IdProd.INDEXED_ID
                                 case _:
                                     raise ValueError(f"Unknown class accessor: {val}")
                         case ClassAccessor():
