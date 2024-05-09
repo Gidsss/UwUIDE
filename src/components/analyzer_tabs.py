@@ -36,7 +36,8 @@ class UwUParserTab(CTkScrollableFrame):
                 Recursively loop the tree
             """
             if(node.child_nodes() == None):
-                self.tree.insert(parent, 'end', text=f"{key}: {node.header()}" if key else node.header())
+                node_id = self.tree.insert(parent, 'end', text=f"{key}: {node.header()}" if key else node.header())
+                self.iid_dict.update({node_id: node})
                 return
             
             node_iid = uuid.uuid4()
@@ -83,7 +84,8 @@ class UwUParserTab(CTkScrollableFrame):
         if selected in self.iid_dict.keys():
             value = self.iid_dict[selected]
             if isinstance(value, Production):
-                self.code_editor.format(Tags.TOKEN_HIGHLIGHT.name, tuple(value.start_pos), tuple(value.end_pos))
+                if value.start_pos and value.end_pos:
+                    self.code_editor.format(Tags.TOKEN_HIGHLIGHT.name, tuple(value.start_pos), tuple(value.end_pos))
             elif isinstance(value, list):
                 func_ranges = [(func.start_pos, func.end_pos) for func in value]
                 self.code_editor.format_multiple(Tags.TOKEN_HIGHLIGHT.name, func_ranges)
