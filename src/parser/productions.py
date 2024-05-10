@@ -791,7 +791,7 @@ class Break(Statement):
     def python_string(self, indent=0, cwass=False) -> str:
         return sprint("break" if self.in_loop else "...", indent=indent)
     def formatted_string(self, indent=0) -> str:
-        return sprintln("bweak~", indent=indent)
+        return sprint("bweak~", indent=indent)
 
 class Function(Production):
     def __init__(self):
