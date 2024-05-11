@@ -900,8 +900,8 @@ class TypeChecker:
         return Token.from_type(ret)
 
     ## HELPER METHODS FOR OPERATORS AND OPERANDS
-    def math_operands(self) -> list[TokenType]:
-        return [TokenType.CHAN, TokenType.KUN, TokenType.SAMA]
+    def math_operands(self) -> list[Token]:
+        return list(map(lambda x: Token.from_type(x), [TokenType.CHAN, TokenType.KUN, TokenType.SAMA]))
     def math_operators(self) -> list[TokenType]:
         return [TokenType.ADDITION_SIGN, TokenType.DASH, TokenType.MULTIPLICATION_SIGN,
                 TokenType.DIVISION_SIGN, TokenType.MODULO_SIGN]
