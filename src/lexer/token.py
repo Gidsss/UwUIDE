@@ -437,22 +437,10 @@ class Token:
     def to_arr(self, dimension: int = 1):
         'modifies the underlying token'
         pattern = r".+\[[\d]*\]"  # Matches strings that have [] or [x] in the end
-        match = re.search(pattern, self._lexeme)
+        matched = re.search(pattern, self._lexeme)
         dimension = max(1, dimension)  # Defaults to 1 for dims < 1
-        self._lexeme += f"[{dimension}]" if not match else ""
-        match self.token:
-            case TokenType.CHAN:
-                self._token = TokenType.CHAN_ARR
-            case TokenType.KUN:
-                self._token = TokenType.KUN_ARR
-            case TokenType.SAMA:
-                self._token = TokenType.SAMA_ARR
-            case TokenType.SAN:
-                self._token = TokenType.SAN_ARR
-            case TokenType.SENPAI:
-                self._token = TokenType.SENPAI_ARR
-            case UniqueTokenType():
-                self._token = self.token.to_arr_type()
+        self._lexeme += f"[{dimension}]" if not matched else ""
+        self._token = self.token.to_arr_type() if not matched else self.token
 
     def is_arr_type(self):
         return self.token.is_arr_type()
