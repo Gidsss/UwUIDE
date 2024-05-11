@@ -946,42 +946,43 @@ class TypeChecker:
                 res.append(item)
         return res
 
-    def is_similar_type(self, actual_type: str, expected_type: str, val: Value,
-                        *, is_call: bool = False, as_index=False, indexing=False) -> bool:
+    def is_similar_type(self, actual_type: Token, expected_type: Token, val: Value,
+                         *, is_call = False, as_index=False, indexing=False) -> bool:
         'determines if two types are similar'
         # nuww is an ok val for any type if and only if its not for a call
-        condition_2 = (actual_type == 'san') if not is_call and not as_index else False
-        if (actual_type == expected_type 
-            or condition_2): return True
+        condition_2 = (actual_type == Token.from_type(TokenType.SAN)) if not is_call and not as_index else False
+        if (actual_type == expected_type
+            or condition_2):
+            return True
 
         assert actual_type != expected_type
-        match expected_type:
+        match expected_type.lexeme:
             # num types are convertible between each other
             case "chan" | "kun":
-                match actual_type:
+                match actual_type.lexeme:
                     # inpwts with no concats can be converted to num types
                     case "chan" | "kun" | "sama": return True
                     case "inpwt": return True if not as_index else False
                     case _: return False
             # inpwt is inherently senpai
             case "senpai":
-                match actual_type:
+                match actual_type.lexeme:
                     case "senpai" | "inpwt": return True
                     case _: return False
             # all types are convertible to bool
             case "sama": return True
             case _:
                 # all array types can accept its unit types
-                # or its array type when assigning through index
-                if indexing and actual_type in [expected_type, expected_type.replace('[]', '')]: return True
-                else:
-                    # all array types can accept san[]
-                    if expected_type[-2:] == '[]':
-                        if actual_type == "san[]":
-                            if isinstance(val, ArrayLiteral):
-                                if len(val.elements) == 0: return True
-                                else: return False
+                if indexing and actual_type == expected_type.to_unit_type():
+                    return True
+
+                # all array types can accept san[]
+                if expected_type.is_arr_type():
+                    if actual_type.type_is(TokenType.SAN_ARR) and actual_type.dimension() >= 1:
+                        if isinstance(val, ArrayLiteral):
+                            if len(val.elements) == 0: return True
                             else: return False
+                        else: return False
 
                 # every other type needs exact match
                 return False
