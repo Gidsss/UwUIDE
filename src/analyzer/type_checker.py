@@ -852,11 +852,11 @@ class TypeChecker:
                     matches.append(self.is_similar_type(actual, expected, arg, is_call=True))
 
         if not all(matches) or len(call_args) != len(expected_types):
-            expected_types_str = []
+            expected_types_str: list[str] = []
             for e in expected_types:
                 match e.token:
                     case TokenType.ARRAY_ELEMENT:
-                        expected_types_str.append(f"{self_type.to_unit_type()} or {self_type.to_arr_type()}")
+                        expected_types_str.append(f"{self_type.to_unit_type()}")
                     case TokenType.NUMBER:
                         expected_types_str.append("chan, kun, or sama")
                     case _:
