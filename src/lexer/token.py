@@ -453,35 +453,38 @@ class Token:
         matched = matched[1].split("]") if len(matched) > 1 else []
         return int(matched[0] if matched[0] else 1) if len(matched) > 1 else 0
 
-    def to_unit_type(self) -> "Token":
+    def to_unit_type(self, times = 1) -> "Token":
         'returns a copy'
         if not self.is_arrayable(): return self
         ret = deepcopy(self)
         matched = ret.lexeme.split("[")
         matched = matched[1].split("]") if len(matched) > 1 else []
         dimension = int(matched[0] if matched[0] else 1) if len(matched) > 1 else 0
-        if dimension == 0: return ret
-        if dimension == 1:
-            ret._lexeme = re.sub(r"\[\d*\]", "", ret._lexeme)
-            ret._token = ret._token.to_unit_type()
-        else:
-            dimension -= 1
-            ret._lexeme = re.sub(r"\[\d*\]", f"[{dimension}]", ret._lexeme)
+        for _ in range(times):
+            if not self.is_arrayable(): return self
+            if dimension == 0: return ret
+            if dimension == 1:
+                ret._lexeme = re.sub(r"\[\d*\]", "", ret._lexeme)
+                ret._token = ret._token.to_unit_type()
+            else:
+                dimension -= 1
+                ret._lexeme = re.sub(r"\[\d*\]", f"[{dimension}]", ret._lexeme)
         return ret
     
-    def to_arr_type(self) -> "Token":
+    def to_arr_type(self, times = 1) -> "Token":
         'returns a copy'
         if not self.is_arrayable(): return self
         ret = deepcopy(self)
         matched = ret.lexeme.split("[")
         matched = matched[1].split("]") if len(matched) > 1 else []
         dimension = int(matched[0] if matched[0] else 1) if len(matched) > 1 else 0
-        if dimension == 0:
-            ret._lexeme += "[1]"
-            ret._token = ret._token.to_arr_type()
-        else:
-            dimension += 1
-            ret._lexeme = re.sub(r"\[\d*\]", f"[{dimension}]", ret._lexeme)
+        for _ in range(times):
+            if dimension == 0:
+                ret._lexeme += "[1]"
+                ret._token = ret._token.to_arr_type()
+            else:
+                dimension += 1
+                ret._lexeme = re.sub(r"\[\d*\]", f"[{dimension}]", ret._lexeme)
         return ret
 
     def is_unique_type(self):
