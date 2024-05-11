@@ -913,10 +913,9 @@ class TypeChecker:
                 TokenType.AND_OPERATOR, TokenType.OR_OPERATOR]
     
     ## HELPER METHODS FOR EVALUATING ARRAYS
-        flat_arr = self.flatten_array(arr.elements)
-        for val in flat_arr:
     def expect_homogenous(self, arr: ArrayLiteral, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> tuple[list[Value], Token]:
         types: list[Token] = []
+        for val in arr.elements:
             match val:
                 case Token():
                     types.append(self.evaluate_token(val, local_defs))
