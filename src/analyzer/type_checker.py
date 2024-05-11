@@ -987,16 +987,12 @@ class TypeChecker:
                 # every other type needs exact match
                 return False
 
-    def is_element_of_expected(self, actual_type: TokenType, expected_type: TokenType, val: Value) -> bool:
+    def is_element_of_expected(self, actual_type: Token, expected_type: Token, val: Value) -> bool:
         'determines if a type is a valid element of an expected type'
-        actual, actual_arr, actual_unit = actual_type.flat_string(), actual_type.to_arr_type().flat_string(), actual_type.to_unit_type().flat_string()
-        expected = expected_type.flat_string()
-        if (actual == expected
-            or actual_arr == expected
-            or actual_unit == expected
-            ): return True
+        if actual_type == expected_type.to_unit_type():
+            return True
 
-        if ("san[]" in [actual, actual_arr]
+        if (expected_type.dimension() > 1
             and isinstance(val, ArrayLiteral)
             and len(val.elements) == 0):
             return True
