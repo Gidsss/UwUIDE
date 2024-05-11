@@ -456,6 +456,10 @@ class Token:
 
     def is_arr_type(self):
         return self.token.is_arr_type()
+    def dimension(self):
+        matched = self.lexeme.split("[")
+        matched = matched[1].split("]") if len(matched) > 1 else []
+        return int(matched[0] if matched[0] else 1) if len(matched) > 1 else 0
 
     def to_unit_type(self):
         ret = deepcopy(self)
