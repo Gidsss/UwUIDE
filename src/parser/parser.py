@@ -25,7 +25,7 @@ Overview:
     - while and do while statements
     - for statements
 '''
-from typing import Callable, Literal
+from typing import Callable, Literal, Sequence
 from .error_handler import Error
 from src.lexer.token import Token, TokenType, UniqueTokenType
 from src.parser.productions import *
@@ -1419,7 +1419,7 @@ class Parser:
         self.in_block_parse_fns[token_type] = fn
         self.expected_in_block.append(token_type)
     # getting prefix and infix functions
-    def get_prefix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+    def get_prefix_parse_fn(self, token_type: str | TokenType | UniqueTokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
             token_type = "IDENTIFIER" if token_type.unique_type.startswith("IDENTIFIER") else "CWASS_ID"
         try:
@@ -1427,7 +1427,7 @@ class Parser:
             return tmp
         except KeyError:
             return None
-    def get_prefix_special_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+    def get_prefix_special_parse_fn(self, token_type: str | TokenType | UniqueTokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
             token_type = "IDENTIFIER" if token_type.unique_type.startswith("IDENTIFIER") else "CWASS_ID"
         try:
@@ -1435,7 +1435,7 @@ class Parser:
             return tmp
         except KeyError:
             return None
-    def get_infix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+    def get_infix_parse_fn(self, token_type: str | TokenType | UniqueTokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
             token_type = "IDENTIFIER" if token_type.unique_type.startswith("IDENTIFIER") else "CWASS_ID"
         try:
@@ -1443,7 +1443,7 @@ class Parser:
             return tmp
         except KeyError:
             return None
-    def get_infix_special_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+    def get_infix_special_parse_fn(self, token_type: str | TokenType | UniqueTokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
             token_type = "IDENTIFIER" if token_type.unique_type.startswith("IDENTIFIER") else "CWASS_ID"
         try:
@@ -1451,7 +1451,7 @@ class Parser:
             return tmp
         except KeyError:
             return None
-    def get_postfix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+    def get_postfix_parse_fn(self, token_type: str | TokenType | UniqueTokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
             token_type = "IDENTIFIER" if token_type.unique_type.startswith("IDENTIFIER") else "CWASS_ID"
         try:
@@ -1459,7 +1459,7 @@ class Parser:
             return tmp
         except KeyError:
             return None
-    def get_in_block_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+    def get_in_block_parse_fn(self, token_type: str | TokenType | UniqueTokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
             token_type = "IDENTIFIER" if token_type.unique_type.startswith("IDENTIFIER") else "CWASS_ID"
         try:
@@ -1580,7 +1580,7 @@ class Parser:
     ### error methods
 
     # general error
-    def expected_error(self, tokens: list[TokenType], curr=False):
+    def expected_error(self, tokens: Sequence[TokenType|str], curr=False):
         msg = f"Expected next token to be one of the ff:"
         for token in tokens[:-1]:
             msg += f" '{token}',"
