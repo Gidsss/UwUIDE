@@ -642,7 +642,7 @@ class TypeChecker:
                             )
                         )
                 case IndexedIdentifier():
-                    class_type = local_defs[id][0].dtype
+                    class_type = local_defs[id][0].dtype.to_unit_type(len(accessor.id.index))
                     if not self.is_accessible(class_type):
                         token = self.extract_id(accessor.id)
                         type_definition = local_defs[token.flat_string()][0]
@@ -654,7 +654,7 @@ class TypeChecker:
                                 usage=accessor.id.flat_string(),
                             )
                         )
-                    if not class_type.is_unique_type():
+                    if not class_type.is_unique_type() and not self.is_accessible(class_type):
                         self.errors.append(
                             NonClassAccessError(
                                 id=self.extract_id(accessor),
@@ -662,7 +662,6 @@ class TypeChecker:
                                 usage=accessor.flat_string(),
                             )
                         )
-                    class_type = class_type.to_unit_type()
                 case _: raise ValueError(f"Unknown class accessor: {accessor}")
 
         # type check accessor
