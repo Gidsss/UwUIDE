@@ -536,3 +536,23 @@ class Token:
     @end_position.setter
     def end_position(self, end_position: tuple[int, int]):
         self._end_position = end_position
+
+    @staticmethod
+    def arr_type(token_type: TokenType|UniqueTokenType, dimension: int = 1) -> "Token":
+        dimension = max(1, dimension)
+        if (not isinstance(token_type, TokenType)
+            and not isinstance(token_type, UniqueTokenType))\
+            or not token_type.is_arrayable():
+            return Token()
+
+
+        if dimension == 1:
+            return (Token(lexeme=re.sub(r"\[\d*\]", "[1]", token_type.token), token=token_type)
+                if token_type.is_arr_type()
+                else Token(lexeme=f"{token_type.token}[1]", token=token_type.to_arr_type())
+            )
+        else:
+            return (Token(lexeme=f"{token_type.token}[{dimension}]", token=token_type.to_arr_type())
+                if not token_type.is_arr_type()
+                else Token(lexeme=re.sub(r"\d+", f"{dimension}", token_type.token), token=token_type)
+            )
