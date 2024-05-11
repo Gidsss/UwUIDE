@@ -449,22 +449,20 @@ class Token:
         matched = matched[1].split("]") if len(matched) > 1 else []
         return int(matched[0] if matched[0] else 1) if len(matched) > 1 else 0
 
-    def to_unit_type(self):
+    def to_unit_type(self) -> "Token":
+        'returns a copy'
+        if not self.is_arrayable(): return self
         ret = deepcopy(self)
-        ret._lexeme = self._lexeme[:-2] if self._lexeme.endswith("[]") else self._lexeme
-        match ret.token:
-            case TokenType.CHAN_ARR:
-                ret._token = TokenType.CHAN
-            case TokenType.KUN_ARR:
-                ret._token = TokenType.KUN
-            case TokenType.SAMA_ARR:
-                ret._token = TokenType.SAMA
-            case TokenType.SAN_ARR:
-                ret._token = TokenType.SAN
-            case TokenType.SENPAI_ARR:
-                ret._token = TokenType.SENPAI
-            case UniqueTokenType():
-                ret._token = ret._token.to_unit_type()
+        matched = ret.lexeme.split("[")
+        matched = matched[1].split("]") if len(matched) > 1 else []
+        dimension = int(matched[0] if matched[0] else 1) if len(matched) > 1 else 0
+        if dimension == 0: return ret
+        if dimension == 1:
+            ret._lexeme = re.sub(r"\[\d*\]", "", ret._lexeme)
+            ret._token = ret._token.to_unit_type()
+        else:
+            dimension -= 1
+            ret._lexeme = re.sub(r"\[\d*\]", f"[{dimension}]", ret._lexeme)
         return ret
     
     def to_arr_type(self):
