@@ -447,11 +447,13 @@ class Parser:
 
         # is array return type
         if self.expect_peek(TokenType.OPEN_BRACKET):
+            dimension = 1 if not self.expect_peek(TokenType.INT_LITERAL) else int(self.curr_tok.lexeme)
+            func.rtype.to_arr(dimension)
+
             if not self.expect_peek(TokenType.CLOSE_BRACKET):
-                self.unclosed_bracket_error(self.peek_tok)
+                self.expected_error([TokenType.INT_LITERAL, TokenType.CLOSE_BRACKET])
                 self.advance(2)
                 return None
-            func.rtype.to_arr()
 
         if res := self.parse_params(main=main):
             func.params = res
