@@ -298,7 +298,7 @@ class_properties: set[str] = set()
 class Token:
     'A class for representing tokens in a lexer'
 
-    def __init__(self, lexeme: str = "", token: TokenType = TokenType.EOF, position: tuple[int, int] = (0, 0), end_position: tuple[int, int] = (0, 0)):
+    def __init__(self, lexeme: str = "", token: TokenType | UniqueTokenType = TokenType.EOF, position: tuple[int, int] = (0, 0), end_position: tuple[int, int] = (0, 0)):
         self._lexeme = lexeme
         self._token = token
         self._position = position
@@ -510,7 +510,7 @@ class Token:
         self._lexeme = lexeme
 
     @property
-    def token(self) -> TokenType:
+    def token(self) -> TokenType | UniqueTokenType:
         return self._token
 
     @token.setter
