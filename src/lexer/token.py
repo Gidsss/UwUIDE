@@ -308,6 +308,10 @@ class Token:
         return self._lexeme
     def __str__(self):
         return self._lexeme
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, Token): return False
+        return self._lexeme == other._lexeme
+
 
     ### For Production interface
     def string(self, indent = 1) -> str:
