@@ -62,6 +62,16 @@ class TokenType(Enum):
     def __format__(self, format_spec):
         return str.__format__(str(self), format_spec)
 
+    def is_arr_type(self):
+        match self:
+            case (TokenType.CHAN_ARR
+                | TokenType.KUN_ARR
+                | TokenType.SAMA_ARR
+                | TokenType.SAN_ARR
+                | TokenType.SENPAI_ARR
+            ): return True
+            case _: return False
+
     def to_arr_type(self) -> "TokenType":
         match self:
             case TokenType.CHAN:
@@ -76,12 +86,6 @@ class TokenType(Enum):
                 return TokenType.SENPAI_ARR
             case _:
                 return self
-    def is_arr_type(self):
-        match self:
-            case TokenType.CHAN_ARR | TokenType.KUN_ARR | TokenType.SAMA_ARR | TokenType.SAN_ARR | TokenType.SENPAI_ARR:
-                return True
-            case _:
-                return False
 
     def to_unit_type(self) -> "TokenType":
         match self:
@@ -97,6 +101,7 @@ class TokenType(Enum):
                 return TokenType.SENPAI
             case _:
                 return self
+
     def is_unique_type(self):
         return False
     def exists(self) -> bool:
@@ -280,7 +285,7 @@ class UniqueTokenType:
         tmp._token = tmp._token.replace("[]", "")
         return tmp
     def is_arr_type(self):
-        return self.token.endswith("[]")
+        return self.token.find("[") != -1
     def is_unique_type(self):
         return True
     def exists(self) -> bool:
