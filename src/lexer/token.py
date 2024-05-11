@@ -542,3 +542,6 @@ class Token:
                 if not token_type.is_arr_type()
                 else Token(lexeme=re.sub(r"\d+", f"{dimension}", token_type.token), token=token_type)
             )
+    @staticmethod
+    def from_type(token_type: TokenType | UniqueTokenType) -> "Token":
+        return Token(lexeme=token_type.token, token=token_type)
