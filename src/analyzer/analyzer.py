@@ -155,7 +155,7 @@ class MemberAnalyzer:
             case TokenType():
                 pass
             case UniqueTokenType():
-                self.expect_defined_token(decl.dtype.to_unit_type(), GlobalType.CLASS, local_defs)
+                self.expect_defined_token(decl.dtype, GlobalType.CLASS, local_defs)
             case _:
                 raise ValueError(f"Unknown dtype: {decl.dtype}")
         self.analyze_value(decl.value, local_defs)
@@ -344,21 +344,22 @@ class MemberAnalyzer:
         checks whether the token is defined in the scope
         if not, appends to errors
         '''
-        match token.token:
+        match token.token.to_unit_type():
             case TokenType.STRING_LITERAL | TokenType.INT_LITERAL | TokenType.FLOAT_LITERAL | TokenType.FAX | TokenType.CAP | TokenType.NUWW:
                 pass
             case UniqueTokenType():
-                if token.string() in local_defs:
-                    if not local_defs[token.string()][1] in (
+                tok = token.token.to_unit_type().string()
+                if tok in local_defs:
+                    if not local_defs[tok][1] in (
                         GlobalType.IDENTIFIER, GlobalType.CLASS_PROPERTY, GlobalType.LOCAL_CLASS_ID, GlobalType.CLASS):
                         if assign:
                             self.errors.append(FunctionAssignmentError(
-                                local_defs[token.string()][0],
+                                local_defs[tok][0],
                                 token,
                             ))
                         else:
                             self.errors.append(FnUsedAsVar(
-                                local_defs[token.string()][0],
+                                local_defs[tok][0],
                                 token,
                             ))
                 else:
