@@ -1,3 +1,4 @@
+import re
 from constants.constants import DELIMS
 from enum import Enum
 from copy import deepcopy
@@ -412,9 +413,12 @@ class Token:
     def header(self):
         return self._lexeme
 
-    def to_arr(self):
+    def to_arr(self, dimension: int = None):
         'modifies the underlying token'
-        self._lexeme += "[]" if not self._lexeme.endswith("[]") else ""
+        pattern = r".+\[[\d]*\]"  # Matches strings that have [] or [x] in the end
+        match = re.search(pattern, self._lexeme)
+        dimension = max(1, dimension)  # Defaults to 1 for dims < 1
+        self._lexeme += f"[{dimension}]" if not match else ""
         match self.token:
             case TokenType.CHAN:
                 self._token = TokenType.CHAN_ARR

@@ -306,9 +306,13 @@ class Parser:
 
         # array declaration
         if self.expect_peek(TokenType.OPEN_BRACKET):
-            d.dtype.to_arr()
+            dimension = 1
+            if self.expect_peek(TokenType.INT_LITERAL):
+                dimension = int(self.curr_tok.lexeme)
+            d.dtype.to_arr(dimension)
+
             if not self.expect_peek(TokenType.CLOSE_BRACKET):
-                self.unclosed_bracket_error(self.peek_tok)
+                self.expected_error([TokenType.INT_LITERAL, TokenType.CLOSE_BRACKET])
                 self.advance(2)
                 return None
 
@@ -574,9 +578,13 @@ class Parser:
                 parameters.append(param)
 
                 if self.expect_peek(TokenType.OPEN_BRACKET):
-                    param.dtype.to_arr()
+                    dimension = 1
+                    if self.expect_peek(TokenType.INT_LITERAL):
+                        dimension = int(self.curr_tok.lexeme)
+                    param.dtype.to_arr(dimension)
+
                     if not self.expect_peek(TokenType.CLOSE_BRACKET):
-                        self.unclosed_bracket_error(self.peek_tok)
+                        self.expected_error([TokenType.INT_LITERAL, TokenType.CLOSE_BRACKET])
                         self.advance(2)
                         return None
 
