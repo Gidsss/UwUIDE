@@ -413,7 +413,7 @@ class Token:
     def header(self):
         return self._lexeme
 
-    def to_arr(self, dimension: int = None):
+    def to_arr(self, dimension: int = 1):
         'modifies the underlying token'
         pattern = r".+\[[\d]*\]"  # Matches strings that have [] or [x] in the end
         match = re.search(pattern, self._lexeme)
