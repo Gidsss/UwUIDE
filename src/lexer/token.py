@@ -101,6 +101,20 @@ class TokenType(Enum):
         return False
     def exists(self) -> bool:
         return self != TokenType.EOF
+    def is_arrayable(self):
+        match self:
+            case (TokenType.CHAN
+                | TokenType.KUN
+                | TokenType.SAMA
+                | TokenType.SAN
+                | TokenType.SENPAI
+                | TokenType.CHAN_ARR
+                | TokenType.KUN_ARR
+                | TokenType.SAMA_ARR
+                | TokenType.SAN_ARR
+                | TokenType.SENPAI_ARR
+            ): return True
+            case _: return False
 
     # GENERAL KEYWORDS
     MAINUWU = ("mainuwu", "mainuwu")
@@ -270,6 +284,8 @@ class UniqueTokenType:
     def is_unique_type(self):
         return True
     def exists(self) -> bool:
+        return True
+    def is_arrayable(self):
         return True
 
 # for keeping track of class properties
@@ -477,6 +493,8 @@ class Token:
         return self.token.is_unique_type()
     def exists(self) -> bool:
         return self.token.exists()
+    def is_arrayable(self) -> bool:
+        return self.token.is_arrayable()
 
     @property
     def lexeme(self) -> str:
