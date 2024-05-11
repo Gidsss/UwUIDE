@@ -574,6 +574,16 @@ class TypeChecker:
                         )
                     )
                     return Token.from_type(TokenType.SAN)
+                if arr_type.dimension() < len(ident_prod.index):
+                    self.errors.append(
+                        NonIterableIndexingError(
+                            token=self.extract_id(ident_prod.id),
+                            type_definition=arr_type,
+                            token_type=arr_type.to_unit_type(len(ident_prod.index)),
+                            usage=ident_prod.flat_string(),
+                        )
+                    )
+                    return Token.from_type(TokenType.SAN)
                 return arr_type.to_unit_type(len(ident_prod.index))
             case FnCall():
                 return self.evaluate_fn_call(ident_prod, local_defs)
