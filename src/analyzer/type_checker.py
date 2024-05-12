@@ -854,6 +854,8 @@ class TypeChecker:
                 match e.token:
                     case TokenType.ARRAY_ELEMENT:
                         expected_types_str.append(f"{self_type.to_unit_type()}")
+                    case TokenType.GEN_ARRAY:
+                        expected_types_str.append(f"{self_type}")
                     case TokenType.NUMBER:
                         expected_types_str.append("chan, kun, or sama")
                     case _:
