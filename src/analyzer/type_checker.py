@@ -859,7 +859,7 @@ class TypeChecker:
                     case TokenType.NUMBER:
                         expected_types_str.append("chan, kun, or sama")
                     case _:
-                        expected_types_str.append(f"{e.token}")
+                        expected_types_str.append(f"{e}")
             self.errors.append(
                 MismatchedCallArgType(
                     global_type=global_type,
