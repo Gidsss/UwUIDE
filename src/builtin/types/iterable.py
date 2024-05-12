@@ -182,13 +182,34 @@ class Array:
     def _index(self, item) -> Int:
         if item not in self.val: return Int(-1)
         return Int(self.val.index(item))
-    def _pop(self) -> None:
-        if len(self.val) == 0: return
-        _ = self.val.pop()
+    def _pop(self):
+        if len(self.val) == 0: return Array([])
+        return Array([self.val.pop()])
     def _prepend(self, item) -> None:
         self.val.insert(0, item)
     def _prextend(self, item) -> None:
         self.val = item + self.val
+    def _dimension(self) -> Int:
+        dimension = 0
+        tmp = self.val
+        while isinstance(tmp, list):
+            dimension += 1
+            if len(tmp) == 0: break
+            tmp = tmp[0]
+            if not isinstance(tmp, Array): break
+            tmp = tmp.val
+        return Int(dimension)
+    def _first(self, n) -> Array:
+        idx = max(int(n), 0)
+        return Array(self.val[:idx])
+    def _last(self, n) -> Array:
+        idx = max(int(n), 0)
+        return Array(self.val[-idx:])
+    def _replace(self, old, new) -> None:
+        self.val = [new if x == old else x for x in self.val]
+    def _shift(self):
+        if len(self.val) == 0: return Array([])
+        return Array([self.val.pop(0)])
 
     ## UTILS
     def valid_operands(self) -> list[type]:
