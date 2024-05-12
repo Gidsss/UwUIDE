@@ -97,6 +97,11 @@ class TypeChecker:
             'array_type.pop',
             'array_type.prepend',
             'array_type.prextend',
+            'array_type.dimension',
+            'array_type.first',
+            'array_type.last',
+            'array_type.replace',
+            'array_type.shift',
         }
         self.class_signatures.update(
             {
@@ -146,9 +151,14 @@ class TypeChecker:
                 'array_type.count': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
                 'array_type.extend': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
                 'array_type.index': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
-                'array_type.pop': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
+                'array_type.pop': (Declaration(), Token('gen_arr', TokenType.GEN_ARRAY), GlobalType.CLASS_METHOD),
                 'array_type.prepend': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
                 'array_type.prextend': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
+                'array_type.dimension': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
+                'array_type.first': (Declaration(), Token('gen_arr', TokenType.GEN_ARRAY), GlobalType.CLASS_METHOD),
+                'array_type.last': (Declaration(), Token('gen_arr', TokenType.GEN_ARRAY), GlobalType.CLASS_METHOD),
+                'array_type.replace': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
+                'array_type.shift': (Declaration(), Token('gen_arr', TokenType.GEN_ARRAY), GlobalType.CLASS_METHOD),
             },
         )
         self.class_method_param_types.update(
@@ -202,6 +212,11 @@ class TypeChecker:
                 'array_type.pop': [],
                 'array_type.prepend': [Token('elem', TokenType.ARRAY_ELEMENT)],
                 'array_type.prextend': [Token('gen_arr', TokenType.GEN_ARRAY)],
+                'array_type.dimension': [],
+                'array_type.first': [Token('chan', TokenType.CHAN)],
+                'array_type.last': [Token('chan', TokenType.CHAN)],
+                'array_type.replace': [Token('elem', TokenType.ARRAY_ELEMENT), Token('elem', TokenType.ARRAY_ELEMENT)],
+                'array_type.shift': [],
             }
         )
 
