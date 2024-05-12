@@ -574,7 +574,7 @@ class TypeChecker:
                         )
                     )
                     return Token.from_type(TokenType.SAN)
-                if (not arr_type.type_is(TokenType.SENPAI)
+                if (not arr_type.to_unit_type(len(ident_prod.index)).type_is(TokenType.SENPAI)
                     and arr_type.dimension() < len(ident_prod.index)):
                     self.errors.append(
                         NonIterableIndexingError(
