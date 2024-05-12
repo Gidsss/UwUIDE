@@ -20,7 +20,7 @@ class TypeChecker:
         self.class_method_param_types: dict[str, list[Token]] = {}
         self.function_param_types: dict[str, list[Token]] = {}
         self.class_param_types: dict[str, list[Token]] = {}
-        self.return_list: list[TokenType] = []
+        self.return_list: list[Token] = []
         self.compile_global_types()
         self.check_program()
 
@@ -287,17 +287,17 @@ class TypeChecker:
         match for_loop.init:
             case Declaration():
                 self.check_declaration(for_loop.init, local_defs)
-                decl, dono_token, global_type = local_defs[for_loop.init.id.flat_string()]
+                decl, dono_token, _ = local_defs[for_loop.init.id.flat_string()]
             case Assignment():
                 self.check_assignment(for_loop.init, local_defs)
-                decl, dono_token, global_type = local_defs[self.extract_id(for_loop.init.id).flat_string()]
+                decl, dono_token, _ = local_defs[self.extract_id(for_loop.init.id).flat_string()]
             case Token():
                 self.evaluate_token(for_loop.init, local_defs)
                 match for_loop.init.token:
                     case Token():
-                        decl, dono_token, global_type = Declaration(), Token(), GlobalType.IDENTIFIER
+                        decl, dono_token, _ = Declaration(), Token(), GlobalType.IDENTIFIER
                     case UniqueTokenType():
-                        decl, dono_token, global_type = local_defs[for_loop.init.flat_string()]
+                        decl, dono_token, _ = local_defs[for_loop.init.flat_string()]
                     case _:
                         raise ValueError(f"Unknown token: {for_loop.init}")
             case IdentifierProds():
@@ -321,7 +321,7 @@ class TypeChecker:
 
     def check_return(self, ret: ReturnStatement, return_type: Token, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> None:
         actual_type = self.evaluate_value(ret.expr, local_defs)
-        if actual_type == TokenType.SAN and return_type.token != TokenType.SAN:
+        if actual_type.type_is(TokenType.SAN) and not return_type.type_is(TokenType.SAN):
             self.errors.append(
                 ReturnTypeMismatchError(
                     expected=return_type,
@@ -330,7 +330,7 @@ class TypeChecker:
                 )
             )
             return
-        elif not self.is_similar_type(actual_type.flat_string(), return_type.flat_string(), ret.expr):
+        elif not self.is_similar_type(actual_type, return_type, ret.expr):
             self.errors.append(
                 ReturnTypeMismatchError(
                     expected=return_type,
@@ -386,10 +386,10 @@ class TypeChecker:
                 actual_type = self.evaluate_value(value, local_defs)
                 match value:
                     case Input():
-                        if not value.concats: actual_type_str = "inpwt"
-                        else: actual_type_str = "senpai"
-                    case _: actual_type_str = actual_type.flat_string()
-                if not self.is_similar_type(actual_type_str, expected_type.flat_string(), value, indexing=indexed_id):
+                        if not value.concats: actual_type_new = Token.from_type(TokenType.INPWT) # "inpwt"
+                        else: actual_type_new = Token.from_type(TokenType.SENPAI)
+                    case _: actual_type_new = actual_type
+                if not self.is_similar_type(actual_type_new, expected_type, value, indexing=indexed_id):
                     self.errors.append(
                         TypeMismatchError(
                             title="Assignment" if assignment else "Declaration",
@@ -403,11 +403,11 @@ class TypeChecker:
             case UniqueTokenType():
                 match value:
                     case ClassConstructor():
-                        actual_type = UniqueTokenType() # placeholder, will not be used in this case
+                        actual_type = Token()
                         self.check_class_constructor(value, local_defs)
                     case _:
                         actual_type = self.evaluate_value(value, local_defs)
-                        if not self.is_similar_type(actual_type.flat_string(), expected_type.flat_string(), value, indexing=indexed_id):
+                        if not self.is_similar_type(actual_type, expected_type, value, indexing=indexed_id):
                             self.errors.append(
                                 TypeMismatchError(
                                     title="Assignment" if assignment else "Declaration",
@@ -419,7 +419,7 @@ class TypeChecker:
                                 )
                             )
         # (DECLARATION & ASSIGNMENT) uninitialize identifiers if any errors occured in evaluating value
-        if self.expr_err_count > 0 and expected_type != TokenType.SAN:
+        if self.expr_err_count > 0 and not expected_type.type_is(TokenType.SAN):
             decl_new = deepcopy(decl)
             decl_new.initialized = False
             decl_new.value = Value()
@@ -429,7 +429,7 @@ class TypeChecker:
                 local_defs[decl_new.id.flat_string()] = (decl_new, decl_new.dtype, GlobalType.IDENTIFIER)
 
         # (ASSIGNMENT) initialize uninitialized identifiers
-        elif not decl.initialized and actual_type != TokenType.SAN:
+        elif not decl.initialized and not actual_type.type_is(TokenType.SAN):
             decl_new = deepcopy(decl)
             decl_new.initialized = True
             if class_member:
@@ -445,10 +445,10 @@ class TypeChecker:
                 local_defs[decl.id.flat_string()] = (decl, decl.dtype, GlobalType.IDENTIFIER)
 
         if assignment:
-            assign.dtype = actual_type
+            assign.dtype = actual_type.token
         self.expr_err_count = 0
 
-    def evaluate_value(self, value: Value | Token, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> TokenType:
+    def evaluate_value(self, value: Value | Token, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> Token:
         match value:
             case Token():
                 return self.evaluate_token(value, local_defs)
@@ -460,9 +460,9 @@ class TypeChecker:
                 return self.evaluate_iterable(value, local_defs)
             case _:
                 if value.flat_string() != None: raise ValueError(f"Unknown value: {value.flat_string()}")
-                return TokenType.SAN
+                return Token.from_type(TokenType.SAN)
 
-    def evaluate_expression(self, expr: Expression, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> TokenType:
+    def evaluate_expression(self, expr: Expression, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> Token:
         match expr:
             case PrefixExpression():
                 right = self.evaluate_value(expr.right, local_defs)
@@ -498,15 +498,15 @@ class TypeChecker:
                                 op=expr.op,
                                 left=(expr.left, left_definition.dtype if left_definition else None),
                                 right=(expr.right, right_definition.dtype if right_definition else None),
-                                left_type=left if left not in self.math_operands() else None,
-                                right_type=right if right not in self.math_operands() else None,
+                                left_type=left if left.token not in self.math_operands() else None,
+                                right_type=right if right.token not in self.math_operands() else None,
                             )
                         )
                         self.expr_err_count += 1
                     if left == TokenType.KUN or right == TokenType.KUN:
-                        return TokenType.KUN
+                        return Token.from_type(TokenType.KUN)
                     else:
-                        return TokenType.CHAN
+                        return Token.from_type(TokenType.CHAN)
                 elif expr.op.token in self.comparison_operators():
                     if not (left in self.math_operands() and right in self.math_operands()):
                         left_definition, right_definition = None, None
@@ -520,14 +520,14 @@ class TypeChecker:
                                 op=expr.op,
                                 left=(expr.left, left_definition.dtype if left_definition else None),
                                 right=(expr.right, right_definition.dtype if right_definition else None),
-                                left_type=left if left not in self.math_operands() else None,
-                                right_type=right if right not in self.math_operands() else None,
+                                left_type=left if left.token not in self.math_operands() else None,
+                                right_type=right if right.token not in self.math_operands() else None,
                             )
                         )
                         self.expr_err_count += 1
-                    return TokenType.SAMA
+                    return Token.from_type(TokenType.SAMA)
                 elif expr.op.token in self.equality_operators():
-                    return TokenType.SAMA
+                    return Token.from_type(TokenType.SAMA)
                 else:
                     raise ValueError(f"Unknown operator: {expr.op}")
             case PostfixExpression():
@@ -551,7 +551,7 @@ class TypeChecker:
             case _:
                 raise ValueError(f"Unknown expression: {expr}")
 
-    def evaluate_ident_prods(self, ident_prod: IdentifierProds, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> TokenType:
+    def evaluate_ident_prods(self, ident_prod: IdentifierProds, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> Token:
         match ident_prod:
             case IndexedIdentifier():
                 self.check_indexed_id_indices(ident_prod, local_defs)
@@ -573,25 +573,36 @@ class TypeChecker:
                             usage=ident_prod.flat_string(),
                         )
                     )
-                    return TokenType.SAN
-                return arr_type.to_unit_type()
+                    return Token.from_type(TokenType.SAN)
+                if (not arr_type.to_unit_type(len(ident_prod.index)).type_is(TokenType.SENPAI)
+                    and arr_type.dimension() < len(ident_prod.index)):
+                    self.errors.append(
+                        NonIterableIndexingError(
+                            token=self.extract_id(ident_prod.id),
+                            type_definition=arr_type,
+                            token_type=arr_type.to_unit_type(len(ident_prod.index)),
+                            usage=ident_prod.flat_string(),
+                        )
+                    )
+                    return Token.from_type(TokenType.SAN)
+                return arr_type.to_unit_type(len(ident_prod.index))
             case FnCall():
                 return self.evaluate_fn_call(ident_prod, local_defs)
             case ClassConstructor():
                 self.check_class_constructor(ident_prod, local_defs)
-                return ident_prod.id.token
+                return Token.from_type(ident_prod.id.token)
             case ClassAccessor():
                 return self.check_and_evaluate_class_accessor(ident_prod, local_defs)
             case _:
                 raise ValueError(f"Unknown identifier production: {ident_prod}")
 
     def check_indexed_id_indices(self, indexed_id: IndexedIdentifier, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> None:
-        dtypes: list[TokenType] = []
+        dtypes: list[Token] = []
         ok: list[bool] = []
         for idx in indexed_id.index:
             dtype = self.evaluate_value(idx, local_defs)
             dtypes.append(dtype)
-            ok.append(self.is_similar_type(dtype.flat_string(), TokenType.CHAN.flat_string(), idx, as_index=True))
+            ok.append(self.is_similar_type(dtype, Token.from_type(TokenType.CHAN), idx, as_index=True))
         if not all(ok):
             self.errors.append(
                 NonNumberIndex(
@@ -605,7 +616,7 @@ class TypeChecker:
     def check_and_evaluate_class_accessor(
             self, accessor: ClassAccessor, local_defs: dict[str, tuple[Declaration, Token, GlobalType]],
             class_type: Token = Token(),
-        ) -> TokenType:
+        ) -> Token:
 
         if not class_type.exists():
             # check that the accessor is of type class
@@ -614,7 +625,7 @@ class TypeChecker:
                 case Token() | FnCall() | ClassAccessor():
                     res = local_defs[id][0]
                     class_type = res.dtype
-                    if not class_type.is_unique_type() and not self.is_accessible(class_type.token):
+                    if not self.is_accessible(class_type):
                         self.errors.append(
                             NonClassAccessError(
                                 id=self.extract_id(accessor),
@@ -633,18 +644,18 @@ class TypeChecker:
                         )
                 case IndexedIdentifier():
                     class_type = local_defs[id][0].dtype
-                    if not self.is_accessible(class_type.token):
+                    if class_type.dimension() < len(accessor.id.index):
                         token = self.extract_id(accessor.id)
                         type_definition = local_defs[token.flat_string()][0]
                         self.errors.append(
                             NonIterableIndexingError(
                                 token=token,
                                 type_definition=type_definition.dtype,
-                                token_type=class_type.token,
+                                token_type=class_type,
                                 usage=accessor.id.flat_string(),
                             )
                         )
-                    if not class_type.is_unique_type():
+                    if not self.is_accessible(class_type):
                         self.errors.append(
                             NonClassAccessError(
                                 id=self.extract_id(accessor),
@@ -652,7 +663,7 @@ class TypeChecker:
                                 usage=accessor.flat_string(),
                             )
                         )
-                    class_type = class_type.to_unit_type()
+                    class_type = class_type.to_unit_type(len(accessor.id.index))
                 case _: raise ValueError(f"Unknown class accessor: {accessor}")
 
         # type check accessor
@@ -682,7 +693,7 @@ class TypeChecker:
                             GlobalType.CLASS_PROPERTY,
                         )
                     )
-                    return TokenType.SAN
+                    return Token.from_type(TokenType.SAN)
                 return_type, _, member_type = res
                 if member_type != GlobalType.CLASS_PROPERTY:
                     self.errors.append(
@@ -693,8 +704,8 @@ class TypeChecker:
                             actual_definition=(return_type.id, member_type),
                         )
                     )
-                    return TokenType.SAN
-                return return_type.id.token
+                    return Token.from_type(TokenType.SAN)
+                return Token.from_type(return_type.id.token)
             case FnCall():
                 accessed = accessor.accessed.id
                 return self.evaluate_method_call(class_type, accessor.accessed, local_defs)
@@ -712,7 +723,7 @@ class TypeChecker:
                                     GlobalType.CLASS_PROPERTY,
                                 )
                             )
-                            return TokenType.SAN
+                            return Token.from_type(TokenType.SAN)
                         _, return_type, member_type = res
                         if member_type != GlobalType.CLASS_PROPERTY:
                             self.errors.append(
@@ -723,20 +734,20 @@ class TypeChecker:
                                     actual_definition=(return_type, member_type),
                                 )
                             )
-                            return TokenType.SAN
-                        if not self.is_accessible(return_type.token):
+                            return Token.from_type(TokenType.SAN)
+                        if not self.is_accessible(return_type):
                             token = self.extract_id(accessed)
                             type_definition = self.class_signatures[member_signature][0]
                             self.errors.append(
                                 NonIterableIndexingError(
                                     token=token,
                                     type_definition=type_definition.id,
-                                    token_type=return_type.token,
+                                    token_type=return_type,
                                     usage=accessed.flat_string(),
                                 )
                             )
-                            return TokenType.SAN
-                        return return_type.token.to_unit_type()
+                            return Token.from_type(TokenType.SAN)
+                        return return_type.to_unit_type()
                     case FnCall():
                         return self.evaluate_method_call(class_type, accessed, local_defs).to_unit_type()
                     case _:
@@ -752,39 +763,35 @@ class TypeChecker:
                             GlobalType.CLASS_PROPERTY,
                         )
                     )
-                    return TokenType.SAN
+                    return Token.from_type(TokenType.SAN)
                 class_type = res[1]
                 return self.check_and_evaluate_class_accessor(accessor.accessed, local_defs, class_type=class_type)
             case _:
                 raise ValueError(f"Unknown class accessor: {accessor}")
 
-    def evaluate_iterable(self, collection: Iterable, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> TokenType:
+    def evaluate_iterable(self, collection: Iterable, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> Token:
         match collection:
             case ArrayLiteral():
-                flat_arr, units_type = self.expect_homogenous(collection, local_defs)
-                for val in flat_arr:
-                    self.evaluate_value(val, local_defs)
-                ret = deepcopy(units_type).to_arr_type()
-                return ret
+                return self.expect_homogenous(collection, local_defs)
             case StringFmt():
                 for val in collection.exprs:
                     self.evaluate_value(val, local_defs)
                 for concat in collection.concats:
                     self.evaluate_iterable(concat, local_defs)
-                return TokenType.SENPAI
+                return Token.from_type(TokenType.SENPAI)
             case Input():
                 self.evaluate_value(collection.expr, local_defs)
                 for concat in collection.concats:
                     self.evaluate_iterable(concat, local_defs)
-                return TokenType.SENPAI
+                return Token.from_type(TokenType.SENPAI)
             case StringLiteral():
                 for concat in collection.concats:
                     self.evaluate_iterable(concat, local_defs)
-                return TokenType.SENPAI
+                return Token.from_type(TokenType.SENPAI)
             case _:
                 raise ValueError(f"Unknown collection: {collection}")
 
-    def evaluate_method_call(self, class_type: Token, fn_call: FnCall, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> TokenType:
+    def evaluate_method_call(self, class_type: Token, fn_call: FnCall, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> Token:
         class_id_str = class_type.flat_string() if not class_type.token.is_arr_type() else 'array_type'
         if (res := self.class_signatures.get(f"{class_id_str}.{fn_call.id.flat_string()}")) is None:
             self.errors.append(
@@ -794,7 +801,7 @@ class TypeChecker:
                     GlobalType.CLASS_METHOD,
                 )
             )
-            return TokenType.SAN
+            return Token.from_type(TokenType.SAN)
         _, return_type, member_type = res
         if member_type != GlobalType.CLASS_METHOD:
             self.errors.append(
@@ -805,19 +812,19 @@ class TypeChecker:
                     actual_definition=(return_type, member_type),
                 )
             )
-            return TokenType.SAN
+            return Token.from_type(TokenType.SAN)
 
         method_signature = f"{class_id_str}.{fn_call.id.flat_string()}"
         expected_types = self.class_method_param_types[method_signature]
         all_defs = self.class_signatures.copy()
         all_defs.update(local_defs)
         self.check_call_args(GlobalType.CLASS_METHOD, method_signature, fn_call.id,
-                             fn_call.args, expected_types, all_defs, class_type.token)
-        return return_type.token
+                             fn_call.args, expected_types, all_defs, class_type)
+        return Token.from_type(return_type.token)
 
     def check_call_args(self, global_type: GlobalType, call_str: str, id: Token, call_args: list[Value], expected_types: list[Token],
-                        local_defs: dict[str, tuple[Declaration, Token, GlobalType]], self_type: TokenType = TokenType.EOF) -> None:
-        actual_types: list[TokenType] = []
+                        local_defs: dict[str, tuple[Declaration, Token, GlobalType]], self_type: Token= Token()) -> None:
+        actual_types: list[Token] = []
         matches: list[bool] = []
         for arg, expected in zip(call_args, expected_types):
             match arg:
@@ -825,8 +832,8 @@ class TypeChecker:
                     match arg.token:
                         case UniqueTokenType():
                             actual_def = local_defs[arg.flat_string()][0]
-                            actual = actual_def.dtype.token
-                            if not actual_def.initialized: actual = TokenType.SAN
+                            actual = actual_def.dtype
+                            if not actual_def.initialized: actual = Token.from_type(TokenType.SAN)
                         case TokenType():
                             actual = self.evaluate_token(arg, local_defs)
                 case _:
@@ -834,24 +841,26 @@ class TypeChecker:
             actual_types.append(actual)
             match expected.token:
                 case TokenType.ARRAY_ELEMENT:
-                    matches.append(self.is_element_of_expected(actual, self_type if self_type.exists() else expected.token, arg))
+                    matches.append(self.is_element_of_expected(actual, self_type if self_type.exists() else expected, arg))
                 case TokenType.GEN_ARRAY:
-                    matches.append(self.is_similar_type(actual.flat_string(), self_type.flat_string() if self_type.exists() else expected.flat_string(), arg))
+                    matches.append(self.is_similar_type(actual, self_type if self_type.exists() else expected, arg))
                 case TokenType.NUMBER:
-                    matches.append(self.is_similar_type(actual.flat_string(), "chan", arg))
+                    matches.append(self.is_similar_type(actual, Token.from_type(TokenType.CHAN), arg))
                 case _:
-                    matches.append(self.is_similar_type(actual.flat_string(), expected.flat_string(), arg, is_call=True))
+                    matches.append(self.is_similar_type(actual, expected, arg, is_call=True))
 
         if not all(matches) or len(call_args) != len(expected_types):
-            expected_types_str = []
+            expected_types_str: list[str] = []
             for e in expected_types:
                 match e.token:
                     case TokenType.ARRAY_ELEMENT:
-                        expected_types_str.append(f"{self_type.to_unit_type()} or {self_type.to_arr_type()}")
+                        expected_types_str.append(f"{self_type.to_unit_type()}")
+                    case TokenType.GEN_ARRAY:
+                        expected_types_str.append(f"{self_type}")
                     case TokenType.NUMBER:
                         expected_types_str.append("chan, kun, or sama")
                     case _:
-                        expected_types_str.append(f"{e.token}")
+                        expected_types_str.append(f"{e}")
             self.errors.append(
                 MismatchedCallArgType(
                     global_type=global_type,
@@ -865,32 +874,33 @@ class TypeChecker:
                 )
             )
 
-    def evaluate_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> TokenType:
+    def evaluate_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> Token:
         expected_types = self.function_param_types[fn_call.id.flat_string()]
         self.check_call_args(GlobalType.FUNCTION, fn_call.id.flat_string(), fn_call.id, fn_call.args, expected_types, local_defs)
-        return local_defs[fn_call.id.flat_string()][1].token
+        return Token.from_type(local_defs[fn_call.id.flat_string()][1].token)
 
     def check_class_constructor(self, class_constructor: ClassConstructor, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> None:
         expected_types = self.class_param_types[class_constructor.id.flat_string()]
         self.check_call_args(GlobalType.CLASS, class_constructor.id.flat_string(), class_constructor.id, class_constructor.args, expected_types, local_defs)
 
-    def evaluate_token(self, token: Token, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> TokenType:
+    def evaluate_token(self, token: Token, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> Token:
         match token.token:
-            case TokenType.STRING_LITERAL: return TokenType.SENPAI
-            case TokenType.INT_LITERAL: return TokenType.CHAN
-            case TokenType.FLOAT_LITERAL: return TokenType.KUN
-            case TokenType.FAX | TokenType.CAP: return TokenType.SAMA
-            case TokenType.NUWW: return TokenType.SAN
+            case TokenType.STRING_LITERAL: ret = TokenType.SENPAI
+            case TokenType.INT_LITERAL: ret = TokenType.CHAN
+            case TokenType.FLOAT_LITERAL: ret = TokenType.KUN
+            case TokenType.FAX | TokenType.CAP: ret = TokenType.SAMA
+            case TokenType.NUWW: ret = TokenType.SAN
             case UniqueTokenType():
                 decl = local_defs[token.flat_string()][0]
                 if not decl.initialized:
-                    return TokenType.SAN
-                return decl.dtype.token
+                    return Token.from_type(TokenType.SAN)
+                return decl.dtype
             case _: raise ValueError(f"Unknown token: {token}")
+        return Token.from_type(ret)
 
     ## HELPER METHODS FOR OPERATORS AND OPERANDS
-    def math_operands(self) -> list[TokenType]:
-        return [TokenType.CHAN, TokenType.KUN, TokenType.SAMA]
+    def math_operands(self) -> list[Token]:
+        return list(map(lambda x: Token.from_type(x), [TokenType.CHAN, TokenType.KUN, TokenType.SAMA]))
     def math_operators(self) -> list[TokenType]:
         return [TokenType.ADDITION_SIGN, TokenType.DASH, TokenType.MULTIPLICATION_SIGN,
                 TokenType.DIVISION_SIGN, TokenType.MODULO_SIGN]
@@ -902,28 +912,15 @@ class TypeChecker:
                 TokenType.AND_OPERATOR, TokenType.OR_OPERATOR]
     
     ## HELPER METHODS FOR EVALUATING ARRAYS
-    def expect_homogenous(self, arr: ArrayLiteral, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> tuple[list[Value], TokenType]:
-        flat_arr = self.flatten_array(arr.elements)
-        types: list[TokenType] = []
-        for val in flat_arr:
-            match val:
-                case Token():
-                    types.append(self.evaluate_token(val, local_defs))
-                case Expression():
-                    types.append(self.evaluate_expression(val, local_defs))
-                case IdentifierProds():
-                    types.append(self.evaluate_ident_prods(val, local_defs))
-                case Iterable():
-                    types.append(self.evaluate_iterable(val, local_defs))
-                case _:
-                    raise ValueError(f"Unknown array value type: {val.flat_string()}")
+    def expect_homogenous(self, arr: ArrayLiteral, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> Token:
+        types: list[Token] = [self.evaluate_value(val, local_defs) for val in arr.elements]
         type_list = [t.flat_string() for t in types]
         if len(set(type_list)) > 1:
             self.errors.append(
-                HeterogeneousArrayError(arr, flat_arr, type_list)
+                HeterogeneousArrayError(arr, arr.elements, type_list)
             )
-            return [], TokenType.SAN
-        return flat_arr, types.pop() if types else TokenType.SAN_ARR
+            return Token.from_type(TokenType.SAN)
+        return types.pop().to_arr_type() if types else Token.from_type(TokenType.SAN_ARR)
 
     def flatten_array(self, arr: list[Value]) -> list[Value]:
         res = []
@@ -936,68 +933,66 @@ class TypeChecker:
                 res.append(item)
         return res
 
-    def is_similar_type(self, actual_type: str, expected_type: str, val: Value,
-                        *, is_call: bool = False, as_index=False, indexing=False) -> bool:
+    def is_similar_type(self, actual_type: Token, expected_type: Token, val: Value,
+                         *, is_call = False, as_index=False, indexing=False) -> bool:
         'determines if two types are similar'
         # nuww is an ok val for any type if and only if its not for a call
-        condition_2 = (actual_type == 'san') if not is_call and not as_index else False
-        if (actual_type == expected_type 
-            or condition_2): return True
+        condition_2 = (actual_type == Token.from_type(TokenType.SAN)) if not is_call and not as_index else False
+        if (actual_type == expected_type
+            or condition_2):
+            return True
 
         assert actual_type != expected_type
-        match expected_type:
+        match expected_type.lexeme:
             # num types are convertible between each other
             case "chan" | "kun":
-                match actual_type:
+                match actual_type.lexeme:
                     # inpwts with no concats can be converted to num types
                     case "chan" | "kun" | "sama": return True
                     case "inpwt": return True if not as_index else False
                     case _: return False
             # inpwt is inherently senpai
             case "senpai":
-                match actual_type:
+                match actual_type.lexeme:
                     case "senpai" | "inpwt": return True
                     case _: return False
             # all types are convertible to bool
             case "sama": return True
             case _:
                 # all array types can accept its unit types
-                # or its array type when assigning through index
-                if indexing and actual_type in [expected_type, expected_type.replace('[]', '')]: return True
-                else:
-                    # all array types can accept san[]
-                    if expected_type[-2:] == '[]':
-                        if actual_type == "san[]":
-                            if isinstance(val, ArrayLiteral):
-                                if len(val.elements) == 0: return True
-                                else: return False
+                if indexing and actual_type == expected_type.to_unit_type():
+                    return True
+
+                # all array types can accept san[]
+                if expected_type.is_arr_type():
+                    if actual_type.type_is(TokenType.SAN_ARR) and actual_type.dimension() >= 1:
+                        if isinstance(val, ArrayLiteral):
+                            if len(val.elements) == 0: return True
                             else: return False
+                        else: return False
 
                 # every other type needs exact match
                 return False
 
-    def is_element_of_expected(self, actual_type: TokenType, expected_type: TokenType, val: Value) -> bool:
+    def is_element_of_expected(self, actual_type: Token, expected_type: Token, val: Value) -> bool:
         'determines if a type is a valid element of an expected type'
-        actual, actual_arr, actual_unit = actual_type.flat_string(), actual_type.to_arr_type().flat_string(), actual_type.to_unit_type().flat_string()
-        expected = expected_type.flat_string()
-        if (actual == expected
-            or actual_arr == expected
-            or actual_unit == expected
-            ): return True
+        if actual_type == expected_type.to_unit_type():
+            return True
 
-        if ("san[]" in [actual, actual_arr]
+        if (expected_type.dimension() > 1
             and isinstance(val, ArrayLiteral)
             and len(val.elements) == 0):
             return True
         return False
 
-    def is_accessible(self, actual_type: TokenType) -> bool:
+    def is_accessible(self, actual_type: Token) -> bool:
         'determines if a type is accessable'
         return (
             actual_type.is_arr_type()
-            or actual_type == TokenType.SENPAI
-            or actual_type == TokenType.CHAN
-            or actual_type == TokenType.KUN
+            or actual_type.is_unique_type()
+            or actual_type.type_is(TokenType.SENPAI)
+            or actual_type.type_is(TokenType.CHAN)
+            or actual_type.type_is(TokenType.KUN)
         )
 
     ## HELPER METHODS TO EXTRACT TYPES

@@ -438,7 +438,7 @@ class ReassignedConstantError:
         return msg
 
 class ReturnTypeMismatchError(SemanticError):
-    def __init__(self, expected: Token, return_stmt: ReturnStatement, actual_type: TokenType) -> None:
+    def __init__(self, expected: Token, return_stmt: ReturnStatement, actual_type: Token) -> None:
         self.expected = expected
         self.return_stmt = return_stmt
         self.actual_type = actual_type
@@ -504,7 +504,7 @@ class ReturnTypeMismatchError(SemanticError):
         return msg
 
 class TypeMismatchError(SemanticError):
-    def __init__(self, expected: Token, actual_val: Value, actual_type: TokenType,
+    def __init__(self, expected: Token, actual_val: Value, actual_type: Token,
                  context: Assignment|Declaration, title: str, indexing=False) -> None:
         self.expected = expected
         self.actual_val = actual_val
@@ -546,7 +546,7 @@ class TypeMismatchError(SemanticError):
         max_pad = max(len(index_str), len(assign_index_str))
         border = f"\t{'_' * (len(ErrorSrc.src[self.expected.position[0]]) + len(str(self.expected.position[0] + 1)) + max_pad)}\n"
 
-        dtype = f"'{self.expected.to_unit_type().flat_string()}' or '{self.expected.to_arr_type().flat_string()}'" if self.indexing else f"'{self.expected.flat_string()}'"
+        dtype = f"'{self.expected.to_unit_type().flat_string()}'" if self.indexing else f"'{self.expected.flat_string()}'"
         msg = f"{self.title} Type Mismatch: expected {dtype} but got '{self.actual_type.flat_string()}'\n"
         msg += border
 
@@ -573,7 +573,7 @@ class TypeMismatchError(SemanticError):
         return msg
 
 class PrePostFixOperandError(SemanticError):
-    def __init__(self, op: Token, val: Value, val_definition: Token|None, val_type: TokenType, header: str, postfix=False) -> None:
+    def __init__(self, op: Token, val: Value, val_definition: Token|None, val_type: Token, header: str, postfix=False) -> None:
         self.op = op
         self.val = val
         self.val_definition = val_definition
@@ -644,9 +644,8 @@ class PrePostFixOperandError(SemanticError):
 
 class InfixOperandError(SemanticError):
     def __init__(self, op: Token, left: tuple[Value, Token|None], 
-                 right: tuple[Value, Token|None],
-                 left_type: TokenType|None, right_type: TokenType|None,
-                 header: str) -> None:
+                 right: tuple[Value, Token|None], left_type: Token|None,
+                 right_type: Token|None, header: str) -> None:
         self.op = op
         self.left, self.left_definition = left
         self.right, self.right_definition = right
@@ -782,7 +781,7 @@ class InfixOperandError(SemanticError):
         return msg
 
 class NonIterableIndexingError(SemanticError):
-    def __init__(self, token: Token, type_definition: Token, token_type: TokenType, usage: str) -> None:
+    def __init__(self, token: Token, type_definition: Token, token_type: Token, usage: str) -> None:
         self.token = token
         self.type_definition = type_definition
         self.token_type = token_type
@@ -996,7 +995,7 @@ class UndefinedClassMember(SemanticError):
 
 class MismatchedCallArgType(SemanticError):
     def __init__(self, global_type: GlobalType, call_str: str, id: Token, id_definition: Token|None,
-                 expected_types: list[str], args: list[Value], actual_types: list[TokenType], matches: list[bool]
+                 expected_types: list[str], args: list[Value], actual_types: list[Token], matches: list[bool]
                  ) -> None:
         self.global_type = global_type
         self.call_str = call_str
@@ -1321,7 +1320,7 @@ class NoReturnStatement(SemanticError):
         return msg
 
 class NonNumberIndex(SemanticError):
-    def __init__(self, indexed_id: IndexedIdentifier, indices: list[Value], actual_types: list[TokenType], ok: list[bool] ) -> None:
+    def __init__(self, indexed_id: IndexedIdentifier, indices: list[Value], actual_types: list[Token], ok: list[bool] ) -> None:
         self.indexed_id = indexed_id
         self.indices = indices
         self.actual_types = actual_types
@@ -1442,7 +1441,7 @@ def final_statement(body: BlockStatement) -> int:
             return final_statement(stmt.body)
         case _:
             raise ValueError(f"Unknown statement: {stmt}")
-def default_rtype(token: TokenType) -> str:
+def default_rtype(token: TokenType | UniqueTokenType) -> str:
     match token:
         case UniqueTokenType():
             if token.is_arr_type():

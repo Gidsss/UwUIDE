@@ -25,7 +25,7 @@ Overview:
     - while and do while statements
     - for statements
 '''
-from typing import Callable, Literal
+from typing import Callable, Literal, Sequence
 from .error_handler import Error
 from src.lexer.token import Token, TokenType, UniqueTokenType
 from src.parser.productions import *
@@ -447,11 +447,13 @@ class Parser:
 
         # is array return type
         if self.expect_peek(TokenType.OPEN_BRACKET):
+            dimension = 1 if not self.expect_peek(TokenType.INT_LITERAL) else int(self.curr_tok.lexeme)
+            func.rtype.to_arr(dimension)
+
             if not self.expect_peek(TokenType.CLOSE_BRACKET):
-                self.unclosed_bracket_error(self.peek_tok)
+                self.expected_error([TokenType.INT_LITERAL, TokenType.CLOSE_BRACKET])
                 self.advance(2)
                 return None
-            func.rtype.to_arr()
 
         if res := self.parse_params(main=main):
             func.params = res
@@ -1417,7 +1419,7 @@ class Parser:
         self.in_block_parse_fns[token_type] = fn
         self.expected_in_block.append(token_type)
     # getting prefix and infix functions
-    def get_prefix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+    def get_prefix_parse_fn(self, token_type: str | TokenType | UniqueTokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
             token_type = "IDENTIFIER" if token_type.unique_type.startswith("IDENTIFIER") else "CWASS_ID"
         try:
@@ -1425,7 +1427,7 @@ class Parser:
             return tmp
         except KeyError:
             return None
-    def get_prefix_special_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+    def get_prefix_special_parse_fn(self, token_type: str | TokenType | UniqueTokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
             token_type = "IDENTIFIER" if token_type.unique_type.startswith("IDENTIFIER") else "CWASS_ID"
         try:
@@ -1433,7 +1435,7 @@ class Parser:
             return tmp
         except KeyError:
             return None
-    def get_infix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+    def get_infix_parse_fn(self, token_type: str | TokenType | UniqueTokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
             token_type = "IDENTIFIER" if token_type.unique_type.startswith("IDENTIFIER") else "CWASS_ID"
         try:
@@ -1441,7 +1443,7 @@ class Parser:
             return tmp
         except KeyError:
             return None
-    def get_infix_special_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+    def get_infix_special_parse_fn(self, token_type: str | TokenType | UniqueTokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
             token_type = "IDENTIFIER" if token_type.unique_type.startswith("IDENTIFIER") else "CWASS_ID"
         try:
@@ -1449,7 +1451,7 @@ class Parser:
             return tmp
         except KeyError:
             return None
-    def get_postfix_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+    def get_postfix_parse_fn(self, token_type: str | TokenType | UniqueTokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
             token_type = "IDENTIFIER" if token_type.unique_type.startswith("IDENTIFIER") else "CWASS_ID"
         try:
@@ -1457,7 +1459,7 @@ class Parser:
             return tmp
         except KeyError:
             return None
-    def get_in_block_parse_fn(self, token_type: str | TokenType) -> Callable | None:
+    def get_in_block_parse_fn(self, token_type: str | TokenType | UniqueTokenType) -> Callable | None:
         if isinstance(token_type, UniqueTokenType):
             token_type = "IDENTIFIER" if token_type.unique_type.startswith("IDENTIFIER") else "CWASS_ID"
         try:
@@ -1578,7 +1580,7 @@ class Parser:
     ### error methods
 
     # general error
-    def expected_error(self, tokens: list[TokenType], curr=False):
+    def expected_error(self, tokens: Sequence[TokenType|str], curr=False):
         msg = f"Expected next token to be one of the ff:"
         for token in tokens[:-1]:
             msg += f" '{token}',"

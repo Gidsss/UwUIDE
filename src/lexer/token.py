@@ -62,6 +62,16 @@ class TokenType(Enum):
     def __format__(self, format_spec):
         return str.__format__(str(self), format_spec)
 
+    def is_arr_type(self):
+        match self:
+            case (TokenType.CHAN_ARR
+                | TokenType.KUN_ARR
+                | TokenType.SAMA_ARR
+                | TokenType.SAN_ARR
+                | TokenType.SENPAI_ARR
+            ): return True
+            case _: return False
+
     def to_arr_type(self) -> "TokenType":
         match self:
             case TokenType.CHAN:
@@ -76,12 +86,6 @@ class TokenType(Enum):
                 return TokenType.SENPAI_ARR
             case _:
                 return self
-    def is_arr_type(self):
-        match self:
-            case TokenType.CHAN_ARR | TokenType.KUN_ARR | TokenType.SAMA_ARR | TokenType.SAN_ARR | TokenType.SENPAI_ARR:
-                return True
-            case _:
-                return False
 
     def to_unit_type(self) -> "TokenType":
         match self:
@@ -97,10 +101,25 @@ class TokenType(Enum):
                 return TokenType.SENPAI
             case _:
                 return self
+
     def is_unique_type(self):
         return False
     def exists(self) -> bool:
         return self != TokenType.EOF
+    def is_arrayable(self):
+        match self:
+            case (TokenType.CHAN
+                | TokenType.KUN
+                | TokenType.SAMA
+                | TokenType.SAN
+                | TokenType.SENPAI
+                | TokenType.CHAN_ARR
+                | TokenType.KUN_ARR
+                | TokenType.SAMA_ARR
+                | TokenType.SAN_ARR
+                | TokenType.SENPAI_ARR
+            ): return True
+            case _: return False
 
     # GENERAL KEYWORDS
     MAINUWU = ("mainuwu", "mainuwu")
@@ -266,10 +285,12 @@ class UniqueTokenType:
         tmp._token = tmp._token.replace("[]", "")
         return tmp
     def is_arr_type(self):
-        return self.token.endswith("[]")
+        return self.token.find("[") != -1
     def is_unique_type(self):
         return True
     def exists(self) -> bool:
+        return True
+    def is_arrayable(self):
         return True
 
 # for keeping track of class properties
@@ -277,7 +298,7 @@ class_properties: set[str] = set()
 class Token:
     'A class for representing tokens in a lexer'
 
-    def __init__(self, lexeme: str = "", token: TokenType = TokenType.EOF, position: tuple[int, int] = (0, 0), end_position: tuple[int, int] = (0, 0)):
+    def __init__(self, lexeme: str = "", token: TokenType | UniqueTokenType = TokenType.EOF, position: tuple[int, int] = (0, 0), end_position: tuple[int, int] = (0, 0)):
         self._lexeme = lexeme
         self._token = token
         self._position = position
@@ -287,6 +308,10 @@ class Token:
         return self._lexeme
     def __str__(self):
         return self._lexeme
+    def __eq__(self, other) -> bool:
+        if not isinstance(other, Token): return False
+        return self._lexeme == other._lexeme
+
 
     ### For Production interface
     def string(self, indent = 1) -> str:
@@ -413,70 +438,62 @@ class Token:
     def header(self):
         return self._lexeme
 
-    def to_arr(self, dimension: int = None):
+    def to_arr(self, dimension: int = 1):
         'modifies the underlying token'
         pattern = r".+\[[\d]*\]"  # Matches strings that have [] or [x] in the end
-        match = re.search(pattern, self._lexeme)
+        matched = re.search(pattern, self._lexeme)
         dimension = max(1, dimension)  # Defaults to 1 for dims < 1
-        self._lexeme += f"[{dimension}]" if not match else ""
-        match self.token:
-            case TokenType.CHAN:
-                self._token = TokenType.CHAN_ARR
-            case TokenType.KUN:
-                self._token = TokenType.KUN_ARR
-            case TokenType.SAMA:
-                self._token = TokenType.SAMA_ARR
-            case TokenType.SAN:
-                self._token = TokenType.SAN_ARR
-            case TokenType.SENPAI:
-                self._token = TokenType.SENPAI_ARR
-            case UniqueTokenType():
-                self._token = self.token.to_arr_type()
+        self._lexeme += f"[{dimension}]" if not matched else ""
+        self._token = self.token.to_arr_type() if not matched else self.token
 
     def is_arr_type(self):
         return self.token.is_arr_type()
+    def dimension(self):
+        matched = self.lexeme.split("[")
+        matched = matched[1].split("]") if len(matched) > 1 else []
+        return int(matched[0] if matched[0] else 1) if len(matched) > 1 else 0
 
-    def to_unit_type(self):
+    def to_unit_type(self, times = 1) -> "Token":
+        'returns a copy'
+        if not self.is_arrayable(): return self
         ret = deepcopy(self)
-        ret._lexeme = self._lexeme[:-2] if self._lexeme.endswith("[]") else self._lexeme
-        match ret.token:
-            case TokenType.CHAN_ARR:
-                ret._token = TokenType.CHAN
-            case TokenType.KUN_ARR:
-                ret._token = TokenType.KUN
-            case TokenType.SAMA_ARR:
-                ret._token = TokenType.SAMA
-            case TokenType.SAN_ARR:
-                ret._token = TokenType.SAN
-            case TokenType.SENPAI_ARR:
-                ret._token = TokenType.SENPAI
-            case UniqueTokenType():
+        matched = ret.lexeme.split("[")
+        matched = matched[1].split("]") if len(matched) > 1 else []
+        dimension = int(matched[0] if matched[0] else 1) if len(matched) > 1 else 0
+        for _ in range(times):
+            if dimension == 0: return ret
+            if dimension == 1:
+                ret._lexeme = re.sub(r"\[\d*\]", "", ret._lexeme)
                 ret._token = ret._token.to_unit_type()
+            else:
+                dimension -= 1
+                ret._lexeme = re.sub(r"\[\d*\]", f"[{dimension}]", ret._lexeme)
         return ret
     
-    def to_arr_type(self):
+    def to_arr_type(self, times = 1) -> "Token":
         'returns a copy'
+        if not self.is_arrayable(): return self
         ret = deepcopy(self)
-        ret._lexeme += "[]" if not ret._lexeme.endswith("[]") else ""
-        match ret.token:
-            case TokenType.CHAN:
-                ret._token = TokenType.CHAN_ARR
-            case TokenType.KUN:
-                ret._token = TokenType.KUN_ARR
-            case TokenType.SAMA:
-                ret._token = TokenType.SAMA_ARR
-            case TokenType.SAN:
-                ret._token = TokenType.SAN_ARR
-            case TokenType.SENPAI:
-                ret._token = TokenType.SENPAI_ARR
-            case UniqueTokenType():
+        matched = ret.lexeme.split("[")
+        matched = matched[1].split("]") if len(matched) > 1 else []
+        dimension = int(matched[0] if matched[0] else 1) if len(matched) > 1 else 0
+        for _ in range(times):
+            if dimension == 0:
+                ret._lexeme += "[1]"
                 ret._token = ret._token.to_arr_type()
+            else:
+                dimension += 1
+                ret._lexeme = re.sub(r"\[\d*\]", f"[{dimension}]", ret._lexeme)
         return ret
 
     def is_unique_type(self):
         return self.token.is_unique_type()
     def exists(self) -> bool:
         return self.token.exists()
+    def is_arrayable(self) -> bool:
+        return self.token.is_arrayable()
+    def type_is(self, token_type: TokenType|UniqueTokenType) -> bool:
+        return self.token == token_type
 
     @property
     def lexeme(self) -> str:
@@ -487,7 +504,7 @@ class Token:
         self._lexeme = lexeme
 
     @property
-    def token(self) -> TokenType:
+    def token(self) -> TokenType | UniqueTokenType:
         return self._token
 
     @token.setter
@@ -509,3 +526,26 @@ class Token:
     @end_position.setter
     def end_position(self, end_position: tuple[int, int]):
         self._end_position = end_position
+
+    @staticmethod
+    def arr_type(token_type: TokenType|UniqueTokenType, dimension: int = 1) -> "Token":
+        dimension = max(1, dimension)
+        if (not isinstance(token_type, TokenType)
+            and not isinstance(token_type, UniqueTokenType))\
+            or not token_type.is_arrayable():
+            return Token()
+
+
+        if dimension == 1:
+            return (Token(lexeme=re.sub(r"\[\d*\]", "[1]", token_type.token), token=token_type)
+                if token_type.is_arr_type()
+                else Token(lexeme=f"{token_type.token}[1]", token=token_type.to_arr_type())
+            )
+        else:
+            return (Token(lexeme=f"{token_type.token}[{dimension}]", token=token_type.to_arr_type())
+                if not token_type.is_arr_type()
+                else Token(lexeme=re.sub(r"\d+", f"{dimension}", token_type.token), token=token_type)
+            )
+    @staticmethod
+    def from_type(token_type: TokenType | UniqueTokenType) -> "Token":
+        return Token(lexeme=token_type.token, token=token_type)

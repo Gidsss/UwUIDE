@@ -64,7 +64,7 @@ class InfixExpression(Expression):
             lhs = f"Bool({lhs})"
             rhs = f"Bool({rhs})"
         return f"({lhs} {op} {rhs})"
-    def formatted_string(self, spaced=True, indent=0) -> str:
+    def formatted_string(self, indent=0, spaced=True) -> str:
         lhs = self.left.formatted_string()
         op = self.op.formatted_string()
         rhs = self.right.formatted_string()
