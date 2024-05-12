@@ -770,11 +770,7 @@ class TypeChecker:
     def evaluate_iterable(self, collection: Iterable, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> Token:
         match collection:
             case ArrayLiteral():
-                flat_arr, units_type = self.expect_homogenous(collection, local_defs)
-                for val in flat_arr:
-                    self.evaluate_value(val, local_defs)
-                ret = deepcopy(units_type).to_arr_type()
-                return ret
+                return self.expect_homogenous(collection, local_defs)
             case StringFmt():
                 for val in collection.exprs:
                     self.evaluate_value(val, local_defs)
@@ -912,27 +908,15 @@ class TypeChecker:
                 TokenType.AND_OPERATOR, TokenType.OR_OPERATOR]
     
     ## HELPER METHODS FOR EVALUATING ARRAYS
-    def expect_homogenous(self, arr: ArrayLiteral, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> tuple[list[Value], Token]:
-        types: list[Token] = []
-        for val in arr.elements:
-            match val:
-                case Token():
-                    types.append(self.evaluate_token(val, local_defs))
-                case Expression():
-                    types.append(self.evaluate_expression(val, local_defs))
-                case IdentifierProds():
-                    types.append(self.evaluate_ident_prods(val, local_defs))
-                case Iterable():
-                    types.append(self.evaluate_iterable(val, local_defs))
-                case _:
-                    raise ValueError(f"Unknown array value type: {val.flat_string()}")
+    def expect_homogenous(self, arr: ArrayLiteral, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> Token:
+        types: list[Token] = [self.evaluate_value(val, local_defs) for val in arr.elements]
         type_list = [t.flat_string() for t in types]
         if len(set(type_list)) > 1:
             self.errors.append(
                 HeterogeneousArrayError(arr, arr.elements, type_list)
             )
-            return [], Token.from_type(TokenType.SAN)
-        return arr.elements, types.pop() if types else Token.from_type(TokenType.SAN_ARR)
+            return Token.from_type(TokenType.SAN)
+        return types.pop().to_arr_type() if types else Token.from_type(TokenType.SAN_ARR)
 
     def flatten_array(self, arr: list[Value]) -> list[Value]:
         res = []

@@ -461,7 +461,6 @@ class Token:
         matched = matched[1].split("]") if len(matched) > 1 else []
         dimension = int(matched[0] if matched[0] else 1) if len(matched) > 1 else 0
         for _ in range(times):
-            if not self.is_arrayable(): return self
             if dimension == 0: return ret
             if dimension == 1:
                 ret._lexeme = re.sub(r"\[\d*\]", "", ret._lexeme)
