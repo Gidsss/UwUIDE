@@ -574,7 +574,8 @@ class TypeChecker:
                     case Token():
                         arr_type = self.evaluate_token(ident_prod.id, local_defs)
                     case FnCall():
-                        arr_type = self.evaluate_fn_call(ident_prod.id, local_defs)
+                        id_type = local_defs[self.extract_id(ident_prod).flat_string()][1]
+                        arr_type = self.evaluate_fn_call(ident_prod.id, local_defs, self_type=id_type)
                     case _:
                         raise ValueError(f"Unknown identifier production for indexed identifier: {ident_prod}")
                 if not self.is_accessible(arr_type):
@@ -835,7 +836,11 @@ class TypeChecker:
         all_defs.update(local_defs)
         self.check_call_args(GlobalType.CLASS_METHOD, method_signature, fn_call.id,
                              fn_call.args, expected_types, all_defs, class_type)
-        return Token.from_type(return_type.token)
+        match return_type.token:
+            case TokenType.GEN_ARRAY:
+                return class_type
+            case _:
+                return Token.from_type(return_type.token)
 
     def check_call_args(self, global_type: GlobalType, call_str: str, id: Token, call_args: list[Value], expected_types: list[Token],
                         local_defs: dict[str, tuple[Declaration, Token, GlobalType]], self_type: Token= Token()) -> None:
@@ -889,10 +894,16 @@ class TypeChecker:
                 )
             )
 
-    def evaluate_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> Token:
+    def evaluate_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Declaration, Token, GlobalType]],
+                         *, self_type: Token = Token()) -> Token:
         expected_types = self.function_param_types[fn_call.id.flat_string()]
         self.check_call_args(GlobalType.FUNCTION, fn_call.id.flat_string(), fn_call.id, fn_call.args, expected_types, local_defs)
-        return Token.from_type(local_defs[fn_call.id.flat_string()][1].token)
+        ret_type = local_defs[fn_call.id.flat_string()][1].token
+        match ret_type:
+            case TokenType.GEN_ARRAY:
+                return self_type if self_type.exists() else Token.from_type(TokenType.SAN)
+            case _:
+                return Token.from_type(ret_type)
 
     def check_class_constructor(self, class_constructor: ClassConstructor, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> None:
         expected_types = self.class_param_types[class_constructor.id.flat_string()]
@@ -1011,7 +1022,7 @@ class TypeChecker:
         )
 
     ## HELPER METHODS TO EXTRACT TYPES
-    def extract_id(self, accessor: Token | FnCall | IndexedIdentifier | ClassAccessor) -> Token:
+    def extract_id(self, accessor: Token | FnCall | IndexedIdentifier | ClassAccessor | IdentifierProds) -> Token:
         'gets the very first id of a class accessor'
         match accessor:
             case Token():
