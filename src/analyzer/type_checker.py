@@ -151,14 +151,14 @@ class TypeChecker:
                 'array_type.count': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
                 'array_type.extend': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
                 'array_type.index': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
-                'array_type.pop': (Declaration(), Token('gen_arr', TokenType.GEN_ARRAY), GlobalType.CLASS_METHOD),
+                'array_type.pop': (Declaration(), Token('elem', TokenType.ARRAY_ELEMENT), GlobalType.CLASS_METHOD),
                 'array_type.prepend': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
                 'array_type.prextend': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
                 'array_type.dimension': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
                 'array_type.first': (Declaration(), Token('gen_arr', TokenType.GEN_ARRAY), GlobalType.CLASS_METHOD),
                 'array_type.last': (Declaration(), Token('gen_arr', TokenType.GEN_ARRAY), GlobalType.CLASS_METHOD),
                 'array_type.replace': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
-                'array_type.shift': (Declaration(), Token('gen_arr', TokenType.GEN_ARRAY), GlobalType.CLASS_METHOD),
+                'array_type.shift': (Declaration(), Token('elem', TokenType.ARRAY_ELEMENT), GlobalType.CLASS_METHOD),
             },
         )
         self.class_method_param_types.update(
@@ -837,10 +837,9 @@ class TypeChecker:
         self.check_call_args(GlobalType.CLASS_METHOD, method_signature, fn_call.id,
                              fn_call.args, expected_types, all_defs, class_type)
         match return_type.token:
-            case TokenType.GEN_ARRAY:
-                return class_type
-            case _:
-                return Token.from_type(return_type.token)
+            case TokenType.GEN_ARRAY: return class_type
+            case TokenType.ARRAY_ELEMENT: return class_type.to_unit_type()
+            case _: return Token.from_type(return_type.token)
 
     def check_call_args(self, global_type: GlobalType, call_str: str, id: Token, call_args: list[Value], expected_types: list[Token],
                         local_defs: dict[str, tuple[Declaration, Token, GlobalType]], self_type: Token= Token()) -> None:
@@ -902,8 +901,9 @@ class TypeChecker:
         match ret_type:
             case TokenType.GEN_ARRAY:
                 return self_type if self_type.exists() else Token.from_type(TokenType.SAN)
-            case _:
-                return Token.from_type(ret_type)
+            case TokenType.ARRAY_ELEMENT:
+                return self_type.to_unit_type() if self_type.exists() else Token.from_type(TokenType.SAN)
+            case _: return Token.from_type(ret_type)
 
     def check_class_constructor(self, class_constructor: ClassConstructor, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> None:
         expected_types = self.class_param_types[class_constructor.id.flat_string()]
