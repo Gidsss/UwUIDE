@@ -55,6 +55,8 @@ class String:
     # subscripting
     def __getitem__(self, index):
         return self.val[index]
+    def __setitem__(self, index, item):
+        self.val = self.val.replace(str(self.val[index]), str(item))
     def __contains__(self, item):
         return item in self.val
     def __iter__(self):
