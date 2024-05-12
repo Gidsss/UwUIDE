@@ -625,7 +625,7 @@ class TypeChecker:
                 case Token() | FnCall() | ClassAccessor():
                     res = local_defs[id][0]
                     class_type = res.dtype
-                    if not class_type.is_unique_type() and not self.is_accessible(class_type):
+                    if not self.is_accessible(class_type):
                         self.errors.append(
                             NonClassAccessError(
                                 id=self.extract_id(accessor),
@@ -643,8 +643,8 @@ class TypeChecker:
                             )
                         )
                 case IndexedIdentifier():
-                    class_type = local_defs[id][0].dtype.to_unit_type(len(accessor.id.index))
-                    if not self.is_accessible(class_type):
+                    class_type = local_defs[id][0].dtype
+                    if class_type.dimension() < len(accessor.id.index):
                         token = self.extract_id(accessor.id)
                         type_definition = local_defs[token.flat_string()][0]
                         self.errors.append(
@@ -655,7 +655,7 @@ class TypeChecker:
                                 usage=accessor.id.flat_string(),
                             )
                         )
-                    if not class_type.is_unique_type() and not self.is_accessible(class_type):
+                    if not self.is_accessible(class_type):
                         self.errors.append(
                             NonClassAccessError(
                                 id=self.extract_id(accessor),
@@ -663,6 +663,7 @@ class TypeChecker:
                                 usage=accessor.flat_string(),
                             )
                         )
+                    class_type = class_type.to_unit_type(len(accessor.id.index))
                 case _: raise ValueError(f"Unknown class accessor: {accessor}")
 
         # type check accessor
@@ -988,6 +989,7 @@ class TypeChecker:
         'determines if a type is accessable'
         return (
             actual_type.is_arr_type()
+            or actual_type.is_unique_type()
             or actual_type.type_is(TokenType.SENPAI)
             or actual_type.type_is(TokenType.CHAN)
             or actual_type.type_is(TokenType.KUN)
