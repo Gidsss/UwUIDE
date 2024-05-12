@@ -97,6 +97,11 @@ class TypeChecker:
             'array_type.pop',
             'array_type.prepend',
             'array_type.prextend',
+            'array_type.dimension',
+            'array_type.first',
+            'array_type.last',
+            'array_type.replace',
+            'array_type.shift',
         }
         self.class_signatures.update(
             {
@@ -146,9 +151,14 @@ class TypeChecker:
                 'array_type.count': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
                 'array_type.extend': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
                 'array_type.index': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
-                'array_type.pop': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
+                'array_type.pop': (Declaration(), Token('elem', TokenType.ARRAY_ELEMENT), GlobalType.CLASS_METHOD),
                 'array_type.prepend': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
                 'array_type.prextend': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
+                'array_type.dimension': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
+                'array_type.first': (Declaration(), Token('gen_arr', TokenType.GEN_ARRAY), GlobalType.CLASS_METHOD),
+                'array_type.last': (Declaration(), Token('gen_arr', TokenType.GEN_ARRAY), GlobalType.CLASS_METHOD),
+                'array_type.replace': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
+                'array_type.shift': (Declaration(), Token('elem', TokenType.ARRAY_ELEMENT), GlobalType.CLASS_METHOD),
             },
         )
         self.class_method_param_types.update(
@@ -202,6 +212,11 @@ class TypeChecker:
                 'array_type.pop': [],
                 'array_type.prepend': [Token('elem', TokenType.ARRAY_ELEMENT)],
                 'array_type.prextend': [Token('gen_arr', TokenType.GEN_ARRAY)],
+                'array_type.dimension': [],
+                'array_type.first': [Token('chan', TokenType.CHAN)],
+                'array_type.last': [Token('chan', TokenType.CHAN)],
+                'array_type.replace': [Token('elem', TokenType.ARRAY_ELEMENT), Token('elem', TokenType.ARRAY_ELEMENT)],
+                'array_type.shift': [],
             }
         )
 
@@ -559,7 +574,8 @@ class TypeChecker:
                     case Token():
                         arr_type = self.evaluate_token(ident_prod.id, local_defs)
                     case FnCall():
-                        arr_type = self.evaluate_fn_call(ident_prod.id, local_defs)
+                        id_type = local_defs[self.extract_id(ident_prod).flat_string()][1]
+                        arr_type = self.evaluate_fn_call(ident_prod.id, local_defs, self_type=id_type)
                     case _:
                         raise ValueError(f"Unknown identifier production for indexed identifier: {ident_prod}")
                 if not self.is_accessible(arr_type):
@@ -820,7 +836,10 @@ class TypeChecker:
         all_defs.update(local_defs)
         self.check_call_args(GlobalType.CLASS_METHOD, method_signature, fn_call.id,
                              fn_call.args, expected_types, all_defs, class_type)
-        return Token.from_type(return_type.token)
+        match return_type.token:
+            case TokenType.GEN_ARRAY: return class_type
+            case TokenType.ARRAY_ELEMENT: return class_type.to_unit_type()
+            case _: return Token.from_type(return_type.token)
 
     def check_call_args(self, global_type: GlobalType, call_str: str, id: Token, call_args: list[Value], expected_types: list[Token],
                         local_defs: dict[str, tuple[Declaration, Token, GlobalType]], self_type: Token= Token()) -> None:
@@ -874,10 +893,17 @@ class TypeChecker:
                 )
             )
 
-    def evaluate_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> Token:
+    def evaluate_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Declaration, Token, GlobalType]],
+                         *, self_type: Token = Token()) -> Token:
         expected_types = self.function_param_types[fn_call.id.flat_string()]
         self.check_call_args(GlobalType.FUNCTION, fn_call.id.flat_string(), fn_call.id, fn_call.args, expected_types, local_defs)
-        return Token.from_type(local_defs[fn_call.id.flat_string()][1].token)
+        ret_type = local_defs[fn_call.id.flat_string()][1].token
+        match ret_type:
+            case TokenType.GEN_ARRAY:
+                return self_type if self_type.exists() else Token.from_type(TokenType.SAN)
+            case TokenType.ARRAY_ELEMENT:
+                return self_type.to_unit_type() if self_type.exists() else Token.from_type(TokenType.SAN)
+            case _: return Token.from_type(ret_type)
 
     def check_class_constructor(self, class_constructor: ClassConstructor, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> None:
         expected_types = self.class_param_types[class_constructor.id.flat_string()]
@@ -996,7 +1022,7 @@ class TypeChecker:
         )
 
     ## HELPER METHODS TO EXTRACT TYPES
-    def extract_id(self, accessor: Token | FnCall | IndexedIdentifier | ClassAccessor) -> Token:
+    def extract_id(self, accessor: Token | FnCall | IndexedIdentifier | ClassAccessor | IdentifierProds) -> Token:
         'gets the very first id of a class accessor'
         match accessor:
             case Token():

@@ -119,15 +119,20 @@ class String:
         return [str, String]
 
 class Array:
-    def __init__(self, vals: list):
-        self.val: list = vals
+    def __init__(self, vals: "list|Array"):
+        tmp: "list|Array" = vals
+        while isinstance(tmp, Array): tmp = tmp.val
+        self.val: list = tmp
 
     ## META DUNDER METHODS
     # basic properties
     def __len__(self):
         return len(self.val)
     def __str__(self):
-        return str(self.val)
+        res = "{"
+        for val in self.val: res += str(val) + ", "
+        res = (res[:-2] if res[-2:] == ", " else res) + "}"
+        return res
     def __repr__(self):
         return repr(self.val)
 
@@ -177,20 +182,42 @@ class Array:
     def _index(self, item) -> Int:
         if item not in self.val: return Int(-1)
         return Int(self.val.index(item))
-    def _pop(self) -> None:
-        if len(self.val) == 0: return
-        _ = self.val.pop()
+    def _pop(self):
+        if len(self.val) == 0: raise PopError("OwO...Tried to pop from an empty array!!!!!")
+        return self.val.pop()
     def _prepend(self, item) -> None:
         self.val.insert(0, item)
     def _prextend(self, item) -> None:
         self.val = item + self.val
+    def _dimension(self) -> Int:
+        dimension = 0
+        tmp = self.val
+        while isinstance(tmp, list):
+            dimension += 1
+            if len(tmp) == 0: break
+            tmp = tmp[0]
+            if not isinstance(tmp, Array): break
+            tmp = tmp.val
+        return Int(dimension)
+    def _first(self, n) -> Array:
+        idx = max(int(n), 0)
+        return Array(self.val[:idx])
+    def _last(self, n) -> Array:
+        idx = max(int(n), 0)
+        return Array(self.val[-idx:])
+    def _replace(self, old, new) -> None:
+        self.val = [new if x == old else x for x in self.val]
+    def _shift(self):
+        if len(self.val) == 0: raise ShiftError("OwO...Tried to shift from an empty array!!!!!")
+        return self.val.pop(0)
 
     ## UTILS
     def valid_operands(self) -> list[type]:
         return [list, Array]
 
-class TypeError(Exception):
-    pass
+class TypeError(Exception):...
+class PopError(Exception):...
+class ShiftError(Exception):...
 def expect_type_is_in(actual, expecteds: list[type], msg: str):
     if type(actual) not in expecteds:
         raise TypeError(f"{msg}\nExpected any in {expecteds} !!\nGot {type(actual)} !!!")

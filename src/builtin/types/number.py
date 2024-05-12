@@ -76,6 +76,18 @@ class Bool:
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
         return type(self)(res % self.val)
+    def __pow__(self, other) -> Bool:
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return type(self)(self.val ** res)
+    def __rpow__(self, other) -> Bool:
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return type(self)(res ** self.val)
     def __neg__(self) -> Bool:
         return type(self)(-self.val)
     def __lt__(self, other) -> Bool:
@@ -214,6 +226,18 @@ class Float:
         except:
             raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
         return type(self)(self.cap_val(res % self.val))
+    def __pow__(self, other) -> Float:
+        try:
+            res = float(other)
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
+        return type(self)(self.cap_val(self.val ** res))
+    def __rpow__(self, other) -> Float:
+        try:
+            res = float(other)
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to kuuuuuuuunnnnnnn!!")
+        return type(self)(self.cap_val(res ** self.val))
     def __neg__(self) -> Float:
         return type(self)(-self.val)
     def __lt__(self, other) -> Bool:
@@ -400,6 +424,24 @@ class Int:
             case float(): return Float(float(self.cap_val(other % self.val)))
             case Float(): return Float(float(self.cap_val(other.val % self.val)))
             case _: return type(self)(self.cap_val(res % self.val))
+    def __pow__(self, other) -> Int | Float:
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        match other:
+            case float(): return Float(float(self.cap_val(self.val ** other)))
+            case Float(): return Float(float(self.cap_val(self.val ** other.val)))
+            case _: return type(self)(self.cap_val(self.val ** res))
+    def __rpow__(self, other) -> Int | Float:
+        try:
+            res = int(float(other))
+        except:
+            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        match other:
+            case float(): return Float(float(self.cap_val(other ** self.val)))
+            case Float(): return Float(float(self.cap_val(other.val ** self.val)))
+            case _: return type(self)(self.cap_val(res ** self.val))
     def __neg__(self) -> Int:
         return type(self)(-self.val)
     def __lt__(self, other) -> Bool:
