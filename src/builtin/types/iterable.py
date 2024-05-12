@@ -183,8 +183,8 @@ class Array:
         if item not in self.val: return Int(-1)
         return Int(self.val.index(item))
     def _pop(self):
-        if len(self.val) == 0: return Array([])
-        return Array([self.val.pop()])
+        if len(self.val) == 0: raise PopError("OwO...Tried to pop from an empty array!!!!!")
+        return self.val.pop()
     def _prepend(self, item) -> None:
         self.val.insert(0, item)
     def _prextend(self, item) -> None:
@@ -208,15 +208,16 @@ class Array:
     def _replace(self, old, new) -> None:
         self.val = [new if x == old else x for x in self.val]
     def _shift(self):
-        if len(self.val) == 0: return Array([])
-        return Array([self.val.pop(0)])
+        if len(self.val) == 0: raise ShiftError("OwO...Tried to shift from an empty array!!!!!")
+        return self.val.pop(0)
 
     ## UTILS
     def valid_operands(self) -> list[type]:
         return [list, Array]
 
-class TypeError(Exception):
-    pass
+class TypeError(Exception):...
+class PopError(Exception):...
+class ShiftError(Exception):...
 def expect_type_is_in(actual, expecteds: list[type], msg: str):
     if type(actual) not in expecteds:
         raise TypeError(f"{msg}\nExpected any in {expecteds} !!\nGot {type(actual)} !!!")
