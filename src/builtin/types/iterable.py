@@ -129,7 +129,10 @@ class Array:
     def __len__(self):
         return len(self.val)
     def __str__(self):
-        return str(self.val)
+        res = "{"
+        for val in self.val: res += str(val) + ", "
+        res = (res[:-2] if res[-2:] == ", " else res) + "}"
+        return res
     def __repr__(self):
         return repr(self.val)
 
