@@ -320,6 +320,7 @@ class Token:
         return self._lexeme
     def python_string(self, indent = 1, cwass=False) -> str:
         match self.token:
+            # for possibly class members
             case UniqueTokenType():
                 global class_properties
                 res = ""
@@ -328,6 +329,7 @@ class Token:
                     res = "self."
                 res += f"_{self.lexeme}"
                 return res
+            # no python equivalent
             case (TokenType.GWOBAW
                 | TokenType.DONO
                 | TokenType.DOUBLE_OPEN_BRACKET
@@ -335,9 +337,8 @@ class Token:
                 | TokenType.TERMINATOR
             ):
                 return ""
-            case (TokenType.INT_LITERAL
-                | TokenType.FLOAT_LITERAL
-                | TokenType.ASSIGNMENT_OPERATOR
+            # transpile literally
+            case (TokenType.ASSIGNMENT_OPERATOR
                 | TokenType.ADDITION_SIGN
                 | TokenType.DASH
                 | TokenType.MULTIPLICATION_SIGN
@@ -357,6 +358,10 @@ class Token:
                 | TokenType.DOT_OP
             ):
                 return self.lexeme
+            case TokenType.INT_LITERAL:
+                return f"Int({self.lexeme})"
+            case TokenType.FLOAT_LITERAL:
+                return f"Float({self.lexeme})"
             case TokenType.STRING_LITERAL:
                 return f"String({self.lexeme})"
             case TokenType.MAINUWU:
@@ -385,23 +390,20 @@ class Token:
                 return "break"
             case TokenType.CHAN:
                 return "Int"
-            case TokenType.CHAN_ARR:
-                return "Array"
             case TokenType.KUN:
                 return "Float"
-            case TokenType.KUN_ARR:
-                return "Array"
             case TokenType.SAMA:
                 return "Bool"
-            case TokenType.SAMA_ARR:
-                return "Array"
             case TokenType.SAN:
                 return "NoneType"
-            case TokenType.SAN_ARR:
-                return "Array"
             case TokenType.SENPAI:
                 return "String"
-            case TokenType.SENPAI_ARR:
+            case (TokenType.CHAN_ARR
+                | TokenType.KUN_ARR
+                | TokenType.SAMA_ARR
+                | TokenType.SAN_ARR
+                | TokenType.SENPAI_ARR
+            ):
                 return "Array"
             case TokenType.NUWW:
                 return "None"
