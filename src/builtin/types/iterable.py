@@ -119,8 +119,10 @@ class String:
         return [str, String]
 
 class Array:
-    def __init__(self, vals: list):
-        self.val: list = vals
+    def __init__(self, vals: "list|Array"):
+        tmp: "list|Array" = vals
+        while isinstance(tmp, Array): tmp = tmp.val
+        self.val: list = tmp
 
     ## META DUNDER METHODS
     # basic properties
