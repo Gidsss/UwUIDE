@@ -388,6 +388,26 @@ class TypeChecker:
                 )
             )
         last_prod, id_prod_type = self.extract_last_id_prod(assign.id, local_defs)
+        id_is_subscripting_string = (id_prod_type == IdProd.INDEXED_ID and expected_type.type_is_in([TokenType.SENPAI, TokenType.SENPAI_ARR])
+                                and not (
+                                    expected_type.type_is(TokenType.SENPAI_ARR)
+                                    and isinstance(last_prod, IndexedIdentifier)
+                                    and len(last_prod.index) <= expected_type.dimension()
+                                )
+                            )
+        if id_is_subscripting_string:
+            assert isinstance(last_prod, IndexedIdentifier)
+            self.errors.append(
+                SubstringAssignmentError(
+                    id_prod=assign.id,
+                    indexed_id = last_prod,
+                    dimension = decl.dtype.dimension(),
+                    val = assign.value,
+                    defined_token = dono_token,
+                )
+            )
+            return
+
         self.check_value(assign.value, expected_type, local_defs, assignment=True, decl=decl, assign=assign,
                          class_member=class_member, indexed_id=id_prod_type == IdProd.INDEXED_ID)
 
