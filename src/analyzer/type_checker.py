@@ -654,65 +654,60 @@ class TypeChecker:
             *, class_type: Token = Token(), parent_type: Token = Token(),
         ) -> Token:
 
-        if not class_type.exists():
-            # check that the accessor is of type class
-            id = self.extract_id(accessor).flat_string()
-            match accessor.id:
-                case Token() | FnCall() | ClassAccessor():
-                    res = local_defs[id][0]
-                    class_type = res.dtype
-                    if not self.is_accessible(class_type):
-                        self.errors.append(
-                            NonClassAccessError(
-                                id=self.extract_id(accessor),
-                                id_definition=class_type,
-                                usage=accessor.flat_string(),
-                            )
-                        )
-                    elif not res.initialized:
-                        self.errors.append(
-                            NonClassAccessError(
-                                id=self.extract_id(accessor),
-                                id_definition=class_type,
-                                usage=accessor.flat_string(),
-                                initialized=False
-                            )
-                        )
-                case IndexedIdentifier():
-                    class_type = local_defs[id][0].dtype
-                    if class_type.dimension() < len(accessor.id.index):
-                        token = self.extract_id(accessor.id)
-                        type_definition = local_defs[token.flat_string()][0]
-                        self.errors.append(
-                            NonIterableIndexingError(
-                                token=token,
-                                type_definition=type_definition.dtype,
-                                token_type=class_type,
-                                usage=accessor.id.flat_string(),
-                            )
-                        )
-                    if not self.is_accessible(class_type):
-                        self.errors.append(
-                            NonClassAccessError(
-                                id=self.extract_id(accessor),
-                                id_definition=class_type,
-                                usage=accessor.flat_string(),
-                            )
-                        )
-                    class_type = class_type.to_unit_type(len(accessor.id.index))
-                case _: raise ValueError(f"Unknown class accessor: {accessor}")
-
         # type check accessor
+        id = self.extract_id(accessor).flat_string()
         match accessor.id:
-            case Token(): pass
+            case Token():
+                try: definition, class_type, global_type = self.class_signatures[f"{parent_type}.{id}"]
+                except: definition, class_type, global_type = local_defs[id]
+                if not self.is_accessible(class_type):
+                    self.errors.append(
+                        NonClassAccessError(
+                            id=self.extract_id(accessor),
+                            id_definition=class_type,
+                            usage=accessor.flat_string(),
+                        )
+                    )
+                elif not definition.initialized and global_type in [GlobalType.CLASS_PROPERTY, GlobalType.IDENTIFIER]:
+                    self.errors.append(
+                        NonClassAccessError(
+                            id=self.extract_id(accessor),
+                            id_definition=class_type,
+                            usage=accessor.flat_string(),
+                            initialized=False
+                        )
+                    )
             case FnCall():
-                if parent_type.exists(): self.evaluate_method_call(parent_type, accessor.id, local_defs)
-                else: self.evaluate_fn_call(accessor.id, local_defs)
+                if parent_type.exists(): class_type = self.evaluate_method_call(parent_type, accessor.id, local_defs)
+                else: class_type = self.evaluate_fn_call(accessor.id, local_defs)
+            case IndexedIdentifier():
+                try: definition, class_type, global_type = self.class_signatures[f"{parent_type}.{id}"]
+                except: definition, class_type, global_type = local_defs[id]
+                if class_type.dimension() < len(accessor.id.index):
+                    token = self.extract_id(accessor.id)
+                    type_definition = local_defs[token.flat_string()][0]
+                    self.errors.append(
+                        NonIterableIndexingError(
+                            token=token,
+                            type_definition=type_definition.dtype,
+                            token_type=class_type,
+                            usage=accessor.id.flat_string(),
+                        )
+                    )
+                if not self.is_accessible(class_type):
+                    self.errors.append(
+                        NonClassAccessError(
+                            id=self.extract_id(accessor),
+                            id_definition=class_type,
+                            usage=accessor.flat_string(),
+                        )
+                    )
+                class_type = class_type.to_unit_type(len(accessor.id.index))
             case ClassAccessor():
                 match (res := self.extract_id_prod(accessor.id)):
                     case Token(): pass
                     case FnCall():
-                        if class_type.exists(): self.evaluate_method_call(class_type, res, local_defs)
+                        if parent_type.exists(): self.evaluate_method_call(parent_type, res, local_defs)
                         else: self.evaluate_fn_call(res, local_defs)
                     case IndexedIdentifier(): self.check_indexed_id_indices(res, local_defs)
 
@@ -856,6 +851,7 @@ class TypeChecker:
         all_defs.update(local_defs)
         self.check_call_args(GlobalType.CLASS_METHOD, method_signature, fn_call.id,
                              fn_call.args, expected_types, all_defs, class_type)
+
         match return_type.token:
             case TokenType.GEN_ARRAY: return class_type
             case TokenType.ARRAY_ELEMENT: return class_type.to_unit_type()
