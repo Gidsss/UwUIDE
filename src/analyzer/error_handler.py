@@ -366,7 +366,6 @@ class UndefinedError(SemanticError):
         return msg
 
 class ReassignedConstantError:
-    'errors that include two tokens'
     def __init__(self, token: Token, defined_token: Token,
                  header: str, token_msg: str):
         self.token = token
@@ -1401,8 +1400,102 @@ class NonNumberIndex(SemanticError):
         msg += border
         return msg
 
+class SubstringAssignmentError(SemanticError):
+    def __init__(self, id_prod:  Token | IndexedIdentifier | ClassAccessor, indexed_id: IndexedIdentifier,
+                 dimension: int, val: Value, defined_token: Token):
+        self.id_prod = id_prod
+        self.id = indexed_id
+        self.token = extract_id(self.id)
+        self.dimension = dimension
+        self.val = val
+        self.defined_token = defined_token
+
+    def position(self) -> tuple[int, int]|None:
+        return self.token.position
+
+    def end_position(self) -> tuple[int, int]|None:
+        return self.token.end_position
+
+    def string(self) -> str:
+        index_str = str(self.token.position[0] + 1)
+        defined_index = str(self.defined_token.position[0] + 1)
+        max_pad = max(len(index_str), len(defined_index))
+        max_len = len(max(ErrorSrc.src[self.token.position[0]], ErrorSrc.src[self.defined_token.position[0]], key=len))
+        border = f"\t{'_' * (max_len + max_pad + 4)}\n"
+        defined_range = 1 if self.defined_token.end_position is None else self.defined_token.end_position[1] - self.defined_token.position[1] + 1
+        error_range = 1 if self.token.end_position is None else self.token.end_position[1] - self.token.position[1] + 1
+        msg = f"Assignment to substring is not allowed: '{self.id_prod.flat_string()}'\n"
+        msg += border
+        msg += f"\t{' ' * max_pad} | \t"
+        msg += "Defined here"
+        msg += f"\t{defined_index:{max_pad}} | {ErrorSrc.src[self.defined_token.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | {' ' * self.defined_token.position[1]}{'^' * (defined_range)}\n"
+        msg += f"\t{' ' * max_pad} | {'_' * (self.defined_token.position[1])}|\n"
+        msg += f"\t{' ' * max_pad} | |\n"
+        msg += f"\t{' ' * max_pad} | |\t"
+        msg += "Tried to assign here"
+        msg += f"\t{index_str:{max_pad}} | |{ErrorSrc.src[self.token.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | |{' ' * self.token.position[1]}{'^' * (error_range)}\n"
+        msg += f"\t{' ' * max_pad} | |{'_' * (self.token.position[1])}|\n"
+        msg += f"\t{' ' * max_pad} |\n"
+        msg += f"\t{' ' * max_pad} |    "
+        msg += "Hint: use .replace()"
+        id = self.id_prod.flat_string().rsplit("}", len(self.id.index) - self.dimension + 1)[0] + "}" if self.dimension else self.id_prod.flat_string().split("{", 1)[0]
+        msg += f'\t{"."*max_pad} |    {id} = {id}.replace(\n'
+        msg += f'\t{"."*max_pad} |{" "*8}{(self.id_prod.flat_string().rsplit("}", len(self.id.index) - self.dimension)[0] + "}") if self.dimension else (self.id_prod.flat_string().split("}", 1)[0] + "}")},\n'
+        msg += f'\t{"."*max_pad} |{" "*8}{self.val.flat_string()}\n'
+        msg += f'\t{"."*max_pad} |    )~\n'
+        msg += border
+
+        return msg
+
+    def __str__(self):
+        index_str = str(self.token.position[0] + 1)
+        defined_index = str(self.defined_token.position[0] + 1)
+        max_pad = max(len(index_str), len(defined_index))
+        max_len = len(max(ErrorSrc.src[self.token.position[0]], ErrorSrc.src[self.defined_token.position[0]], key=len))
+        border = f"\t{'_' * (max_len + max_pad + 4)}\n"
+        defined_range = 1 if self.defined_token.end_position is None else self.defined_token.end_position[1] - self.defined_token.position[1] + 1
+        error_range = 1 if self.token.end_position is None else self.token.end_position[1] - self.token.position[1] + 1
+
+        msg = f"Assignment to substring is not allowed: '{self.id_prod.flat_string()}'\n"
+        msg += border
+        msg += f"\t{' ' * max_pad} | \t"
+        msg += Styled.sprintln(
+            "Defined here",
+            color=AnsiColor.GREEN
+        )
+        msg += f"\t{defined_index:{max_pad}} | {ErrorSrc.src[self.defined_token.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | {' ' * self.defined_token.position[1]}{'^' * (defined_range)}\n"
+        msg += f"\t{' ' * max_pad} | {'_' * (self.defined_token.position[1])}|\n"
+        msg += f"\t{' ' * max_pad} | |\n"
+
+        msg += f"\t{' ' * max_pad} | |\t"
+        msg += Styled.sprintln(
+            "Tried to assign here",
+            color=AnsiColor.RED
+        )
+        msg += f"\t{index_str:{max_pad}} | |{ErrorSrc.src[self.token.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | |{' ' * self.token.position[1]}{'^' * (error_range)}\n"
+        msg += f"\t{' ' * max_pad} | |{'_' * (self.token.position[1])}|\n"
+
+        msg += f"\t{' ' * max_pad} |\n"
+        msg += f"\t{' ' * max_pad} |    "
+        msg += Styled.sprintln(
+            "Hint: use .replace()",
+            color=AnsiColor.CYAN
+        )
+        id = self.id_prod.flat_string().rsplit("}", len(self.id.index) - self.dimension + 1)[0] + "}" if self.dimension else self.id_prod.flat_string().split("{", 1)[0]
+        msg += f'\t{"."*max_pad} |    {id} = {id}.replace(\n'
+        msg += f'\t{"."*max_pad} |{" "*8}{(self.id_prod.flat_string().rsplit("}", len(self.id.index) - self.dimension)[0] + "}") if self.dimension else (self.id_prod.flat_string().split("}", 1)[0] + "}")},\n'
+        msg += f'\t{"."*max_pad} |{" "*8}{self.val.flat_string()}\n'
+        msg += f'\t{"."*max_pad} |    )~\n'
+        msg += border
+
+        return msg
+
 ### HELPER FUNCTIONS FOR SUGGESTIONS
-def extract_id(accessor: Token | FnCall | IndexedIdentifier | ClassAccessor) -> Token:
+def extract_id(accessor: Token | FnCall | IndexedIdentifier | ClassAccessor | IdentifierProds) -> Token:
     'gets the very first id of a class accessor'
     match accessor:
         case Token():
