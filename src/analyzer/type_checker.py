@@ -651,7 +651,7 @@ class TypeChecker:
 
     def check_and_evaluate_class_accessor(
             self, accessor: ClassAccessor, local_defs: dict[str, tuple[Declaration, Token, GlobalType]],
-            class_type: Token = Token(),
+            *, class_type: Token = Token(), parent_type: Token = Token(),
         ) -> Token:
 
         if not class_type.exists():
@@ -706,7 +706,7 @@ class TypeChecker:
         match accessor.id:
             case Token(): pass
             case FnCall():
-                if class_type.exists(): self.evaluate_method_call(class_type, accessor.id, local_defs)
+                if parent_type.exists(): self.evaluate_method_call(parent_type, accessor.id, local_defs)
                 else: self.evaluate_fn_call(accessor.id, local_defs)
             case ClassAccessor():
                 match (res := self.extract_id_prod(accessor.id)):
@@ -800,8 +800,8 @@ class TypeChecker:
                         )
                     )
                     return Token.from_type(TokenType.SAN)
-                class_type = res[1]
-                return self.check_and_evaluate_class_accessor(accessor.accessed, local_defs, class_type=class_type)
+                accessed_type = res[1]
+                return self.check_and_evaluate_class_accessor(accessor.accessed, local_defs, class_type=accessed_type, parent_type=class_type)
             case _:
                 raise ValueError(f"Unknown class accessor: {accessor}")
 
