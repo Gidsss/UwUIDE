@@ -436,7 +436,7 @@ class Token:
 
     def formatted_string(self, indent=0) -> str:
         if self.token == TokenType.STRING_LITERAL:
-            return self.lexeme.replace("\\\\", "\\")
+            return self.lexeme.replace("\\\\", "\\").replace("|", "\|")
         return self.lexeme
 
     def header(self):
