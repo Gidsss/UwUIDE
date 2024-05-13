@@ -1193,10 +1193,11 @@ class Parser:
 
         # array indexing, keep looping until curr tok is not close bracket
         if self.peek_tok_is(TokenType.OPEN_BRACE):
-            if not expr and is_call:
-                self.peek_error(TokenType.TERMINATOR)
-                self.advance(2)
-                return None
+            ## commented out to let fn calls be subscripted
+            # if not expr and is_call:
+            #     self.peek_error(TokenType.TERMINATOR)
+            #     self.advance(2)
+            #     return None
 
             self.advance(2)
             tmp = IndexedIdentifier()
@@ -1223,10 +1224,12 @@ class Parser:
 
         # dot operations, keep recursing parse_ident until peek tok is not dot op
         if self.peek_tok_is(TokenType.DOT_OP):
-            if not expr and is_call:
-                self.peek_error(TokenType.TERMINATOR)
-                self.advance(2)
-                return None
+            ## commented out to let fn calls be accessors
+            # if not expr and is_call:
+            #     input()
+            #     self.peek_error(TokenType.TERMINATOR)
+            #     self.advance(2)
+            #     return None
             self.advance()
 
             tmp = ClassAccessor()

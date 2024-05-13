@@ -452,7 +452,7 @@ class Assignment(Statement):
     def __init__(self):
         self.id: Token | IndexedIdentifier | ClassAccessor = Token() 
         self.value: Value = Value()
-        self.dtype: TokenType | UniqueTokenType = TokenType.EOF # placeholder
+        self.dtype: Token = Token()
 
     def header(self):
         return f"assign: {self.id.header()}"

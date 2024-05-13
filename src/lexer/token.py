@@ -496,6 +496,8 @@ class Token:
         return self.token.is_arrayable()
     def type_is(self, token_type: TokenType|UniqueTokenType) -> bool:
         return self.token == token_type
+    def type_is_in(self, token_types: list[TokenType|UniqueTokenType]) -> bool:
+        return self.token in token_types
 
     @property
     def lexeme(self) -> str:
