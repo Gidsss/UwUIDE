@@ -480,8 +480,7 @@ class TypeChecker:
             else:
                 local_defs[decl.id.flat_string()] = (decl, decl.dtype, GlobalType.IDENTIFIER)
 
-        if assignment:
-            assign.dtype = actual_type.token
+        if assignment: assign.dtype = actual_type
         self.expr_err_count = 0
 
     def evaluate_value(self, value: Value | Token, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> Token:
@@ -918,13 +917,13 @@ class TypeChecker:
                          *, self_type: Token = Token()) -> Token:
         expected_types = self.function_param_types[fn_call.id.flat_string()]
         self.check_call_args(GlobalType.FUNCTION, fn_call.id.flat_string(), fn_call.id, fn_call.args, expected_types, local_defs)
-        ret_type = local_defs[fn_call.id.flat_string()][1].token
+        ret_type = local_defs[fn_call.id.flat_string()][1]
         match ret_type:
             case TokenType.GEN_ARRAY:
                 return self_type if self_type.exists() else Token.from_type(TokenType.SAN)
             case TokenType.ARRAY_ELEMENT:
                 return self_type.to_unit_type() if self_type.exists() else Token.from_type(TokenType.SAN)
-            case _: return Token.from_type(ret_type)
+            case _: return ret_type
 
     def check_class_constructor(self, class_constructor: ClassConstructor, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> None:
         expected_types = self.class_param_types[class_constructor.id.flat_string()]
