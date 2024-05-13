@@ -241,8 +241,8 @@ class StringFmt(Iterable):
         return res
 
     def formatted_string(self, indent=0) -> str:
-        start = self.start.lexeme[:-1]
-        end = self.end.lexeme[1:]
+        start = self.start.lexeme[:-1].replace("|", "\|")
+        end = self.end.lexeme[1:].replace("|", "\|")
         res = "''"
         res = f"{start}{''.join([c if type(c) == str else c.formatted_string() for c in self.mid_expr_uwu()])}{end}"
         if self.concats:
@@ -268,7 +268,7 @@ class StringFmt(Iterable):
         if self.exprs:
             all.append(f"|{self.exprs[0]}|")
         for m,e in zip(self.mid, self.exprs[1:]):
-            all.append(m.lexeme[1:-1])
+            all.append(m.lexeme[1:-1].replace("|", "\|"))
             all.append(f"|{e}|")
         return all
 
