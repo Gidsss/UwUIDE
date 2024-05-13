@@ -730,18 +730,18 @@ class TypeChecker:
                         )
                     )
                     return Token.from_type(TokenType.SAN)
-                return_type, _, member_type = res
+                definition, return_type, member_type = res
                 if member_type != GlobalType.CLASS_PROPERTY:
                     self.errors.append(
                         UndefinedClassMember(
                             class_type.flat_string(),
                             accessed,
                             GlobalType.CLASS_PROPERTY,
-                            actual_definition=(return_type.id, member_type),
+                            actual_definition=(definition.id, member_type),
                         )
                     )
                     return Token.from_type(TokenType.SAN)
-                return Token.from_type(return_type.id.token)
+                return return_type
             case FnCall():
                 accessed = accessor.accessed.id
                 return self.evaluate_method_call(class_type, accessor.accessed, local_defs)
@@ -859,7 +859,7 @@ class TypeChecker:
         match return_type.token:
             case TokenType.GEN_ARRAY: return class_type
             case TokenType.ARRAY_ELEMENT: return class_type.to_unit_type()
-            case _: return Token.from_type(return_type.token)
+            case _: return return_type
 
     def check_call_args(self, global_type: GlobalType, call_str: str, id: Token, call_args: list[Value], expected_types: list[Token],
                         local_defs: dict[str, tuple[Declaration, Token, GlobalType]], self_type: Token= Token()) -> None:
