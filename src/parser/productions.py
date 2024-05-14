@@ -807,6 +807,10 @@ class Class(Production):
             for prop in self.properties:
                 res += sprintln(f"self.{prop.python_string(cwass=True)}", indent=indent+2)
                 class_properties.add(prop.id.python_string(cwass=True))
+        res += sprintln(f"def __repr__(self):", indent=indent+1)
+        res += sprintln(f'''return f"{{self.__class__.__name__}}({{', '.join(f'{{key}}={{value}}' for key, value in self.__dict__.items())}})".replace("_", "")''', indent=indent+2)
+        res += sprintln(f"def __str__(self):", indent=indent+1)
+        res += sprintln(f'''return f"{{self.__class__.__name__}}({{', '.join(f'{{key}}={{value}}' for key, value in self.__dict__.items())}})".replace("_", "")''', indent=indent+2)
         for method in self.methods:
             res += method.python_string(indent+1, cwass=True)
         class_properties.clear()
