@@ -99,6 +99,8 @@ class TypeChecker:
             'array_type.prextend',
             'array_type.dimension',
             'array_type.first',
+            'array_type.flatten',
+            'array_type.join',
             'array_type.last',
             'array_type.replace',
             'array_type.shift',
@@ -156,6 +158,8 @@ class TypeChecker:
                 'array_type.prextend': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
                 'array_type.dimension': (Declaration(), Token('chan', TokenType.CHAN), GlobalType.CLASS_METHOD),
                 'array_type.first': (Declaration(), Token('gen_arr', TokenType.GEN_ARRAY), GlobalType.CLASS_METHOD),
+                'array_type.flatten': (Declaration(), Token('one_d_arr', TokenType.ONE_D_ARRAY), GlobalType.CLASS_METHOD),
+                'array_type.join': (Declaration(), Token('senpai', TokenType.SENPAI), GlobalType.CLASS_METHOD),
                 'array_type.last': (Declaration(), Token('gen_arr', TokenType.GEN_ARRAY), GlobalType.CLASS_METHOD),
                 'array_type.replace': (Declaration(), Token('san', TokenType.SAN), GlobalType.CLASS_METHOD),
                 'array_type.shift': (Declaration(), Token('elem', TokenType.ARRAY_ELEMENT), GlobalType.CLASS_METHOD),
@@ -214,6 +218,8 @@ class TypeChecker:
                 'array_type.prextend': [Token('gen_arr', TokenType.GEN_ARRAY)],
                 'array_type.dimension': [],
                 'array_type.first': [Token('chan', TokenType.CHAN)],
+                'array_type.flatten': [],
+                'array_type.join': [Token('senpai', TokenType.SENPAI)],
                 'array_type.last': [Token('chan', TokenType.CHAN)],
                 'array_type.replace': [Token('elem', TokenType.ARRAY_ELEMENT), Token('elem', TokenType.ARRAY_ELEMENT)],
                 'array_type.shift': [],
@@ -855,6 +861,9 @@ class TypeChecker:
         match return_type.token:
             case TokenType.GEN_ARRAY: return class_type
             case TokenType.ARRAY_ELEMENT: return class_type.to_unit_type()
+            case TokenType.ONE_D_ARRAY:
+                while class_type.dimension() > 1: class_type = class_type.to_unit_type()
+                return class_type
             case _: return return_type
 
     def check_call_args(self, global_type: GlobalType, call_str: str, id: Token, call_args: list[Value], expected_types: list[Token],
@@ -919,6 +928,11 @@ class TypeChecker:
                 return self_type if self_type.exists() else Token.from_type(TokenType.SAN)
             case TokenType.ARRAY_ELEMENT:
                 return self_type.to_unit_type() if self_type.exists() else Token.from_type(TokenType.SAN)
+            case TokenType.ONE_D_ARRAY:
+                if self_type.exists():
+                    while self_type.dimension() > 1: self_type = self_type.to_unit_type()
+                    return self_type
+                else: return Token.from_type(TokenType.SAN)
             case _: return ret_type
 
     def check_class_constructor(self, class_constructor: ClassConstructor, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> None:
