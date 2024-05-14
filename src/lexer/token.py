@@ -206,12 +206,15 @@ class TokenType(Enum):
     WHITESPACE = ("WHITESPACE", "all")
     EOF = ("EOF", "all")
 
-    # for `append()` type checking
+    # for array methods accepting the unit type of the array type
     ARRAY_ELEMENT = ("elem", "all")
-    # for `extend()` type checking
+    # for array methods accepting same array type
     GEN_ARRAY = ("gen_arr", "all")
-    # for `pow()` type checking
+    # for number methods (could've just used chan tbh...)
     NUMBER = ("num", "all")
+    # for `flatten()` type checking
+    ONE_D_ARRAY = ("one_d_arr", "all")
+
 
 class UniqueTokenType:
     """
