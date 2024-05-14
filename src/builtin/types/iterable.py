@@ -202,6 +202,17 @@ class Array:
     def _first(self, n) -> Array:
         idx = max(int(n), 0)
         return Array(self.val[:idx])
+    def _flatten(self) -> Array:
+        def flatten(arr: list|Array) -> list:
+            flattened = []
+            for item in arr:
+                match item:
+                    case list() | Array(): flattened.extend(flatten(item))
+                    case _: flattened.append(item)
+            return flattened
+        return Array(flatten(self.val))
+    def _join(self, separator: String) -> String:
+        return String(str(separator).join([str(val) for val in self._flatten()]))
     def _last(self, n) -> Array:
         idx = max(int(n), 0)
         return Array(self.val[-idx:])
