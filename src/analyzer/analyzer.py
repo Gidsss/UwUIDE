@@ -30,6 +30,8 @@ class MemberAnalyzer:
         populates the self.global_names dict with the unique global names
         any duplicates will be appended to error
         '''
+        self.global_names.update(self.builtin_functions())
+
         for func in self.program.functions:
             if func.id.string() in self.global_names:
                 self.errors.append(DuplicateDefinitionError(
@@ -48,6 +50,14 @@ class MemberAnalyzer:
                 ))
             else:
                 self.global_names[cwass.id.string()] = (cwass.id, GlobalType.CLASS)
+
+    def builtin_functions(self) -> dict[str, tuple[Token, GlobalType]]:
+        return {
+            'randomInt': (Token(), GlobalType.FUNCTION),
+            'randomFloat': (Token(), GlobalType.FUNCTION),
+            'randomBool': (Token(), GlobalType.FUNCTION),
+            'randomString': (Token(), GlobalType.FUNCTION),
+        }
 
     def analyze_function(self, fn: Function, local_defs: dict[str, tuple[Token, GlobalType]],
                          *,
