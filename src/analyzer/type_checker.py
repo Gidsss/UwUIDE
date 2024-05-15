@@ -45,6 +45,7 @@ class TypeChecker:
                 self.class_signatures[f"{cwass.id.flat_string()}.{method.id.flat_string()}"] = (Declaration(), method.rtype, GlobalType.CLASS_METHOD)
                 self.class_method_param_types[f"{cwass.id.flat_string()}.{method.id.flat_string()}"] = [param.dtype for param in method.params]
         self.compile_std_types()
+        self.compile_std_fns()
 
     def compile_std_types(self):
         self.builtin_signatures: set[str] = {
@@ -225,6 +226,20 @@ class TypeChecker:
                 'array_type.shift': [],
             }
         )
+
+    def compile_std_fns(self):
+        self.global_defs.update({
+            'randomInt': (Declaration(), Token.from_type(TokenType.CHAN), GlobalType.FUNCTION),
+            'randomFloat': (Declaration(), Token.from_type(TokenType.KUN), GlobalType.FUNCTION),
+            'randomString': (Declaration(), Token.from_type(TokenType.SENPAI), GlobalType.FUNCTION),
+            'randomBool': (Declaration(), Token.from_type(TokenType.SAMA), GlobalType.FUNCTION),
+        })
+        self.function_param_types.update({
+            'randomInt': [Token.from_type(TokenType.NUMBER), Token.from_type(TokenType.NUMBER)],
+            'randomFloat': [Token.from_type(TokenType.NUMBER), Token.from_type(TokenType.NUMBER)],
+            'randomBool': [],
+            'randomString': [Token.from_type(TokenType.NUMBER)],
+        })
 
     def check_program(self) -> None:
         assert self.program.mainuwu
