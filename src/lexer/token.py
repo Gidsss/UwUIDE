@@ -314,6 +314,10 @@ class Token:
     def __eq__(self, other) -> bool:
         if not isinstance(other, Token): return False
         return self._lexeme == other._lexeme
+    def __nonzero__(self):
+        return self.exists()
+    def __bool__(self):
+        return self.exists()
 
 
     ### For Production interface
@@ -541,7 +545,6 @@ class Token:
             and not isinstance(token_type, UniqueTokenType))\
             or not token_type.is_arrayable():
             return Token()
-
 
         if dimension == 1:
             return (Token(lexeme=re.sub(r"\[\d*\]", "[1]", token_type.token), token=token_type)
