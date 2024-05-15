@@ -16,4 +16,4 @@ def _randomFloat(bound1: Int, bound2: Int) -> Float:
 def _randomBool() -> Bool: return Bool(randint(0, 1))
 
 def _randomString(length: Int) -> String:
-    return String(''.join(choice(ascii_letters + digits + punctuation) for _ in range(int(length))))
+    return String(''.join(choice(ascii_letters + digits + punctuation) for _ in range(max(int(length), 0))))
