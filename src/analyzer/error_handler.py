@@ -48,21 +48,26 @@ class DuplicateDefinitionError(SemanticError):
         index_str = str(self.original.position[0] + 1)
         dupe_index = str(self.duplicate.position[0] + 1)
         max_pad = max(len(index_str), len(dupe_index))
-        border = f"\t{'_' * (len(ErrorSrc.src[self.original.position[0]]) + len(str(self.original.position[0] + 1)) + max_pad)}\n"
         og_range = 1 if self.original.end_position is None else self.original.end_position[1] - self.original.position[1] + 1
         error_range = 1 if self.duplicate.end_position is None else self.duplicate.end_position[1] - self.duplicate.position[1] + 1
-        msg = f"Duplicate {self.original_type}: {self.duplicate}\n"
+        og_border = len(ErrorSrc.src[self.original.position[0]]) + len(str(self.original.position[0] + 1))
+        dupe_border = len(ErrorSrc.src[self.duplicate.position[0]]) + len(str(self.duplicate.position[0] + 1))
+        border = f"\t{'_' * (max(og_border, dupe_border) + max_pad + 2)}\n"
+        msg = f"Duplicate {'' if self.original else 'bulitin '}{self.original_type}: {self.duplicate}\n"
         msg += border
-        msg += f"\t{' ' * max_pad} | \t"
-        msg += f'Original {self.original_type} definition'
-        msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.original.position[0]]}\n"
-        msg += f"\t{' ' * max_pad} | {' ' * self.original.position[1]}{'^' * (og_range)}\n"
-        msg += f"\t{' ' * max_pad} | {'_' * (self.original.position[1])}|\n"
-        msg += f"\t{' ' * max_pad} | |\n"
-        msg += f"\t{' ' * max_pad} | |\ttried to redefine as {('another ' if self.duplicate_type == self.original_type else '')} {self.duplicate_type}"
-        msg += f"\t{dupe_index:{max_pad}} | |{ErrorSrc.src[self.duplicate.position[0]]}\n"
-        msg += f"\t{' ' * max_pad} | |{' ' * self.duplicate.position[1]}{'^' * (error_range)}\n"
-        msg += f"\t{' ' * max_pad} | |{'_' * (self.duplicate.position[1])}|\n"
+        if self.original:
+            msg += f"\t{' ' * max_pad} | \t"
+            msg += f'Original {self.original_type} definition\n'
+            msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.original.position[0]]}\n"
+            msg += f"\t{' ' * max_pad} | {' ' * self.original.position[1]}{'^' * (og_range)}\n"
+            msg += f"\t{' ' * max_pad} | {'_' * (self.original.position[1])}|\n"
+            msg += f"\t{' ' * max_pad} | |\n"
+        line = '|' if self.original else ''
+        msg += f"\t{' ' * max_pad} | {line}\t"
+        msg += f"tried to redefine as {('another ' if self.duplicate_type == self.original_type else '')}{self.duplicate_type}\n"
+        msg += f"\t{dupe_index:{max_pad}} | {line}{ErrorSrc.src[self.duplicate.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | {line}{' ' * self.duplicate.position[1]}{'^' * (error_range)}\n"
+        if self.original: msg += f"\t{' ' * max_pad} | |{'_' * (self.duplicate.position[1])}|\n"
         msg += border
         return msg
 
@@ -70,28 +75,33 @@ class DuplicateDefinitionError(SemanticError):
         index_str = str(self.original.position[0] + 1)
         dupe_index = str(self.duplicate.position[0] + 1)
         max_pad = max(len(index_str), len(dupe_index))
-        border = f"\t{'_' * (len(ErrorSrc.src[self.original.position[0]]) + len(str(self.original.position[0] + 1)) + max_pad)}\n"
         og_range = 1 if self.original.end_position is None else self.original.end_position[1] - self.original.position[1] + 1
         error_range = 1 if self.duplicate.end_position is None else self.duplicate.end_position[1] - self.duplicate.position[1] + 1
 
-        msg = f"Duplicate {self.original_type}: {self.duplicate}\n"
-        msg += border
-        msg += f"\t{' ' * max_pad} | \t"
-        msg += Styled.sprintln(
-            f'Original {self.original_type} definition',
-            color=AnsiColor.GREEN)
-        msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.original.position[0]]}\n"
-        msg += f"\t{' ' * max_pad} | {' ' * self.original.position[1]}{'^' * (og_range)}\n"
-        msg += f"\t{' ' * max_pad} | {'_' * (self.original.position[1])}|\n"
-        msg += f"\t{' ' * max_pad} | |\n"
+        og_border = len(ErrorSrc.src[self.original.position[0]]) + len(str(self.original.position[0] + 1))
+        dupe_border = len(ErrorSrc.src[self.duplicate.position[0]]) + len(str(self.duplicate.position[0] + 1))
+        border = f"\t{'_' * (max(og_border, dupe_border) + max_pad + 2)}\n"
 
-        msg += f"\t{' ' * max_pad} | |\t"
+        msg = f"Duplicate {'' if self.original else 'bulitin '}{self.original_type}: {self.duplicate}\n"
+        msg += border
+        if self.original:
+            msg += f"\t{' ' * max_pad} | \t"
+            msg += Styled.sprintln(
+                f'Original {self.original_type} definition',
+                color=AnsiColor.GREEN)
+            msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.original.position[0]]}\n"
+            msg += f"\t{' ' * max_pad} | {' ' * self.original.position[1]}{'^' * (og_range)}\n"
+            msg += f"\t{' ' * max_pad} | {'_' * (self.original.position[1])}|\n"
+            msg += f"\t{' ' * max_pad} | |\n"
+
+        line = '|' if self.original else ''
+        msg += f"\t{' ' * max_pad} | {line}\t"
         msg += Styled.sprintln(
-            f"tried to redefine as {('another ' if self.duplicate_type == self.original_type else '')} {self.duplicate_type}",
+            f"tried to redefine as {('another ' if self.duplicate_type == self.original_type else '')}{self.duplicate_type}",
             color=AnsiColor.RED)
-        msg += f"\t{dupe_index:{max_pad}} | |{ErrorSrc.src[self.duplicate.position[0]]}\n"
-        msg += f"\t{' ' * max_pad} | |{' ' * self.duplicate.position[1]}{'^' * (error_range)}\n"
-        msg += f"\t{' ' * max_pad} | |{'_' * (self.duplicate.position[1])}|\n"
+        msg += f"\t{dupe_index:{max_pad}} | {line}{ErrorSrc.src[self.duplicate.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | {line}{' ' * self.duplicate.position[1]}{'^' * (error_range)}\n"
+        if self.original: msg += f"\t{' ' * max_pad} | |{'_' * (self.duplicate.position[1])}|\n"
         msg += border
 
         return msg
@@ -155,7 +165,7 @@ class FnUsedAsVar(SemanticError):
         global_type = 'function' if not self.class_signature else 'method'
         name = f"{self.usage}()" if not self.class_signature else f"{self.class_signature}()"
 
-        msg = f"Tried to use {global_type} as value: {name}\n"
+        msg = f"Tried to use {'' if self.original else 'builtin '}{global_type} as value: {name}\n"
         msg += border
         if self.original:
             msg += f"\t{' ' * max_pad} | \t"
@@ -169,7 +179,7 @@ class FnUsedAsVar(SemanticError):
 
         msg += f"\t{' ' * max_pad} | {'|' if self.original else ''}\t"
         msg += Styled.sprintln(
-            f"'{name}' is a {global_type} and cannot be used as a value without calling it",
+            f"'{name}' is a {'' if self.original else 'builtin '}{global_type} and cannot be used as a value without calling it",
             color=AnsiColor.RED)
         msg += f"\t{assign_index:{max_pad}} | {'|' if self.original else ''}{ErrorSrc.src[self.usage.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {'|' if self.original else ''}{' ' * self.usage.position[1]}{'^' * (error_range)}\n"
@@ -267,7 +277,7 @@ class FunctionAssignmentError(SemanticError):
         global_type = 'function' if not self.class_signature else 'method'
         name = f"{self.assignment}()" if not self.class_signature else f"{self.class_signature}()"
 
-        msg = f"Tried to assign a value to a {global_type}: {name}\n"
+        msg = f"Tried to assign a value to a {'' if self.original else 'builtin '}{global_type}: {name}\n"
         msg += border
         if self.original:
             msg += f"\t{' ' * max_pad} | \t"
@@ -300,7 +310,7 @@ class FunctionAssignmentError(SemanticError):
         global_type = 'function' if not self.class_signature else 'method'
         name = f"{self.assignment}()" if not self.class_signature else f"{self.class_signature}()"
 
-        msg = f"Tried to assign a value to a {global_type}: {name}\n"
+        msg = f"Tried to assign a value to a {'' if self.original else 'builtin '}{global_type}: {name}\n"
         msg += border
         if self.original:
             msg += f"\t{' ' * max_pad} | \t"
@@ -314,7 +324,7 @@ class FunctionAssignmentError(SemanticError):
 
         msg += f"\t{' ' * max_pad} | {'|' if self.original else ''}\t"
         msg += Styled.sprintln(
-            f"'{name}' is a {global_type} and cannot be assigned to",
+            f"'{name}' is a {'' if self.original else 'builtin '}{global_type} and cannot be assigned to",
             color=AnsiColor.RED)
         msg += f"\t{assign_index:{max_pad}} | {'|' if self.original else ''}{ErrorSrc.src[self.assignment.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {'|' if self.original else ''}{' ' * self.assignment.position[1]}{'^' * (error_range)}\n"
@@ -643,8 +653,8 @@ class PrePostFixOperandError(SemanticError):
 
 class InfixOperandError(SemanticError):
     def __init__(self, op: Token, left: tuple[Value, Token|None], 
-                 right: tuple[Value, Token|None], left_type: Token|None,
-                 right_type: Token|None, header: str) -> None:
+                 right: tuple[Value, Token|None], left_type: Token,
+                 right_type: Token, header: str) -> None:
         self.op = op
         self.left, self.left_definition = left
         self.right, self.right_definition = right
@@ -681,7 +691,7 @@ class InfixOperandError(SemanticError):
             msg += f"\t{' ' * max_pad} | {' ' * self.left_definition.position[1]}{'^' * (len(self.left_definition.flat_string()))}\n"
             msg += f"\t{' ' * max_pad} | {'_' * (self.left_definition.position[1])}|\n"
             msg += f"\t{' ' * max_pad} | |"
-        if self.left_type:
+        if self.left_type.token.exists():
             msg += f"\n\t{' ' * max_pad} | "f"{'|' if self.left_definition else ''}""\t"
             msg += f"Left value evaluates to type: '{self.left_type.flat_string()}'"
             msg += f"\t{op_str:{max_pad}} | " f"{'|' if self.left_definition else ''}" f"  {self.left.flat_string()}{self.op.flat_string()}{self.right.flat_string()}\n"
@@ -690,7 +700,7 @@ class InfixOperandError(SemanticError):
                 msg += f"\n\t{' ' * max_pad} | |__|\n"
             else:
                 msg += '\n'
-        if self.left_type and self.right_type:
+        if self.left_type.token.exists() and self.right_type.token.exists():
             msg += f"\t{' ' * max_pad} |"
         if self.right_definition and self.right_type:
             rhs_index = str(self.right_definition.position[0] + 1)
@@ -700,7 +710,7 @@ class InfixOperandError(SemanticError):
             msg += f"\t{' ' * max_pad} | {' ' * self.right_definition.position[1]}{'^' * (len(self.right_definition.flat_string()))}\n"
             msg += f"\t{' ' * max_pad} | {'_' * (self.right_definition.position[1])}|\n"
             msg += f"\t{' ' * max_pad} | |"
-        if self.right_type:
+        if self.right_type.token.exists():
             msg += f"\n\t{' ' * max_pad} | " f"{'|' if self.right_definition else ''}" "\t"
             msg += f"Right value evaluates to type: '{self.right_type.flat_string()}'"
             msg += f"\t{op_str:{max_pad}} | " f"{'|' if self.right_definition else ''}" f"  {self.left.flat_string()}{self.op.flat_string()}{self.right.flat_string()}\n"
@@ -739,7 +749,7 @@ class InfixOperandError(SemanticError):
             msg += f"\t{' ' * max_pad} | {' ' * self.left_definition.position[1]}{'^' * (len(self.left_definition.flat_string()))}\n"
             msg += f"\t{' ' * max_pad} | {'_' * (self.left_definition.position[1])}|\n"
             msg += f"\t{' ' * max_pad} | |"
-        if self.left_type:
+        if self.left_type.token.exists():
             msg += f"\n\t{' ' * max_pad} | "f"{'|' if self.left_definition else ''}""\t"
             msg += Styled.sprintln(
                 f"Left value evaluates to type: '{self.left_type.flat_string()}'",
@@ -751,7 +761,7 @@ class InfixOperandError(SemanticError):
                 msg += f"\n\t{' ' * max_pad} | |__|\n"
             else:
                 msg += '\n'
-        if self.left_type and self.right_type:
+        if self.left_type.token.exists() and self.right_type.token.exists():
             msg += f"\t{' ' * max_pad} |"
         if self.right_definition and self.right_type:
             rhs_index = str(self.right_definition.position[0] + 1)
@@ -764,7 +774,7 @@ class InfixOperandError(SemanticError):
             msg += f"\t{' ' * max_pad} | {' ' * self.right_definition.position[1]}{'^' * (len(self.right_definition.flat_string()))}\n"
             msg += f"\t{' ' * max_pad} | {'_' * (self.right_definition.position[1])}|\n"
             msg += f"\t{' ' * max_pad} | |"
-        if self.right_type:
+        if self.right_type.token.exists():
             msg += f"\n\t{' ' * max_pad} | " f"{'|' if self.right_definition else ''}" "\t"
             msg += Styled.sprintln(
                 f"Right value evaluates to type: '{self.right_type.flat_string()}'",
@@ -801,7 +811,7 @@ class NonIterableIndexingError(SemanticError):
         msg = f"Non Iterable Indexing: '{self.usage}'\n"
         msg += border
         msg += f"\t{' ' * max_pad} | \t"
-        msg += f"Actual type defined here"
+        msg += f"Actual type defined here\n"
         msg += f"\t{def_index:{max_pad}} | {ErrorSrc.src[self.type_definition.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.type_definition.position[1]}{'^' * (len(self.type_definition.flat_string()))}\n"
         msg += f"\t{' ' * max_pad} | {'_' * (self.type_definition.position[1])}|\n"
