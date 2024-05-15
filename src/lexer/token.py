@@ -498,7 +498,7 @@ class Token:
     def is_unique_type(self):
         return self.token.is_unique_type()
     def exists(self) -> bool:
-        return self.token.exists()
+        return self.token.exists() and self.position != (-1, -1) and self.end_position != (-1, -1)
     def is_arrayable(self) -> bool:
         return self.token.is_arrayable()
     def type_is(self, token_type: TokenType|UniqueTokenType) -> bool:
@@ -558,4 +558,4 @@ class Token:
             )
     @staticmethod
     def from_type(token_type: TokenType | UniqueTokenType) -> "Token":
-        return Token(lexeme=token_type.token, token=token_type)
+        return Token(lexeme=token_type.token, token=token_type, position=(-1, -1), end_position=(-1, -1))
