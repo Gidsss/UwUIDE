@@ -18,3 +18,7 @@ BUILTIN_TYPES = [
     ROOT / 'src' / 'builtin' / 'types' / 'iterable.py',
     ROOT / 'src' / 'builtin' / 'types' / 'number.py',
 ]
+BUILTINS = [
+    *BUILTIN_TYPES,
+    ROOT / 'src' / 'builtin' / 'random' / 'random.py',
+]

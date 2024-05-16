@@ -3,7 +3,7 @@ from pathlib import Path
 import tempfile
 import subprocess
 
-from constants.path import BUILTIN_TYPES
+from constants.path import BUILTINS
 
 class Compiler:
     def __init__(self, py_source: str, filename: str) -> None:
@@ -48,8 +48,9 @@ class Compiler:
             "#",
             "from .namespace",
             "from __future__",
+            "from src.",
         ]
-        for path in BUILTIN_TYPES:
+        for path in BUILTINS:
             with open(path, 'r') as f:
                 res = f.readlines()
                 for r in remove:
