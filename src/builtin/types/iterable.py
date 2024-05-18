@@ -2,7 +2,7 @@ from __future__ import annotations
 from .namespace import Int, Bool
 
 class String:
-    def __init__(self, val: str):
+    def __init__(self, val: str = ""):
         self.val: str = str(val)
 
     ## META DUNDER METHODS
