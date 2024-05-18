@@ -16,80 +16,123 @@ class Bool:
         return self.__str__()
 
     # operator overloading
-    def __add__(self, other) -> Bool:
-        try:
-            res = int(float(other))
-        except:
-            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        return type(self)(self.val + res)
-    def __radd__(self, other) -> Bool:
-        try:
-            res = int(float(other))
-        except:
-            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        return type(self)(res + self.val)
-    def __sub__(self, other) -> Bool:
-        try:
-            res = int(float(other))
-        except:
-            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        return type(self)(self.val - res)
-    def __rsub__(self, other) -> Bool:
-        try:
-            res = int(float(other))
-        except:
-            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        return type(self)(res - self.val)
-    def __mul__(self, other) -> Bool:
-        try:
-            res = int(float(other))
-        except:
-            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        return type(self)(self.val * res)
-    def __rmul__(self, other) -> Bool:
-        try:
-            res = int(float(other))
-        except:
-            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        return type(self)(res * self.val)
-    def __truediv__(self, other) -> Bool:
-        try:
-            res = float(other)
-        except:
-            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        return type(self)(self.val / res)
-    def __rtruediv__(self, other) -> Bool:
-        try:
-            res = float(other)
-        except:
-            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        return type(self)(res / self.val)
-    def __mod__(self, other) -> Bool:
-        try:
-            res = int(float(other))
-        except:
-            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        return type(self)(self.val % res)
-    def __rmod__(self, other) -> Bool:
-        try:
-            res = int(float(other))
-        except:
-            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        return type(self)(res % self.val)
-    def __pow__(self, other) -> Bool:
-        try:
-            res = int(float(other))
-        except:
-            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        return type(self)(self.val ** res)
-    def __rpow__(self, other) -> Bool:
-        try:
-            res = int(float(other))
-        except:
-            raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
-        return type(self)(res ** self.val)
-    def __neg__(self) -> Bool:
-        return type(self)(-self.val)
+    def __add__(self, other) -> Int | Float:
+        match other:
+            case int() | Int(): return Int(self.val + int(other))
+            case float() | Float(): return Float(self.val + float(other))
+            case Bool(): return Int(self.val + int(other))
+            case _:
+                try: res = int(float(other))
+                except: raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+                return Int(self.val + res)
+    def __radd__(self, other) -> Int | Float:
+        match other:
+            case int() | Int(): return Int(int(other) + self.val)
+            case float() | Float(): return Float(float(other) + self.val)
+            case Bool(): return Int(int(other) + self.val)
+            case _:
+                try: res = int(float(other))
+                except: raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+                return Int(res + self.val)
+    def __sub__(self, other) -> Int | Float:
+        match other:
+            case int() | Int(): return Int(self.val - int(other))
+            case float() | Float(): return Float(self.val - float(other))
+            case Bool(): return Int(self.val - int(other))
+            case _:
+                try: res = int(float(other))
+                except: raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+                return Int(self.val - res)
+    def __rsub__(self, other) -> Int | Float:
+        match other:
+            case int() | Int(): return Int(int(other) - self.val)
+            case float() | Float(): return Float(float(other) - self.val)
+            case Bool(): return Int(int(other) - self.val)
+            case _:
+                try: res = int(float(other))
+                except: raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+                return Int(res - self.val)
+    def __mul__(self, other) -> Int | Float:
+        match other:
+            case int() | Int(): return Int(self.val * int(other))
+            case float() | Float(): return Float(self.val * float(other))
+            case Bool(): return Int(self.val * int(other))
+            case _:
+                try: res = int(float(other))
+                except: raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+                return Int(self.val * res)
+    def __rmul__(self, other) -> Int | Float:
+        match other:
+            case int() | Int(): return Int(int(other) * self.val)
+            case float() | Float(): return Float(float(other) * self.val)
+            case Bool(): return Int(int(other) * self.val)
+            case _:
+                try: res = int(float(other))
+                except: raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+                return Int(res * self.val)
+    def __truediv__(self, other) -> Int | Float:
+        match other:
+            case int() | Int(): return Float(self.val / int(other))
+            case float() | Float(): return Float(self.val / float(other))
+            case Bool(): return Float(self.val / int(other))
+            case _:
+                try: res = int(float(other))
+                except: raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+                return Float(self.val / res)
+    def __rtruediv__(self, other) -> Int | Float:
+        match other:
+            case int() | Int(): return Float(int(other) / self.val)
+            case float() | Float(): return Float(float(other) / self.val)
+            case Bool(): return Float(int(other) / self.val)
+            case _:
+                try: res = int(float(other))
+                except: raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+                return Float(res / self.val)
+    def __mod__(self, other) -> Int | Float:
+        match other:
+            case int() | Int(): return Int(self.val % int(other))
+            case float() | Float(): return Float(self.val % float(other))
+            case Bool(): return Int(self.val % int(other))
+            case _:
+                try: res = int(float(other))
+                except: raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+                return Int(self.val % res)
+    def __rmod__(self, other) -> Int | Float:
+        match other:
+            case int() | Int(): return Int(int(other) % self.val)
+            case float() | Float(): return Float(float(other) % self.val)
+            case Bool(): return Int(int(other) % self.val)
+            case _:
+                try: res = int(float(other))
+                except: raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+                return Int(res % self.val)
+    def __pow__(self, other) -> Int | Float:
+        match other:
+            case int() | Int(): return Int(self.val ** int(other))
+            case float() | Float(): return Float(self.val ** float(other))
+            case Bool(): return Int(self.val ** int(other))
+            case _:
+                try: res = int(float(other))
+                except: raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+                return Int(self.val ** res)
+    def __rpow__(self, other) -> Int | Float:
+        match other:
+            case int() | Int(): return Int(int(other) ** self.val)
+            case float() | Float(): return Float(float(other) ** self.val)
+            case Bool(): return Int(int(other) ** self.val)
+            case _:
+                try: res = int(float(other))
+                except: raise ValueError(f"Oh no!! '{other}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+                return Int(res ** self.val)
+    def __neg__(self) -> Int | Float:
+        match self.val:
+            case int(): return Int(-self.val)
+            case float(): return Float(-self.val)
+            case Bool(): return Int(-int(self.val))
+            case _:
+                try: res = int(float(self.val))
+                except: raise ValueError(f"Oh no!! '{self.val}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+                return Int(-res)
     def __lt__(self, other) -> Bool:
         try:
             res = int(float(other))
