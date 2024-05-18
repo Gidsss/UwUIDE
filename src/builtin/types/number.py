@@ -300,8 +300,13 @@ class Float:
     ## BUILTIN METHODS
     def _abs(self) -> Float:
         return type(self)(self.cap_val(abs(self.val)))
-    def _pow(self, other: int|float) -> Float:
-        return type(self)(self.cap_val(self.val ** other))
+    def _pow(self, other) -> Float:
+        match other:
+            case float() | Float(): res = float(other)
+            case int() | Int(): res = int(other)
+            case bool() | Bool(): res = int(other)
+            case _: raise ValueError(f"Oh no!! '{self.val}' cannot be converted to kuuuuuuuunnnnnnn!!")
+        return type(self)(self.cap_val(self.val ** res))
     def _sqrt(self) -> Float:
         return type(self)(float((self.cap_val(sqrt(self.val))).__floor__()))
     def _isNegative(self) -> Bool:
@@ -493,7 +498,7 @@ class Int:
             res = int(self.val)
             return res
         except:
-            raise ValueError(f"Oh no!! '{self.val}' cannot be converted to kuuuuuuuunnnnnnn!!")
+            raise ValueError(f"Oh no!! '{self.val}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
     def __float__(self):
         try:
             res = float(self.val)
@@ -504,8 +509,13 @@ class Int:
     ## BUILTIN METHODS
     def _abs(self) -> Int:
         return type(self)(self.cap_val(abs(self.val)))
-    def _pow(self, other: int|float) -> Int:
-        return type(self)(self.cap_val(self.val ** other))
+    def _pow(self, other) -> Int:
+        match other:
+            case float() | Float(): res = float(other)
+            case int() | Int(): res = int(other)
+            case bool() | Bool(): res = int(other)
+            case _: raise ValueError(f"Oh no!! '{self.val}' cannot be converted to chaaaaaaaaannnnnnnnnn!!")
+        return type(self)(self.cap_val(self.val ** res))
     def _sqrt(self) -> Int:
         return type(self)(self.cap_val(int(sqrt(self.val))))
     def _isNegative(self) -> Bool:
