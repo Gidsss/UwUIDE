@@ -512,7 +512,7 @@ class Declaration(Statement):
         if self.is_global:
             res += "gwobaw "
 
-        res += f"{self.id}-{self.dtype}"
+        res += f"{self.id}-{self.dtype.formatted_string()}"
         if self.dono_token.exists():
             res += "-dono"
 
