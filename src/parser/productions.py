@@ -296,7 +296,27 @@ class ArrayLiteral(Iterable):
         return f"Array([{', '.join(e.python_string(cwass=cwass) for e in self.elements)}])"
 
     def formatted_string(self, indent=0) -> str:
+        if len(self.elements)>0 and isinstance(self.elements[0], ArrayLiteral):
+            res = "{\n"
+            elems = []
+            for elem in self.elements:
+                elems.append(elem.formatted_string_multi(indent+1))
+            res += ",\n".join(elems) + "\n"
+            res += sprint("}", indent=indent+1)
+            return res
         return f"{{{', '.join(e.formatted_string() for e in self.elements)}}}"
+
+    def formatted_string_multi(self, indent=0) -> str:
+        if len(self.elements)>0 and isinstance(self.elements[0], ArrayLiteral):
+            res = sprint("{\n", indent=indent+1)
+            elems = []
+            for elem in self.elements:
+                elems.append(elem.formatted_string_multi(indent+1))
+            res += ",\n".join(elems) + "\n"
+            res += sprint("}", indent=indent+1)
+            return res
+        else:
+            return sprint(f"{{{', '.join(e.formatted_string() for e in self.elements)}}}", indent=indent+1)
 
     def __len__(self):
         return len(self.elements)
