@@ -315,9 +315,9 @@ class Token:
         if not isinstance(other, Token): return False
         return self._lexeme == other._lexeme
     def __nonzero__(self):
-        return self.exists()
+        return self.exists() and self.position != (-1, -1) and self.end_position != (-1, -1)
     def __bool__(self):
-        return self.exists()
+        return self.exists() and self.position != (-1, -1) and self.end_position != (-1, -1)
 
 
     ### For Production interface
@@ -498,7 +498,7 @@ class Token:
     def is_unique_type(self):
         return self.token.is_unique_type()
     def exists(self) -> bool:
-        return self.token.exists() and self.position != (-1, -1) and self.end_position != (-1, -1)
+        return self.token.exists()
     def is_arrayable(self) -> bool:
         return self.token.is_arrayable()
     def type_is(self, token_type: TokenType|UniqueTokenType) -> bool:
