@@ -2,7 +2,7 @@ from __future__ import annotations
 from .namespace import Int, Bool
 
 class String:
-    def __init__(self, val: str):
+    def __init__(self, val: str = ""):
         self.val: str = str(val)
 
     ## META DUNDER METHODS
@@ -89,8 +89,8 @@ class String:
         return type(self)(self.val.replace(str(old), str(new)))
     def _strip(self) -> String:
         return type(self)(self.val.strip())
-    def _split(self, item: str) -> Array:
-        return Array([type(self)(x) for x in self.val.split(str(item))])
+    def _split(self) -> Array:
+        return Array([type(self)(x) for x in self.val.split(" ")])
     def _swapcase(self) -> String:
         return type(self)(self.val.swapcase())
     def _title(self) -> String:
