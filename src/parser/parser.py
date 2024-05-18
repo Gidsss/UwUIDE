@@ -206,8 +206,7 @@ class Parser:
         self.register_in_block(TokenType.FOW, self.parse_for_statement)
         self.register_in_block(TokenType.PWINT, self.parse_print)
         self.register_in_block(TokenType.BWEAK, self.parse_break)
-        # TODO: change cfg to accomodate this as an in block statement
-        # self.register_in_block(TokenType.INPWT, self.parse_input)
+        self.register_in_block(TokenType.INPWT, self.parse_input_stmt)
 
     def parse_program(self) -> Program:
         '''
@@ -905,6 +904,16 @@ class Parser:
             self.advance()
             return None
         return fl
+
+    def parse_input_stmt(self) -> Input | None:
+        if not (inp := self.parse_input()): return None
+        if not self.expect_peek(TokenType.TERMINATOR):
+            self.peek_error(TokenType.TERMINATOR)
+            self.advance(2)
+            return None
+        inp.stmt = True
+        return inp
+
 
     def parse_input(self) -> Input | None:
         inp = Input()

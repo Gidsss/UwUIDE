@@ -137,6 +137,7 @@ class Input(Iterable):
     def __init__(self):
         self.expr: Value | Token = Value()
         self.concats: list[StringFmt | Input | StringLiteral] = []
+        self.stmt: bool = False
 
     def header(self):
         return "input:"
@@ -155,13 +156,13 @@ class Input(Iterable):
         res = f"input({self.expr.python_string(cwass=cwass)})"
         if self.concats:
             res += ' + ' + ' + '.join(c.python_string(cwass=cwass) for c in self.concats)
-        return res
+        return sprint(res, indent=indent if self.stmt else 0)
 
     def formatted_string(self, indent=0) -> str:
         res = f"inpwt({self.expr.formatted_string()})"
         if self.concats:
             res += ' & ' + ' & '.join(c.formatted_string() for c in self.concats)
-        return res
+        return sprint(res, indent=indent if self.stmt else 0)
 
     def __len__(self):
         return 1
