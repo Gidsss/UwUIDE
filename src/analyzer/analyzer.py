@@ -157,6 +157,7 @@ class MemberAnalyzer:
     def analyze_declaration(self, decl: Declaration, local_defs: dict[str, tuple[Token, GlobalType]],
                             *,
                             cwass=False, in_body=False) -> None:
+        self.analyze_value(decl.value, local_defs)
         self.expect_unique_token(decl.id,
                                  GlobalType.IDENTIFIER if not cwass else (
                                  GlobalType.CLASS_PROPERTY if not in_body else GlobalType.LOCAL_CLASS_ID),
@@ -168,7 +169,6 @@ class MemberAnalyzer:
                 self.expect_defined_token(decl.dtype, GlobalType.CLASS, local_defs)
             case _:
                 raise ValueError(f"Unknown dtype: {decl.dtype}")
-        self.analyze_value(decl.value, local_defs)
 
     def analyze_assignment(self, assign: Assignment, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         match assign.id:
