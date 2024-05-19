@@ -352,7 +352,7 @@ class UndefinedError(SemanticError):
         msg = f"Undefined {self.gtype}: {self.token}\n"
         msg += border
         msg += f"\t{' ' * max_pad} | \t"
-        msg +='Undefined identifier\n'
+        msg += f'Undefined {self.gtype}\n'
         msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.token.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.token.position[1]}{'^' * (error_range)}\n"
         msg += border
@@ -368,7 +368,7 @@ class UndefinedError(SemanticError):
         msg += border
         msg += f"\t{' ' * max_pad} | \t"
         msg += Styled.sprintln(
-            'Undefined identifier',
+            f'Undefined {self.gtype}',
             color=AnsiColor.RED)
         msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.token.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.token.position[1]}{'^' * (error_range)}\n"
