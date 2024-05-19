@@ -80,14 +80,14 @@ class MemberAnalyzer:
 
     def compile_class_methods(self, cwass: Class, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         for method in cwass.methods:
-            if f"{cwass.id.flat_string()}.{method.id.string()}" in local_defs:
+            if f"{method.id.string()}" in local_defs:
                 self.errors.append(DuplicateDefinitionError(
-                    *local_defs[f"{cwass.id.flat_string()}.{method.id.string()}"],
+                    *local_defs[f"{method.id.string()}"],
                     method.id,
                     GlobalType.CLASS_METHOD,
                 ))
             else:
-                local_defs[f"{cwass.id.flat_string()}.{method.id.string()}"] = (method.id, GlobalType.CLASS_METHOD)
+                local_defs[f"{method.id.string()}"] = (method.id, GlobalType.CLASS_METHOD)
 
     def analyze_param(self, param: Declaration, local_defs: dict[str, tuple[Token, GlobalType]],
                       *,
@@ -253,7 +253,7 @@ class MemberAnalyzer:
 
     def analyze_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Token, GlobalType]]) -> None:
         if fn_call.id.string() in local_defs:
-            if not local_defs[fn_call.id.string()][1] == GlobalType.FUNCTION:
+            if local_defs[fn_call.id.string()][1] not in [GlobalType.FUNCTION, GlobalType.CLASS_METHOD]:
                 self.errors.append(NonFunctionIdCall(
                     local_defs[fn_call.id.string()][0],
                     fn_call.id,
