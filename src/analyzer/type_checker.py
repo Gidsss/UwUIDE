@@ -947,12 +947,14 @@ class TypeChecker:
                         expected_types_str.append("chan, kun, or sama")
                     case _:
                         expected_types_str.append(f"{e}")
+            try: id_definition = local_defs[call_str].dtype
+            except: id_definition = self.class_signatures[call_str].dtype
             self.errors.append(
                 MismatchedCallArgType(
                     global_type=global_type,
                     call_str=call_str if not self_type.exists() else call_str.replace("array_type", self_type.flat_string()),
                     id=id,
-                    id_definition=local_defs[call_str][1] if call_str not in self.builtin_signatures else None,
+                    id_definition=id_definition if call_str not in self.builtin_signatures else None,
                     expected_types=expected_types_str,
                     args=call_args,
                     actual_types=actual_types,
