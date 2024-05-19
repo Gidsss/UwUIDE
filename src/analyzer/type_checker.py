@@ -26,14 +26,24 @@ class TypeChecker:
         self.program = program
         self.errors = []
 
-        # maps global names to their Declaration (if any), the type's token, and GlobalType for error messages
-        self.global_defs: dict[str, tuple[Declaration, Token, GlobalType]] = {}
-        self.class_signatures: dict[str, tuple[Declaration, Token, GlobalType]] = {}
-        self.class_method_param_types: dict[str, list[Token]] = {}
+        # Declaration, data type Token, GlobalType
+        self.global_defs: dict[str, Signature] = {}
+        self.class_signatures: dict[str, Signature] = {}
+
+        # map of function/method name to list of param data types
         self.function_param_types: dict[str, list[Token]] = {}
+        self.class_method_param_types: dict[str, list[Token]] = {}
+
+        # map class constructor name to list of param data types
         self.class_param_types: dict[str, list[Token]] = {}
+
+        # shared state
+        ## used for checking if a function has return statements
         self.return_list: list[Token] = []
+        ## used for indicating that fn calls should be
+        ## checked if it is a method call first
         self.in_class_type: Token = Token()
+
         self.compile_global_types()
         self.check_program()
 
@@ -43,19 +53,19 @@ class TypeChecker:
         any duplicates will be appended to error
         '''
         for global_dec in self.program.globals:
-            self.global_defs[global_dec.id.flat_string()] = global_dec, global_dec.dtype, GlobalType.IDENTIFIER
+            self.global_defs[global_dec.id.flat_string()] = Signature(global_dec, global_dec.dtype, GlobalType.IDENTIFIER)
         for func in self.program.functions:
-            self.global_defs[func.id.flat_string()] = Declaration(), func.rtype, GlobalType.FUNCTION
+            self.global_defs[func.id.flat_string()] = Signature(Declaration(), func.rtype, GlobalType.FUNCTION)
             self.function_param_types[func.id.flat_string()] = [param.dtype for param in func.params]
         for cwass in self.program.classes:
-            self.global_defs[cwass.id.flat_string()] = (Declaration(), cwass.id, GlobalType.CLASS)
+            self.global_defs[cwass.id.flat_string()] = Signature(Declaration(), cwass.id, GlobalType.CLASS)
             self.class_param_types[cwass.id.flat_string()] = [param.dtype for param in cwass.params]
             for param in cwass.params:
-                self.class_signatures[f"{cwass.id.flat_string()}.{param.id.flat_string()}"] = (param, param.dtype, GlobalType.CLASS_PROPERTY)
+                self.class_signatures[f"{cwass.id.flat_string()}.{param.id.flat_string()}"] = Signature(param, param.dtype, GlobalType.CLASS_PROPERTY)
             for prop in cwass.properties:
-                self.class_signatures[f"{cwass.id.flat_string()}.{prop.id.flat_string()}"] = (prop, prop.dtype, GlobalType.CLASS_PROPERTY)
+                self.class_signatures[f"{cwass.id.flat_string()}.{prop.id.flat_string()}"] = Signature(prop, prop.dtype, GlobalType.CLASS_PROPERTY)
             for method in cwass.methods:
-                self.class_signatures[f"{cwass.id.flat_string()}.{method.id.flat_string()}"] = (Declaration(), method.rtype, GlobalType.CLASS_METHOD)
+                self.class_signatures[f"{cwass.id.flat_string()}.{method.id.flat_string()}"] = Signature(Declaration(), method.rtype, GlobalType.CLASS_METHOD)
                 self.class_method_param_types[f"{cwass.id.flat_string()}.{method.id.flat_string()}"] = [param.dtype for param in method.params]
         self.compile_std_types()
         self.compile_std_fns()
