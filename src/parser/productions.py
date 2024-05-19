@@ -248,7 +248,7 @@ class StringFmt(Iterable):
         res = f"{start}{''.join([c if type(c) == str else c.formatted_string() for c in self.mid_expr_uwu()])}{end}"
         if self.concats:
             res += ' & ' + ' & '.join(c.formatted_string() for c in self.concats)
-        return res.replace("\\\\", "\\")
+        return res
 
     def mid_expr_iter(self):
         if self.exprs:
