@@ -962,14 +962,16 @@ class TypeChecker:
 
     def evaluate_fn_call(self, fn_call: FnCall, local_defs: dict[str, Signature],
                          *, self_type: Token = Token()) -> Token:
-        if self.in_class_type.exists():
-            fn_call.need_self = True
+        try:
             expected_types = self.class_method_param_types[f"{self.in_class_type.flat_string()}.{fn_call.id.flat_string()}"]
-            ret_type = self.class_signatures[f"{self.in_class_type.flat_string()}.{fn_call.id.flat_string()}"][1]
-        else:
+            ret_type = self.class_signatures[f"{self.in_class_type.flat_string()}.{fn_call.id.flat_string()}"].dtype
+            fn_call.need_self = True
+            call_str = f"{self.in_class_type.flat_string()}.{fn_call.id.flat_string()}"
+        except:
             expected_types = self.function_param_types[fn_call.id.flat_string()]
-            ret_type = local_defs[fn_call.id.flat_string()][1]
-        self.check_call_args(GlobalType.FUNCTION, fn_call.id.flat_string(), fn_call.id, fn_call.args, expected_types, local_defs)
+            ret_type = local_defs[fn_call.id.flat_string()].dtype
+            call_str = fn_call.id.flat_string()
+        self.check_call_args(GlobalType.FUNCTION, call_str, fn_call.id, fn_call.args, expected_types, local_defs)
         match ret_type:
             case TokenType.GEN_ARRAY:
                 return self_type if self_type.exists() else Token.from_type(TokenType.SAN)
