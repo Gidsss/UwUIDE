@@ -640,49 +640,47 @@ class TypeChecker:
 
     def evaluate_ident_prods(self, ident_prod: IdentifierProds, local_defs: dict[str, Signature]) -> Token:
         match ident_prod:
-            case IndexedIdentifier():
-                self.check_indexed_id_indices(ident_prod, local_defs)
-                match ident_prod.id:
-                    case Token():
-                        arr_type = self.evaluate_token(ident_prod.id, local_defs)
-                    case FnCall():
-                        id_type = local_defs[self.extract_id(ident_prod).flat_string()][1]
-                        arr_type = self.evaluate_fn_call(ident_prod.id, local_defs, self_type=id_type)
-                    case _:
-                        raise ValueError(f"Unknown identifier production for indexed identifier: {ident_prod}")
-                if not self.is_accessible(arr_type):
-                    token = self.extract_id(ident_prod.id)
-                    type_definition = local_defs[token.flat_string()][0]
-                    self.errors.append(
-                        NonIterableIndexingError(
-                            token=token,
-                            type_definition=type_definition.dtype,
-                            token_type=arr_type,
-                            usage=ident_prod.flat_string(),
-                        )
-                    )
-                    return Token.from_type(TokenType.SAN)
-                if (not arr_type.to_unit_type(len(ident_prod.index)).type_is(TokenType.SENPAI)
-                    and arr_type.dimension() < len(ident_prod.index)):
-                    self.errors.append(
-                        NonIterableIndexingError(
-                            token=self.extract_id(ident_prod.id),
-                            type_definition=arr_type,
-                            token_type=arr_type.to_unit_type(len(ident_prod.index)),
-                            usage=ident_prod.flat_string(),
-                        )
-                    )
-                    return Token.from_type(TokenType.SAN)
-                return arr_type.to_unit_type(len(ident_prod.index))
-            case FnCall():
-                return self.evaluate_fn_call(ident_prod, local_defs)
             case ClassConstructor():
                 self.check_class_constructor(ident_prod, local_defs)
                 return Token.from_type(ident_prod.id.token)
-            case ClassAccessor():
-                return self.check_and_evaluate_class_accessor(ident_prod, local_defs)
+            case IndexedIdentifier(): return self.evaluate_indexed_id(ident_prod, local_defs)
+            case FnCall(): return self.evaluate_fn_call(ident_prod, local_defs)
+            case ClassAccessor(): return self.check_and_evaluate_class_accessor(ident_prod, local_defs)
+            case _: raise ValueError(f"Unknown identifier production: {ident_prod}")
+
+    def evaluate_indexed_id(self, ident_prod: IndexedIdentifier, local_defs: dict[str, Signature]) -> Token:
+        self.check_indexed_id_indices(ident_prod, local_defs)
+        match ident_prod.id:
+            case Token(): arr_type = self.evaluate_token(ident_prod.id, local_defs)
+            case FnCall():
+                id_type = local_defs[self.extract_id(ident_prod).flat_string()].dtype
+                arr_type = self.evaluate_fn_call(ident_prod.id, local_defs, self_type=id_type)
             case _:
-                raise ValueError(f"Unknown identifier production: {ident_prod}")
+                raise ValueError(f"Unknown identifier production for indexed identifier: {ident_prod}")
+        if not self.is_accessible(arr_type):
+            token = self.extract_id(ident_prod.id)
+            type_definition = local_defs[token.flat_string()].decl.dtype
+            self.errors.append(
+                NonIterableIndexingError(
+                    token=token,
+                    type_definition=type_definition,
+                    token_type=arr_type,
+                    usage=ident_prod.flat_string(),
+                )
+            )
+            return Token.from_type(TokenType.SAN)
+        if (not arr_type.to_unit_type(len(ident_prod.index)).type_is(TokenType.SENPAI)
+            and arr_type.dimension() < len(ident_prod.index)):
+            self.errors.append(
+                NonIterableIndexingError(
+                    token=self.extract_id(ident_prod.id),
+                    type_definition=arr_type,
+                    token_type=arr_type.to_unit_type(len(ident_prod.index)),
+                    usage=ident_prod.flat_string(),
+                )
+            )
+            return Token.from_type(TokenType.SAN)
+        return arr_type.to_unit_type(len(ident_prod.index))
 
     def check_indexed_id_indices(self, indexed_id: IndexedIdentifier, local_defs: dict[str, Signature]) -> None:
         dtypes: list[Token] = []
