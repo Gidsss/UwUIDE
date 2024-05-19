@@ -8,6 +8,18 @@ class IdProd(Enum):
     TOKEN = 0
     FN_CALL = 1
     INDEXED_ID = 2
+class Signature:
+    def __init__(
+        self,
+        decl: Declaration = Declaration(),
+        dtype: Token = Token(),
+        global_type: GlobalType = GlobalType.IDENTIFIER
+    ):
+        self.decl = decl
+        self.dtype = dtype
+        self.global_type = global_type
+    def items(self):
+        return (self.decl, self.dtype, self.global_type)
 
 class TypeChecker:
     def __init__(self, program: Program):
