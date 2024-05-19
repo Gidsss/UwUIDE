@@ -546,92 +546,97 @@ class TypeChecker:
 
     def evaluate_expression(self, expr: Expression, local_defs: dict[str, Signature]) -> Token:
         match expr:
-            case PrefixExpression():
-                right = self.evaluate_value(expr.right, local_defs)
-                if right not in self.math_operands():
-                    definition = None
-                    if isinstance(expr.right, Token) and isinstance(expr.right.token, UniqueTokenType):
-                        definition = local_defs[expr.right.flat_string()][0]
-                    self.errors.append(
-                        PrePostFixOperandError(
-                            header=f"Non-Math Prefix Operand: '{expr.right.flat_string()}'",
-                            op=expr.op,
-                            val=expr.right,
-                            val_definition=definition.dtype if definition else None,
-                            val_type=right,
-                        )
-                    )
-                    self.expr_err_count += 1
-                return right
-            case InfixExpression():
-                left = self.evaluate_value(expr.left, local_defs)
-                right = self.evaluate_value(expr.right, local_defs)
+            case PrefixExpression(): return self.evaluate_prefix_expression(expr, local_defs)
+            case InfixExpression(): return self.evaluate_infix_expression(expr, local_defs)
+            case PostfixExpression(): return self.evaluate_postfix_expression(expr, local_defs)
+            case _: raise ValueError(f"Unknown expression: {expr}")
 
-                if expr.op.token in self.math_operators():
-                    if not (left in self.math_operands() and right in self.math_operands()):
-                        left_definition, right_definition = None, None
-                        if isinstance(expr.left, Token) and isinstance(expr.left.token, UniqueTokenType):
-                            left_definition = local_defs[expr.left.flat_string()][0]
-                        if isinstance(expr.right, Token) and isinstance(expr.right.token, UniqueTokenType):
-                            right_definition = local_defs[expr.right.flat_string()][0]
-                        self.errors.append(
-                            InfixOperandError(
-                                header="Non-Math Infix Operand",
-                                op=expr.op,
-                                left=(expr.left, left_definition.dtype if left_definition else None),
-                                right=(expr.right, right_definition.dtype if right_definition else None),
-                                left_type=left if left.token not in self.math_operands() else Token(),
-                                right_type=right if right.token not in self.math_operands() else Token(),
-                            )
-                        )
-                        self.expr_err_count += 1
-                    if left == TokenType.KUN or right == TokenType.KUN:
-                        return Token.from_type(TokenType.KUN)
-                    else:
-                        return Token.from_type(TokenType.CHAN)
-                elif expr.op.token in self.comparison_operators():
-                    if not (left in self.math_operands() and right in self.math_operands()):
-                        left_definition, right_definition = None, None
-                        if isinstance(expr.left, Token) and isinstance(expr.left.token, UniqueTokenType):
-                            left_definition = local_defs[expr.left.flat_string()][0]
-                        if isinstance(expr.right, Token) and isinstance(expr.right.token, UniqueTokenType):
-                            right_definition = local_defs[expr.right.flat_string()][0]
-                        self.errors.append(
-                            InfixOperandError(
-                                header="Non-Comparison Infix Operand: ",
-                                op=expr.op,
-                                left=(expr.left, left_definition.dtype if left_definition else None),
-                                right=(expr.right, right_definition.dtype if right_definition else None),
-                                left_type=left if left.token not in self.math_operands() else Token(),
-                                right_type=right if right.token not in self.math_operands() else Token(),
-                            )
-                        )
-                        self.expr_err_count += 1
-                    return Token.from_type(TokenType.SAMA)
-                elif expr.op.token in self.equality_operators():
-                    return Token.from_type(TokenType.SAMA)
-                else:
-                    raise ValueError(f"Unknown operator: {expr.op}")
-            case PostfixExpression():
-                left = self.evaluate_value(expr.left, local_defs)
-                if left not in self.math_operands():
-                        definition = None
-                        if isinstance(expr.left, Token) and isinstance(expr.left.token, UniqueTokenType):
-                            definition = local_defs[expr.left.flat_string()][0]
-                        self.errors.append(
-                            PrePostFixOperandError(
-                                header=f"Non-Math Postfix Operand: '{expr.left.flat_string()}'",
-                                op=expr.op,
-                                val=expr.left,
-                                val_definition=definition.dtype if definition else None,
-                                val_type=left,
-                                postfix=True,
-                            )
-                        )
-                        self.expr_err_count += 1
-                return left
-            case _:
-                raise ValueError(f"Unknown expression: {expr}")
+    def evaluate_prefix_expression(self, expr: PrefixExpression, local_defs: dict[str, Signature]) -> Token:
+        right = self.evaluate_value(expr.right, local_defs)
+        if right not in self.math_operands():
+            if isinstance(expr.right, Token) and isinstance(expr.right.token, UniqueTokenType):
+                signature = local_defs[expr.right.flat_string()].decl.dtype
+            else: signature = None
+            self.errors.append(
+                PrePostFixOperandError(
+                    header=f"Non-Math Prefix Operand: '{expr.right.flat_string()}'",
+                    op=expr.op,
+                    val=expr.right,
+                    val_definition=signature,
+                    val_type=right,
+                )
+            )
+            self.expr_err_count += 1
+        return right
+
+    def evaluate_infix_expression(self, expr: InfixExpression, local_defs: dict[str, Signature]) -> Token:
+        left = self.evaluate_value(expr.left, local_defs)
+        right = self.evaluate_value(expr.right, local_defs)
+
+        if expr.op.token in self.math_operators():
+            if not (left in self.math_operands() and right in self.math_operands()):
+                left_signature, right_signature = None, None
+                if isinstance(expr.left, Token) and isinstance(expr.left.token, UniqueTokenType):
+                    left_signature = local_defs[expr.left.flat_string()].dtype
+                if isinstance(expr.right, Token) and isinstance(expr.right.token, UniqueTokenType):
+                    right_signature = local_defs[expr.right.flat_string()].dtype
+                self.errors.append(
+                    InfixOperandError(
+                        header="Non-Math Infix Operand",
+                        op=expr.op,
+                        left=(expr.left, left_signature),
+                        right=(expr.right, right_signature),
+                        left_type=left if left.token not in self.math_operands() else Token(),
+                        right_type=right if right.token not in self.math_operands() else Token(),
+                    )
+                )
+                self.expr_err_count += 1
+            if TokenType.KUN in [left.token, right.token]:
+                return Token.from_type(TokenType.KUN)
+            else:
+                return Token.from_type(TokenType.CHAN)
+        elif expr.op.token in self.comparison_operators():
+            if not (left in self.math_operands() and right in self.math_operands()):
+                left_signature, right_signature = None, None
+                if isinstance(expr.left, Token) and isinstance(expr.left.token, UniqueTokenType):
+                    left_signature = local_defs[expr.left.flat_string()].dtype
+                if isinstance(expr.right, Token) and isinstance(expr.right.token, UniqueTokenType):
+                    right_signature = local_defs[expr.right.flat_string()].dtype
+                self.errors.append(
+                    InfixOperandError(
+                        header="Non-Comparison Infix Operand: ",
+                        op=expr.op,
+                        left=(expr.left, left_signature),
+                        right=(expr.right, right_signature),
+                        left_type=left if left.token not in self.math_operands() else Token(),
+                        right_type=right if right.token not in self.math_operands() else Token(),
+                    )
+                )
+                self.expr_err_count += 1
+            return Token.from_type(TokenType.SAMA)
+        elif expr.op.token in self.equality_operators():
+            return Token.from_type(TokenType.SAMA)
+        else:
+            raise ValueError(f"Unknown operator: {expr.op}")
+
+    def evaluate_postfix_expression(self, expr: PostfixExpression, local_defs: dict[str, Signature]) -> Token:
+        left = self.evaluate_value(expr.left, local_defs)
+        if left not in self.math_operands():
+            dtype_definition = None
+            if isinstance(expr.left, Token) and isinstance(expr.left.token, UniqueTokenType):
+                dtype_definition = local_defs[expr.left.flat_string()].dtype
+            self.errors.append(
+                PrePostFixOperandError(
+                    header=f"Non-Math Postfix Operand: '{expr.left.flat_string()}'",
+                    op=expr.op,
+                    val=expr.left,
+                    val_definition=dtype_definition,
+                    val_type=left,
+                    postfix=True,
+                )
+            )
+            self.expr_err_count += 1
+        return left
 
     def evaluate_ident_prods(self, ident_prod: IdentifierProds, local_defs: dict[str, Signature]) -> Token:
         match ident_prod:
