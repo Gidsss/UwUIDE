@@ -256,6 +256,7 @@ class FnCall(IdentifierProds):
     def __init__(self):
         self.id: Token = Token()
         self.args: list[Value] = []
+        self.need_self = False
 
     def header(self):
         return sprint("call:", self.id.string(),indent=0)
@@ -267,7 +268,9 @@ class FnCall(IdentifierProds):
     def flat_string(self, indent = 0) -> str:
         return sprint(f"{self.id.flat_string()}({', '.join(a.flat_string() for a in self.args)})", indent=indent)
     def python_string(self, indent=0, cwass=False) -> str:
-        return sprint(f"{self.id.python_string(cwass=cwass)}({', '.join(a.python_string(cwass=cwass) for a in self.args)})", indent=indent)
+        res = ""
+        if self.need_self: res += "self."
+        return sprint(res + f"{self.id.python_string(cwass=cwass)}({', '.join(a.python_string(cwass=cwass) for a in self.args)})", indent=indent)
     def formatted_string(self, indent=0) -> str:
         return sprint(f"{self.id.formatted_string()}({', '.join(a.formatted_string() for a in self.args)})~", indent=indent)
 
