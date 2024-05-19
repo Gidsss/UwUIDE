@@ -21,6 +21,7 @@ class TypeChecker:
         self.function_param_types: dict[str, list[Token]] = {}
         self.class_param_types: dict[str, list[Token]] = {}
         self.return_list: list[Token] = []
+        self.in_class_type: Token = Token()
         self.compile_global_types()
         self.check_program()
 
@@ -257,11 +258,13 @@ class TypeChecker:
 
     def check_class(self, cwass: Class, local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> None:
         'make sure you pass in a copy of local_defs when calling this'
+        self.in_class_type = cwass.id
         self.compile_params(cwass.params, local_defs)
         for prop in cwass.properties:
             self.check_declaration(prop, local_defs)
         for method in cwass.methods:
             self.check_function(method, local_defs, cwass=cwass.id.flat_string())
+        self.in_class_type = Token()
 
     def compile_params(self, params: list[Declaration], local_defs: dict[str, tuple[Declaration, Token, GlobalType]]) -> None:
         'make sure you pass in a copy of local_defs when calling this'
@@ -935,9 +938,14 @@ class TypeChecker:
 
     def evaluate_fn_call(self, fn_call: FnCall, local_defs: dict[str, tuple[Declaration, Token, GlobalType]],
                          *, self_type: Token = Token()) -> Token:
-        expected_types = self.function_param_types[fn_call.id.flat_string()]
+        if self.in_class_type.exists():
+            fn_call.need_self = True
+            expected_types = self.class_method_param_types[f"{self.in_class_type.flat_string()}.{fn_call.id.flat_string()}"]
+            ret_type = self.class_signatures[f"{self.in_class_type.flat_string()}.{fn_call.id.flat_string()}"][1]
+        else:
+            expected_types = self.function_param_types[fn_call.id.flat_string()]
+            ret_type = local_defs[fn_call.id.flat_string()][1]
         self.check_call_args(GlobalType.FUNCTION, fn_call.id.flat_string(), fn_call.id, fn_call.args, expected_types, local_defs)
-        ret_type = local_defs[fn_call.id.flat_string()][1]
         match ret_type:
             case TokenType.GEN_ARRAY:
                 return self_type if self_type.exists() else Token.from_type(TokenType.SAN)
