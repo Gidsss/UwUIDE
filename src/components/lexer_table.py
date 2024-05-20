@@ -1,3 +1,5 @@
+import re
+
 from customtkinter import *
 
 from src.lexer import Token
@@ -19,14 +21,25 @@ class LexerTable(CTkFrame):
 
         for i, token in enumerate(self.tokens):
 
-            lexeme_label = CTkLabel(master=self, text=token.lexeme, fg_color='transparent', font=('JetBrains Mono', 13), text_color='#FFFFFF')
+            # Remove array info on lexeme
+            lex = token.lexeme
+            pattern = r".+\[[\d]*\]"  # Matches strings that have [] or [x] in the end
+            matched = re.search(pattern, lex)
+            if matched:
+                lex = lex[:lex.find("[")]
+            lexeme_label = CTkLabel(master=self, text=lex, fg_color='transparent', font=('JetBrains Mono', 13), text_color='#FFFFFF')
 
             token_label = None
-
             if(token.is_unique_type()):
                 token_label = CTkLabel(master=self, text=token.token.unique_type, fg_color='transparent', font=('JetBrains Mono', 13), text_color='#FFFFFF')
             else:
-                token_label = CTkLabel(master=self, text=token.token, fg_color='transparent', font=('JetBrains Mono', 13), text_color='#FFFFFF')
+                # Remove array info on lexeme
+                tok = token.token.string()
+                pattern = r".+\[[\d]*\]"  # Matches strings that have [] or [x] in the end
+                matched = re.search(pattern, tok)
+                if matched:
+                    tok = tok[:tok.find("[")]
+                token_label = CTkLabel(master=self, text=tok, fg_color='transparent', font=('JetBrains Mono', 13), text_color='#FFFFFF')
 
             lexeme_label.grid(row=i*2, column=0, sticky='ew')
             token_label.grid(row=i*2, column=1, sticky='ew')
