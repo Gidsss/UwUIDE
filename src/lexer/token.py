@@ -512,7 +512,7 @@ class Token:
 
     @property
     def lexeme(self) -> str:
-        return self._lexeme
+        return self._lexeme.replace("\\\\", "\\")
 
     @lexeme.setter
     def lexeme(self, lexeme: str):
