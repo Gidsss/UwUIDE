@@ -245,7 +245,7 @@ class StringFmt(Iterable):
         start = self.start.lexeme[:-1].replace("|", "\|")
         end = self.end.lexeme[1:].replace("|", "\|")
         res = "''"
-        res = f"{start}{''.join([c if type(c) == str else c.formatted_string() for c in self.mid_expr_uwu()])}{end}"
+        res = f"{start}{''.join([c for c in self.mid_expr_uwu(format=True)])}{end}"
         if self.concats:
             res += ' & ' + ' & '.join(c.formatted_string() for c in self.concats)
         return res
@@ -264,13 +264,13 @@ class StringFmt(Iterable):
             all.append(m)
             all.append(e)
         return all
-    def mid_expr_uwu(self):
-        all = []
+    def mid_expr_uwu(self, format=False) -> list[str]:
+        all: list[str] = []
         if self.exprs:
-            all.append(f"|{self.exprs[0]}|")
+            all.append(f"|{self.exprs[0].formatted_string() if format else self.exprs[0].flat_string()}|")
         for m,e in zip(self.mid, self.exprs[1:]):
             all.append(m.lexeme[1:-1].replace("|", "\|"))
-            all.append(f"|{e}|")
+            all.append(f"|{e.formatted_string() if format else e.flat_string()}|")
         return all
 
     def __len__(self):
