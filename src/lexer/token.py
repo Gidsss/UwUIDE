@@ -370,7 +370,7 @@ class Token:
             case TokenType.FLOAT_LITERAL:
                 return f"Float({self.lexeme})"
             case TokenType.STRING_LITERAL:
-                return f"String({self.lexeme})"
+                return f"String({self.lexeme.replace('{', '{{').replace('}', '}}')})"
             case TokenType.MAINUWU:
                 return "main"
             case TokenType.FWUNC:
@@ -415,11 +415,11 @@ class Token:
             case TokenType.NUWW:
                 return "None"
             case TokenType.STRING_PART_START:
-                return f'String(f{self.lexeme[:-1]}{{'
+                return f"String(f{self.lexeme[:-1].replace('{', '{{').replace('}', '}}')}{{"
             case TokenType.STRING_PART_MID:
-                return f'}}{self.lexeme[1:-1]}{{'
+                return f"}}{self.lexeme[1:-1].replace('{', '{{').replace('}', '}}')}{{"
             case TokenType.STRING_PART_END:
-                return f'}}{self.lexeme[1:]})'
+                return f"}}{self.lexeme[1:].replace('{', '{{').replace('}', '}}')})"
             case TokenType.FAX:
                 return "Bool(True)"
             case TokenType.CAP:
@@ -512,7 +512,7 @@ class Token:
 
     @property
     def lexeme(self) -> str:
-        return self._lexeme.replace("\\\\", "\\")
+        return self._lexeme
 
     @lexeme.setter
     def lexeme(self, lexeme: str):
