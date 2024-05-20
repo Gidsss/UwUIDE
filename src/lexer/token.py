@@ -443,7 +443,7 @@ class Token:
 
     def formatted_string(self, indent=0) -> str:
         if self.token == TokenType.STRING_LITERAL:
-            return self.lexeme.replace("\\\\", "\\").replace("|", "\|")
+            return self.lexeme.replace("|", "\|")
         if self.lexeme.endswith("[1]"):
             return self.lexeme.replace("[1]", "[]")
         return self.lexeme
@@ -512,7 +512,7 @@ class Token:
 
     @property
     def lexeme(self) -> str:
-        return self._lexeme
+        return self._lexeme.replace("\\\\", "\\")
 
     @lexeme.setter
     def lexeme(self, lexeme: str):
