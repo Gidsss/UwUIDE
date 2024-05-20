@@ -549,7 +549,11 @@ class Parser:
                 else:
                     c.definition_order.append([res])
 
-                self.advance()
+                self.advance(skip_comments=False)
+            elif self.curr_tok_is_in([TokenType.SINGLE_LINE_COMMENT, TokenType.MULTI_LINE_COMMENT]):
+                res = Comment(self.curr_tok)
+                c.definition_order.append(res)
+                self.advance(skip_comments=False)
             else:
                 self.expected_error([TokenType.FWUNC, "IDENTIFIER"], curr=True)
                 self.advance()
