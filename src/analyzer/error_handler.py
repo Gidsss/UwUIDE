@@ -352,7 +352,7 @@ class UndefinedError(SemanticError):
         msg = f"Undefined {self.gtype}: {self.token}\n"
         msg += border
         msg += f"\t{' ' * max_pad} | \t"
-        msg +='Undefined identifier\n'
+        msg += f'Undefined {self.gtype}\n'
         msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.token.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.token.position[1]}{'^' * (error_range)}\n"
         msg += border
@@ -368,7 +368,7 @@ class UndefinedError(SemanticError):
         msg += border
         msg += f"\t{' ' * max_pad} | \t"
         msg += Styled.sprintln(
-            'Undefined identifier',
+            f'Undefined {self.gtype}',
             color=AnsiColor.RED)
         msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.token.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.token.position[1]}{'^' * (error_range)}\n"
@@ -381,7 +381,7 @@ class ReassignedConstantError:
         self.token = token
         self.defined_token = defined_token
         self.header = header
-        self.msg = token_msg + '\n'
+        self.msg = token_msg
 
     def position(self) -> tuple[int, int]|None:
         return self.token.position
@@ -406,7 +406,7 @@ class ReassignedConstantError:
         msg += f"\t{' ' * max_pad} | {'_' * (self.defined_token.position[1])}|\n"
         msg += f"\t{' ' * max_pad} | |\n"
         msg += f"\t{' ' * max_pad} | |\t"
-        msg += self.msg
+        msg += self.msg + "\n"
         msg += f"\t{index_str:{max_pad}} | |{ErrorSrc.src[self.token.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | |{' ' * self.token.position[1]}{'^' * (error_range)}\n"
         msg += f"\t{' ' * max_pad} | |{'_' * (self.token.position[1])}|\n"
