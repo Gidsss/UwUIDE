@@ -9,7 +9,7 @@ class Compiler:
     def __init__(self, py_source: str, filename: str) -> None:
         if not (res := self.validate_file(filename)): return
         self.filename = res
-        self.source = self.builtins() + py_source.replace('\\\\', '\\')
+        self.source = self.builtins() + py_source
 
     def validate_file(self, filename: str) -> str|None:
         # TODO: add more validations maybe?
