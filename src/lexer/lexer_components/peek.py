@@ -347,7 +347,6 @@ def string(context: tuple[list[str], list[int], str, list[Token], list[DelimErro
         token_types = (TokenType.STRING_PART_MID, TokenType.STRING_PART_END)
     
     temp_string = ''
-    escape_count = 0
     current_line = position[0]
 
     while True:
@@ -379,10 +378,7 @@ def string(context: tuple[list[str], list[int], str, list[Token], list[DelimErro
             if current_char not in ["|", '"']:
                 _, current_char = reverse_cursor(context)
                 context = lines, position, current_char, tokens, logs
-
-                temp_string += '\\'
-            else:
-                escape_count += 1
+            temp_string += '\\'
         
         elif current_char in ['|', '"']:
             if current_char == '|':
