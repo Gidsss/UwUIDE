@@ -925,7 +925,12 @@ class Class(Production):
             else:
                 res += '):\n'
             for param in self.params:
-                res += sprintln(f"self.{param.id.python_string(cwass=True)}: {param.dtype.python_string(cwass=True)} = {param.dtype.python_string(cwass=True)}({param.id.python_string(cwass=True)})", indent=indent+2)
+                if param.dtype.is_unique_type():
+                    res += sprintln(
+                        f"self.{param.id.python_string(cwass=True)}: {param.dtype.python_string(cwass=True)} = {param.id.python_string(cwass=True)}",
+                        indent=indent + 2)
+                else:
+                    res += sprintln(f"self.{param.id.python_string(cwass=True)}: {param.dtype.python_string(cwass=True)} = {param.dtype.python_string(cwass=True)}({param.id.python_string(cwass=True)})", indent=indent+2)
                 class_properties.add(param.id.python_string(cwass=True))
             for prop in self.properties:
                 res += sprintln(f"self.{prop.python_string(cwass=True)}", indent=indent+2)
