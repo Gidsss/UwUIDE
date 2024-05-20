@@ -361,7 +361,7 @@ def string(context: tuple[list[str], list[int], str, list[Token], list[DelimErro
                 _, current_char = reverse_cursor(context)
                 context = lines, position, current_char, tokens, logs
 
-            starting_position = (position[0], position[1]-len(temp_string)+1)
+            starting_position = (position[0], position[1]-len(temp_string.replace('\\\\', '\\'))+1)
             ending_position = (position[0], position[1])
             logs.append(GenericError(Error.UNCLOSED_STRING, starting_position, ending_position,
                                             context = f"'{temp_string}' is unclosed"))
@@ -390,7 +390,7 @@ def string(context: tuple[list[str], list[int], str, list[Token], list[DelimErro
 
             temp_string += current_char
             temp_string = '"' + temp_string[1:-1] + '"'
-            temp_string_length = len(temp_string) + escape_count
+            temp_string_length = len(temp_string.replace('\\\\', '\\'))
 
             starting_position = (position[0], position[1]-temp_string_length+1)
             ending_position = (position[0], position[1])
