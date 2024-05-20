@@ -374,11 +374,8 @@ def string(context: tuple[list[str], list[int], str, list[Token], list[DelimErro
             if is_end_of_file:
                 break
 
-            # NOTE put escapable characters here
-            if current_char not in ["|", '"']:
-                _, current_char = reverse_cursor(context)
-                context = lines, position, current_char, tokens, logs
-            temp_string += '\\'
+            if current_char == '|': temp_string += ''
+            else: temp_string += '\\'
         
         elif current_char in ['|', '"']:
             if current_char == '|':
