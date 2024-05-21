@@ -279,12 +279,18 @@ class CodeEditor(CTkFrame):
     def paste_text(self, event: Event):
         try:
             text_to_paste = event.widget.clipboard_get()
-            event.widget.insert(INSERT, text_to_paste)
+            if event.widget.tag_ranges("sel"):
+                # If there is text selected, replace it with the clipboard text
+                event.widget.delete("sel.first", "sel.last")
+                event.widget.insert("insert", text_to_paste)
+            else:
+                # If there is no text selected, just insert at the cursor
+                event.widget.insert(INSERT, text_to_paste)
             print('Working')
-            self.line_nums.on_redraw(event)
-        except:
+        except TclError:
             raise ValueError('Clipboard is empty')
-        
+        finally:
+            self.line_nums.on_redraw(event)
         return "break"
 
 class CodeView(CTkTabview):
