@@ -121,7 +121,7 @@ class PostfixExpression(Expression):
     def flat_string(self) -> str:
         return f"{self.left.flat_string()}{self.op.flat_string()}"
     def python_string(self, indent=0, cwass=False) -> str:
-        return f"{self.left.python_string(cwass=cwass)}{self.op.python_string(cwass=cwass)}"
+        return f"({self.left.python_string(cwass=cwass)}{self.op.python_string(cwass=cwass)})"
     def formatted_string(self, indent=0) -> str:
         res = f"{self.left.formatted_string()}{self.op.formatted_string()}"
         if self.grouped:
