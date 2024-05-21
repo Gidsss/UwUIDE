@@ -1,6 +1,7 @@
 import re
 
 from customtkinter import *
+from tkinter import *
 
 from src.lexer import Token
 from .code_view import Remote, Tags
@@ -11,15 +12,17 @@ class LexerTable(CTkFrame):
         super().__init__(master, **kwargs)
         self.tokens = tokens
         self.columns = (0, 1)
-        self.rows = tuple([i for i in range(len(self.tokens))]) if len(self.tokens) > 0 else (0, 1, 2, 3, 4)
-
         self.grid_columnconfigure(self.columns, weight=1)
 
         self.code_editor = Remote.code_editor_instance
         self.lexemes_labels = []
         self.token_labels = []
+        self.tooltips = []  # Store tooltip instances to avoid garbage collection
 
         for i, token in enumerate(self.tokens):
+            # Clean up lexeme and token values, remove index hints like [1]
+            lex = re.sub(r'\[\d*\]', '', token.lexeme)
+            tok = re.sub(r'\[\d*\]', '', str(token.token))
 
             # Remove array info on lexeme
             lex = token.lexeme
@@ -41,19 +44,38 @@ class LexerTable(CTkFrame):
                     tok = tok.split("[")[0]
                 token_label = CTkLabel(master=self, text=tok, fg_color='transparent', font=('JetBrains Mono', 13), text_color='#FFFFFF')
 
+            # Check if lexeme exceeds 15 characters
+            display_lex = lex if len(lex) <= 15 else lex[:12] + '...'
+
+            # Create labels
+            lexeme_label = CTkLabel(master=self, text=display_lex, fg_color='transparent', font=('JetBrains Mono', 13), text_color='#FFFFFF')
+            token_label = CTkLabel(master=self, text=tok, fg_color='transparent', font=('JetBrains Mono', 13), text_color='#FFFFFF')
+
             lexeme_label.grid(row=i*2, column=0, sticky='ew')
             token_label.grid(row=i*2, column=1, sticky='ew')
 
-            separator_line = CTkCanvas(master=self, height=2, bg='#16161e', highlightthickness=0)
-            separator_line.grid(row=i * 2 + 1, column=0, columnspan=2, sticky='ew')
+            # Create tooltips and bind hover events to show full text
+            lexeme_tooltip = ToolTip(lexeme_label)
+            token_tooltip = ToolTip(token_label)
+            
+            # Bind combined functions for hover and tooltip display
+            lexeme_label.bind("<Enter>", lambda ev, t=token, tip=lexeme_tooltip, text=lex: self.combined_enter(t, tip, text))
+            token_label.bind("<Enter>", lambda ev, t=token, tip=token_tooltip, text=tok: self.combined_enter(t, tip, text))
 
-            # Bind callbacks for token highlighting
-            lexeme_label.bind("<Enter>", lambda ev, t=token: self.on_hover(t))
-            token_label.bind("<Enter>", lambda ev, t=token: self.on_hover(t))
+            # Bind combined function for clicks
             lexeme_label.bind("<Button-1>", lambda ev, t=token: self.on_click(t))
             token_label.bind("<Button-1>", lambda ev, t=token: self.on_click(t))
-            lexeme_label.bind("<Leave>", lambda ev: self.code_editor.clear_format())
-            token_label.bind("<Leave>", lambda ev: self.code_editor.clear_format())
+
+            # Leave handlers for tooltips
+            lexeme_label.bind("<Leave>", lambda ev, tip=lexeme_tooltip: tip.hide())
+            token_label.bind("<Leave>", lambda ev, tip=token_tooltip: tip.hide())
+
+            # Store tooltips to prevent garbage collection
+            self.tooltips.extend([lexeme_tooltip, token_tooltip])
+
+            # Separator line
+            separator_line = CTkCanvas(master=self, height=2, bg='#16161e', highlightthickness=0)
+            separator_line.grid(row=i * 2 + 1, column=0, columnspan=2, sticky='ew')
 
             self.lexemes_labels.append(lexeme_label)
             self.token_labels.append(token_label)
@@ -72,6 +94,13 @@ class LexerTable(CTkFrame):
     def on_click(self, token):
         positions = [(_t.position, _t.end_position) for _t in self.tokens if str(_t.token) == str(token.token)]
         self.code_editor.format_multiple(Tags.TOKEN_HIGHLIGHT.name, positions)
+    
+    def combined_enter(self, token, tooltip, text):
+        """
+            Handle mouse enter event by activating hover effect and showing tooltip.
+        """
+        self.on_hover(token)  # Your existing hover function
+        tooltip.show(text)    # Show tooltip with full text
 
 
 class LexerCanvas(CTkCanvas):
@@ -100,3 +129,28 @@ class LexerCanvas(CTkCanvas):
             self.table.delete_labels()
 
         self.render_table(tokens=tokens)
+
+class ToolTip:
+    def __init__(self, widget):
+        self.widget = widget
+        self.tip_window = None
+
+    def show(self, text):
+        """
+            Display text in tooltip window
+        """
+        if self.tip_window or not text:
+            return
+        x, y, cx, cy = self.widget.bbox("insert")
+        x = x + self.widget.winfo_rootx() + 25
+        y = y + cy + self.widget.winfo_rooty() + 25
+        self.tip_window = tw = Toplevel(self.widget)
+        tw.wm_overrideredirect(True)
+        tw.wm_geometry("+%d+%d" % (x, y))
+        label = Label(tw, text=text, justify=LEFT, background="#ffffe0", relief=SOLID, borderwidth=1, font=("JetBrains Mono", "10"))
+        label.pack(ipadx=1)
+
+    def hide(self):
+        tw = self.tip_window
+        tw.destroy() if tw else None
+        self.tip_window = None
