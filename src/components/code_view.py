@@ -1,20 +1,25 @@
 import subprocess
+import uuid
 import threading
 
 from customtkinter import *
 from tkinter import *
 from constants.path import *
+from theme import themes
 
 from src.lexer import Lexer, Token, Error
+from src.lexer.token import UniqueTokenType
 from src.parser import Parser, ErrorSrc
 from src.analyzer import MemberAnalyzer, TypeChecker
 from src.analyzer.error_handler import ErrorSrc as AnalyzerErrorSrc
 from src.compiler import Compiler
+from .util import generate_log
 
 from enum import Enum
 from PIL import Image
 
-
+# edit theme to change the color scheme
+EDITOR_THEME = themes['tokyo']
 class Linenums(CTkCanvas):
     def __init__(self, master, text_widget: CTkTextbox, **kwargs):
         super().__init__(master, **kwargs)
@@ -109,6 +114,7 @@ class CodeEditor(CTkFrame):
         self.text.bind("<Return>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<BackSpace>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<Visibility>", lambda e: self.line_nums.on_redraw(e))
+        self.text.bind("<KeyRelease>", lambda e: self.on_idle_gui(e))
 
         self.text.bind("<Control-c>", lambda e: self.copy_text(e))
         self.text.bind("<Control-v>", lambda e: self.paste_text(e))
@@ -117,6 +123,7 @@ class CodeEditor(CTkFrame):
          
         # Initialize QoL text for untitled code editor
         self.init_text()
+        self.syntax_highlight()
  
         # Initialize tags
         for tag in Tags:
@@ -134,13 +141,59 @@ class CodeEditor(CTkFrame):
         e.widget.insert(INSERT, " " * 4)
         return 'break'
 
-    def run_lexer(self) -> bool:
-        self.source_code = [v if v else v + '\n' for v in self.text.get('1.0', 'end-1c').split('\n')]
-        lx: Lexer = self.lexer(self.source_code)
+    def on_idle_gui(self, event = None):
+        # ignore navigation and tab keys
+        if event.keysym in ['Up', 'Down', 'Left', 'Right', 'Tab']:
+            return
+        
+        typing_timer = None
+        # Cancel the previous timer
+        if typing_timer:
+            self.text.after_cancel(typing_timer)
 
+        # Start a new timer
+        typing_timer = self.text.after(1500, self.syntax_highlight)
+
+    def syntax_highlight(self, event = None):
+        self.source_code = [v if v else v + '\n' for v in self.text.get('1.0', 'end-1c').split('\n')]
+
+        lx = self.lexer(self.source_code)
         self.tokens = lx.tokens
         self.lx_errors = lx.errors
 
+        for tag in self.text.tag_names():
+            if tag not in ['token_highlight', 'error_highlight']:
+                self.text.tag_delete(tag)
+
+        for i,token in enumerate(self.tokens):
+            if(token.token.token == 'WHITESPACE'):
+                continue
+            
+            row_pos,col_pos = token.position
+            row_end_pos,col_end_pos = token.end_position
+
+            token_tag_name = uuid.uuid4()
+            token_start_pos = f'{row_pos+1}.{col_pos}'
+            token_end_pos = f'{row_end_pos+1}.{col_end_pos+1}'
+            
+            self.text.tag_add(token_tag_name, token_start_pos,token_end_pos)
+            try:
+                tok = None
+                
+                if(isinstance(token.token, UniqueTokenType)):
+                    tok = token.token.unique_type.split('_')[0]
+                    
+                    if(tok == 'IDENTIFIER' and self.tokens[i - 1].token.token == '.'):
+                        tok = 'METHOD'
+                else:
+                    tok = token.token.token
+
+                fg = EDITOR_THEME[tok]
+                self.text.tag_config(token_tag_name, foreground=fg)
+            except:
+                self.text.tag_config(token_tag_name, foreground=EDITOR_THEME['default'])
+
+    def run_lexer(self) -> bool:
         if(len(self.lx_errors) > 0 and self.program):
             self.program = None
             self.transpiled_program = None
@@ -195,6 +248,8 @@ class CodeEditor(CTkFrame):
         return False
 
     def compile_and_run(self, editor, compiler_status, update_logs_callback):
+        log = generate_log(lx_errors=editor.lx_errors, p_errors=editor.p_errors, a_errors=editor.a_errors)
+
         filename = self.filename.split('.')[0]
         c = Compiler(py_source=self.transpiled_program, filename=self.filename)
         c.compile()
@@ -206,7 +261,7 @@ class CodeEditor(CTkFrame):
             subprocess.run([cmd], shell=True)
 
         compiler_status.is_compiling = False
-        update_logs_callback(editor=editor, is_compiling=compiler_status.is_compiling)
+        update_logs_callback(editor=editor, is_compiling=compiler_status.is_compiling, generated_log=log)
 
     def start(self, editor, compiler_status, update_logs_callback):
         compile_thread = threading.Thread(target=lambda: self.compile_and_run(editor=editor, compiler_status=compiler_status, update_logs_callback=update_logs_callback), name="UwU Compile", daemon=True)
@@ -286,7 +341,7 @@ class CodeEditor(CTkFrame):
             else:
                 # If there is no text selected, just insert at the cursor
                 event.widget.insert(INSERT, text_to_paste)
-            print('Working')
+            self.syntax_highlight()
         except TclError:
             raise ValueError('Clipboard is empty')
         finally:
@@ -351,6 +406,7 @@ class CodeView(CTkTabview):
                 file_content = file.read()
                 self.code_editors[file_name].text.delete('1.0', 'end-1c')
                 self.code_editors[file_name].text.insert('1.0', file_content)
+                self.code_editors[file_name].syntax_highlight()
             self.editor.init_linenums()
 
     def auto_format_code(self):
@@ -365,6 +421,7 @@ class CodeView(CTkTabview):
             # Replace source code with formatted string
             self.editor.text.delete("1.0", END)
             self.editor.text.insert("1.0", self.editor.program.formatted_string())
+            self.editor.syntax_highlight()
 
             # Reset states
             self.editor.lx_errors = []

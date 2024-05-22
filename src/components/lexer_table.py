@@ -67,8 +67,8 @@ class LexerTable(CTkFrame):
             token_label.bind("<Button-1>", lambda ev, t=token: self.on_click(t))
 
             # Leave handlers for tooltips
-            lexeme_label.bind("<Leave>", lambda ev, tip=lexeme_tooltip: tip.hide())
-            token_label.bind("<Leave>", lambda ev, tip=token_tooltip: tip.hide())
+            lexeme_label.bind("<Leave>", lambda ev, tip=lexeme_tooltip: self.combined_leave(tip))
+            token_label.bind("<Leave>", lambda ev, tip=token_tooltip: self.combined_leave(tip))
 
             # Store tooltips to prevent garbage collection
             self.tooltips.extend([lexeme_tooltip, token_tooltip])
@@ -94,6 +94,10 @@ class LexerTable(CTkFrame):
     def on_click(self, token):
         positions = [(_t.position, _t.end_position) for _t in self.tokens if str(_t.token) == str(token.token)]
         self.code_editor.format_multiple(Tags.TOKEN_HIGHLIGHT.name, positions)
+
+    def combined_leave(self, tooltip):
+        tooltip.hide()
+        self.code_editor.clear_format()
     
     def combined_enter(self, token, tooltip, text):
         """
