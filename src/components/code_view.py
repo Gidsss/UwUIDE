@@ -13,6 +13,7 @@ from src.parser import Parser, ErrorSrc
 from src.analyzer import MemberAnalyzer, TypeChecker
 from src.analyzer.error_handler import ErrorSrc as AnalyzerErrorSrc
 from src.compiler import Compiler
+from .util import generate_log
 
 from enum import Enum
 from PIL import Image
@@ -247,6 +248,8 @@ class CodeEditor(CTkFrame):
         return False
 
     def compile_and_run(self, editor, compiler_status, update_logs_callback):
+        log = generate_log(lx_errors=editor.lx_errors, p_errors=editor.p_errors, a_errors=editor.a_errors)
+
         filename = self.filename.split('.')[0]
         c = Compiler(py_source=self.transpiled_program, filename=self.filename)
         c.compile()
@@ -258,7 +261,7 @@ class CodeEditor(CTkFrame):
             subprocess.run([cmd], shell=True)
 
         compiler_status.is_compiling = False
-        update_logs_callback(editor=editor, is_compiling=compiler_status.is_compiling)
+        update_logs_callback(editor=editor, is_compiling=compiler_status.is_compiling, generated_log=log)
 
     def start(self, editor, compiler_status, update_logs_callback):
         compile_thread = threading.Thread(target=lambda: self.compile_and_run(editor=editor, compiler_status=compiler_status, update_logs_callback=update_logs_callback), name="UwU Compile", daemon=True)
