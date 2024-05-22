@@ -347,6 +347,9 @@ class CodeEditor(CTkFrame):
         finally:
             self.line_nums.on_redraw(event)
         return "break"
+    
+    def update_source_code(self, new_code):
+        self.source_code = new_code
 
 class CodeView(CTkTabview):
     def __init__(self, master, parent, **kwargs):
@@ -358,7 +361,33 @@ class CodeView(CTkTabview):
         for file in self.file_names:
             self.create_new_tab(file)
             self.bind_esc(editor=self.code_editors[file], file_name=file)
-    
+
+    def quick_run(self):
+        active_editor = self.editor
+        if active_editor:
+            # Ensure the latest text is always fetched and transpiled
+            source_code = active_editor.text.get('1.0', 'end-1c')  # Fetching the latest code from the editor
+            active_editor.update_source_code(source_code)  # Method to update the editor's source code attribute if needed
+
+            # Run lexer, parser, and analyzer every time to reflect latest changes
+            lx_res = active_editor.run_lexer()
+            p_res = active_editor.run_parser()
+            a_res = active_editor.run_analyzer()
+
+            # Update analyzer tabs and compiler logs
+            self.parent.master.update_analyzer_tabs_and_logs(active_editor, lx_res, p_res, a_res)
+
+            if lx_res and p_res and a_res:
+                if active_editor.transpiled_program:
+                    compiler = Compiler(py_source=active_editor.transpiled_program, filename=active_editor.filename)
+                    compiler.run_python()  # Run the Python transpiled code
+                else:
+                    print("No transpiled program available to run.")
+            else:
+                print("Errors encountered during quick run.")
+        else:
+            print("No active editor.")
+
     def create_new_tab(self, file_name):
         tab = self.add(file_name)
         tab.grid_columnconfigure((0, 1), weight=1)
@@ -390,7 +419,7 @@ class CodeView(CTkTabview):
 
         if code_editor:
             file_content = code_editor.text.get('1.0', 'end-1c')
-            file_name = filedialog.asksaveasfilename(initialfile=self.get(),defaultextension=".uwu", filetypes=[("UwU Files", "*.uwu")])
+            file_name = filedialog.asksaveasfilename(initialfile=self.get(), defaultextension=".uwu", filetypes=[("UwU Files", "*.uwu")])
             if file_name:
                 with open(file_name, "w") as file:
                     file.write(file_content)
@@ -410,7 +439,6 @@ class CodeView(CTkTabview):
             self.editor.init_linenums()
 
     def auto_format_code(self):
-
         # Validate source code
         lx_res = self.editor.run_lexer()
         p_res = self.editor.run_parser()
