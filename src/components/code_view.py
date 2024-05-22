@@ -193,12 +193,6 @@ class CodeEditor(CTkFrame):
                 self.text.tag_config(token_tag_name, foreground=EDITOR_THEME['default'])
 
     def run_lexer(self) -> bool:
-        # self.source_code = [v if v else v + '\n' for v in self.text.get('1.0', 'end-1c').split('\n')]
-        # lx: Lexer = self.lexer(self.source_code)
-
-        # self.tokens = lx.tokens
-        # self.lx_errors = lx.errors
-
         if(len(self.lx_errors) > 0 and self.program):
             self.program = None
             self.transpiled_program = None
@@ -344,7 +338,7 @@ class CodeEditor(CTkFrame):
             else:
                 # If there is no text selected, just insert at the cursor
                 event.widget.insert(INSERT, text_to_paste)
-            print('Working')
+            self.syntax_highlight()
         except TclError:
             raise ValueError('Clipboard is empty')
         finally:
@@ -409,6 +403,7 @@ class CodeView(CTkTabview):
                 file_content = file.read()
                 self.code_editors[file_name].text.delete('1.0', 'end-1c')
                 self.code_editors[file_name].text.insert('1.0', file_content)
+                self.code_editors[file_name].syntax_highlight()
             self.editor.init_linenums()
 
     def auto_format_code(self):
