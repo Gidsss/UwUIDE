@@ -31,7 +31,20 @@ class CommandMenu(CTkFrame):
             height=30,
             command=self.code_view.auto_format_code  # Set the command to trigger file loading
         )
-        self.formatButton.grid(row=0, column=12, sticky='', columnspan=1)
+        self.formatButton.grid(row=0, column=11, sticky='', columnspan=1)
+
+        self.quickRunButtonBgImage = CTkImage(light_image=Image.open(f"{RUN_ASSET}")) # Change the image asset tomorrow
+        self.quickRunButton = CTkButton(
+            master=self,
+            image=self.quickRunButtonBgImage,
+            fg_color='#1A1B26',
+            text='Quick Run',
+            font=('JetBrains Mono', 12),
+            width=99,
+            height=30,
+            command=self.code_view.quick_run
+        )
+        self.quickRunButton.grid(row=0, column=12, sticky='', columnspan=1)
 
         self.compileAndRunBgImage = CTkImage(light_image=Image.open(f"{RUN_ASSET}"))
         self.compileAndRunButton = CTkButton(

@@ -14,7 +14,7 @@ FontManager.load_font('./assets/font/JetBrainsMono/JetBrainsMono-Regular.ttf')
 class CompilerStatus:
     is_compiling = False
 
-compiler_status = CompilerStatus
+compiler_status = CompilerStatus() 
 class UwUCodePanel(CTkFrame):
     def __init__(self, master, **kwargs):
         super().__init__(master, **kwargs)
@@ -22,10 +22,11 @@ class UwUCodePanel(CTkFrame):
         self.grid_columnconfigure((0,1,2,3), weight=1)
         self.grid_rowconfigure(0, weight=1)
         self.grid_rowconfigure((1,2,3,4,5), weight=4)
+        self.compiler_status = CompilerStatus()  # Compiler status instance
 
         self.code_view = CodeView(
             master=self,
-            parent=master,
+            parent=self,
             corner_radius=8,
             anchor='nw',
             fg_color='#1A1B26',
@@ -61,6 +62,13 @@ class UwUCodePanel(CTkFrame):
 
         self.update_error_logs = self.console_view.update_error_logs
         self.update_compiler_logs = self.console_view.update_compiler_logs
+    
+    def update_logs_callback(self, editor, is_compiling):
+
+        if hasattr(self, 'console_view'):
+            self.console_view.update_compiler_logs(editor=editor, is_compiling=is_compiling)
+        else:
+            print("No console view to update logs.")
 
 class UwuAnalyzerPanel(CTkTabview):
     def __init__(self, master, **kwargs):
@@ -123,6 +131,8 @@ class UwU(CTk):
         self.bind("<KeyPress>", lambda e : self.run(e))
         self.bind("<Control-s>", lambda _ : self.code_panel.code_view.save_file())
         self.bind("<Control-o>", lambda _ : self.code_panel.code_view.load_file())
+        self.bind("<F3>", lambda _ : self.code_panel.code_view.auto_format_code())
+        self.bind("<F4>", lambda _ : self.code_panel.code_view.quick_run())
 
     def run(self, e: Event):
         if e.keysym != 'F5':
@@ -158,8 +168,27 @@ class UwU(CTk):
             self.code_panel.update_error_logs(errors=[])
             code_editor.start(editor=code_editor, compiler_status=compiler_status, update_logs_callback=self.code_panel.update_compiler_logs)
 
+    def update_analyzer_tabs_and_logs(self, code_editor: CodeEditor, lx_res, p_res, a_res):
+        if lx_res and p_res and a_res:
+            self.analyzer_panel.update_lexer(tokens=code_editor.tokens)
+            if code_editor.program:
+                self.analyzer_panel.update_parser_tree(program=code_editor.program)
+
+        self.code_panel.update_compiler_logs(editor=code_editor, is_compiling=False)
+
+        if len(code_editor.lx_errors) > 0:
+            self.analyzer_panel.clear_parser_tree()
+            self.code_panel.update_error_logs(errors=code_editor.lx_errors)
+        elif len(code_editor.p_errors) > 0:
+            self.code_panel.update_error_logs(errors=code_editor.p_errors)
+        elif len(code_editor.a_errors) > 0:
+            self.code_panel.update_error_logs(errors=code_editor.a_errors)
+        else:
+            self.code_panel.update_error_logs(errors=[])
+
 if __name__ == "__main__":
     app = UwU()  
     app.mainloop()
 
-# Version 0.1.1
+# Version 0.3.0
+# Created by SenPys
