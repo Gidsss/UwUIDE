@@ -5,7 +5,7 @@ import threading
 from customtkinter import *
 from tkinter import *
 from constants.path import *
-from constants.theme import UWU_COMPILER_THEME
+from theme import themes
 
 from src.lexer import Lexer, Token, Error
 from src.lexer.token import UniqueTokenType
@@ -17,7 +17,8 @@ from src.compiler import Compiler
 from enum import Enum
 from PIL import Image
 
-
+# edit theme to change the color scheme
+EDITOR_THEME = themes['tokyo']
 class Linenums(CTkCanvas):
     def __init__(self, master, text_widget: CTkTextbox, **kwargs):
         super().__init__(master, **kwargs)
@@ -153,13 +154,17 @@ class CodeEditor(CTkFrame):
         typing_timer = self.text.after(1500, self.syntax_highlight)
 
     def syntax_highlight(self, event = None):
-        src = [v if v else v + '\n' for v in self.text.get('1.0', 'end-1c').split('\n')]
-        # print(src)
-        # print(self.text.get('1.0', END).strip().split('\n'))
-        lx_tokens = self.lexer(src)
-        self.text.tag_delete(*self.text.tag_names())
+        self.source_code = [v if v else v + '\n' for v in self.text.get('1.0', 'end-1c').split('\n')]
 
-        for i,token in enumerate(lx_tokens.tokens):
+        lx = self.lexer(self.source_code)
+        self.tokens = lx.tokens
+        self.lx_errors = lx.errors
+
+        for tag in self.text.tag_names():
+            if tag not in ['token_highlight', 'error_highlight']:
+                self.text.tag_delete(tag)
+
+        for i,token in enumerate(self.tokens):
             if(token.token.token == 'WHITESPACE'):
                 continue
             
@@ -177,22 +182,22 @@ class CodeEditor(CTkFrame):
                 if(isinstance(token.token, UniqueTokenType)):
                     tok = token.token.unique_type.split('_')[0]
                     
-                    if(tok == 'IDENTIFIER' and lx_tokens.tokens[i - 1].token.token == '.'):
+                    if(tok == 'IDENTIFIER' and self.tokens[i - 1].token.token == '.'):
                         tok = 'METHOD'
                 else:
                     tok = token.token.token
 
-                fg = UWU_COMPILER_THEME[tok]
+                fg = EDITOR_THEME[tok]
                 self.text.tag_config(token_tag_name, foreground=fg)
             except:
-                self.text.tag_config(token_tag_name, foreground=UWU_COMPILER_THEME['default'])
+                self.text.tag_config(token_tag_name, foreground=EDITOR_THEME['default'])
 
     def run_lexer(self) -> bool:
-        self.source_code = [v if v else v + '\n' for v in self.text.get('1.0', 'end-1c').split('\n')]
-        lx: Lexer = self.lexer(self.source_code)
+        # self.source_code = [v if v else v + '\n' for v in self.text.get('1.0', 'end-1c').split('\n')]
+        # lx: Lexer = self.lexer(self.source_code)
 
-        self.tokens = lx.tokens
-        self.lx_errors = lx.errors
+        # self.tokens = lx.tokens
+        # self.lx_errors = lx.errors
 
         if(len(self.lx_errors) > 0 and self.program):
             self.program = None
@@ -418,6 +423,7 @@ class CodeView(CTkTabview):
             # Replace source code with formatted string
             self.editor.text.delete("1.0", END)
             self.editor.text.insert("1.0", self.editor.program.formatted_string())
+            self.editor.syntax_highlight()
 
             # Reset states
             self.editor.lx_errors = []
