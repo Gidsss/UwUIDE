@@ -1,11 +1,14 @@
 import subprocess
+import uuid
 import threading
 
 from customtkinter import *
 from tkinter import *
 from constants.path import *
+from constants.theme import UWU_COMPILER_THEME
 
 from src.lexer import Lexer, Token, Error
+from src.lexer.token import UniqueTokenType
 from src.parser import Parser, ErrorSrc
 from src.analyzer import MemberAnalyzer, TypeChecker
 from src.analyzer.error_handler import ErrorSrc as AnalyzerErrorSrc
@@ -109,6 +112,7 @@ class CodeEditor(CTkFrame):
         self.text.bind("<Return>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<BackSpace>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<Visibility>", lambda e: self.line_nums.on_redraw(e))
+        self.text.bind("<KeyRelease>", lambda e: self.on_idle_gui(e))
 
         self.text.bind("<Control-c>", lambda e: self.copy_text(e))
         self.text.bind("<Control-v>", lambda e: self.paste_text(e))
@@ -117,6 +121,7 @@ class CodeEditor(CTkFrame):
          
         # Initialize QoL text for untitled code editor
         self.init_text()
+        self.syntax_highlight()
  
         # Initialize tags
         for tag in Tags:
@@ -133,6 +138,54 @@ class CodeEditor(CTkFrame):
     def on_tab(self, e: Event):
         e.widget.insert(INSERT, " " * 4)
         return 'break'
+
+    def on_idle_gui(self, event = None):
+        # ignore navigation and tab keys
+        if event.keysym in ['Up', 'Down', 'Left', 'Right', 'Tab']:
+            return
+        
+        typing_timer = None
+        # Cancel the previous timer
+        if typing_timer:
+            self.text.after_cancel(typing_timer)
+
+        # Start a new timer
+        typing_timer = self.text.after(1500, self.syntax_highlight)
+
+    def syntax_highlight(self, event = None):
+        src = [v if v else v + '\n' for v in self.text.get('1.0', 'end-1c').split('\n')]
+        # print(src)
+        # print(self.text.get('1.0', END).strip().split('\n'))
+        lx_tokens = self.lexer(src)
+        self.text.tag_delete(*self.text.tag_names())
+
+        for i,token in enumerate(lx_tokens.tokens):
+            if(token.token.token == 'WHITESPACE'):
+                continue
+            
+            row_pos,col_pos = token.position
+            row_end_pos,col_end_pos = token.end_position
+
+            token_tag_name = uuid.uuid4()
+            token_start_pos = f'{row_pos+1}.{col_pos}'
+            token_end_pos = f'{row_end_pos+1}.{col_end_pos+1}'
+            
+            self.text.tag_add(token_tag_name, token_start_pos,token_end_pos)
+            try:
+                tok = None
+                
+                if(isinstance(token.token, UniqueTokenType)):
+                    tok = token.token.unique_type.split('_')[0]
+                    
+                    if(tok == 'IDENTIFIER' and lx_tokens.tokens[i - 1].token.token == '.'):
+                        tok = 'METHOD'
+                else:
+                    tok = token.token.token
+
+                fg = UWU_COMPILER_THEME[tok]
+                self.text.tag_config(token_tag_name, foreground=fg)
+            except:
+                self.text.tag_config(token_tag_name, foreground=UWU_COMPILER_THEME['default'])
 
     def run_lexer(self) -> bool:
         self.source_code = [v if v else v + '\n' for v in self.text.get('1.0', 'end-1c').split('\n')]
