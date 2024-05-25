@@ -363,6 +363,11 @@ class CodeView(CTkTabview):
             self.create_new_tab(file)
             self.bind_esc(editor=self.code_editors[file], file_name=file)
 
+    def add_new_tab(self):
+        new_tab_name = f"Untitled_{len(self.code_editors) + 1}.uwu"
+        self.create_new_tab(new_tab_name)
+        self.set(new_tab_name)
+
     def create_new_tab(self, file_name):
         tab = self.add(file_name)
         tab.grid_columnconfigure((0, 1), weight=1)
