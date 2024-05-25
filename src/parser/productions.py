@@ -855,7 +855,14 @@ class Function(Production):
             params_string.insert(0, "self")
         res = sprintln(f"def {self.id.python_string(cwass=cwass)}({', '.join(params_string)}):", indent=0)
         for param in self.params:
-            res += sprintln(f"{param.id.python_string(cwass=cwass)}: {param.dtype.python_string(cwass=cwass)} = {param.dtype.python_string(cwass=cwass)}({param.id.python_string(cwass=cwass)})", indent=indent+1)
+            if param.dtype.is_unique_type():
+                res += sprintln(
+                    f"self.{param.id.python_string(cwass=True)}: {param.dtype.python_string(cwass=cwass)} = {param.id.python_string(cwass=True)}",
+                    indent=indent + 1)
+            else:
+                res += sprintln(
+                    f"self.{param.id.python_string(cwass=True)}: {param.dtype.python_string(cwass=cwass)} = {param.dtype.python_string(cwass=True)}({param.id.python_string(cwass=True)})",
+                    indent=indent + 1)
         res += self.body.python_string(indent+1, cwass=cwass)
         return sprintln(res, indent=indent)
 
