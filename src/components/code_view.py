@@ -418,7 +418,7 @@ class CodeView(CTkTabview):
         lx_res = self.editor.run_lexer()
         p_res = self.editor.run_parser()
 
-        self.parent.master.code_panel.update_compiler_logs(editor=self.editor, is_compiling=False, is_formatting=True)
+        self.parent.code_panel.update_compiler_logs(editor=self.editor, is_compiling=False, is_formatting=True)
 
         if lx_res and p_res:
             # Replace source code with formatted string
@@ -430,14 +430,14 @@ class CodeView(CTkTabview):
             self.editor.lx_errors = []
             self.editor.p_errors = []
             self.editor.program = None
-            self.parent.master.code_panel.update_error_logs(errors=[])
+            self.parent.code_panel.update_error_logs(errors=[])
             return 
 
         # Update errors
         if self.editor.lx_errors:
-            self.parent.master.code_panel.update_error_logs(errors=self.editor.lx_errors)
+            self.parent.code_panel.update_error_logs(errors=self.editor.lx_errors)
         if self.editor.p_errors:
-            self.parent.master.code_panel.update_error_logs(errors=self.editor.p_errors)
+            self.parent.code_panel.update_error_logs(errors=self.editor.p_errors)
 
     def bind_esc(self, editor: CodeEditor, file_name: str):
         editor.text.bind("<Escape>", lambda e: self.remove_tab(file_name))

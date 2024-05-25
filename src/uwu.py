@@ -26,7 +26,7 @@ class UwUCodePanel(CTkFrame):
 
         self.code_view = CodeView(
             master=self,
-            parent=self,
+            parent=master,
             corner_radius=8,
             anchor='nw',
             fg_color='#1A1B26',
@@ -96,8 +96,8 @@ class UwuAnalyzerPanel(CTkTabview):
 class UwU(CTk):
     def __init__(self):
         super().__init__()     
-        self.geometry("1280x720+200+60")
-        self.resizable(False, False)
+        self.geometry("1920x1080-100")
+        self.resizable(True, True)
         self.title("UwU++ by SenPys")
         self.configure(fg_color='#16161E')
         self.iconbitmap(f"{ICON_BLACK_ASSET}")
@@ -128,12 +128,29 @@ class UwU(CTk):
         )
         self.analyzer_panel.grid(row=0, column=4, rowspan=5, columnspan=2, sticky='nsew')
 
+        self.fullscreen = True
+        self.after(150, self.set_fullscreen) # Call set_fullscreen after 150ms
+
         self.bind("<KeyPress>", lambda e : self.run(e))
         self.bind("<Control-s>", lambda _ : self.code_panel.code_view.save_file())
         self.bind("<Control-o>", lambda _ : self.code_panel.code_view.load_file())
         self.bind("<F3>", lambda _ : self.code_panel.code_view.auto_format_code())
         self.bind("<F4>", lambda _ : self.on_compile_and_run(code_editor=self.code_panel.code_view.editor, mode='quick'))
-    
+        self.bind("<F11>", self.toggle_fullscreen)
+        
+    def set_fullscreen(self):
+        self.state('zoomed') # Maximize the window first
+        self.attributes("-fullscreen", True) # Then set it to fullscreen
+        self.update_idletasks()
+
+    def toggle_fullscreen(self, e: Event = None):
+        self.fullscreen = not self.fullscreen
+        self.attributes("-fullscreen", self.fullscreen)
+        if self.fullscreen:
+            self.attributes("-fullscreen", True)
+        else:
+            self.attributes("-fullscreen", False)
+
     def run(self, e: Event):
         if e.keysym != 'F5':
             return
