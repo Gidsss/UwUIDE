@@ -3,6 +3,7 @@ from pathlib import Path
 ROOT = Path(__file__).parent.parent
 
 RUN_ASSET = Path('./assets/run.png')
+QUICK_RUN_ASSET = Path('./assets/quick_run.png')
 LOAD_ASSET = Path('./assets/import.png')
 SAVE_ASSET = Path('./assets/save.png')
 FORMAT_ASSET = Path('./assets/load.png')

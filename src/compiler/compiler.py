@@ -38,8 +38,8 @@ class Compiler:
         with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
             f.write(self.source)
             tmp_file_path = f.name
-        subprocess.run(['python', tmp_file_path])
-        os.remove(tmp_file_path)
+        cmd = f'start cmd.exe /k python {tmp_file_path}'
+        subprocess.run(cmd, shell=True)
 
     def builtins(self) -> str:
         contents = "from __future__ import annotations\n\n"
