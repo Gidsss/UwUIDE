@@ -134,6 +134,7 @@ class UwU(CTk):
         self.bind("<KeyPress>", lambda e : self.run(e))
         self.bind("<Control-s>", lambda _ : self.code_panel.code_view.save_file())
         self.bind("<Control-o>", lambda _ : self.code_panel.code_view.load_file())
+        self.bind("<Control-n>", lambda _ : self.code_panel.code_view.add_new_tab())
         self.bind("<F3>", lambda _ : self.code_panel.code_view.auto_format_code())
         self.bind("<F4>", lambda _ : self.on_compile_and_run(code_editor=self.code_panel.code_view.editor, mode='quick'))
         self.bind("<F11>", self.toggle_fullscreen)
