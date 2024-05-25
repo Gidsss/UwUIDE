@@ -33,7 +33,7 @@ class CommandMenu(CTkFrame):
         )
         self.formatButton.grid(row=0, column=11, sticky='', columnspan=1)
 
-        self.quickRunButtonBgImage = CTkImage(light_image=Image.open(f"{RUN_ASSET}")) # Change the image asset tomorrow
+        self.quickRunButtonBgImage = CTkImage(light_image=Image.open(f"{QUICK_RUN_ASSET}")) # Change the image asset tomorrow
         self.quickRunButton = CTkButton(
             master=self,
             image=self.quickRunButtonBgImage,
@@ -42,7 +42,7 @@ class CommandMenu(CTkFrame):
             font=('JetBrains Mono', 12),
             width=99,
             height=30,
-            command=self.code_view.quick_run
+            command=lambda : self.parent.on_compile_and_run(code_editor=self.code_view.editor, mode='quick')
         )
         self.quickRunButton.grid(row=0, column=12, sticky='', columnspan=1)
 
@@ -55,7 +55,7 @@ class CommandMenu(CTkFrame):
             font=('JetBrains Mono', 12),
             width=99,
             height=30,
-            command=lambda : self.parent.on_compile_and_run(code_editor=self.code_view.editor)
+            command=lambda : self.parent.on_compile_and_run(code_editor=self.code_view.editor, mode='normal')
         )
         self.compileAndRunButton.grid(row=0, column=13, sticky='', columnspan=1)
 

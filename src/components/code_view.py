@@ -263,6 +263,10 @@ class CodeEditor(CTkFrame):
         compiler_status.is_compiling = False
         update_logs_callback(editor=editor, is_compiling=compiler_status.is_compiling, generated_log=log)
 
+    def quick_run(self):
+        compiler = Compiler(py_source=self.transpiled_program, filename=self.filename)
+        compiler.run_python() 
+
     def start(self, editor, compiler_status, update_logs_callback):
         compile_thread = threading.Thread(target=lambda: self.compile_and_run(editor=editor, compiler_status=compiler_status, update_logs_callback=update_logs_callback), name="UwU Compile", daemon=True)
         compile_thread.start()
@@ -347,9 +351,6 @@ class CodeEditor(CTkFrame):
         finally:
             self.line_nums.on_redraw(event)
         return "break"
-    
-    def update_source_code(self, new_code):
-        self.source_code = new_code
 
 class CodeView(CTkTabview):
     def __init__(self, master, parent, **kwargs):
@@ -361,32 +362,6 @@ class CodeView(CTkTabview):
         for file in self.file_names:
             self.create_new_tab(file)
             self.bind_esc(editor=self.code_editors[file], file_name=file)
-
-    def quick_run(self):
-        active_editor = self.editor
-        if active_editor:
-            # Ensure the latest text is always fetched and transpiled
-            source_code = active_editor.text.get('1.0', 'end-1c')  # Fetching the latest code from the editor
-            active_editor.update_source_code(source_code)  # Method to update the editor's source code attribute if needed
-
-            # Run lexer, parser, and analyzer every time to reflect latest changes
-            lx_res = active_editor.run_lexer()
-            p_res = active_editor.run_parser()
-            a_res = active_editor.run_analyzer()
-
-            # Update analyzer tabs and compiler logs
-            self.parent.master.update_analyzer_tabs_and_logs(active_editor, lx_res, p_res, a_res)
-
-            if lx_res and p_res and a_res:
-                if active_editor.transpiled_program:
-                    compiler = Compiler(py_source=active_editor.transpiled_program, filename=active_editor.filename)
-                    compiler.run_python()  # Run the Python transpiled code
-                else:
-                    print("No transpiled program available to run.")
-            else:
-                print("Errors encountered during quick run.")
-        else:
-            print("No active editor.")
 
     def create_new_tab(self, file_name):
         tab = self.add(file_name)
@@ -443,7 +418,7 @@ class CodeView(CTkTabview):
         lx_res = self.editor.run_lexer()
         p_res = self.editor.run_parser()
 
-        self.parent.code_panel.update_compiler_logs(editor=self.editor, is_compiling=False, is_formatting=True)
+        self.parent.master.code_panel.update_compiler_logs(editor=self.editor, is_compiling=False, is_formatting=True)
 
         if lx_res and p_res:
             # Replace source code with formatted string
@@ -455,14 +430,14 @@ class CodeView(CTkTabview):
             self.editor.lx_errors = []
             self.editor.p_errors = []
             self.editor.program = None
-            self.parent.code_panel.update_error_logs(errors=[])
+            self.parent.master.code_panel.update_error_logs(errors=[])
             return 
 
         # Update errors
         if self.editor.lx_errors:
-            self.parent.code_panel.update_error_logs(errors=self.editor.lx_errors)
+            self.parent.master.code_panel.update_error_logs(errors=self.editor.lx_errors)
         if self.editor.p_errors:
-            self.parent.code_panel.update_error_logs(errors=self.editor.p_errors)
+            self.parent.master.code_panel.update_error_logs(errors=self.editor.p_errors)
 
     def bind_esc(self, editor: CodeEditor, file_name: str):
         editor.text.bind("<Escape>", lambda e: self.remove_tab(file_name))
