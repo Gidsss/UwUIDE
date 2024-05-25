@@ -25,7 +25,7 @@ class CompilerLogsCanvas(CTkCanvas):
         CTkCanvas.__init__(self, master=master, width=16, borderwidth=0,bg='#16161E', highlightthickness=0)
         self.grid_columnconfigure((0,1), weight=1)
 
-        self.init_compiler_messages = [">\tWelcome to UwU++ IDE! The IDE supports the following shortcuts:", ">\tPress F5 to run the program", ">\tPress Ctrl+S to save the program", ">\tPress Ctrl+O to import a program", ">\tStart coding u qtpie 💖💖💖"]
+        self.init_compiler_messages = [">\tWelcome to UwU++ IDE! The IDE supports the following shortcuts:", ">\tPress F3 to auto-format the code", ">\tPress F4 to quick run the program", ">\tPress F5 to run the program", ">\tPress Ctrl+S to save the program", ">\tPress Ctrl+O to import a program", ">\tStart coding u qtpie 💖💖💖"]
 
         self.labels = []
 

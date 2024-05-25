@@ -114,7 +114,7 @@ class CodeEditor(CTkFrame):
         self.text.bind("<Return>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<BackSpace>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<Visibility>", lambda e: self.line_nums.on_redraw(e))
-        self.text.bind("<KeyRelease>", lambda e: self.on_idle_gui(e))
+        self.text.bind("<KeyRelease>", lambda e: self.syntax_highlight(e))
 
         self.text.bind("<Control-c>", lambda e: self.copy_text(e))
         self.text.bind("<Control-v>", lambda e: self.paste_text(e))
