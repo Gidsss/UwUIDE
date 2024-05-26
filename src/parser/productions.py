@@ -205,6 +205,7 @@ class Input(Iterable):
 
     def formatted_string(self, indent=0) -> str:
         res = f"inpwt({self.expr.formatted_string()})"
+        res += "~" if self.stmt else ""
         if self.concats:
             res += ' & ' + ' & '.join(c.formatted_string() for c in self.concats)
         return sprint(res, indent=indent if self.stmt else 0)
