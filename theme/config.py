@@ -108,6 +108,7 @@ class ThemeConfig():
         'FLOAT_LITERAL' : self.theme_colors.NUMBER,
         'STRING_LITERAL' : self.theme_colors.STRING,
         'STRING_PART_START' : self.theme_colors.STRING,
+        'STRING_PART_MID' : self.theme_colors.STRING,
         'STRING_PART_END' : self.theme_colors.STRING,
         'fax' : self.theme_colors.BOOL,
         'cap' : self.theme_colors.BOOL,

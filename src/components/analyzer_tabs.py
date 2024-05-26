@@ -94,7 +94,8 @@ class UwUParserTab(CTkScrollableFrame):
 
     def clear_highlight(self, event):
         self.code_editor = Remote.code_editor_instance
-        self.code_editor.clear_format()
+        if(self.code_editor):
+            self.code_editor.clear_format()
 
 class UwULexerTab(CTkScrollableFrame):
     def __init__(self, master, **kwargs):
