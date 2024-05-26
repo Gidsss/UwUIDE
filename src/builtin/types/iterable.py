@@ -54,7 +54,7 @@ class String:
 
     # subscripting
     def __getitem__(self, index):
-        return self.val[index]
+        return String(self.val[index])
     def __contains__(self, item):
         return item in self.val
     def __iter__(self):
