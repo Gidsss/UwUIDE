@@ -105,7 +105,8 @@ class CodeEditor(CTkFrame):
 
         self.line_nums = Linenums(master=self, text_widget=self.text)
         self.line_nums.grid(row=0, column=0, sticky='nsew')
-        
+
+        self.text.bind("<MouseWheel>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<Button-1>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<Up>", lambda e: self.line_nums.on_redraw(e))
         self.text.bind("<Down>", lambda e: self.line_nums.on_redraw(e))
