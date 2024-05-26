@@ -737,7 +737,7 @@ class TypeChecker:
             case IndexedIdentifier():
                 try: definition, class_type, global_type = self.class_signatures[f"{parent_type}.{id}"].items()
                 except: definition, class_type, global_type = local_defs[id].items()
-                if class_type.dimension() < len(accessor.id.index):
+                if class_type.dimension() < len(accessor.id.index) and not class_type.type_is_in([TokenType.SENPAI, TokenType.SENPAI_ARR]):
                     token = self.extract_id(accessor.id)
                     type_definition = local_defs[token.flat_string()].decl.dtype
                     self.errors.append(
