@@ -1,8 +1,13 @@
 from __future__ import annotations
-from .namespace import Int, Bool
+from .namespace import Int, Float, Bool
 
 class String:
     def __init__(self, val: str = ""):
+        match val:
+            case Int()|Float()|Bool()|String()|Array(): val = val.val
+        if val is None:
+            self.val = None
+            return
         self.val: str = str(val)
 
     ## META DUNDER METHODS
@@ -54,7 +59,7 @@ class String:
 
     # subscripting
     def __getitem__(self, index):
-        return self.val[index]
+        return String(self.val[index])
     def __contains__(self, item):
         return item in self.val
     def __iter__(self):
@@ -120,6 +125,11 @@ class String:
 
 class Array:
     def __init__(self, vals: "list|Array"):
+        match vals:
+            case Int()|Float()|Bool()|String()|Array(): vals = vals.val
+        if vals is None:
+            self.val = None
+            return
         tmp: "list|Array" = vals
         while isinstance(tmp, Array): tmp = tmp.val
         self.val: list = tmp

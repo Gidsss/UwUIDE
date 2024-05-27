@@ -317,8 +317,12 @@ class TypeChecker:
                     self.evaluate_fn_call(statement, local_defs)
                 case ClassAccessor():
                     self.check_and_evaluate_class_accessor(statement, local_defs)
-                case Break(): pass
-                case _: raise ValueError(f"Unknown statement: {statement}")
+                case Break():
+                    pass
+                case Comment():
+                    pass
+                case _:
+                    raise ValueError(f"Unknown statement: {statement}")
 
     def check_print(self, print: Print, local_defs: dict[str, Signature]) -> None:
         for val in print.values: self.evaluate_value(val, local_defs)
@@ -733,7 +737,7 @@ class TypeChecker:
             case IndexedIdentifier():
                 try: definition, class_type, global_type = self.class_signatures[f"{parent_type}.{id}"].items()
                 except: definition, class_type, global_type = local_defs[id].items()
-                if class_type.dimension() < len(accessor.id.index):
+                if class_type.dimension() < len(accessor.id.index) and not class_type.type_is_in([TokenType.SENPAI, TokenType.SENPAI_ARR]):
                     token = self.extract_id(accessor.id)
                     type_definition = local_defs[token.flat_string()].decl.dtype
                     self.errors.append(

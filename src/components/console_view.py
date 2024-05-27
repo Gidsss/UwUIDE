@@ -3,6 +3,7 @@ from .logs_table import LogsCanvas
 from PIL import Image, ImageTk
 from constants.path import *
 from src.components.code_view import CodeEditor
+from .util import generate_log
 
 class GeneratedLogFrame(CTkFrame):
     def __init__(self, master, generated_log: dict, **kwargs):
@@ -24,7 +25,7 @@ class CompilerLogsCanvas(CTkCanvas):
         CTkCanvas.__init__(self, master=master, width=16, borderwidth=0,bg='#16161E', highlightthickness=0)
         self.grid_columnconfigure((0,1), weight=1)
 
-        self.init_compiler_messages = [">\tWelcome to UwU++ IDE! The IDE supports the following shortcuts:", ">\tPress F5 to run the program", ">\tPress Ctrl+S to save the program", ">\tPress Ctrl+O to import a program", ">\tStart coding u qtpie 💖💖💖"]
+        self.init_compiler_messages = [">\tWelcome to UwU++ IDE! The IDE supports the following shortcuts:", ">\tPress F3 to auto-format the code", ">\tPress F4 to quick run the program", ">\tPress F5 to run the program", ">\tPress Ctrl+N to add a new tab", ">\tPress Ctrl+S to save the program", ">\tPress Ctrl+O to import a program", ">\tStart coding u qtpie 💖💖💖"]
 
         self.labels = []
 
@@ -32,28 +33,25 @@ class CompilerLogsCanvas(CTkCanvas):
             intro_label = CTkLabel(master=self, text=message, text_color='#FFFFFF', font=('JetBrains Mono', 11))
             intro_label.grid(row=i, column=0, sticky="nw")
             self.labels.append(intro_label)
-
-    def generate_log(self, lx_errors: list, p_errors: list) -> dict:
-        return {
-            "Status": "Compiler compiled successfully" if len(lx_errors) == 0 and len(p_errors) == 0 else "Compiler compiled with errors",
-            "Lexical Errors": len(lx_errors) if len(lx_errors) > 0 else None,
-            "Syntax Errors": len(p_errors) if len(p_errors) > 0 else None
-        }
     
-    def render_logs(self, lx_errors: list, p_errors: list):
-        generated_log = self.generate_log(lx_errors=lx_errors, p_errors=p_errors)
+    def render_logs(self, lx_errors: list, p_errors: list, a_errors: list, is_compiling = False, is_formatting = False):
+        generated_log = generate_log(lx_errors=lx_errors, p_errors=p_errors, a_errors=a_errors, is_compiling=is_compiling, is_formatting = is_formatting)
 
         self.generated_log_frame = GeneratedLogFrame(master=self, fg_color='transparent', generated_log=generated_log)
         self.generated_log_frame.grid(row=0, column=0, columnspan=2, sticky='nsew')
 
-    def update_logs(self, editor: CodeEditor):
+    def update_logs(self, editor: CodeEditor, is_compiling, generated_log = None, is_formatting = False):
         if len(self.labels) > 0:
             for label in self.labels:
                 label.destroy()
             
             self.labels = []
 
-        self.render_logs(lx_errors=editor.lx_errors,p_errors=editor.p_errors)
+        if(generated_log):
+            self.generated_log_frame = GeneratedLogFrame(master=self, fg_color='transparent', generated_log=generated_log)
+            self.generated_log_frame.grid(row=0, column=0, columnspan=2, sticky='nsew')
+        else:
+            self.render_logs(lx_errors=editor.lx_errors,p_errors=editor.p_errors, a_errors=editor.a_errors, is_compiling=is_compiling, is_formatting = is_formatting)
 
 class CompilerLogs(CTkScrollableFrame):
     def __init__(self, master, editor: CodeEditor, **kwargs):

@@ -1,8 +1,14 @@
 from __future__ import annotations
 from math import sqrt
+from .namespace import *
 
 class Bool:
     def __init__(self, val):
+        match val:
+            case Int()|Float()|Bool()|String()|Array(): val = val.val
+        if val is None:
+            self.val = None
+            return
         try:
             self.val = bool(val)
         except:
@@ -195,6 +201,13 @@ class Bool:
 
 class Float:
     def __init__(self, val):
+        match val:
+            case Int()|Float()|Bool()|String()|Array(): val = val.val
+        if val is None:
+            self.val = None
+            return
+        match val:
+            case Int()|Float(): val = val.val
         try:
             res = float(val)
             self.val: float = self.cap_val(res)
@@ -373,6 +386,11 @@ class Float:
 
 class Int:
     def __init__(self, val):
+        match val:
+            case Int()|Float()|Bool()|String()|Array(): val = val.val
+        if val is None:
+            self.val = None
+            return
         try:
             self.val = 0
             res = float(val)

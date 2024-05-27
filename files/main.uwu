@@ -1,8 +1,8 @@
 gwobaw hello-senpai~
 
 fwunc mainuwu-san()[[
-    pwint(hello)~
-    wetuwn(0)~
+    test-sama = fnOne()~
+    pwint(test)~
 ]]
 
 fwunc fnOne-sama()[[
@@ -11,4 +11,5 @@ fwunc fnOne-sama()[[
     ]]
     haiworld-senpai~
     pwint(haiworld)~
+    wetuwn(fax)~
 ]]
