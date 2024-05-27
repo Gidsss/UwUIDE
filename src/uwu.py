@@ -138,6 +138,7 @@ class UwU(CTk):
         self.bind("<F3>", lambda _ : self.code_panel.code_view.auto_format_code())
         self.bind("<F4>", lambda _ : self.on_compile_and_run(code_editor=self.code_panel.code_view.editor, mode='quick'))
         self.bind("<F11>", self.toggle_fullscreen)
+        self.bind("<Alt-F4>", self.close_application)
         
     def set_fullscreen(self):
         self.state('zoomed') # Maximize the window first
@@ -152,6 +153,9 @@ class UwU(CTk):
         else:
             self.attributes("-fullscreen", False)
 
+    def close_application(self, e: Event = None):
+        self.destroy()
+        
     def run(self, e: Event):
         if e.keysym != 'F5':
             return
