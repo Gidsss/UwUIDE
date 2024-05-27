@@ -1,8 +1,13 @@
 from __future__ import annotations
-from .namespace import Int, Bool
+from .namespace import Int, Float, Bool
 
 class String:
     def __init__(self, val: str = ""):
+        match val:
+            case Int()|Float()|Bool()|String()|Array(): val = val.val
+        if val is None:
+            self.val = None
+            return
         self.val: str = str(val)
 
     ## META DUNDER METHODS
@@ -120,6 +125,11 @@ class String:
 
 class Array:
     def __init__(self, vals: "list|Array"):
+        match val:
+            case Int()|Float()|Bool()|String()|Array(): val = val.val
+        if val is None:
+            self.val = None
+            return
         tmp: "list|Array" = vals
         while isinstance(tmp, Array): tmp = tmp.val
         self.val: list = tmp
