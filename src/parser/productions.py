@@ -858,11 +858,11 @@ class Function(Production):
         for param in self.params:
             if param.dtype.is_unique_type():
                 res += sprintln(
-                    f"self.{param.id.python_string(cwass=True)}: {param.dtype.python_string(cwass=cwass)} = {param.id.python_string(cwass=True)}",
+                    f"{param.id.python_string(cwass=cwass)}: {param.dtype.python_string(cwass=cwass)} = {param.id.python_string(cwass=cwass)}",
                     indent=indent + 1)
             else:
                 res += sprintln(
-                    f"self.{param.id.python_string(cwass=True)}: {param.dtype.python_string(cwass=cwass)} = {param.dtype.python_string(cwass=True)}({param.id.python_string(cwass=True)})",
+                    f"{param.id.python_string(cwass=cwass)}: {param.dtype.python_string(cwass=cwass)} = {param.dtype.python_string(cwass=cwass)}({param.id.python_string(cwass=cwass)})",
                     indent=indent + 1)
         res += self.body.python_string(indent+1, cwass=cwass)
         return sprintln(res, indent=indent)
