@@ -125,9 +125,9 @@ class String:
 
 class Array:
     def __init__(self, vals: "list|Array"):
-        match val:
-            case Int()|Float()|Bool()|String()|Array(): val = val.val
-        if val is None:
+        match vals:
+            case Int()|Float()|Bool()|String()|Array(): vals = vals.val
+        if vals is None:
             self.val = None
             return
         tmp: "list|Array" = vals
