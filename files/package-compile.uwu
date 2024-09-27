@@ -1,0 +1,15 @@
+fwunc mainuwu-san() [[
+    num-chan = inpwt("Enter number to be squared: ")~
+    times-chan = inpwt("Enter number of times to square: ")~
+    iwf (num > 0) [[
+        fow(i-chan = 0~ i < times~ i + 1) [[
+            pwint(num)~
+            num = square(num)~
+        ]]
+    ]] ewse [[
+        pwint("Enter a positive number. '| num |' is not a positive number.")~
+    ]]
+]]
+fwunc square-chan(num-chan) [[
+    wetuwn(num*num)~
+]]

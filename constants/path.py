@@ -25,3 +25,8 @@ BUILTINS = [
     *BUILTIN_TYPES,
     ROOT / "src" / "builtin" / "random" / "random.py",
 ]
+
+LEXER_SOURCE = ROOT / "files" / "package-lexer.uwu"
+PARSER_SOURCE = ROOT / "files" / "package-parser.uwu"
+ANALYZER_SOURCE = ROOT / "files" / "package-analyzer.uwu"
+COMPILE_SOURCE = ROOT / "files" / "package-compile.uwu"
