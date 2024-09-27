@@ -100,7 +100,7 @@ class UwU(CTk):
         self.resizable(True, True)
         self.title("UwU++ by SenPys")
         self.configure(fg_color='#16161E')
-        self.iconbitmap(f"{ICON_BLACK_ASSET}")
+        self.iconphoto(True, PhotoImage(f"{ICON_BLACK_ASSET}"))
 
         # Open top level window
         self.welcomeWindow = WelcomeWindow(self)
@@ -141,7 +141,6 @@ class UwU(CTk):
         self.bind("<Alt-F4>", self.close_application)
         
     def set_fullscreen(self):
-        self.state('zoomed') # Maximize the window first
         self.attributes("-fullscreen", True) # Then set it to fullscreen
         self.update_idletasks()
 
