@@ -20,18 +20,57 @@ class CommandMenu(CTkFrame):
         self.uwuLabel = CTkLabel(master=self, image=self.uwuBgImage, text='')
         self.uwuLabel.grid(row=0, column=0, sticky='nsew', columnspan=2)
 
-        self.runBgImage = CTkImage(light_image=Image.open(f"{RUN_ASSET}"))
-        self.runButton = CTkButton(
+        self.newTabBGImage = CTkImage(light_image=Image.open(f"{NEW_TAB_ASSET}"))
+        self.newTabButton = CTkButton(
             master=self,
-            image=self.runBgImage,
+            image=self.newTabBGImage,
             fg_color='#1A1B26',
-            text='Run',
+            text='New Tab',
             font=('JetBrains Mono', 12),
             width=99,
             height=30,
-            command=lambda : self.parent.on_compiler_run(code_editor=self.code_view.editor)
+            command=self.code_view.add_new_tab  # Set the command to add a new tab
         )
-        self.runButton.grid(row=0, column=13, sticky='', columnspan=1)
+        self.newTabButton.grid(row=0, column=10, sticky='', columnspan=1)
+
+        self.formatBgImage = CTkImage(light_image=Image.open(f"{FORMAT_ASSET}"))
+        self.formatButton = CTkButton(
+            master=self,
+            image=self.formatBgImage,
+            fg_color='#1A1B26',
+            text='Format',
+            font=('JetBrains Mono', 12),
+            width=99,
+            height=30,
+            command=self.code_view.auto_format_code  # Set the command to trigger file loading
+        )
+        self.formatButton.grid(row=0, column=11, sticky='', columnspan=1)
+
+        self.quickRunButtonBgImage = CTkImage(light_image=Image.open(f"{QUICK_RUN_ASSET}")) # Change the image asset tomorrow
+        self.quickRunButton = CTkButton(
+            master=self,
+            image=self.quickRunButtonBgImage,
+            fg_color='#1A1B26',
+            text='Quick Run',
+            font=('JetBrains Mono', 12),
+            width=99,
+            height=30,
+            command=lambda : self.parent.on_compile_and_run(code_editor=self.code_view.editor, mode='quick')
+        )
+        self.quickRunButton.grid(row=0, column=12, sticky='', columnspan=1)
+
+        self.compileAndRunBgImage = CTkImage(light_image=Image.open(f"{RUN_ASSET}"))
+        self.compileAndRunButton = CTkButton(
+            master=self,
+            image=self.compileAndRunBgImage,
+            fg_color='#1A1B26',
+            text='Compile & Run',
+            font=('JetBrains Mono', 12),
+            width=99,
+            height=30,
+            command=lambda : self.parent.on_compile_and_run(code_editor=self.code_view.editor, mode='normal')
+        )
+        self.compileAndRunButton.grid(row=0, column=13, sticky='', columnspan=1)
 
         self.saveBgImage = CTkImage(light_image=Image.open(f"{SAVE_ASSET}"))
         self.saveButton = CTkButton(

@@ -9,7 +9,7 @@ class Compiler:
     def __init__(self, py_source: str, filename: str) -> None:
         if not (res := self.validate_file(filename)): return
         self.filename = res
-        self.source = self.builtins() + py_source.replace('\\\\', '\\')
+        self.source = self.builtins() + py_source
 
     def validate_file(self, filename: str) -> str|None:
         # TODO: add more validations maybe?
@@ -38,8 +38,8 @@ class Compiler:
         with tempfile.NamedTemporaryFile(mode='w', suffix='.py', delete=False) as f:
             f.write(self.source)
             tmp_file_path = f.name
-        subprocess.run(['python', tmp_file_path])
-        os.remove(tmp_file_path)
+        cmd = f'start cmd.exe /k python {tmp_file_path}'
+        subprocess.run(cmd, shell=True)
 
     def builtins(self) -> str:
         contents = "from __future__ import annotations\n\n"

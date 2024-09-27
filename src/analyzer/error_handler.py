@@ -209,7 +209,7 @@ class NonFunctionIdCall(SemanticError):
         msg = f"Non Function Called: {self.called}\n"
         msg += border
         msg += f"\t{' ' * max_pad} | \t"
-        msg += f'Original identifier definition'
+        msg += f'Original identifier definition\n'
         msg += f"\t{index_str:{max_pad}} | {ErrorSrc.src[self.original.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.original.position[1]}{'^' * (og_range)}\n"
         msg += f"\t{' ' * max_pad} | {'_' * (self.original.position[1])}|\n"
@@ -406,8 +406,8 @@ class ReassignedConstantError:
         msg += f"\t{' ' * max_pad} | {'_' * (self.defined_token.position[1])}|\n"
         msg += f"\t{' ' * max_pad} | |\n"
         msg += f"\t{' ' * max_pad} | |\t"
-        msg += self.msg + "\n"
-        msg += f"\t{index_str:{max_pad}} | |{ErrorSrc.src[self.token.position[0]]}\n"
+        msg += self.msg
+        msg += f"\n\t{index_str:{max_pad}} | |{ErrorSrc.src[self.token.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | |{' ' * self.token.position[1]}{'^' * (error_range)}\n"
         msg += f"\t{' ' * max_pad} | |{'_' * (self.token.position[1])}|\n"
         msg += border
@@ -938,7 +938,7 @@ class NonClassAccessError(SemanticError):
 
 class UndefinedClassMember(SemanticError):
     def __init__(self, cwass: str, property: Token, member_type: GlobalType,
-                 actual_definition: tuple[Token|None, GlobalType|None]=(None, None)) -> None:
+                 actual_definition: tuple[Token, GlobalType|None]=(Token(), None)) -> None:
         self.cwass = cwass
         self.property = property
         self.member_type = member_type
@@ -956,18 +956,18 @@ class UndefinedClassMember(SemanticError):
         border = f"\t{'_' * (max_pad + 4 + len(ErrorSrc.src[self.property.position[0]]))}\n"
         msg = f"Undefined {self.member_type} of '{self.cwass}': '{self.property.flat_string()}'\n"
         msg += border
-        if self.actual_type and self.actual_definition:
+        if self.actual_type and self.actual_definition.exists():
             msg += f"\t{' ' * max_pad} |\t"
             msg += f"'{self.property.flat_string()}' is a {self.actual_type} of '{self.cwass}' defined here\n"
             msg += f"\t{str(self.actual_definition.position[0] + 1):{max_pad}} | {ErrorSrc.src[self.actual_definition.position[0]]}\n"
             msg += f"\t{' ' * max_pad} | {' ' * self.actual_definition.position[1]}{'^' * (len(self.actual_definition.flat_string()))}\n"
             msg += f"\t{' ' * max_pad} | {'_' * (self.actual_definition.position[1])}|\n"
             msg += f"\t{' ' * max_pad} | |\n"
-        msg += f"\t{' ' * max_pad} | " f"{'|' if self.actual_type else ''}" "\t"
+        msg += f"\t{' ' * max_pad} | " f"{'|' if self.actual_definition.exists() else ''}" "\t"
         msg += f"'{self.property.flat_string()}' is not a {self.member_type} of '{self.cwass}'\n"
-        msg += f"\t{property_index:{max_pad}} | " f"{'|' if self.actual_type else ''}" f"{ErrorSrc.src[self.property.position[0]]}\n"
-        msg += f"\t{' ' * max_pad} | " f"{'|' if self.actual_type else ''}" f"{' ' * self.property.position[1]}{'^' * (len(self.property.flat_string()))}\n"
-        if self.actual_type and self.actual_definition:
+        msg += f"\t{property_index:{max_pad}} | " f"{'|' if self.actual_definition.exists() else ''}" f"{ErrorSrc.src[self.property.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | " f"{'|' if self.actual_definition.exists() else ''}" f"{' ' * self.property.position[1]}{'^' * (len(self.property.flat_string()))}\n"
+        if self.actual_type and self.actual_definition.exists():
             msg += f"\t{' ' * max_pad} | |{'_' * (self.property.position[1])}|\n"
         msg += border
         return msg
@@ -979,7 +979,7 @@ class UndefinedClassMember(SemanticError):
 
         msg = f"Undefined {self.member_type} of '{self.cwass}': '{self.property.flat_string()}'\n"
         msg += border
-        if self.actual_type and self.actual_definition:
+        if self.actual_type and self.actual_definition.exists():
             msg += f"\t{' ' * max_pad} |\t"
             msg += Styled.sprintln(
                 f"'{self.property.flat_string()}' is a {self.actual_type} of '{self.cwass}' defined here",
@@ -990,14 +990,14 @@ class UndefinedClassMember(SemanticError):
             msg += f"\t{' ' * max_pad} | {'_' * (self.actual_definition.position[1])}|\n"
             msg += f"\t{' ' * max_pad} | |\n"
 
-        msg += f"\t{' ' * max_pad} | " f"{'|' if self.actual_type else ''}" "\t"
+        msg += f"\t{' ' * max_pad} | " f"{'|' if self.actual_definition.exists() else ''}" "\t"
         msg += Styled.sprintln(
             f"'{self.property.flat_string()}' is not a {self.member_type} of '{self.cwass}'",
             color=AnsiColor.RED
         )
-        msg += f"\t{property_index:{max_pad}} | " f"{'|' if self.actual_type else ''}" f"{ErrorSrc.src[self.property.position[0]]}\n"
-        msg += f"\t{' ' * max_pad} | " f"{'|' if self.actual_type else ''}" f"{' ' * self.property.position[1]}{'^' * (len(self.property.flat_string()))}\n"
-        if self.actual_type and self.actual_definition:
+        msg += f"\t{property_index:{max_pad}} | " f"{'|' if self.actual_definition.exists() else ''}" f"{ErrorSrc.src[self.property.position[0]]}\n"
+        msg += f"\t{' ' * max_pad} | " f"{'|' if self.actual_definition.exists() else ''}" f"{' ' * self.property.position[1]}{'^' * (len(self.property.flat_string()))}\n"
+        if self.actual_type and self.actual_definition.exists():
             msg += f"\t{' ' * max_pad} | |{'_' * (self.property.position[1])}|\n"
         msg += border
         return msg
@@ -1077,14 +1077,14 @@ class MismatchedCallArgType(SemanticError):
                 msg += f"{expected_len - actual_len} {'arg' if expected_len - actual_len == 1 else 'args'} missing\n"
                 for i in range(len(self.actual_types), len(self.expected_types)):
                     msg += f"\t{' ' * max_pad} |\t" + (
-                        f"{self.expected_types[i]:{expected_pad}} {f'( MISSING )':{actual_pad}}\n"
+                        f"{f'✗ {self.expected_types[i]}':{expected_pad}} {f'( MISSING )':{actual_pad}}\n"
                     )
             elif actual_len > expected_len:
                 msg += f"{actual_len - expected_len} {'arg' if actual_len - expected_len == 1 else 'args'} too many\n"
                 for i in range(len(self.expected_types), len(self.args)):
-                    msg += (f"\t{' ' * max_pad} |\t" +
-                        f"{'✗ NONE':{expected_pad}} {f'( {self.args[i].flat_string()} )':{actual_pad}}" +
-                        self.args[i].flat_string() + "\n"
+                    msg += f"\t{' ' * max_pad} |\t" + (
+                        f"{'✗ NONE':{expected_pad}} {f'( {self.args[i].flat_string()} )':{actual_pad}}"
+                        f"{self.args[i].flat_string()}\n"
                     )
         msg += border
         return msg
@@ -1254,7 +1254,7 @@ class NoReturnStatement(SemanticError):
     def end_position(self) -> tuple[int, int]|None:
         return self.func.id.end_position
 
-    def strign(self) -> str:
+    def string(self) -> str:
         last_stmt = final_statement(self.func.body) + 1
         rtype_index_str = str(self.func.rtype.position[0] + 1)
         max_pad = max(len(rtype_index_str), 4)
@@ -1264,15 +1264,15 @@ class NoReturnStatement(SemanticError):
         msg = f"{name} '{self.func.id.flat_string() if not self.cwass else (self.cwass+'.'+self.func.id.flat_string())}()' has no return statement:\n"
         msg += border
         msg += f"\t{' ' * max_pad} |\t"
-        msg += f"{name}s that don't have return statements implicitly retuwn 'nuww'."
+        msg += f"{name}s that don't have return statements implicitly retuwn 'nuww'.\n"
         msg += f"\t{' ' * max_pad} |\t"
-        msg += "Return type defined here"
+        msg += "Return type defined here\n"
         msg += f"\t{rtype_index_str:{max_pad}} | {ErrorSrc.src[self.func.rtype.position[0]]}\n"
         msg += f"\t{' ' * max_pad} | {' ' * self.func.rtype.position[1]}{'^' * (len(self.func.rtype.flat_string()))}\n"
         msg += f"\t{' ' * max_pad} |\t"
-        msg += f"Consider adding a return statement somewhere"
+        msg += f"Consider adding a return statement somewhere\n"
         msg += f"\t{' ' * max_pad} |\t"
-        msg += f"like after the statement in line {last_stmt}"
+        msg += f"like after the statement in line {last_stmt}\n"
         default_return = default_rtype(self.func.rtype.token)
         msg += f"\t{last_stmt:<{max_pad}} |\t\t{ErrorSrc.src[last_stmt-1].strip()}\n"
         msg += f"\t{f'...n':<{max_pad}} |\t\twetuwn({default_return})~\n"

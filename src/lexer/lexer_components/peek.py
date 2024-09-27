@@ -347,7 +347,6 @@ def string(context: tuple[list[str], list[int], str, list[Token], list[DelimErro
         token_types = (TokenType.STRING_PART_MID, TokenType.STRING_PART_END)
     
     temp_string = ''
-    escape_count = 0
     current_line = position[0]
 
     while True:
@@ -362,7 +361,7 @@ def string(context: tuple[list[str], list[int], str, list[Token], list[DelimErro
                 _, current_char = reverse_cursor(context)
                 context = lines, position, current_char, tokens, logs
 
-            starting_position = (position[0], position[1]-len(temp_string)+1)
+            starting_position = (position[0], position[1]-len(temp_string) + 1 + temp_string.count('|'))
             ending_position = (position[0], position[1])
             logs.append(GenericError(Error.UNCLOSED_STRING, starting_position, ending_position,
                                             context = f"'{temp_string}' is unclosed"))
@@ -375,14 +374,8 @@ def string(context: tuple[list[str], list[int], str, list[Token], list[DelimErro
             if is_end_of_file:
                 break
 
-            # NOTE put escapable characters here
-            if current_char not in ["|", '"']:
-                _, current_char = reverse_cursor(context)
-                context = lines, position, current_char, tokens, logs
-
-                temp_string += '\\'
-            else:
-                escape_count += 1
+            if current_char == '|': temp_string += ''
+            else: temp_string += '\\'
         
         elif current_char in ['|', '"']:
             if current_char == '|':
@@ -394,7 +387,7 @@ def string(context: tuple[list[str], list[int], str, list[Token], list[DelimErro
 
             temp_string += current_char
             temp_string = '"' + temp_string[1:-1] + '"'
-            temp_string_length = len(temp_string) + escape_count
+            temp_string_length = len(temp_string) + temp_string.count('|')
 
             starting_position = (position[0], position[1]-temp_string_length+1)
             ending_position = (position[0], position[1])

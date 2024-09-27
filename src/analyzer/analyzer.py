@@ -133,6 +133,8 @@ class MemberAnalyzer:
                     self.analyze_ident_prods(stmt, local_defs)
                 case Break():
                     pass
+                case Comment():
+                    pass
                 case _:
                     raise ValueError(f"Unknown statement: {stmt}")
 
@@ -240,6 +242,8 @@ class MemberAnalyzer:
                             self.expect_defined_token(ident_prod.id, GlobalType.IDENTIFIER, local_defs)
                         case FnCall():
                             self.analyze_fn_call(ident_prod.id, local_defs)
+                        case IndexedIdentifier():
+                            self.analyze_ident_prods(ident_prod.id, local_defs, access_depth=access_depth)
                 match ident_prod.accessed:
                     case FnCall():
                         for arg in ident_prod.accessed.args:
