@@ -1,3 +1,4 @@
+from tkinter import PhotoImage
 from customtkinter import *
 from constants.path import *
 from PIL import Image
@@ -10,7 +11,7 @@ class WelcomeWindow(CTkToplevel):
         self.title('Welcome, cutie~!')
         self.configure(fg_color = '#16161E')
         self.resizable(False, False)
-        self.iconbitmap(f"{ICON_BLACK_ASSET}")
+        self.iconphoto(True, PhotoImage(f"{ICON_BLACK_ASSET}"))
 
         self.bgImage = CTkImage(dark_image = Image.open(f'{WELCOME_BG_ASSET}'), size = (600, 600))
         self.bgLabel = CTkLabel(master = self, image = self.bgImage, 

@@ -1,0 +1,20 @@
+cwass Hololive() [[
+    b-chan~
+]]
+fwunc mainuwu-san() [[
+    a-Hololive[] = {}~
+    a.append(Hololive())~
+    a.append(1)~
+    a.has(Hololive())~
+    a.has(1)~
+    z-chan[] = {1,2,3}~
+    z.append(10)~
+    z.has(10)~
+    z.append("")~
+    z.has("")~
+    x-senpai[] = {}~
+    x.append(10)~
+    x.has(10)~
+    x.append("")~
+    x.has("")~
+]]

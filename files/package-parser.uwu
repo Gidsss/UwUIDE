@@ -1,0 +1,7 @@
+fwunc mainuwu-san() [[
+    b = a+a.init()~
+    a.init()~
+]]
+fwunc sums-chan[](nums-chan[]) [[
+    pwint(1)~
+]]

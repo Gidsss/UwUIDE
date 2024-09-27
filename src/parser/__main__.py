@@ -1,28 +1,21 @@
+from constants.path import PARSER_SOURCE
 from .parser import *
 from ..lexer import Lexer
 from .error_handler import ErrorSrc
 
 if __name__ == "__main__":
-    sc = """
-    fwunc mainuwu-san() [[
-        b = a+a.init()~
-        a.init()~
-    ]]
-    fwunc sums-chan[](nums-chan[]) [[
-        pwint(1)~
-    ]]
-    """
-
-    source: list[str] = [line if line else '\n' for line in sc.split("\n")]
+    source: list[str] = [
+        line if line else "\n" for line in open(PARSER_SOURCE, "r").readlines()
+    ]
     max_digit_length = len(str(len(source)))
     max_width = max(len(line) for line in source) + max_digit_length + 3
-    print('\nsample text file')
-    print("-"*max_width)
+    print("\nsample text file")
+    print("-" * max_width)
     for i, line in enumerate(source):
-        line = line if line != '\n' else ''
-        print(f"{i+1} | {line}")
-    print("-"*max_width)
-    print('end of file\n')
+        line = line if line != "\n" else ""
+        print(f"{i + 1} | {line}")
+    print("-" * max_width)
+    print("end of file\n")
 
     l = Lexer(source)
     if l.errors:
